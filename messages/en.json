@@ -92,6 +92,16 @@
     "createAccount": "Create an Account",
     "signUpDescription": "Join IONE Center as a buyer or seller"
   },
+  "selectRole": {
+    "title": "Choose Your Role",
+    "subtitle": "How would you like to use IONE Center?",
+    "buyer": "Buyer",
+    "buyerDesc": "Browse and purchase products from verified sellers worldwide.",
+    "seller": "Seller",
+    "sellerDesc": "List and sell your products to buyers around the globe.",
+    "continue": "Continue",
+    "loading": "Setting up..."
+  },
   "language": {
     "en": "English",
     "zh": "中文",
