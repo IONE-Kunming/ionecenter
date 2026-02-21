@@ -67,9 +67,15 @@ export async function getOrder(id: string): Promise<(Order & { items: OrderItem[
   }
 }
 
+const VALID_ORDER_STATUSES = ["draft", "pending", "processing", "shipped", "delivered", "cancelled"] as const
+
 export async function updateOrderStatus(id: string, status: string) {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
+
+  if (!VALID_ORDER_STATUSES.includes(status as typeof VALID_ORDER_STATUSES[number])) {
+    return { error: "Invalid order status" }
+  }
 
   const supabase = await createClient()
   const { error } = await supabase

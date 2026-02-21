@@ -93,8 +93,8 @@ export function TransactionsList({ transactions }: { transactions: Transaction[]
                 className="pl-8"
               />
             </div>
-            <Select options={typeOptions} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="w-full sm:w-40" />
-            <Select options={statusOptions} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full sm:w-40" />
+            <Select aria-label="Filter by type" options={typeOptions} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="w-full sm:w-40" />
+            <Select aria-label="Filter by status" options={statusOptions} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full sm:w-40" />
           </div>
         </CardHeader>
         <CardContent>

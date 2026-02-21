@@ -94,7 +94,7 @@ export async function createInvoice(orderId: string) {
       name: item.name,
       quantity: item.quantity,
       unit: "m",
-      price: item.price_per_meter ?? (item.quantity > 0 ? item.price / item.quantity : 0),
+      price: item.price_per_meter ?? (item.quantity > 0 ? Number((item.price / item.quantity).toFixed(2)) : 0),
       subtotal: item.price,
     }))
 

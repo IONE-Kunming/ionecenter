@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ShoppingCart, Trash2, Minus, Plus, Package } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,6 +23,7 @@ interface EnrichedCartItem {
 export default function CartClient({ items: initialItems }: { items: EnrichedCartItem[] }) {
   const [items, setItems] = useState<EnrichedCartItem[]>(initialItems)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   const persistCart = (updated: EnrichedCartItem[]) => {
     startTransition(async () => {
@@ -60,7 +62,7 @@ export default function CartClient({ items: initialItems }: { items: EnrichedCar
         icon={ShoppingCart}
         title="Your cart is empty"
         description="Browse our catalog to find products."
-        action={{ label: "Browse Catalog", onClick: () => window.location.href = "/buyer/catalog" }}
+        action={{ label: "Browse Catalog", onClick: () => router.push("/buyer/catalog") }}
       />
     )
   }

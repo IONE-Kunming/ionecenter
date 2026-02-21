@@ -47,6 +47,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing webhook headers" }, { status: 400 })
   }
 
+  // Verify timestamp freshness (within 5 minutes)
+  const timestampSeconds = Number(svixTimestamp)
+  const nowSeconds = Math.floor(Date.now() / 1000)
+  if (isNaN(timestampSeconds) || Math.abs(nowSeconds - timestampSeconds) > 300) {
+    return NextResponse.json({ error: "Webhook timestamp too old" }, { status: 401 })
+  }
+
   const body = await req.text()
 
   if (!verifyWebhookSignature(body, svixId, svixTimestamp, svixSignature, secret)) {
@@ -70,6 +77,8 @@ export async function POST(req: NextRequest) {
       const displayName =
         [first_name, last_name].filter(Boolean).join(" ") || email
       const role = (public_metadata?.role as string) || "buyer"
+      const VALID_ROLES = ["admin", "seller", "buyer"]
+      const safeRole = VALID_ROLES.includes(role) ? role : "buyer"
 
       await supabase
         .from("users")
@@ -78,7 +87,7 @@ export async function POST(req: NextRequest) {
             clerk_id: id,
             email,
             display_name: displayName,
-            role,
+            role: safeRole,
           },
           { onConflict: "clerk_id" }
         )

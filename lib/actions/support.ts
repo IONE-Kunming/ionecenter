@@ -48,11 +48,17 @@ export async function createSupportTicket(data: {
   return { success: true }
 }
 
+const VALID_TICKET_STATUSES = ["open", "in_progress", "resolved", "closed"] as const
+
 export async function updateTicketStatus(id: string, status: string) {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
 
   if (user.role !== "admin") return { error: "Not authorized" }
+
+  if (!VALID_TICKET_STATUSES.includes(status as typeof VALID_TICKET_STATUSES[number])) {
+    return { error: "Invalid ticket status" }
+  }
 
   const supabase = await createClient()
 
