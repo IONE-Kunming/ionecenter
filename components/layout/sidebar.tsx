@@ -1,0 +1,276 @@
+"use client"
+
+import * as React from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { useUser, useClerk } from "@clerk/nextjs"
+import {
+  LayoutDashboard, Package, ShoppingCart, FileText, Users, MessageSquare,
+  Bell, Settings, HelpCircle, LogOut, ChevronDown, Sun, Moon, Menu, X,
+  Building2, Pencil, DollarSign, BarChart3, Receipt, Calculator, Scale,
+  Layers, Store, ClipboardList
+} from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { useTheme } from "@/components/providers/theme-provider"
+import { Avatar } from "@/components/ui/avatar"
+import type { UserRole } from "@/types/database"
+
+interface NavItem {
+  label: string
+  href: string
+  icon: React.ElementType
+  children?: NavItem[]
+}
+
+function getNavItems(role: UserRole): NavItem[] {
+  const financeItems: NavItem[] = [
+    { label: "Dashboard", href: "finances/dashboard", icon: DollarSign },
+    { label: "Transactions", href: "finances/transactions", icon: Receipt },
+    { label: "Accounts", href: "finances/accounts", icon: BarChart3 },
+    { label: "Reports", href: "finances/reports", icon: ClipboardList },
+    { label: "Tax", href: "finances/tax", icon: Calculator },
+    { label: "Reconciliation", href: "finances/reconciliation", icon: Scale },
+  ]
+
+  if (role === "buyer") {
+    return [
+      { label: "Dashboard", href: "/buyer/dashboard", icon: LayoutDashboard },
+      { label: "Catalog", href: "/buyer/catalog", icon: Layers },
+      { label: "All Products", href: "/buyer/all-products", icon: Package },
+      { label: "Cart", href: "/buyer/cart", icon: ShoppingCart },
+      { label: "Orders", href: "/buyer/orders", icon: FileText },
+      { label: "Invoices", href: "/buyer/invoices", icon: Receipt },
+      { label: "Sellers", href: "/buyer/sellers", icon: Store },
+      { label: "Chats", href: "/buyer/chats", icon: MessageSquare },
+      { label: "Notifications", href: "/buyer/notifications", icon: Bell },
+      {
+        label: "Finances",
+        href: "/buyer/finances",
+        icon: DollarSign,
+        children: financeItems.map((item) => ({
+          ...item,
+          href: `/buyer/${item.href}`,
+        })),
+      },
+      { label: "Support", href: "/buyer/support", icon: HelpCircle },
+      { label: "Profile", href: "/buyer/profile", icon: Settings },
+    ]
+  }
+
+  if (role === "seller") {
+    return [
+      { label: "Dashboard", href: "/seller/dashboard", icon: LayoutDashboard },
+      { label: "Products", href: "/seller/products", icon: Package },
+      { label: "Bulk Edit", href: "/seller/bulk-edit", icon: Pencil },
+      { label: "Orders", href: "/seller/orders", icon: FileText },
+      { label: "Invoices", href: "/seller/invoices", icon: Receipt },
+      { label: "Branches", href: "/seller/branches", icon: Building2 },
+      { label: "Chats", href: "/seller/chats", icon: MessageSquare },
+      { label: "Notifications", href: "/seller/notifications", icon: Bell },
+      {
+        label: "Finances",
+        href: "/seller/finances",
+        icon: DollarSign,
+        children: financeItems.map((item) => ({
+          ...item,
+          href: `/seller/${item.href}`,
+        })),
+      },
+      { label: "Support", href: "/seller/support", icon: HelpCircle },
+      { label: "Profile", href: "/seller/profile", icon: Settings },
+    ]
+  }
+
+  // Admin
+  return [
+    { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+    { label: "Users", href: "/admin/users", icon: Users },
+    { label: "Products", href: "/admin/products", icon: Package },
+    { label: "Bulk Edit", href: "/admin/bulk-edit", icon: Pencil },
+    { label: "Orders", href: "/admin/orders", icon: FileText },
+    { label: "Invoices", href: "/admin/invoices", icon: Receipt },
+    { label: "Support", href: "/admin/support", icon: HelpCircle },
+    {
+      label: "Finances",
+      href: "/admin/finances",
+      icon: DollarSign,
+      children: financeItems.map((item) => ({
+        ...item,
+        href: `/admin/${item.href}`,
+      })),
+    },
+    { label: "Profile", href: "/admin/profile", icon: Settings },
+  ]
+}
+
+interface SidebarProps {
+  role: UserRole
+}
+
+export function Sidebar({ role }: SidebarProps) {
+  const pathname = usePathname()
+  const { user } = useUser()
+  const { signOut } = useClerk()
+  const { theme, setTheme } = useTheme()
+  const [mobileOpen, setMobileOpen] = React.useState(false)
+  const [expandedItems, setExpandedItems] = React.useState<string[]>([])
+  const navItems = getNavItems(role)
+
+  const toggleExpanded = (label: string) => {
+    setExpandedItems((prev) =>
+      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
+    )
+  }
+
+  // Auto-expand active finance section
+  React.useEffect(() => {
+    if (pathname.includes("/finances/")) {
+      setExpandedItems((prev) => (prev.includes("Finances") ? prev : [...prev, "Finances"]))
+    }
+  }, [pathname])
+
+  const sidebarContent = (
+    <div className="flex h-full flex-col">
+      {/* Logo */}
+      <div className="flex items-center gap-2 border-b px-6 py-4">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
+          IA
+        </div>
+        <span className="text-lg font-bold">IONE AlumaTech</span>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <ul className="space-y-1">
+          {navItems.map((item) => (
+            <li key={item.label}>
+              {item.children ? (
+                <div>
+                  <button
+                    onClick={() => toggleExpanded(item.label)}
+                    className={cn(
+                      "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent",
+                      pathname.startsWith(item.href) && "bg-accent"
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span className="flex-1 text-left">{item.label}</span>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform",
+                        expandedItems.includes(item.label) && "rotate-180"
+                      )}
+                    />
+                  </button>
+                  {expandedItems.includes(item.label) && (
+                    <ul className="ml-4 mt-1 space-y-1 border-l pl-3">
+                      {item.children.map((child) => (
+                        <li key={child.href}>
+                          <Link
+                            href={child.href}
+                            onClick={() => setMobileOpen(false)}
+                            className={cn(
+                              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent",
+                              pathname === child.href
+                                ? "bg-accent font-medium"
+                                : "text-muted-foreground"
+                            )}
+                          >
+                            <child.icon className="h-4 w-4" />
+                            {child.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent",
+                    pathname === item.href
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              )}
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {/* Bottom section */}
+      <div className="border-t p-4 space-y-3">
+        {/* Theme toggle */}
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent transition-colors"
+        >
+          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {theme === "dark" ? "Light Mode" : "Dark Mode"}
+        </button>
+
+        {/* User info */}
+        <div className="flex items-center gap-3 px-3">
+          <Avatar
+            src={user?.imageUrl}
+            alt={user?.fullName || "User"}
+            fallback={user?.fullName?.charAt(0)}
+            size="sm"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{user?.fullName || "User"}</p>
+            <p className="text-xs text-muted-foreground truncate capitalize">{role}</p>
+          </div>
+        </div>
+
+        {/* Logout */}
+        <button
+          onClick={() => signOut()}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent transition-colors"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign Out
+        </button>
+      </div>
+    </div>
+  )
+
+  return (
+    <>
+      {/* Mobile toggle */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed top-4 left-4 z-50 md:hidden"
+        onClick={() => setMobileOpen(!mobileOpen)}
+      >
+        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </Button>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed left-0 top-0 z-40 h-full w-64 border-r bg-sidebar text-sidebar-foreground transition-transform duration-200 md:translate-x-0",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {sidebarContent}
+      </aside>
+    </>
+  )
+}
