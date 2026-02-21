@@ -4,6 +4,8 @@ import { ThemeProvider } from "@/components/providers/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: "IONE AlumaTech - B2B Aluminum & Construction Materials Trading Platform",
   description:
