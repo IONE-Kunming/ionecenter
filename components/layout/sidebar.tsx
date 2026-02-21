@@ -86,6 +86,7 @@ function getNavItems(role: UserRole): NavItem[] {
   return [
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { label: "Users", href: "/admin/users", icon: Users },
+    { label: "Sellers", href: "/admin/sellers", icon: Store },
     { label: "Products", href: "/admin/products", icon: Package },
     { label: "Bulk Edit", href: "/admin/bulk-edit", icon: Pencil },
     { label: "Orders", href: "/admin/orders", icon: FileText },

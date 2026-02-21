@@ -6,6 +6,8 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/guest(.*)",
+  "/admin-setup",
+  "/api/admin-setup",
 ])
 
 const isClerkConfigured =
