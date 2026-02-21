@@ -155,7 +155,7 @@ export default function LandingPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold">Why Choose IONE Center?</h2>
             <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
-              Everything you need to manage your B2B construction materials business.
+              Everything you need to manage your B2B ecommerce business.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -180,7 +180,7 @@ export default function LandingPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold">Browse Categories</h2>
             <p className="mt-3 text-muted-foreground">
-              Explore our comprehensive catalog of construction materials.
+              Explore our comprehensive catalog of products.
             </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
