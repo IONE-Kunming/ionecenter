@@ -1,7 +1,8 @@
 "use server"
 
-import { auth } from "@clerk/nextjs/server"
+import { auth, currentUser } from "@clerk/nextjs/server"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import type { User } from "@/types/database"
 
 export async function getCurrentUser(): Promise<User | null> {
@@ -14,6 +15,49 @@ export async function getCurrentUser(): Promise<User | null> {
     .select("*")
     .eq("clerk_id", userId)
     .single()
+
+  return data
+}
+
+export async function ensureUserInSupabase(): Promise<User | null> {
+  const { userId } = await auth()
+  if (!userId) return null
+
+  const supabase = createAdminClient()
+  const { data: existing } = await supabase
+    .from("users")
+    .select("*")
+    .eq("clerk_id", userId)
+    .single()
+
+  if (existing) return existing
+
+  const clerkUser = await currentUser()
+  if (!clerkUser) return null
+
+  const email = clerkUser.emailAddresses?.[0]?.emailAddress ?? ""
+  const displayName =
+    [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || email
+  const role = (clerkUser.publicMetadata?.role as string) || "buyer"
+
+  const { data, error } = await supabase
+    .from("users")
+    .upsert(
+      {
+        clerk_id: userId,
+        email,
+        display_name: displayName,
+        role,
+      },
+      { onConflict: "clerk_id" }
+    )
+    .select()
+    .single()
+
+  if (error) {
+    console.error("Failed to sync user to Supabase:", error)
+    return null
+  }
 
   return data
 }
