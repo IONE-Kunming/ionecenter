@@ -92,6 +92,16 @@
     "createAccount": "创建账户",
     "signUpDescription": "加入 IONE Center，成为买家或卖家"
   },
+  "selectRole": {
+    "title": "选择您的角色",
+    "subtitle": "您希望如何使用 IONE Center？",
+    "buyer": "买家",
+    "buyerDesc": "浏览并从全球经过验证的卖家购买产品。",
+    "seller": "卖家",
+    "sellerDesc": "向全球买家展示和销售您的产品。",
+    "continue": "继续",
+    "loading": "正在设置..."
+  },
   "language": {
     "en": "English",
     "zh": "中文",

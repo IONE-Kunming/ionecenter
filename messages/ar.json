@@ -92,6 +92,16 @@
     "createAccount": "إنشاء حساب",
     "signUpDescription": "انضم إلى IONE Center كمشتري أو بائع"
   },
+  "selectRole": {
+    "title": "اختر دورك",
+    "subtitle": "كيف تريد استخدام IONE Center؟",
+    "buyer": "مشتري",
+    "buyerDesc": "تصفح وشراء المنتجات من بائعين موثقين حول العالم.",
+    "seller": "بائع",
+    "sellerDesc": "اعرض وبع منتجاتك للمشترين حول العالم.",
+    "continue": "متابعة",
+    "loading": "جارٍ الإعداد..."
+  },
   "language": {
     "en": "English",
     "zh": "中文",

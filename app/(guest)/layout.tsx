@@ -1,7 +1,11 @@
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import { Button } from "@/components/ui/button"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
-export default function GuestLayout({ children }: { children: React.ReactNode }) {
+export default async function GuestLayout({ children }: { children: React.ReactNode }) {
+  const nav = await getTranslations("nav")
+
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
@@ -13,11 +17,12 @@ export default function GuestLayout({ children }: { children: React.ReactNode })
             <span className="text-xl font-bold">IONE Center</span>
           </Link>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <Link href="/sign-in">
-              <Button variant="ghost" size="sm">Log In</Button>
+              <Button variant="ghost" size="sm">{nav("logIn")}</Button>
             </Link>
             <Link href="/sign-up">
-              <Button size="sm">Sign Up Free</Button>
+              <Button size="sm">{nav("signUpFree")}</Button>
             </Link>
           </div>
         </div>
