@@ -1,109 +1,25 @@
-"use client"
+import { getCart } from "@/lib/actions/cart"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
+import CheckoutClient from "./checkout-client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { CreditCard, Building, Smartphone, Wallet } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { cn, formatCurrency, calculateOrderTotals, DEPOSIT_OPTIONS } from "@/lib/utils"
+export default async function CheckoutPage() {
+  const cart = await getCart()
+  if (!cart || cart.items.length === 0) redirect("/buyer/cart")
 
-const paymentMethods = [
-  { id: "alipay", label: "Alipay", icon: Smartphone },
-  { id: "wechat", label: "WeChat Pay", icon: Wallet },
-  { id: "bank_transfer", label: "Bank Transfer", icon: Building },
-  { id: "card", label: "Card Payment", icon: CreditCard },
-] as const
+  const supabase = await createClient()
+  const productIds = cart.items.map((item) => item.product_id)
+  const { data: products } = await supabase
+    .from("products")
+    .select("id, name, model_number, price_per_meter")
+    .in("id", productIds)
 
-export default function CheckoutPage() {
-  const router = useRouter()
-  const [depositPct, setDepositPct] = useState<number | null>(null)
-  const [paymentMethod, setPaymentMethod] = useState<string | null>(null)
-  const [processing, setProcessing] = useState(false)
+  const enrichedItems = cart.items.map((item) => {
+    const product = products?.find((p) => p.id === item.product_id)
+    return { ...item, name: product?.name ?? "Unknown", model_number: product?.model_number ?? "" }
+  })
 
-  // Demo order data
-  const subtotal = 437.50
-  const { tax, total } = calculateOrderTotals(subtotal)
-  const deposit = depositPct ? total * (depositPct / 100) : 0
-  const remaining = total - deposit
+  const subtotal = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
-  const handleCheckout = async () => {
-    setProcessing(true)
-    // Simulate payment processing
-    await new Promise((r) => setTimeout(r, 1500))
-    router.push("/buyer/orders")
-  }
-
-  return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Order Summary */}
-      <Card>
-        <CardHeader><CardTitle>Order Summary</CardTitle></CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Tax (10%)</span><span>{formatCurrency(tax)}</span></div>
-          <div className="border-t pt-2 flex justify-between font-semibold text-base"><span>Total</span><span>{formatCurrency(total)}</span></div>
-        </CardContent>
-      </Card>
-
-      {/* Deposit Selection */}
-      <Card>
-        <CardHeader><CardTitle>Select Deposit Amount</CardTitle></CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {DEPOSIT_OPTIONS.map((pct) => (
-              <button
-                key={pct}
-                onClick={() => setDepositPct(pct)}
-                className={cn(
-                  "rounded-lg border-2 p-4 text-center transition-colors",
-                  depositPct === pct ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
-                )}
-              >
-                <span className="text-2xl font-bold">{pct}%</span>
-                <p className="text-xs text-muted-foreground mt-1">{formatCurrency(total * pct / 100)}</p>
-              </button>
-            ))}
-          </div>
-          {depositPct && (
-            <div className="mt-4 p-3 rounded-lg bg-muted text-sm space-y-1">
-              <div className="flex justify-between"><span>Deposit Amount:</span><span className="font-medium">{formatCurrency(deposit)}</span></div>
-              <div className="flex justify-between"><span>Remaining Balance:</span><span className="font-medium">{formatCurrency(remaining)}</span></div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Payment Method */}
-      <Card>
-        <CardHeader><CardTitle>Payment Method</CardTitle></CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-3">
-            {paymentMethods.map((method) => (
-              <button
-                key={method.id}
-                onClick={() => setPaymentMethod(method.id)}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg border-2 p-4 transition-colors",
-                  paymentMethod === method.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
-                )}
-              >
-                <method.icon className="h-5 w-5" />
-                <span className="text-sm font-medium">{method.label}</span>
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Confirm */}
-      <Button
-        className="w-full"
-        size="lg"
-        disabled={!depositPct || !paymentMethod || processing}
-        onClick={handleCheckout}
-      >
-        {processing ? "Processing Payment..." : `Pay ${depositPct ? formatCurrency(deposit) : "Select deposit"}`}
-      </Button>
-    </div>
-  )
+  return <CheckoutClient cartItems={cart.items} subtotal={subtotal} enrichedItems={enrichedItems} />
 }
