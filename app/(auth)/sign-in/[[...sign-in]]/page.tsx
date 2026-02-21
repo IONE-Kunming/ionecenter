@@ -6,11 +6,11 @@ export default function SignInPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-lg">
-            IA
+            IC
           </div>
           <h1 className="mt-4 text-2xl font-bold">Welcome Back</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to your IONE AlumaTech account
+            Sign in to your IONE Center account
           </p>
         </div>
         <SignIn

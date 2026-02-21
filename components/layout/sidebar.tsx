@@ -86,6 +86,7 @@ function getNavItems(role: UserRole): NavItem[] {
   return [
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { label: "Users", href: "/admin/users", icon: Users },
+    { label: "Sellers", href: "/admin/sellers", icon: Store },
     { label: "Products", href: "/admin/products", icon: Package },
     { label: "Bulk Edit", href: "/admin/bulk-edit", icon: Pencil },
     { label: "Orders", href: "/admin/orders", icon: FileText },
@@ -135,9 +136,9 @@ export function Sidebar({ role }: SidebarProps) {
       {/* Logo */}
       <div className="flex items-center gap-2 border-b px-6 py-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-          IA
+          IC
         </div>
-        <span className="text-lg font-bold">IONE AlumaTech</span>
+        <span className="text-lg font-bold">IONE Center</span>
       </div>
 
       {/* Navigation */}

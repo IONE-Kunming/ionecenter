@@ -1,4 +1,4 @@
-# IONE AlumaTech — Complete Migration Analysis
+# IONE Center — Complete Migration Analysis
 
 > **Prepared for:** Migration to Next.js (App Router) + Supabase + Clerk + Shadcn/ui + Tailwind CSS + Vercel
 > **Current Stack:** Vanilla JS SPA, Firebase (Auth, Firestore, Realtime DB, Storage), Vite, HTML/CSS
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-IONE AlumaTech is a **B2B aluminum and construction materials trading platform** with three user roles (Buyer, Seller, Admin). The current implementation is a single-page application built with vanilla JavaScript, Firebase backend services, and Vite as the build tool. The platform handles product catalogs, order management, invoicing, real-time chat, financial reporting, and multi-language support (English, Chinese, Arabic, Urdu).
+IONE Center (formerly IONE AlumaTech) is a **B2B ecommerce trading platform** with three user roles (Buyer, Seller, Admin). The previous implementation was a single-page application built with vanilla JavaScript, Firebase backend services, and Vite as the build tool. The platform handles product catalogs, order management, invoicing, real-time chat, financial reporting, and multi-language support (English, Chinese, Arabic, Urdu).
 
 **Key statistics:**
 - **48 page modules** across 3 user roles + guest access
