@@ -27,7 +27,7 @@ export async function updateCart(items: CartItem[]) {
     .from("carts")
     .upsert({
       user_id: user.id,
-      items: JSON.parse(JSON.stringify(items)),
+      items,
     })
 
   if (error) return { error: error.message }

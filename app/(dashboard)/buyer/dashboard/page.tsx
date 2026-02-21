@@ -20,7 +20,7 @@ export default async function BuyerDashboardPage() {
         <StatCard title="Total Orders" value={stats?.totalOrders ?? 0} icon={FileText} />
         <StatCard title="Total Spending" value={formatCurrency(stats?.totalSpending ?? 0)} icon={DollarSign} />
         <StatCard title="Pending Orders" value={stats?.pendingOrders ?? 0} icon={ShoppingCart} />
-        <StatCard title="Products" value={recentOrders.length} icon={Package} />
+        <StatCard title="Recent Orders" value={recentOrders.length} icon={Package} />
       </div>
 
       {/* Recent Orders */}
