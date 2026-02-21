@@ -66,6 +66,7 @@ export interface Order {
   tax_rate: number
   total: number
   deposit_amount: number
+  /** Stored as 0–100 (e.g. 30 means 30% deposit) */
   deposit_percentage: number
   remaining_balance: number
   payment_method: PaymentMethod | null
