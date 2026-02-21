@@ -1,4 +1,4 @@
--- IONE AlumaTech - Complete Database Schema
+-- IONE Center - Complete Database Schema
 -- Migration: 00001_initial_schema
 
 -- ============================================================

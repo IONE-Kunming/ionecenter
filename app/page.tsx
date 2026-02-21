@@ -6,6 +6,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 const stats = [
   { value: "1,000+", label: "Active Users" },
@@ -62,7 +63,7 @@ const steps = [
   {
     step: "01",
     title: "Browse & Select",
-    description: "Explore our vast catalog of aluminum and construction materials from verified suppliers.",
+    description: "Explore our vast catalog of products from verified suppliers around the world.",
   },
   {
     step: "02",
@@ -84,9 +85,9 @@ export default function LandingPage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-              IA
+              IC
             </div>
-            <span className="text-xl font-bold">IONE AlumaTech</span>
+            <span className="text-xl font-bold">IONE Center</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6">
             <Link href="/guest/categories" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -103,6 +104,7 @@ export default function LandingPage() {
             </Link>
           </nav>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <Link href="/sign-in">
               <Button variant="ghost" size="sm">Log In</Button>
             </Link>
@@ -117,11 +119,11 @@ export default function LandingPage() {
       <section className="relative overflow-hidden bg-gradient-to-b from-background to-muted/30 py-20 md:py-32">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-            B2B Aluminum & Construction
-            <span className="block text-primary">Materials Trading Platform</span>
+            B2B Ecommerce
+            <span className="block text-primary">Trading Platform</span>
           </h1>
           <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Trade aluminum profiles, sheets, glass products, and construction materials with trusted suppliers worldwide. Streamlined ordering, secure payments, and real-time tracking.
+            Trade products with trusted suppliers worldwide. Streamlined ordering, secure payments, and real-time tracking.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/sign-up">
@@ -151,7 +153,7 @@ export default function LandingPage() {
       <section id="features" className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold">Why Choose IONE AlumaTech?</h2>
+            <h2 className="text-3xl font-bold">Why Choose IONE Center?</h2>
             <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
               Everything you need to manage your B2B construction materials business.
             </p>
@@ -227,7 +229,7 @@ export default function LandingPage() {
             <div>
               <h2 className="text-3xl font-bold">Built for B2B Trading Excellence</h2>
               <p className="mt-4 text-muted-foreground">
-                Our platform is designed specifically for the aluminum and construction materials industry, providing tools that streamline every aspect of your business.
+                Our platform is designed for B2B ecommerce, providing tools that streamline every aspect of your business.
               </p>
               <ul className="mt-6 space-y-3">
                 {[
@@ -272,7 +274,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold">Ready to Start Trading?</h2>
           <p className="mt-4 text-primary-foreground/80 max-w-xl mx-auto">
-            Join thousands of businesses already trading on IONE AlumaTech. Create your free account today.
+            Join thousands of businesses already trading on IONE Center. Create your free account today.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/sign-up">
@@ -296,12 +298,12 @@ export default function LandingPage() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-                  IA
+                  IC
                 </div>
-                <span className="font-bold">IONE AlumaTech</span>
+                <span className="font-bold">IONE Center</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Your trusted B2B platform for aluminum and construction materials.
+                Your trusted B2B ecommerce platform for trading products worldwide.
               </p>
             </div>
             <div>
@@ -330,7 +332,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} IONE AlumaTech. All rights reserved.
+            © {new Date().getFullYear()} IONE Center. All rights reserved.
           </div>
         </div>
       </footer>

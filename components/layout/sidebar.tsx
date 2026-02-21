@@ -135,9 +135,9 @@ export function Sidebar({ role }: SidebarProps) {
       {/* Logo */}
       <div className="flex items-center gap-2 border-b px-6 py-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-          IA
+          IC
         </div>
-        <span className="text-lg font-bold">IONE AlumaTech</span>
+        <span className="text-lg font-bold">IONE Center</span>
       </div>
 
       {/* Navigation */}

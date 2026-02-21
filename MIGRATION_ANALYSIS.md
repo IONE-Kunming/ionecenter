@@ -1,4 +1,4 @@
-# IONE AlumaTech — Complete Migration Analysis
+# IONE Center — Complete Migration Analysis
 
 > **Prepared for:** Migration to Next.js (App Router) + Supabase + Clerk + Shadcn/ui + Tailwind CSS + Vercel
 > **Current Stack:** Vanilla JS SPA, Firebase (Auth, Firestore, Realtime DB, Storage), Vite, HTML/CSS

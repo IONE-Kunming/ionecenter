@@ -1,0 +1,101 @@
+{
+  "nav": {
+    "categories": "الفئات",
+    "products": "المنتجات",
+    "features": "المميزات",
+    "howItWorks": "كيف يعمل",
+    "logIn": "تسجيل الدخول",
+    "signUp": "إنشاء حساب",
+    "signUpFree": "سجل مجاناً"
+  },
+  "hero": {
+    "titleLine1": "تجارة إلكترونية B2B",
+    "titleLine2": "منصة التداول",
+    "description": "تداول المنتجات مع موردين موثوقين حول العالم. طلبات مبسطة ومدفوعات آمنة وتتبع في الوقت الفعلي.",
+    "getStarted": "ابدأ الآن",
+    "browseCatalog": "تصفح الكتالوج"
+  },
+  "stats": {
+    "activeUsers": "مستخدم نشط",
+    "inTransactions": "في المعاملات",
+    "uptime": "وقت التشغيل",
+    "products": "المنتجات"
+  },
+  "features": {
+    "title": "لماذا تختار IONE Center؟",
+    "subtitle": "كل ما تحتاجه لإدارة أعمال التجارة الإلكترونية B2B الخاصة بك.",
+    "secureTrading": "تداول آمن",
+    "secureTradingDesc": "أمان على مستوى المؤسسات مع معاملات مشفرة وبائعين موثقين.",
+    "globalMarketplace": "سوق عالمي",
+    "globalMarketplaceDesc": "تواصل مع الموردين والمشترين حول العالم بلغات متعددة.",
+    "fastProcessing": "معالجة سريعة",
+    "fastProcessingDesc": "معالجة طلبات مبسطة مع تتبع الحالة في الوقت الفعلي.",
+    "financialTools": "أدوات مالية",
+    "financialToolsDesc": "إدارة مالية شاملة مع التقارير والضرائب والتسوية.",
+    "sellerNetwork": "شبكة البائعين",
+    "sellerNetworkDesc": "تصفح البائعين الموثقين مع كتالوجات المنتجات والرسائل المباشرة.",
+    "support": "دعم على مدار الساعة",
+    "supportDesc": "فريق دعم متخصص للمساعدة في الطلبات والمدفوعات والاستفسارات."
+  },
+  "categories": {
+    "title": "تصفح الفئات",
+    "subtitle": "استكشف كتالوج منتجاتنا الشامل.",
+    "productsLabel": "منتج"
+  },
+  "howItWorks": {
+    "title": "كيف يعمل",
+    "subtitle": "ابدأ التداول في ثلاث خطوات بسيطة.",
+    "step1Title": "تصفح واختر",
+    "step1Desc": "استكشف كتالوج منتجاتنا الواسع من موردين موثقين حول العالم.",
+    "step2Title": "اطلب وادفع",
+    "step2Desc": "قدم طلبات مع خيارات إيداع مرنة وطرق دفع متعددة.",
+    "step3Title": "تتبع واستلم",
+    "step3Desc": "راقب طلباتك في الوقت الفعلي من المعالجة إلى التسليم."
+  },
+  "benefits": {
+    "title": "مصمم لتميز التداول B2B",
+    "subtitle": "منصتنا مصممة للتجارة الإلكترونية B2B، توفر أدوات تبسط كل جانب من جوانب عملك.",
+    "multiSeller": "إدارة طلبات متعددة البائعين",
+    "flexibleDeposit": "نظام إيداع مرن",
+    "realtimeChat": "محادثة فورية مع البائعين",
+    "financialReporting": "تقارير مالية شاملة",
+    "multiLanguage": "دعم متعدد اللغات (إنجليزي، صيني، عربي، أردو)",
+    "automatedInvoice": "إنشاء فواتير تلقائية",
+    "taxRate": "معدل الضريبة",
+    "paymentMethods": "طرق الدفع",
+    "currencies": "العملات",
+    "supportLabel": "الدعم"
+  },
+  "cta": {
+    "title": "مستعد لبدء التداول؟",
+    "subtitle": "انضم إلى آلاف الشركات التي تتداول بالفعل على IONE Center. أنشئ حسابك المجاني اليوم.",
+    "createAccount": "إنشاء حساب مجاني",
+    "exploreProducts": "استكشاف المنتجات"
+  },
+  "footer": {
+    "description": "منصة التجارة الإلكترونية B2B الموثوقة لتداول المنتجات عالمياً.",
+    "platform": "المنصة",
+    "becomeASeller": "كن بائعاً",
+    "company": "الشركة",
+    "aboutUs": "من نحن",
+    "contact": "اتصل بنا",
+    "careers": "وظائف",
+    "legal": "قانوني",
+    "privacyPolicy": "سياسة الخصوصية",
+    "termsOfService": "شروط الخدمة",
+    "cookiePolicy": "سياسة ملفات تعريف الارتباط",
+    "copyright": "© {year} IONE Center. جميع الحقوق محفوظة."
+  },
+  "auth": {
+    "welcomeBack": "مرحباً بعودتك",
+    "signInDescription": "سجل الدخول إلى حساب IONE Center الخاص بك",
+    "createAccount": "إنشاء حساب",
+    "signUpDescription": "انضم إلى IONE Center كمشتري أو بائع"
+  },
+  "language": {
+    "en": "English",
+    "zh": "中文",
+    "ar": "العربية",
+    "ur": "اردو"
+  }
+}

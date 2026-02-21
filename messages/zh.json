@@ -1,0 +1,101 @@
+{
+  "nav": {
+    "categories": "分类",
+    "products": "产品",
+    "features": "功能",
+    "howItWorks": "如何运作",
+    "logIn": "登录",
+    "signUp": "注册",
+    "signUpFree": "免费注册"
+  },
+  "hero": {
+    "titleLine1": "B2B 电子商务",
+    "titleLine2": "交易平台",
+    "description": "与全球可信赖的供应商进行产品交易。简化订购、安全支付和实时追踪。",
+    "getStarted": "立即开始",
+    "browseCatalog": "浏览目录"
+  },
+  "stats": {
+    "activeUsers": "活跃用户",
+    "inTransactions": "交易总额",
+    "uptime": "正常运行时间",
+    "products": "产品"
+  },
+  "features": {
+    "title": "为什么选择 IONE Center？",
+    "subtitle": "管理您的 B2B 电子商务业务所需的一切。",
+    "secureTrading": "安全交易",
+    "secureTradingDesc": "企业级安全，加密交易和经过验证的卖家。",
+    "globalMarketplace": "全球市场",
+    "globalMarketplaceDesc": "以多种语言与全球供应商和买家建立联系。",
+    "fastProcessing": "快速处理",
+    "fastProcessingDesc": "简化的订单处理和实时状态追踪。",
+    "financialTools": "财务工具",
+    "financialToolsDesc": "全面的财务管理，包括报表、税务和对账。",
+    "sellerNetwork": "卖家网络",
+    "sellerNetworkDesc": "浏览经过验证的卖家，包含产品目录和直接消息功能。",
+    "support": "全天候支持",
+    "supportDesc": "专业支持团队，帮助处理订单、付款和咨询。"
+  },
+  "categories": {
+    "title": "浏览分类",
+    "subtitle": "探索我们全面的产品目录。",
+    "productsLabel": "产品"
+  },
+  "howItWorks": {
+    "title": "如何运作",
+    "subtitle": "三个简单步骤即可开始交易。",
+    "step1Title": "浏览与选择",
+    "step1Desc": "探索来自全球经过验证的供应商的丰富产品目录。",
+    "step2Title": "下单与支付",
+    "step2Desc": "灵活的预付款选项和多种支付方式下单。",
+    "step3Title": "追踪与接收",
+    "step3Desc": "实时监控您的订单，从处理到送达。"
+  },
+  "benefits": {
+    "title": "为 B2B 卓越交易而打造",
+    "subtitle": "我们的平台专为 B2B 电子商务设计，提供优化您业务各方面的工具。",
+    "multiSeller": "多卖家订单管理",
+    "flexibleDeposit": "灵活的预付款系统",
+    "realtimeChat": "与卖家实时聊天",
+    "financialReporting": "全面的财务报告",
+    "multiLanguage": "多语言支持（英语、中文、阿拉伯语、乌尔都语）",
+    "automatedInvoice": "自动生成发票",
+    "taxRate": "税率",
+    "paymentMethods": "支付方式",
+    "currencies": "货币",
+    "supportLabel": "支持"
+  },
+  "cta": {
+    "title": "准备好开始交易了吗？",
+    "subtitle": "加入数千家已在 IONE Center 上交易的企业。立即创建您的免费账户。",
+    "createAccount": "创建免费账户",
+    "exploreProducts": "探索产品"
+  },
+  "footer": {
+    "description": "您值得信赖的 B2B 电子商务平台，进行全球产品交易。",
+    "platform": "平台",
+    "becomeASeller": "成为卖家",
+    "company": "公司",
+    "aboutUs": "关于我们",
+    "contact": "联系我们",
+    "careers": "招聘",
+    "legal": "法律",
+    "privacyPolicy": "隐私政策",
+    "termsOfService": "服务条款",
+    "cookiePolicy": "Cookie 政策",
+    "copyright": "© {year} IONE Center。保留所有权利。"
+  },
+  "auth": {
+    "welcomeBack": "欢迎回来",
+    "signInDescription": "登录您的 IONE Center 账户",
+    "createAccount": "创建账户",
+    "signUpDescription": "加入 IONE Center，成为买家或卖家"
+  },
+  "language": {
+    "en": "English",
+    "zh": "中文",
+    "ar": "العربية",
+    "ur": "اردو"
+  }
+}

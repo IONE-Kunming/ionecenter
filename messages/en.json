@@ -1,0 +1,101 @@
+{
+  "nav": {
+    "categories": "Categories",
+    "products": "Products",
+    "features": "Features",
+    "howItWorks": "How It Works",
+    "logIn": "Log In",
+    "signUp": "Sign Up",
+    "signUpFree": "Sign Up Free"
+  },
+  "hero": {
+    "titleLine1": "B2B Ecommerce",
+    "titleLine2": "Trading Platform",
+    "description": "Trade products with trusted suppliers worldwide. Streamlined ordering, secure payments, and real-time tracking.",
+    "getStarted": "Get Started",
+    "browseCatalog": "Browse Catalog"
+  },
+  "stats": {
+    "activeUsers": "Active Users",
+    "inTransactions": "In Transactions",
+    "uptime": "Uptime",
+    "products": "Products"
+  },
+  "features": {
+    "title": "Why Choose IONE Center?",
+    "subtitle": "Everything you need to manage your B2B ecommerce business.",
+    "secureTrading": "Secure Trading",
+    "secureTradingDesc": "Enterprise-grade security with encrypted transactions and verified sellers.",
+    "globalMarketplace": "Global Marketplace",
+    "globalMarketplaceDesc": "Connect with suppliers and buyers across the globe in multiple languages.",
+    "fastProcessing": "Fast Processing",
+    "fastProcessingDesc": "Streamlined order processing with real-time status tracking.",
+    "financialTools": "Financial Tools",
+    "financialToolsDesc": "Comprehensive financial management with reports, tax, and reconciliation.",
+    "sellerNetwork": "Seller Network",
+    "sellerNetworkDesc": "Browse verified sellers with product catalogs and direct messaging.",
+    "support": "24/7 Support",
+    "supportDesc": "Dedicated support team to help with orders, payments, and inquiries."
+  },
+  "categories": {
+    "title": "Browse Categories",
+    "subtitle": "Explore our comprehensive catalog of products.",
+    "productsLabel": "products"
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Start trading in three simple steps.",
+    "step1Title": "Browse & Select",
+    "step1Desc": "Explore our vast catalog of products from verified suppliers around the world.",
+    "step2Title": "Order & Pay",
+    "step2Desc": "Place orders with flexible deposit options and multiple payment methods.",
+    "step3Title": "Track & Receive",
+    "step3Desc": "Monitor your orders in real-time from processing to delivery at your doorstep."
+  },
+  "benefits": {
+    "title": "Built for B2B Trading Excellence",
+    "subtitle": "Our platform is designed for B2B ecommerce, providing tools that streamline every aspect of your business.",
+    "multiSeller": "Multi-seller order management",
+    "flexibleDeposit": "Flexible deposit payment system",
+    "realtimeChat": "Real-time chat with sellers",
+    "financialReporting": "Comprehensive financial reporting",
+    "multiLanguage": "Multi-language support (EN, ZH, AR, UR)",
+    "automatedInvoice": "Automated invoice generation",
+    "taxRate": "Tax Rate",
+    "paymentMethods": "Payment Methods",
+    "currencies": "Currencies",
+    "supportLabel": "Support"
+  },
+  "cta": {
+    "title": "Ready to Start Trading?",
+    "subtitle": "Join thousands of businesses already trading on IONE Center. Create your free account today.",
+    "createAccount": "Create Free Account",
+    "exploreProducts": "Explore Products"
+  },
+  "footer": {
+    "description": "Your trusted B2B ecommerce platform for trading products worldwide.",
+    "platform": "Platform",
+    "becomeASeller": "Become a Seller",
+    "company": "Company",
+    "aboutUs": "About Us",
+    "contact": "Contact",
+    "careers": "Careers",
+    "legal": "Legal",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "cookiePolicy": "Cookie Policy",
+    "copyright": "© {year} IONE Center. All rights reserved."
+  },
+  "auth": {
+    "welcomeBack": "Welcome Back",
+    "signInDescription": "Sign in to your IONE Center account",
+    "createAccount": "Create an Account",
+    "signUpDescription": "Join IONE Center as a buyer or seller"
+  },
+  "language": {
+    "en": "English",
+    "zh": "中文",
+    "ar": "العربية",
+    "ur": "اردو"
+  }
+}
