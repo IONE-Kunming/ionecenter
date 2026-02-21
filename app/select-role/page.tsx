@@ -13,11 +13,13 @@ export default function SelectRolePage() {
   const router = useRouter()
   const [selected, setSelected] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const t = useTranslations("selectRole")
 
   async function handleContinue() {
     if (!selected) return
     setLoading(true)
+    setError(null)
     const result = await setUserRole(selected)
     if (result.success) {
       if (selected === "seller") {
@@ -26,6 +28,7 @@ export default function SelectRolePage() {
         router.push("/buyer/catalog")
       }
     } else {
+      setError(result.error ?? "Something went wrong")
       setLoading(false)
     }
   }
@@ -77,6 +80,9 @@ export default function SelectRolePage() {
           </Card>
         </div>
         <div className="mt-6 text-center">
+          {error && (
+            <p className="mb-3 text-sm text-destructive">{error}</p>
+          )}
           <Button
             size="lg"
             disabled={!selected || loading}

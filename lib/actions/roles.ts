@@ -19,10 +19,14 @@ export async function setUserRole(role: UserRole) {
     })
 
     const supabase = createAdminClient()
-    await supabase
+    const { error: dbError } = await supabase
       .from("users")
       .update({ role })
       .eq("clerk_id", userId)
+
+    if (dbError) {
+      console.error("Failed to update role in database:", dbError)
+    }
 
     return { success: true }
   } catch (error) {
