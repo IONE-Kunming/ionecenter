@@ -39,7 +39,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-marcellus), ui-serif, Georgia, serif;
 }
 
 :root {
@@ -145,4 +146,162 @@
 
 .dark button:after {
   background: oklch(0.269 0 0);
+}
+
+/* ========== Design System Styles ========== */
+
+/* Heading font family */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+}
+
+/* Section title styles */
+.section-title .sub-title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #ABB8C3;
+  margin-bottom: 15px;
+}
+
+.section-title .title {
+  font-size: 50px;
+  line-height: 1.2;
+  margin-bottom: 40px;
+}
+
+.section-title .title span {
+  color: #C4EF17;
+}
+
+/* Circle button styles */
+.circle-btn {
+  display: inline-block;
+  padding: 20px 40px;
+  border-radius: 60px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  transition: color 0.3s;
+}
+
+.circle-btn .button__bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #C4EF17;
+  transform: translateY(100%);
+  transition: transform 0.3s;
+  z-index: -1;
+}
+
+.circle-btn:hover {
+  color: #000000;
+}
+
+.circle-btn:hover .button__bg {
+  transform: translateY(0);
+}
+
+/* Slider / portfolio styles */
+.swiper-slide {
+  transition: opacity 0.3s;
+}
+
+.portfolio-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.portfolio-item img {
+  transition: transform 0.5s;
+}
+
+.portfolio-item:hover img {
+  transform: scale(1.05);
+}
+
+.portfolio-item .overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  color: white;
+  padding: 30px;
+  transform: translateY(100%);
+  transition: transform 0.3s;
+}
+
+.portfolio-item:hover .overlay {
+  transform: translateY(0);
+}
+
+/* Marquee styles */
+.marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 30px 0;
+}
+
+.marquee-content {
+  display: inline-block;
+  animation: marquee 30s linear infinite;
+}
+
+.marquee-content span {
+  margin-right: 50px;
+  font-size: 18px;
+  font-weight: 500;
+  color: white;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Header sticky styles */
+.header-sticky {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  padding: 20px 40px;
+  transition: background 0.3s;
+}
+
+.header-sticky.scrolled {
+  background: #131923;
+  backdrop-filter: blur(10px);
+}
+
+/* Nav menu styles */
+.nav-menu a {
+  color: white;
+  text-decoration: none;
+  margin: 0 20px;
+  position: relative;
+}
+
+.nav-menu a:after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #C4EF17;
+  transition: width 0.3s;
+}
+
+.nav-menu a:hover:after {
+  width: 100%;
 }

@@ -36,6 +36,20 @@ export async function setUserRole(role: UserRole) {
 }
 
 export async function getUserRole(): Promise<UserRole | null> {
+  const { userId } = await auth()
+  if (!userId) return null
+
+  // Check Supabase first (admin-editable source of truth)
+  const adminClient = createAdminClient()
+  const { data: dbUser } = await adminClient
+    .from("users")
+    .select("role")
+    .eq("clerk_id", userId)
+    .single()
+
+  if (dbUser?.role) return dbUser.role as UserRole
+
+  // Fallback to Clerk metadata
   const user = await currentUser()
   if (!user) return null
   return (user.publicMetadata?.role as UserRole) || null

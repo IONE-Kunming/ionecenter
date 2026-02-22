@@ -107,5 +107,33 @@
     "zh": "中文",
     "ar": "العربية",
     "ur": "اردو"
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "catalog": "Catalog",
+    "allProducts": "All Products",
+    "cart": "Cart",
+    "orders": "Orders",
+    "invoices": "Invoices",
+    "sellers": "Sellers",
+    "chats": "Chats",
+    "notifications": "Notifications",
+    "finances": "Finances",
+    "financesDashboard": "Dashboard",
+    "transactions": "Transactions",
+    "accounts": "Accounts",
+    "reports": "Reports",
+    "tax": "Tax",
+    "reconciliation": "Reconciliation",
+    "support": "Support",
+    "profile": "Profile",
+    "products": "Products",
+    "bulkEdit": "Bulk Edit",
+    "branches": "Branches",
+    "users": "Users",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "language": "Language",
+    "signOut": "Sign Out"
   }
 }

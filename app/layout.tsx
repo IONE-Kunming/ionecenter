@@ -1,10 +1,24 @@
 import type { Metadata } from "next"
+import { Outfit, Marcellus } from "next/font/google"
 import { ClerkProvider } from "@clerk/nextjs"
 import { NextIntlClientProvider } from "next-intl"
 import { getLocale, getMessages } from "next-intl/server"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+  display: "swap",
+})
+
+const marcellus = Marcellus({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-marcellus",
+  display: "swap",
+})
 
 export const dynamic = 'force-dynamic'
 
@@ -34,7 +48,7 @@ export default async function RootLayout({
 
   const content = (
     <html lang={locale} dir={locale === "ar" || locale === "ur" ? "rtl" : "ltr"} suppressHydrationWarning>
-      <body className="font-sans antialiased">
+      <body className={`${outfit.variable} ${marcellus.variable} font-sans antialiased`}>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
             attribute="class"

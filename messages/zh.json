@@ -107,5 +107,33 @@
     "zh": "中文",
     "ar": "العربية",
     "ur": "اردو"
+  },
+  "sidebar": {
+    "dashboard": "仪表盘",
+    "catalog": "目录",
+    "allProducts": "所有产品",
+    "cart": "购物车",
+    "orders": "订单",
+    "invoices": "发票",
+    "sellers": "卖家",
+    "chats": "聊天",
+    "notifications": "通知",
+    "finances": "财务",
+    "financesDashboard": "仪表盘",
+    "transactions": "交易",
+    "accounts": "账户",
+    "reports": "报表",
+    "tax": "税务",
+    "reconciliation": "对账",
+    "support": "支持",
+    "profile": "个人资料",
+    "products": "产品",
+    "bulkEdit": "批量编辑",
+    "branches": "分支",
+    "users": "用户",
+    "lightMode": "浅色模式",
+    "darkMode": "深色模式",
+    "language": "语言",
+    "signOut": "退出登录"
   }
 }

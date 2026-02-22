@@ -107,5 +107,33 @@
     "zh": "中文",
     "ar": "العربية",
     "ur": "اردو"
+  },
+  "sidebar": {
+    "dashboard": "ڈیش بورڈ",
+    "catalog": "کیٹلاگ",
+    "allProducts": "تمام مصنوعات",
+    "cart": "کارٹ",
+    "orders": "آرڈرز",
+    "invoices": "انوائسز",
+    "sellers": "فروخت کنندگان",
+    "chats": "چیٹس",
+    "notifications": "اطلاعات",
+    "finances": "مالیات",
+    "financesDashboard": "ڈیش بورڈ",
+    "transactions": "لین دین",
+    "accounts": "اکاؤنٹس",
+    "reports": "رپورٹس",
+    "tax": "ٹیکس",
+    "reconciliation": "مفاہمت",
+    "support": "سپورٹ",
+    "profile": "پروفائل",
+    "products": "مصنوعات",
+    "bulkEdit": "بلک ایڈٹ",
+    "branches": "شاخیں",
+    "users": "صارفین",
+    "lightMode": "لائٹ موڈ",
+    "darkMode": "ڈارک موڈ",
+    "language": "زبان",
+    "signOut": "سائن آؤٹ"
   }
 }

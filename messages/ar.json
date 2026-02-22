@@ -107,5 +107,33 @@
     "zh": "中文",
     "ar": "العربية",
     "ur": "اردو"
+  },
+  "sidebar": {
+    "dashboard": "لوحة التحكم",
+    "catalog": "الكتالوج",
+    "allProducts": "جميع المنتجات",
+    "cart": "السلة",
+    "orders": "الطلبات",
+    "invoices": "الفواتير",
+    "sellers": "البائعون",
+    "chats": "المحادثات",
+    "notifications": "الإشعارات",
+    "finances": "المالية",
+    "financesDashboard": "لوحة التحكم",
+    "transactions": "المعاملات",
+    "accounts": "الحسابات",
+    "reports": "التقارير",
+    "tax": "الضرائب",
+    "reconciliation": "التسوية",
+    "support": "الدعم",
+    "profile": "الملف الشخصي",
+    "products": "المنتجات",
+    "bulkEdit": "تعديل جماعي",
+    "branches": "الفروع",
+    "users": "المستخدمون",
+    "lightMode": "الوضع الفاتح",
+    "darkMode": "الوضع الداكن",
+    "language": "اللغة",
+    "signOut": "تسجيل الخروج"
   }
 }
