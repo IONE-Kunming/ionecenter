@@ -47,6 +47,8 @@ export async function getOrCreateConversation(
 
   if (productId) {
     query = query.eq("product_id", productId)
+  } else {
+    query = query.is("product_id", null)
   }
 
   const { data: existing } = await query.maybeSingle()

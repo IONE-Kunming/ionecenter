@@ -28,7 +28,7 @@ export function SellerDirectory({ sellers }: { sellers: SellerRow[] }) {
     startChat(async () => {
       const conversation = await getOrCreateConversation(null, sellerId)
       if (conversation) {
-        router.push("/buyer/chats")
+        router.push(`/buyer/chats?id=${conversation.id}`)
       }
     })
   }

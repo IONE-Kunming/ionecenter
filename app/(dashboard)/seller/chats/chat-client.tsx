@@ -33,6 +33,7 @@ interface ChatClientProps {
   conversations: ConversationItem[]
   currentUserId: string
   userRole: "buyer" | "seller"
+  initialConversationId?: string
 }
 
 function relativeTime(dateStr: string | null) {
@@ -44,7 +45,7 @@ function relativeTime(dateStr: string | null) {
   }
 }
 
-export default function ChatClient({ conversations, currentUserId, userRole }: ChatClientProps) {
+export default function ChatClient({ conversations, currentUserId, userRole, initialConversationId }: ChatClientProps) {
   const t = useTranslations("chat")
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
@@ -60,6 +61,20 @@ export default function ChatClient({ conversations, currentUserId, userRole }: C
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
+
+  // Auto-select conversation from URL param
+  useEffect(() => {
+    if (initialConversationId && conversations.some((c) => c.id === initialConversationId)) {
+      setSelectedId(initialConversationId)
+      setShowSidebar(false)
+      setMessages([])
+      startLoadMessages(async () => {
+        const msgs = await getMessages(initialConversationId)
+        setMessages(msgs)
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialConversationId, conversations])
 
   // Real-time subscription
   useEffect(() => {

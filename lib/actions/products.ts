@@ -116,7 +116,7 @@ export async function deleteProduct(id: string) {
 }
 
 export async function bulkImportProducts(
-  rows: { name: string; model_number: string; main_category: string; category: string; price_per_meter: number; stock: number; description?: string }[]
+  rows: { name: string; model_number: string; main_category: string; category: string; price_per_meter: number; stock: number; description?: string; image_url?: string }[]
 ) {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return { error: "Not authorized" }
@@ -131,6 +131,7 @@ export async function bulkImportProducts(
     price_per_meter: row.price_per_meter,
     stock: row.stock,
     description: row.description ?? null,
+    image_url: row.image_url ?? null,
     seller_id: user.id,
   }))
 
@@ -138,4 +139,26 @@ export async function bulkImportProducts(
 
   if (error) return { error: error.message }
   return { success: true, count: insertRows.length }
+}
+
+export async function uploadProductImage(formData: FormData): Promise<{ url?: string; error?: string }> {
+  const user = await getCurrentUser()
+  if (!user) return { error: "Not authenticated" }
+
+  const file = formData.get("file") as File
+  if (!file) return { error: "No file provided" }
+
+  const supabase = createAdminClient()
+  const path = `products/${user.id}/${Date.now()}-${file.name}`
+  const { data, error } = await supabase.storage
+    .from("product-images")
+    .upload(path, file)
+
+  if (error) return { error: error.message }
+
+  const { data: urlData } = supabase.storage
+    .from("product-images")
+    .getPublicUrl(data.path)
+
+  return { url: urlData.publicUrl }
 }
