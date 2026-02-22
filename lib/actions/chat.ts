@@ -19,7 +19,7 @@ export async function getConversations(): Promise<ConversationWithParties[]> {
     .from("conversations")
     .select("*, buyer:users!buyer_id(id, display_name, company), seller:users!seller_id(id, display_name, company)")
     .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-    .order("last_message_time", { ascending: false, nullsFirst: false })
+    .order("last_message_at", { ascending: false, nullsFirst: false })
 
   return (data ?? []).map((c) => ({
     ...c,
@@ -46,9 +46,9 @@ export async function getOrCreateConversation(
     )
 
   if (productId) {
-    query = query.eq("product_id", productId)
+    query = query.eq("listing_id", productId)
   } else {
-    query = query.is("product_id", null)
+    query = query.is("listing_id", null)
   }
 
   const { data: existing } = await query.maybeSingle()
@@ -60,7 +60,7 @@ export async function getOrCreateConversation(
   const { data: conversation, error } = await adminSupabase
     .from("conversations")
     .insert({
-      product_id: productId,
+      listing_id: productId,
       buyer_id: user.id,
       seller_id: otherUserId,
     })
@@ -115,7 +115,7 @@ export async function sendMessage(conversationId: string, text: string) {
     .from("conversations")
     .update({
       last_message: text.trim(),
-      last_message_time: new Date().toISOString(),
+      last_message_at: new Date().toISOString(),
     })
     .eq("id", conversationId)
 
@@ -175,7 +175,7 @@ export async function sendAttachment(formData: FormData) {
     .from("conversations")
     .update({
       last_message: type === "image" ? "📷 Image" : "📄 PDF",
-      last_message_time: new Date().toISOString(),
+      last_message_at: new Date().toISOString(),
     })
     .eq("id", conversationId)
 

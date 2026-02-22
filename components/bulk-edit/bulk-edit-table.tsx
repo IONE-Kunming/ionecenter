@@ -333,18 +333,22 @@ export function BulkEditTable({
   const handleBulkDelete = useCallback(async () => {
     if (selectedIds.size === 0) return
     setDeleting(true)
-    let errorMsg = ""
-    for (const id of selectedIds) {
-      const result = await onDelete(id)
-      if (result.error) { errorMsg = result.error; break }
-    }
-    if (errorMsg) {
-      showToast(`Error: ${errorMsg}`, "error")
-    } else {
-      showToast(`✓ ${selectedIds.size} products deleted`)
-      setProducts((prev) => prev.filter((p) => !selectedIds.has(p.id)))
-      setSelectedIds(new Set())
-      router.refresh()
+    try {
+      let errorMsg = ""
+      for (const id of selectedIds) {
+        const result = await onDelete(id)
+        if (result.error) { errorMsg = result.error; break }
+      }
+      if (errorMsg) {
+        showToast(`Error: ${errorMsg}`, "error")
+      } else {
+        showToast(`✓ ${selectedIds.size} products deleted`)
+        setProducts((prev) => prev.filter((p) => !selectedIds.has(p.id)))
+        setSelectedIds(new Set())
+        router.refresh()
+      }
+    } catch {
+      showToast("Failed to delete products", "error")
     }
     setDeleting(false)
   }, [selectedIds, onDelete, showToast, router])
