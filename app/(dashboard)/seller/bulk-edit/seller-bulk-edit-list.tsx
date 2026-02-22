@@ -225,7 +225,8 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
 
             <div className="space-y-2">
               <Label>Upload CSV File</Label>
-              <Input ref={fileInputRef} type="file" accept=".csv" onChange={handleImport} />
+              <Input ref={fileInputRef} type="file" accept=".csv" onChange={handleImport} disabled={importing} />
+              {importing && <p className="text-sm text-muted-foreground">Importing products...</p>}
             </div>
 
             {importResult && showImportModal && (
