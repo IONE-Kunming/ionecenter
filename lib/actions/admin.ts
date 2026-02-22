@@ -201,7 +201,7 @@ export async function adminDeleteProduct(id: string) {
 }
 
 export async function adminBulkImportProducts(
-  rows: { name: string; model_number: string; main_category: string; category: string; price_per_meter: number; stock: number; description?: string }[],
+  rows: { name: string; model_number: string; main_category: string; category: string; price_per_meter: number; stock: number; description?: string; image_url?: string }[],
   sellerId?: string
 ) {
   const user = await getCurrentUser()
@@ -230,6 +230,7 @@ export async function adminBulkImportProducts(
     price_per_meter: row.price_per_meter,
     stock: row.stock,
     description: row.description ?? null,
+    image_url: row.image_url ?? null,
     seller_id: targetSellerId,
   }))
 

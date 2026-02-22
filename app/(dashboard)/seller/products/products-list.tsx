@@ -16,7 +16,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency, getStockStatus } from "@/lib/utils"
 import { MAIN_CATEGORIES, getSubcategories } from "@/types/categories"
-import { bulkImportProducts } from "@/lib/actions/products"
+import { bulkImportProducts, uploadProductImage } from "@/lib/actions/products"
+import { ImportPreview } from "@/components/bulk-edit/import-preview"
+import type { ImportRow } from "@/components/bulk-edit/bulk-edit-table"
 import type { Product } from "@/types/database"
 
 function parseCsvLine(line: string): string[] {
@@ -70,6 +72,8 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
   const [importResult, setImportResult] = useState<string | null>(null)
   const [importIsError, setImportIsError] = useState(false)
   const [importFile, setImportFile] = useState<File | null>(null)
+  const [previewRows, setPreviewRows] = useState<ImportRow[]>([])
+  const [showPreview, setShowPreview] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
@@ -82,20 +86,17 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
     setImportIsError(false)
   }
 
-  const handleStartImport = async () => {
+  const handleAnalyzePreview = async () => {
     if (!importFile) return
-    setImporting(true)
-    setImportResult(null)
     try {
       const text = await importFile.text()
       const rows = parseCSV(text)
       if (rows.length === 0) {
         setImportIsError(true)
         setImportResult("No valid rows found in CSV.")
-        setImporting(false)
         return
       }
-      const mapped = rows.map((r) => ({
+      const mapped: ImportRow[] = rows.map((r) => ({
         name: r.name || r.product_name || "Unnamed Product",
         model_number: r.model_number || "",
         main_category: r.main_category || r.category_main || "",
@@ -105,23 +106,44 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
         description: r.description || undefined,
         image_url: r.image_url || r.image_path || undefined,
       }))
-      const result = await bulkImportProducts(mapped)
-      if (result.error) {
-        setImportIsError(true)
-        setImportResult(`Import error: ${result.error}`)
-      } else {
-        setImportIsError(false)
-        setImportResult(`Successfully imported ${result.count} products!`)
-        setShowImportModal(false)
-        setImportFile(null)
-        router.refresh()
-      }
+      setPreviewRows(mapped)
+      setShowImportModal(false)
+      setShowPreview(true)
     } catch {
       setImportIsError(true)
-      setImportResult("Failed to import CSV file.")
+      setImportResult("Failed to parse CSV file.")
+    }
+  }
+
+  const handleFinishImport = async (rows: ImportRow[], imageFiles: (File | null)[]) => {
+    setImporting(true)
+    try {
+      const finalRows = [...rows]
+      for (let i = 0; i < imageFiles.length; i++) {
+        const file = imageFiles[i]
+        if (file) {
+          const formData = new FormData()
+          formData.append("file", file)
+          const result = await uploadProductImage(formData)
+          if (result.url) {
+            finalRows[i] = { ...finalRows[i], image_url: result.url }
+          }
+        }
+      }
+      const result = await bulkImportProducts(finalRows)
+      if (result.error) {
+        setImporting(false)
+        return
+      }
+      setShowPreview(false)
+      setPreviewRows([])
+      setImportFile(null)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+      router.refresh()
+    } catch {
+      // error handled
     }
     setImporting(false)
-    if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
   const filtered = products.filter((p) => {
@@ -264,12 +286,21 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
               <Download className="h-4 w-4" /> {tBulk("downloadSampleCsv")}
             </Button>
             <Button variant="outline" onClick={() => { setShowImportModal(false); setImportFile(null) }}>{tCommon("cancel")}</Button>
-            <Button onClick={handleStartImport} disabled={!importFile || importing} className="gap-2">
-              <Upload className="h-4 w-4" /> {importing ? tBulk("importingProducts") : "Start Importing"}
+            <Button onClick={handleAnalyzePreview} disabled={!importFile} className="gap-2">
+              <FileSpreadsheet className="h-4 w-4" /> Analyze &amp; Preview
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Import Preview Modal */}
+      <ImportPreview
+        open={showPreview}
+        onClose={() => { setShowPreview(false); setPreviewRows([]) }}
+        initialRows={previewRows}
+        onFinishImport={handleFinishImport}
+        importing={importing}
+      />
     </div>
   )
 }

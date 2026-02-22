@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { ImportPreview } from "./import-preview"
+import { uploadProductImage } from "@/lib/actions/products"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface BulkEditProduct {
@@ -98,8 +100,8 @@ function Toast({ message, type, onDone }: { message: string; type: "success" | "
   return (
     <div className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm shadow-lg animate-in slide-in-from-bottom-4 ${
       type === "success"
-        ? "border-green-500/30 bg-green-950/50 text-green-400"
-        : "border-red-500/30 bg-red-950/50 text-red-400"
+        ? "border-green-500/30 bg-green-50 text-green-700 dark:bg-green-950/50 dark:text-green-400"
+        : "border-red-500/30 bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400"
     }`}>
       {message}
     </div>
@@ -133,6 +135,8 @@ export function BulkEditTable({
   const [focusedCell, setFocusedCell] = useState({ row: -1, col: -1 })
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [importFile, setImportFile] = useState<File | null>(null)
+  const [previewRows, setPreviewRows] = useState<ImportRow[]>([])
+  const [showPreview, setShowPreview] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
@@ -246,17 +250,14 @@ export function BulkEditTable({
     setImportIsError(false)
   }, [])
 
-  const handleStartImport = useCallback(async () => {
+  const handleAnalyzePreview = useCallback(async () => {
     if (!importFile) return
-    setImporting(true)
-    setImportResult(null)
     try {
       const text = await importFile.text()
       const rows = parseCSV(text)
       if (rows.length === 0) {
         setImportIsError(true)
         setImportResult("No valid rows found in CSV.")
-        setImporting(false)
         return
       }
       const mapped: ImportRow[] = rows.map((r) => ({
@@ -269,25 +270,48 @@ export function BulkEditTable({
         description: r.description || undefined,
         image_url: r.image_url || r.image_path || undefined,
       }))
-      const result = await onImport(mapped)
+      setPreviewRows(mapped)
+      setShowImportModal(false)
+      setShowPreview(true)
+    } catch {
+      setImportIsError(true)
+      setImportResult("Failed to parse CSV file.")
+    }
+  }, [importFile])
+
+  const handleFinishImport = useCallback(async (rows: ImportRow[], imageFiles: (File | null)[]) => {
+    setImporting(true)
+    try {
+      // Upload images first
+      const finalRows = [...rows]
+      for (let i = 0; i < imageFiles.length; i++) {
+        const file = imageFiles[i]
+        if (file) {
+          const formData = new FormData()
+          formData.append("file", file)
+          const result = await uploadProductImage(formData)
+          if (result.url) {
+            finalRows[i] = { ...finalRows[i], image_url: result.url }
+          }
+        }
+      }
+
+      const result = await onImport(finalRows)
       if (result.error) {
-        setImportIsError(true)
-        setImportResult(`Import error: ${result.error}`)
+        showToast(`Import error: ${result.error}`, "error")
       } else {
-        setImportIsError(false)
-        setImportResult(`Successfully imported ${result.count} products!`)
-        setShowImportModal(false)
-        setImportFile(null)
         showToast(`✓ ${result.count} products imported`)
+        setShowPreview(false)
+        setPreviewRows([])
+        setImportFile(null)
+        if (fileInputRef.current) fileInputRef.current.value = ""
         router.refresh()
       }
     } catch {
-      setImportIsError(true)
-      setImportResult("Failed to import CSV file.")
+      showToast("Failed to import products", "error")
     }
     setImporting(false)
-    if (fileInputRef.current) fileInputRef.current.value = ""
-  }, [importFile, onImport, showToast, router])
+  }, [onImport, showToast, router])
 
   // ─── Select all / Bulk delete ──────────────────────────────────────────
   const toggleSelectAll = useCallback(() => {
@@ -702,12 +726,21 @@ export function BulkEditTable({
               <Download className="h-4 w-4" /> {t("downloadSampleCsv")}
             </Button>
             <Button variant="outline" onClick={() => { setShowImportModal(false); setImportFile(null) }}>{tCommon("cancel")}</Button>
-            <Button onClick={handleStartImport} disabled={!importFile || importing} className="gap-2">
-              <Upload className="h-4 w-4" /> {importing ? t("importingProducts") : "Start Importing"}
+            <Button onClick={handleAnalyzePreview} disabled={!importFile} className="gap-2">
+              <FileSpreadsheet className="h-4 w-4" /> Analyze &amp; Preview
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Import Preview Modal */}
+      <ImportPreview
+        open={showPreview}
+        onClose={() => { setShowPreview(false); setPreviewRows([]) }}
+        initialRows={previewRows}
+        onFinishImport={handleFinishImport}
+        importing={importing}
+      />
     </div>
   )
 }
