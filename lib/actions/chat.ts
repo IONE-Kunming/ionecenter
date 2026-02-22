@@ -129,6 +129,11 @@ export async function sendAttachment(formData: FormData) {
 
   if (!file || !conversationId) return { error: "Missing file or conversation" }
 
+  // Validate file type
+  const isImage = file.type.startsWith("image/")
+  const isPdf = file.type === "application/pdf"
+  if (!isImage && !isPdf) return { error: "Only images and PDFs are allowed" }
+
   const supabase = createAdminClient()
 
   // Upload file to storage
@@ -145,7 +150,7 @@ export async function sendAttachment(formData: FormData) {
     .getPublicUrl(uploadData.path)
 
   // Determine message type
-  const type = file.type.startsWith("image/") ? "image" : "pdf"
+  const type = isImage ? "image" : "pdf"
 
   // Insert message
   const { data: message, error: msgError } = await supabase

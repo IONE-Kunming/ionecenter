@@ -53,6 +53,7 @@ export default function ChatClient({ conversations, currentUserId, userRole }: C
   const [loadingMessages, startLoadMessages] = useTransition()
   const [sending, startSend] = useTransition()
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -146,19 +147,22 @@ export default function ChatClient({ conversations, currentUserId, userRole }: C
     if (!isImage && !isPdf) return
 
     setUploading(true)
+    setUploadError(null)
     try {
       const formData = new FormData()
       formData.append("file", file)
       formData.append("conversationId", selectedId)
       const result = await sendAttachment(formData)
-      if (result.message) {
+      if (result.error) {
+        setUploadError(result.error)
+      } else if (result.message) {
         setMessages((prev) => {
           if (prev.some((m) => m.id === result.message!.id)) return prev
           return [...prev, result.message!]
         })
       }
     } catch {
-      // Upload failed silently
+      setUploadError("Failed to upload file")
     }
     setUploading(false)
     if (fileInputRef.current) fileInputRef.current.value = ""
@@ -247,6 +251,9 @@ export default function ChatClient({ conversations, currentUserId, userRole }: C
               })}
               <div ref={messagesEndRef} />
             </div>
+            {uploadError && (
+              <div className="px-4 py-2 text-xs text-destructive bg-destructive/10">{uploadError}</div>
+            )}
             <div className="p-4 border-t flex gap-2">
               <input
                 ref={fileInputRef}
