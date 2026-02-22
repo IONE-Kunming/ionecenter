@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Store, Search } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -23,6 +24,8 @@ interface SellerRow {
 }
 
 export function AdminSellersList({ sellers }: { sellers: SellerRow[] }) {
+  const t = useTranslations("adminSellers")
+  const tCommon = useTranslations("common")
   const [search, setSearch] = useState("")
 
   const filtered = sellers.filter((s) => {
@@ -48,28 +51,28 @@ export function AdminSellersList({ sellers }: { sellers: SellerRow[] }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-4 text-center">
           <p className="text-2xl font-bold">{filtered.length}</p>
-          <p className="text-xs text-muted-foreground">Total Sellers</p>
+          <p className="text-xs text-muted-foreground">{t("totalSellers")}</p>
         </Card>
         <Card className="p-4 text-center">
           <p className="text-2xl font-bold">{totalProducts}</p>
-          <p className="text-xs text-muted-foreground">Total Products</p>
+          <p className="text-xs text-muted-foreground">{t("totalProducts")}</p>
         </Card>
         <Card className="p-4 text-center">
           <p className="text-2xl font-bold">{totalOrders}</p>
-          <p className="text-xs text-muted-foreground">Total Orders</p>
+          <p className="text-xs text-muted-foreground">{t("totalOrders")}</p>
         </Card>
         <Card className="p-4 text-center">
           <p className="text-2xl font-bold">
             <Badge variant="success">Active</Badge>
           </p>
-          <p className="text-xs text-muted-foreground">Platform Status</p>
+          <p className="text-xs text-muted-foreground">{t("platformStatus")}</p>
         </Card>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search sellers by name, email, or company..." className="pl-9" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchSellers")} className="pl-9" />
         </div>
       </div>
 
@@ -78,14 +81,14 @@ export function AdminSellersList({ sellers }: { sellers: SellerRow[] }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Company</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead className="text-right">Products</TableHead>
-                <TableHead className="text-right">Orders</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Joined</TableHead>
+                <TableHead>{tCommon("company")}</TableHead>
+                <TableHead>{t("contact")}</TableHead>
+                <TableHead>{tCommon("email")}</TableHead>
+                <TableHead>{tCommon("phone")}</TableHead>
+                <TableHead className="text-right">{t("products")}</TableHead>
+                <TableHead className="text-right">{t("orders")}</TableHead>
+                <TableHead>{t("location")}</TableHead>
+                <TableHead>{t("joined")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -107,7 +110,7 @@ export function AdminSellersList({ sellers }: { sellers: SellerRow[] }) {
           </Table>
         </Card>
       ) : (
-        <EmptyState icon={Store} title="No sellers found" description="No sellers match your search criteria." />
+        <EmptyState icon={Store} title={t("noSellers")} description="No sellers match your search criteria." />
       )}
     </div>
   )

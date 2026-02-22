@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { getAdminDashboardStats, getAllOrders } from "@/lib/actions/admin"
+import { getTranslations } from "next-intl/server"
 
 export default async function AdminDashboardPage() {
-  const [stats, orders] = await Promise.all([
+  const [stats, orders, t] = await Promise.all([
     getAdminDashboardStats(),
     getAllOrders(),
+    getTranslations("adminDashboard"),
   ])
 
   const recentOrders = orders.slice(0, 5)
@@ -17,16 +19,16 @@ export default async function AdminDashboardPage() {
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Users" value={stats?.totalUsers ?? 0} icon={Users} />
-        <StatCard title="Total Products" value={stats?.totalProducts ?? 0} icon={Package} />
-        <StatCard title="Total Orders" value={stats?.totalOrders ?? 0} icon={FileText} />
-        <StatCard title="Total Revenue" value={formatCurrency(stats?.totalRevenue ?? 0)} icon={DollarSign} />
+        <StatCard title={t("totalUsers")} value={stats?.totalUsers ?? 0} icon={Users} />
+        <StatCard title={t("totalProducts")} value={stats?.totalProducts ?? 0} icon={Package} />
+        <StatCard title={t("totalOrders")} value={stats?.totalOrders ?? 0} icon={FileText} />
+        <StatCard title={t("totalRevenue")} value={formatCurrency(stats?.totalRevenue ?? 0)} icon={DollarSign} />
       </div>
 
       {/* Recent Orders */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Orders</CardTitle>
+          <CardTitle>{t("recentOrders")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -54,7 +56,7 @@ export default async function AdminDashboardPage() {
                 </div>
               </div>
             )) : (
-              <p className="text-sm text-muted-foreground text-center py-4">No orders yet.</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t("noOrders")}</p>
             )}
           </div>
         </CardContent>

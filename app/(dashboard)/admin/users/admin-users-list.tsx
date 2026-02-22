@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Users, Search } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -26,6 +27,8 @@ function roleBadgeVariant(role: UserRole) {
 }
 
 export function AdminUsersList({ users }: { users: UserRow[] }) {
+  const t = useTranslations("adminUsers")
+  const tCommon = useTranslations("common")
   const [search, setSearch] = useState("")
 
   const filtered = users.filter((u) => {
@@ -38,7 +41,7 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search users..." className="pl-9" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchUsers")} className="pl-9" />
         </div>
       </div>
 
@@ -47,11 +50,11 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Joined</TableHead>
+                <TableHead>{tCommon("name")}</TableHead>
+                <TableHead>{tCommon("email")}</TableHead>
+                <TableHead>{t("role")}</TableHead>
+                <TableHead>{tCommon("company")}</TableHead>
+                <TableHead>{t("joined")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -72,7 +75,7 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
           </Table>
         </Card>
       ) : (
-        <EmptyState icon={Users} title="No users found" description="No users match your search." />
+        <EmptyState icon={Users} title={t("noUsers")} description="No users match your search." />
       )}
     </div>
   )
