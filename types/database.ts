@@ -144,12 +144,13 @@ export interface Cart {
 
 export interface Conversation {
   id: string
-  product_id: string | null
+  listing_id: string | null
   buyer_id: string
   seller_id: string
   last_message: string | null
-  last_message_time: string | null
+  last_message_at: string | null
   created_at: string
+  updated_at: string
 }
 
 export interface Message {

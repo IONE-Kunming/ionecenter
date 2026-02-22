@@ -3,7 +3,7 @@
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { Package, Search, Upload, Download, FileSpreadsheet } from "lucide-react"
+import { Package, Search, Upload, Download, FileSpreadsheet, Trash2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency } from "@/lib/utils"
 import { MAIN_CATEGORIES } from "@/types/categories"
-import { adminBulkImportProducts } from "@/lib/actions/admin"
+import { adminBulkImportProducts, adminDeleteProduct } from "@/lib/actions/admin"
 import type { Product } from "@/types/database"
 
 function parseCSV(text: string): Record<string, string>[] {
@@ -60,6 +60,8 @@ export function AdminProductsList({ products }: { products: Product[] }) {
   const [importResult, setImportResult] = useState<string | null>(null)
   const [importIsError, setImportIsError] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -68,6 +70,22 @@ export function AdminProductsList({ products }: { products: Product[] }) {
     const matchCategory = !categoryFilter || p.main_category === categoryFilter
     return matchSearch && matchCategory
   })
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id)
+    setDeleteError(null)
+    try {
+      const result = await adminDeleteProduct(id)
+      if (result.error) {
+        setDeleteError(result.error)
+      } else {
+        router.refresh()
+      }
+    } catch {
+      setDeleteError("Failed to delete product")
+    }
+    setDeletingId(null)
+  }
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -129,6 +147,10 @@ export function AdminProductsList({ products }: { products: Product[] }) {
         </div>
       )}
 
+      {deleteError && (
+        <div className="p-3 rounded-lg text-sm bg-destructive/10 text-destructive">{deleteError}</div>
+      )}
+
       {filtered.length > 0 ? (
         <Card>
           <Table>
@@ -141,6 +163,7 @@ export function AdminProductsList({ products }: { products: Product[] }) {
                 <TableHead>{t("price")}</TableHead>
                 <TableHead>{t("stock")}</TableHead>
                 <TableHead>{tCommon("status")}</TableHead>
+                <TableHead>{tCommon("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -156,6 +179,16 @@ export function AdminProductsList({ products }: { products: Product[] }) {
                     <Badge variant={product.is_active ? "success" : "destructive"}>
                       {product.is_active ? tCommon("active") : tCommon("inactive")}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={deletingId === product.id}
+                      onClick={() => handleDelete(product.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

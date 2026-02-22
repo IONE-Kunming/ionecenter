@@ -1,6 +1,5 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import type { User, Product, Order, Invoice } from "@/types/database"
@@ -9,7 +8,7 @@ export async function getAdminDashboardStats() {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return null
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const [usersResult, productsResult, ordersResult, revenueResult] = await Promise.all([
     supabase
@@ -43,7 +42,7 @@ export async function getAllUsers(): Promise<User[]> {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("users")
     .select("*")
@@ -56,7 +55,7 @@ export async function getAllOrders(): Promise<Order[]> {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("orders")
     .select("*, buyer:users!buyer_id(display_name, company), seller:users!seller_id(display_name, company)")
@@ -73,7 +72,7 @@ export async function getAllProducts(): Promise<Product[]> {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("products")
     .select("*, seller:users!seller_id(display_name, company)")
@@ -89,7 +88,7 @@ export async function getAllInvoices(): Promise<Invoice[]> {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("invoices")
     .select("*, buyer:users!buyer_id(display_name, company), seller:users!seller_id(display_name, company)")
@@ -106,7 +105,7 @@ export async function getAllSellers() {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: sellers } = await supabase
     .from("users")
@@ -176,7 +175,7 @@ export async function adminGetProductsBySeller(sellerId: string): Promise<Produc
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("products")
     .select("*")

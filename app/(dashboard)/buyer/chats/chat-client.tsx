@@ -24,7 +24,7 @@ interface ConversationItem {
   buyer_id: string
   seller_id: string
   last_message: string | null
-  last_message_time: string | null
+  last_message_at: string | null
   buyer?: ConversationParty
   seller?: ConversationParty
 }
@@ -212,7 +212,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{other.display_name}</span>
-                      <span className="text-xs text-muted-foreground">{relativeTime(conv.last_message_time)}</span>
+                      <span className="text-xs text-muted-foreground">{relativeTime(conv.last_message_at)}</span>
                     </div>
                     {other.company && <p className="text-xs text-muted-foreground">{other.company}</p>}
                     <p className="text-xs text-muted-foreground truncate">{conv.last_message ?? "No messages yet"}</p>
