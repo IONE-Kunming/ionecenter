@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import type { Product } from "@/types/database"
 
@@ -70,7 +71,7 @@ export async function createProduct(
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return { error: "Not authorized" }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("products")
     .insert({ ...product, seller_id: user.id })
@@ -88,7 +89,7 @@ export async function updateProduct(
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return { error: "Not authorized" }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase
     .from("products")
     .update(updates)
@@ -103,7 +104,7 @@ export async function deleteProduct(id: string) {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return { error: "Not authorized" }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase
     .from("products")
     .delete()
@@ -120,7 +121,7 @@ export async function bulkImportProducts(
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return { error: "Not authorized" }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const insertRows = rows.map((row) => ({
     name: row.name,

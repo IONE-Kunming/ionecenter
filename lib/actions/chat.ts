@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import type { Conversation, Message } from "@/types/database"
 
@@ -53,7 +54,8 @@ export async function getOrCreateConversation(
   if (existing) return existing
 
   // Create new conversation
-  const { data: conversation, error } = await supabase
+  const adminSupabase = createAdminClient()
+  const { data: conversation, error } = await adminSupabase
     .from("conversations")
     .insert({
       product_id: productId,
@@ -91,7 +93,7 @@ export async function sendMessage(conversationId: string, text: string) {
 
   if (!text.trim()) return { error: "Message cannot be empty" }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: message, error: msgError } = await supabase
     .from("messages")
@@ -111,6 +113,61 @@ export async function sendMessage(conversationId: string, text: string) {
     .from("conversations")
     .update({
       last_message: text.trim(),
+      last_message_time: new Date().toISOString(),
+    })
+    .eq("id", conversationId)
+
+  return { success: true, message }
+}
+
+export async function sendAttachment(formData: FormData) {
+  const user = await getCurrentUser()
+  if (!user) return { error: "Not authenticated" }
+
+  const file = formData.get("file") as File
+  const conversationId = formData.get("conversationId") as string
+
+  if (!file || !conversationId) return { error: "Missing file or conversation" }
+
+  const supabase = createAdminClient()
+
+  // Upload file to storage
+  const path = `${conversationId}/${Date.now()}-${file.name}`
+  const { data: uploadData, error: uploadError } = await supabase.storage
+    .from("chat-attachments")
+    .upload(path, file)
+
+  if (uploadError) return { error: uploadError.message }
+
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from("chat-attachments")
+    .getPublicUrl(uploadData.path)
+
+  // Determine message type
+  const type = file.type.startsWith("image/") ? "image" : "pdf"
+
+  // Insert message
+  const { data: message, error: msgError } = await supabase
+    .from("messages")
+    .insert({
+      conversation_id: conversationId,
+      sender_id: user.id,
+      text: null,
+      type,
+      file_url: urlData.publicUrl,
+      file_name: file.name,
+    })
+    .select()
+    .single()
+
+  if (msgError) return { error: msgError.message }
+
+  // Update conversation last_message
+  await supabase
+    .from("conversations")
+    .update({
+      last_message: type === "image" ? "📷 Image" : "📄 PDF",
       last_message_time: new Date().toISOString(),
     })
     .eq("id", conversationId)

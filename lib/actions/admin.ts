@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import type { User, Product, Order, Invoice } from "@/types/database"
 
@@ -148,7 +149,7 @@ export async function adminBulkUpdateProducts(
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return { error: "Not authorized" }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   for (const update of updates) {
     const updateData: Record<string, unknown> = {
@@ -189,7 +190,7 @@ export async function adminDeleteProduct(id: string) {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return { error: "Not authorized" }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase
     .from("products")
     .delete()
@@ -206,7 +207,7 @@ export async function adminBulkImportProducts(
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return { error: "Not authorized" }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   let targetSellerId = sellerId
 

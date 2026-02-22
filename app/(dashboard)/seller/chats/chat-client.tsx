@@ -2,13 +2,14 @@
 
 import { useState, useTransition, useRef, useEffect } from "react"
 import { useTranslations } from "next-intl"
-import { MessageSquare, Send } from "lucide-react"
+import { MessageSquare, Send, Paperclip, FileText, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/ui/avatar"
 import { EmptyState } from "@/components/ui/empty-state"
 import { cn } from "@/lib/utils"
-import { getMessages, sendMessage } from "@/lib/actions/chat"
+import { getMessages, sendMessage, sendAttachment } from "@/lib/actions/chat"
+import { createClient } from "@/lib/supabase/client"
 import { formatDistanceToNow } from "date-fns"
 import type { Message } from "@/types/database"
 
@@ -51,11 +52,51 @@ export default function ChatClient({ conversations, currentUserId, userRole }: C
   const [showSidebar, setShowSidebar] = useState(true)
   const [loadingMessages, startLoadMessages] = useTransition()
   const [sending, startSend] = useTransition()
+  const [uploading, setUploading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
+
+  // Real-time subscription
+  useEffect(() => {
+    if (!selectedId) return
+
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`chat:${selectedId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${selectedId}`,
+        },
+        (payload) => {
+          const newMsg = payload.new as Message
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === newMsg.id)) return prev
+            // Replace optimistic message from self if exists
+            if (newMsg.sender_id === currentUserId) {
+              const hasTemp = prev.some((m) => m.id.startsWith("temp-"))
+              if (hasTemp) {
+                return prev.map((m) => (m.id.startsWith("temp-") ? newMsg : m))
+              }
+              return prev
+            }
+            return [...prev, newMsg]
+          })
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [selectedId, currentUserId])
 
   function otherParty(conv: ConversationItem): ConversationParty {
     if (conv.buyer_id === currentUserId) return conv.seller ?? { id: conv.seller_id, display_name: "User", company: null }
@@ -94,6 +135,33 @@ export default function ChatClient({ conversations, currentUserId, userRole }: C
         setMessages((prev) => prev.map((m) => (m.id === optimistic.id ? result.message! : m)))
       }
     })
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !selectedId) return
+
+    const isImage = file.type.startsWith("image/")
+    const isPdf = file.type === "application/pdf"
+    if (!isImage && !isPdf) return
+
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("conversationId", selectedId)
+      const result = await sendAttachment(formData)
+      if (result.message) {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === result.message!.id)) return prev
+          return [...prev, result.message!]
+        })
+      }
+    } catch {
+      // Upload failed silently
+    }
+    setUploading(false)
+    if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
   const selected = conversations.find((c) => c.id === selectedId)
@@ -158,7 +226,18 @@ export default function ChatClient({ conversations, currentUserId, userRole }: C
                 return (
                   <div key={msg.id} className={cn("flex", isMe ? "justify-end" : "justify-start")}>
                     <div className={cn("max-w-[70%] rounded-lg px-4 py-2 text-sm", isMe ? "bg-primary text-primary-foreground" : "bg-muted")}>
-                      <p>{msg.text}</p>
+                      {msg.type === "image" && msg.file_url ? (
+                        <a href={msg.file_url} target="_blank" rel="noopener noreferrer">
+                          <img src={msg.file_url} alt={msg.file_name ?? "Image"} className="max-w-full rounded max-h-60 object-contain" />
+                        </a>
+                      ) : msg.type === "pdf" && msg.file_url ? (
+                        <a href={msg.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 underline">
+                          <FileText className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">{msg.file_name ?? "Document.pdf"}</span>
+                        </a>
+                      ) : (
+                        <p>{msg.text}</p>
+                      )}
                       <p className={cn("text-xs mt-1", isMe ? "text-primary-foreground/70" : "text-muted-foreground")}>
                         {relativeTime(msg.created_at)}
                       </p>
@@ -169,6 +248,22 @@ export default function ChatClient({ conversations, currentUserId, userRole }: C
               <div ref={messagesEndRef} />
             </div>
             <div className="p-4 border-t flex gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,application/pdf"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+                title="Attach file"
+              >
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+              </Button>
               <Input
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
