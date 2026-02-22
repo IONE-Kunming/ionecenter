@@ -8,12 +8,13 @@ import {
   LayoutDashboard, Package, ShoppingCart, FileText, Users, MessageSquare,
   Bell, Settings, HelpCircle, LogOut, ChevronDown, Sun, Moon, Menu, X,
   Building2, Pencil, DollarSign, BarChart3, Receipt, Calculator, Scale,
-  Layers, Store, ClipboardList
+  Layers, Store, ClipboardList, Globe
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useTheme } from "@/components/providers/theme-provider"
 import { Avatar } from "@/components/ui/avatar"
+import { LanguageSwitcher } from "@/components/language-switcher"
 import type { UserRole } from "@/types/database"
 
 interface NavItem {
@@ -216,6 +217,13 @@ export function Sidebar({ role }: SidebarProps) {
           {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           {theme === "dark" ? "Light Mode" : "Dark Mode"}
         </button>
+
+        {/* Language switcher */}
+        <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground">
+          <Globe className="h-4 w-4" />
+          <span className="flex-1">Language</span>
+          <LanguageSwitcher />
+        </div>
 
         {/* User info */}
         <div className="flex items-center gap-3 px-3">

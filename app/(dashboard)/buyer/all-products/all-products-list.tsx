@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Package, Search, ShoppingCart } from "lucide-react"
+import Link from "next/link"
+import { Package, Search, ShoppingCart, MessageSquare } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -46,16 +47,25 @@ export function AllProductsList({ products }: { products: Product[] }) {
             {paginated.map((product) => (
               <Card key={product.id} className="group hover:shadow-md transition-all">
                 <CardContent className="p-0">
-                  <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center">
-                    <Package className="h-12 w-12 text-muted-foreground/30" />
-                  </div>
+                  <Link href={`/buyer/product/${product.id}`}>
+                    <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center">
+                      <Package className="h-12 w-12 text-muted-foreground/30" />
+                    </div>
+                  </Link>
                   <div className="p-4">
                     <Badge variant="secondary" className="text-xs mb-2">{product.category}</Badge>
-                    <h3 className="font-semibold text-sm line-clamp-1">{product.name}</h3>
+                    <Link href={`/buyer/product/${product.id}`}>
+                      <h3 className="font-semibold text-sm line-clamp-1 hover:underline">{product.name}</h3>
+                    </Link>
                     <p className="text-xs text-muted-foreground mt-1">{product.model_number}</p>
                     <div className="flex items-center justify-between mt-3">
                       <span className="font-bold text-primary">{formatCurrency(product.price_per_meter)}/m</span>
-                      <Button size="sm" variant="outline"><ShoppingCart className="h-3.5 w-3.5 mr-1" /> Add</Button>
+                      <div className="flex gap-1">
+                        <Link href={`/buyer/product/${product.id}`}>
+                          <Button size="sm" variant="ghost" title="Chat with Seller"><MessageSquare className="h-3.5 w-3.5" /></Button>
+                        </Link>
+                        <Button size="sm" variant="outline"><ShoppingCart className="h-3.5 w-3.5 mr-1" /> Add</Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>

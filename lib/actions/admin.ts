@@ -141,3 +141,76 @@ export async function getAllSellers() {
     order_count: orderCounts[s.id] || 0,
   }))
 }
+
+export async function adminBulkUpdateProducts(
+  updates: { id: string; name: string; model_number: string; price_per_meter: number; stock: number }[]
+) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+  const supabase = await createClient()
+
+  for (const update of updates) {
+    const { error } = await supabase
+      .from("products")
+      .update({
+        name: update.name,
+        model_number: update.model_number,
+        price_per_meter: update.price_per_meter,
+        stock: update.stock,
+      })
+      .eq("id", update.id)
+
+    if (error) return { error: error.message }
+  }
+
+  return { success: true }
+}
+
+export async function adminDeleteProduct(id: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("products")
+    .delete()
+    .eq("id", id)
+
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
+export async function adminBulkImportProducts(
+  rows: { name: string; model_number: string; main_category: string; category: string; price_per_meter: number; stock: number; description?: string }[]
+) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+  const supabase = await createClient()
+
+  // Use the first seller found, or the admin's own ID as default seller
+  const { data: sellers } = await supabase
+    .from("users")
+    .select("id")
+    .eq("role", "seller")
+    .limit(1)
+
+  const sellerId = sellers?.[0]?.id ?? user.id
+
+  const insertRows = rows.map((row) => ({
+    name: row.name,
+    model_number: row.model_number,
+    main_category: row.main_category,
+    category: row.category,
+    price_per_meter: row.price_per_meter,
+    stock: row.stock,
+    description: row.description ?? null,
+    seller_id: sellerId,
+  }))
+
+  const { error } = await supabase.from("products").insert(insertRows)
+
+  if (error) return { error: error.message }
+  return { success: true, count: insertRows.length }
+}
