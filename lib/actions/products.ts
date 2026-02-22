@@ -113,3 +113,33 @@ export async function deleteProduct(id: string) {
   if (error) return { error: error.message }
   return { success: true }
 }
+
+export async function bulkImportProducts(
+  rows: { name: string; model_number: string; main_category: string; category: string; price_per_meter: number; stock: number; description?: string }[]
+) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return { error: "Not authorized" }
+
+  const supabase = await createClient()
+
+  let count = 0
+  for (const row of rows) {
+    const { error } = await supabase
+      .from("products")
+      .insert({
+        name: row.name,
+        model_number: row.model_number,
+        main_category: row.main_category,
+        category: row.category,
+        price_per_meter: row.price_per_meter,
+        stock: row.stock,
+        description: row.description ?? null,
+        seller_id: user.id,
+      })
+
+    if (error) return { error: error.message }
+    count++
+  }
+
+  return { success: true, count }
+}
