@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { Package, ArrowLeft, Search, ShoppingCart, MessageSquare } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
@@ -28,6 +29,8 @@ interface CatalogProduct {
 const ITEMS_PER_PAGE = 12
 
 export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }) {
+  const t = useTranslations("catalog")
+  const tCommon = useTranslations("common")
   const [level, setLevel] = useState<BrowseLevel>("categories")
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedSubcategory, setSelectedSubcategory] = useState("")
@@ -84,7 +87,7 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
                 <Package className="h-8 w-8 mx-auto text-primary" />
                 <h3 className="mt-3 font-semibold text-sm">{cat}</h3>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {CATEGORIES[cat]?.subcategories.length || 0} subcategories
+                  {CATEGORIES[cat]?.subcategories.length || 0} {t("subcategories")}
                 </p>
               </CardContent>
             </Card>
@@ -122,7 +125,7 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
           </Button>
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }} placeholder="Search products..." className="pl-9" />
+            <Input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }} placeholder={tCommon("searchProducts")} className="pl-9" />
           </div>
           {paginatedProducts.length > 0 ? (
             <>
@@ -161,7 +164,7 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
               <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
             </>
           ) : (
-            <EmptyState icon={Package} title="No products found" description="Try adjusting your search criteria." />
+            <EmptyState icon={Package} title={t("noProducts")} description={t("noProductsDesc")} />
           )}
         </div>
       )}

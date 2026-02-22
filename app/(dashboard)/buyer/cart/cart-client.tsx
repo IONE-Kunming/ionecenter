@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { ShoppingCart, Trash2, Minus, Plus, Package } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,6 +22,7 @@ interface EnrichedCartItem {
 }
 
 export default function CartClient({ items: initialItems }: { items: EnrichedCartItem[] }) {
+  const t = useTranslations("cart")
   const [items, setItems] = useState<EnrichedCartItem[]>(initialItems)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -60,9 +62,9 @@ export default function CartClient({ items: initialItems }: { items: EnrichedCar
     return (
       <EmptyState
         icon={ShoppingCart}
-        title="Your cart is empty"
-        description="Browse our catalog to find products."
-        action={{ label: "Browse Catalog", onClick: () => router.push("/buyer/catalog") }}
+        title={t("emptyCart")}
+        description={t("emptyCartDesc")}
+        action={{ label: t("browseCatalog"), onClick: () => router.push("/buyer/catalog") }}
       />
     )
   }
@@ -105,25 +107,25 @@ export default function CartClient({ items: initialItems }: { items: EnrichedCar
 
       <div>
         <Card>
-          <CardHeader><CardTitle>Order Summary</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t("orderSummary")}</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
+              <span className="text-muted-foreground">{t("subtotal")}</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tax (10%)</span>
+              <span className="text-muted-foreground">{t("tax10")}</span>
               <span>{formatCurrency(tax)}</span>
             </div>
             <div className="border-t pt-3 flex justify-between font-semibold">
-              <span>Total</span>
+              <span>{t("total")}</span>
               <span>{formatCurrency(total)}</span>
             </div>
             <Link href="/buyer/checkout" className="block">
-              <Button className="w-full mt-4">Proceed to Checkout</Button>
+              <Button className="w-full mt-4">{t("proceedCheckout")}</Button>
             </Link>
             <Link href="/buyer/catalog" className="block">
-              <Button variant="outline" className="w-full">Continue Shopping</Button>
+              <Button variant="outline" className="w-full">{t("continueShopping")}</Button>
             </Link>
           </CardContent>
         </Card>

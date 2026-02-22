@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Bell, Check, ShoppingCart, CreditCard, MessageSquare } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -14,6 +15,7 @@ const typeIcons: Record<string, React.ElementType> = {
 }
 
 export function NotificationsList({ initialNotifications }: { initialNotifications: Notification[] }) {
+  const t = useTranslations("notifications")
   const [notifications, setNotifications] = useState(initialNotifications)
 
   const handleMarkAsRead = async (id: string) => {
@@ -32,8 +34,8 @@ export function NotificationsList({ initialNotifications }: { initialNotificatio
     <div className="space-y-6">
       {unreadCount > 0 && (
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">{unreadCount} unread</span>
-          <Button variant="outline" size="sm" onClick={handleMarkAllRead}><Check className="h-3.5 w-3.5 mr-1" /> Mark all read</Button>
+          <span className="text-sm text-muted-foreground">{t("unread", { count: unreadCount })}</span>
+          <Button variant="outline" size="sm" onClick={handleMarkAllRead}><Check className="h-3.5 w-3.5 mr-1" /> {t("markAllRead")}</Button>
         </div>
       )}
 
@@ -61,7 +63,7 @@ export function NotificationsList({ initialNotifications }: { initialNotificatio
           })}
         </div>
       ) : (
-        <EmptyState icon={Bell} title="No notifications" description="You're all caught up!" />
+        <EmptyState icon={Bell} title={t("noNotifications")} description={t("allCaughtUp")} />
       )}
     </div>
   )
