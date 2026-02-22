@@ -29,12 +29,11 @@ const testimonials = [
   { quote: "The financial tools and real-time tracking give us complete visibility over our B2B operations.", author: "Carlos Mendez", company: "Mendez Industries" },
 ]
 
-const brandNames = [
-  "Global Trade", "Pacific Supply", "Euro Materials", "Asia Connect",
-  "Atlantic Partners", "Nordic Wholesale", "Desert Trading", "Ocean Freight",
+const baseBrandNames = [
   "Global Trade", "Pacific Supply", "Euro Materials", "Asia Connect",
   "Atlantic Partners", "Nordic Wholesale", "Desert Trading", "Ocean Freight",
 ]
+const brandNames = [...baseBrandNames, ...baseBrandNames]
 
 export default async function LandingPage() {
   const nav = await getTranslations("nav")
@@ -49,7 +48,7 @@ export default async function LandingPage() {
   return (
     <div className="min-h-screen bg-[#000000] text-white">
       {/* ===== HEADER ===== */}
-      <header className="fixed top-0 left-0 w-full z-50 bg-transparent backdrop-blur-sm" style={{ background: "rgba(0,0,0,0.4)" }}>
+      <header className="fixed top-0 left-0 w-full z-50 bg-black/40 backdrop-blur-sm">
         <div className="max-w-[1320px] mx-auto flex h-20 items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#C4EF17] text-black font-bold text-lg">
@@ -171,8 +170,7 @@ export default async function LandingPage() {
               {featuresT("subtitle")}
             </p>
             <h2 className="text-[40px] md:text-[50px] leading-[1.2] text-white">
-              {featuresT("title").split("?")[0]}
-              <span className="text-[#C4EF17]">?</span>
+              {featuresT("title")}
             </h2>
           </div>
           <div className="horizontal-scroll">
@@ -261,7 +259,7 @@ export default async function LandingPage() {
               { step: "02", title: howT("step2Title"), desc: howT("step2Desc") },
               { step: "03", title: howT("step3Title"), desc: howT("step3Desc") },
             ].map((s, i) => (
-              <div key={s.step} className={`text-center fade-in-up fade-in-up-delay-${i + 1}`}>
+              <div key={s.step} className="text-center fade-in-up" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
                 <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#C4EF17] text-black text-2xl font-bold">
                   {s.step}
                 </div>
@@ -300,7 +298,7 @@ export default async function LandingPage() {
               {statsT("activeUsers")}
             </p>
             <h2 className="text-[40px] md:text-[50px] leading-[1.2] text-white">
-              {ctaT("subtitle").split(".")[0]}
+              {ctaT("testimonialsHeading")}
             </h2>
           </div>
           <div className="horizontal-scroll">
@@ -310,7 +308,7 @@ export default async function LandingPage() {
                 <p className="text-white leading-relaxed text-lg mb-8">{t.quote}</p>
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-[#C4EF17]/20 flex items-center justify-center text-[#C4EF17] font-bold text-sm">
-                    {t.author.split(" ").map(n => n[0]).join("")}
+                    {t.author.split(" ").filter(n => n.length > 0).map(n => n[0]).join("")}
                   </div>
                   <div>
                     <p className="text-white font-medium">{t.author}</p>

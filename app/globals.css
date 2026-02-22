@@ -45,7 +45,7 @@
 
 :root {
   --radius: 0.625rem;
-  /* Light theme: uses the dark palette as primary brand */
+  /* Default theme: dark palette matching the brand design */
   --background: #000000;
   --foreground: #FFFFFF;
   --card: #131923;
