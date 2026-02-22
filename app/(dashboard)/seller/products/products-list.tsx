@@ -19,20 +19,27 @@ import { MAIN_CATEGORIES, getSubcategories } from "@/types/categories"
 import { bulkImportProducts } from "@/lib/actions/products"
 import type { Product } from "@/types/database"
 
+function parseCsvLine(line: string): string[] {
+  const values: string[] = []
+  let current = ""
+  let inQuotes = false
+  for (const ch of line) {
+    if (ch === '"') { inQuotes = !inQuotes; continue }
+    if (ch === "," && !inQuotes) { values.push(current.trim()); current = ""; continue }
+    current += ch
+  }
+  values.push(current.trim())
+  return values
+}
+
 function parseCSV(text: string): Record<string, string>[] {
-  const lines = text.split("\n").filter((l) => l.trim())
+  // Remove BOM if present
+  const cleaned = text.replace(/^\ufeff/, "")
+  const lines = cleaned.split(/\r?\n/).filter((l) => l.trim())
   if (lines.length < 2) return []
-  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/\s+/g, "_"))
+  const headers = parseCsvLine(lines[0]).map((h) => h.trim().toLowerCase().replace(/\s+/g, "_"))
   return lines.slice(1).map((line) => {
-    const values: string[] = []
-    let current = ""
-    let inQuotes = false
-    for (const ch of line) {
-      if (ch === '"') { inQuotes = !inQuotes; continue }
-      if (ch === "," && !inQuotes) { values.push(current.trim()); current = ""; continue }
-      current += ch
-    }
-    values.push(current.trim())
+    const values = parseCsvLine(line)
     const row: Record<string, string> = {}
     headers.forEach((h, i) => { row[h] = values[i] ?? "" })
     return row
@@ -62,17 +69,25 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState<string | null>(null)
   const [importIsError, setImportIsError] = useState(false)
+  const [importFile, setImportFile] = useState<File | null>(null)
   const [selectedCategory, setSelectedCategory] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
-  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    setImportFile(file)
+    setImportResult(null)
+    setImportIsError(false)
+  }
+
+  const handleStartImport = async () => {
+    if (!importFile) return
     setImporting(true)
     setImportResult(null)
     try {
-      const text = await file.text()
+      const text = await importFile.text()
       const rows = parseCSV(text)
       if (rows.length === 0) {
         setImportIsError(true)
@@ -81,13 +96,14 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
         return
       }
       const mapped = rows.map((r) => ({
-        name: r.name || "Unnamed Product",
+        name: r.name || r.product_name || "Unnamed Product",
         model_number: r.model_number || "",
-        main_category: r.main_category || "",
-        category: r.category || "",
-        price_per_meter: Number(r.price_per_meter) || 0,
-        stock: Number(r.stock) || 0,
+        main_category: r.main_category || r.category_main || "",
+        category: r.category || r.subcategory || r.sub_category || "",
+        price_per_meter: Number(r.price_per_meter || r.price) || 0,
+        stock: Number(r.stock || r.quantity) || 0,
         description: r.description || undefined,
+        image_url: r.image_url || r.image_path || undefined,
       }))
       const result = await bulkImportProducts(mapped)
       if (result.error) {
@@ -97,6 +113,7 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
         setImportIsError(false)
         setImportResult(`Successfully imported ${result.count} products!`)
         setShowImportModal(false)
+        setImportFile(null)
         router.refresh()
       }
     } catch {
@@ -229,7 +246,10 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
 
             <div className="space-y-2">
               <Label>{tBulk("uploadCsvFile")}</Label>
-              <Input ref={fileInputRef} type="file" accept=".csv" onChange={handleImport} disabled={importing} />
+              <Input ref={fileInputRef} type="file" accept=".csv" onChange={handleFileSelect} disabled={importing} />
+              {importFile && !importing && (
+                <p className="text-sm text-muted-foreground">Selected: {importFile.name}</p>
+              )}
               {importing && <p className="text-sm text-muted-foreground">{tBulk("importingProducts")}</p>}
             </div>
 
@@ -243,7 +263,10 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
             <Button variant="outline" onClick={downloadTemplate} className="gap-2">
               <Download className="h-4 w-4" /> {tBulk("downloadSampleCsv")}
             </Button>
-            <Button variant="outline" onClick={() => setShowImportModal(false)}>{tCommon("cancel")}</Button>
+            <Button variant="outline" onClick={() => { setShowImportModal(false); setImportFile(null) }}>{tCommon("cancel")}</Button>
+            <Button onClick={handleStartImport} disabled={!importFile || importing} className="gap-2">
+              <Upload className="h-4 w-4" /> {importing ? tBulk("importingProducts") : "Start Importing"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

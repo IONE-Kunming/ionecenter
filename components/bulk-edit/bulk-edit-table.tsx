@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import {
   Save, Upload, Download, Search, FileSpreadsheet,
-  RotateCcw, Package,
+  RotateCcw, Package, Trash2,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Input } from "@/components/ui/input"
@@ -41,6 +41,7 @@ export interface ImportRow {
   price_per_meter: number
   stock: number
   description?: string
+  image_url?: string
 }
 
 type FilterMode = "all" | "available" | "unavailable" | "modified"
@@ -49,20 +50,27 @@ type FilterMode = "all" | "available" | "unavailable" | "modified"
 const EDITABLE_COLS = [1, 2, 3, 4] // name, model, price, stock
 
 // ─── CSV Parser ─────────────────────────────────────────────────────────────
+function parseCsvLine(line: string): string[] {
+  const values: string[] = []
+  let current = ""
+  let inQuotes = false
+  for (const ch of line) {
+    if (ch === '"') { inQuotes = !inQuotes; continue }
+    if (ch === "," && !inQuotes) { values.push(current.trim()); current = ""; continue }
+    current += ch
+  }
+  values.push(current.trim())
+  return values
+}
+
 function parseCSV(text: string): Record<string, string>[] {
-  const lines = text.split("\n").filter((l) => l.trim())
+  // Remove BOM if present
+  const cleaned = text.replace(/^\ufeff/, "")
+  const lines = cleaned.split(/\r?\n/).filter((l) => l.trim())
   if (lines.length < 2) return []
-  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/\s+/g, "_"))
+  const headers = parseCsvLine(lines[0]).map((h) => h.trim().toLowerCase().replace(/\s+/g, "_"))
   return lines.slice(1).map((line) => {
-    const values: string[] = []
-    let current = ""
-    let inQuotes = false
-    for (const ch of line) {
-      if (ch === '"') { inQuotes = !inQuotes; continue }
-      if (ch === "," && !inQuotes) { values.push(current.trim()); current = ""; continue }
-      current += ch
-    }
-    values.push(current.trim())
+    const values = parseCsvLine(line)
     const row: Record<string, string> = {}
     headers.forEach((h, i) => { row[h] = values[i] ?? "" })
     return row
@@ -102,6 +110,7 @@ function Toast({ message, type, onDone }: { message: string; type: "success" | "
 export function BulkEditTable({
   initialProducts,
   onSave,
+  onDelete,
   onImport,
   title = "Bulk Edit",
   subtitle = "PRODUCT MANAGEMENT — INLINE EDITOR",
@@ -122,6 +131,9 @@ export function BulkEditTable({
   const [importIsError, setImportIsError] = useState(false)
   const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "error" }[]>([])
   const [focusedCell, setFocusedCell] = useState({ row: -1, col: -1 })
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [importFile, setImportFile] = useState<File | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
   const toastCounter = useRef(0)
@@ -226,13 +238,20 @@ export function BulkEditTable({
   }, [products, onSave, showToast, router])
 
   // ─── Import ────────────────────────────────────────────────────────────
-  const handleImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    setImportFile(file)
+    setImportResult(null)
+    setImportIsError(false)
+  }, [])
+
+  const handleStartImport = useCallback(async () => {
+    if (!importFile) return
     setImporting(true)
     setImportResult(null)
     try {
-      const text = await file.text()
+      const text = await importFile.text()
       const rows = parseCSV(text)
       if (rows.length === 0) {
         setImportIsError(true)
@@ -241,13 +260,14 @@ export function BulkEditTable({
         return
       }
       const mapped: ImportRow[] = rows.map((r) => ({
-        name: r.name || "Unnamed Product",
+        name: r.name || r.product_name || "Unnamed Product",
         model_number: r.model_number || "",
-        main_category: r.main_category || "",
-        category: r.category || "",
-        price_per_meter: Number(r.price_per_meter) || 0,
-        stock: Number(r.stock) || 0,
+        main_category: r.main_category || r.category_main || "",
+        category: r.category || r.subcategory || r.sub_category || "",
+        price_per_meter: Number(r.price_per_meter || r.price) || 0,
+        stock: Number(r.stock || r.quantity) || 0,
         description: r.description || undefined,
+        image_url: r.image_url || r.image_path || undefined,
       }))
       const result = await onImport(mapped)
       if (result.error) {
@@ -257,6 +277,7 @@ export function BulkEditTable({
         setImportIsError(false)
         setImportResult(`Successfully imported ${result.count} products!`)
         setShowImportModal(false)
+        setImportFile(null)
         showToast(`✓ ${result.count} products imported`)
         router.refresh()
       }
@@ -266,7 +287,43 @@ export function BulkEditTable({
     }
     setImporting(false)
     if (fileInputRef.current) fileInputRef.current.value = ""
-  }, [onImport, showToast, router])
+  }, [importFile, onImport, showToast, router])
+
+  // ─── Select all / Bulk delete ──────────────────────────────────────────
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds((prev) => {
+      if (prev.size === filtered.length) return new Set()
+      return new Set(filtered.map((p) => p.id))
+    })
+  }, [filtered])
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedIds.size === 0) return
+    setDeleting(true)
+    let errorMsg = ""
+    for (const id of selectedIds) {
+      const result = await onDelete(id)
+      if (result.error) { errorMsg = result.error; break }
+    }
+    if (errorMsg) {
+      showToast(`Error: ${errorMsg}`, "error")
+    } else {
+      showToast(`✓ ${selectedIds.size} products deleted`)
+      setProducts((prev) => prev.filter((p) => !selectedIds.has(p.id)))
+      setSelectedIds(new Set())
+      router.refresh()
+    }
+    setDeleting(false)
+  }, [selectedIds, onDelete, showToast, router])
 
   // ─── Keyboard navigation ───────────────────────────────────────────────
   const COLS = 6 // serial, name, model, price, stock, availability
@@ -383,6 +440,11 @@ export function BulkEditTable({
           <p className="text-xs text-muted-foreground tracking-widest uppercase mt-1">{subtitle}</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
+          {selectedIds.size > 0 && (
+            <Button variant="destructive" size="sm" onClick={handleBulkDelete} disabled={deleting}>
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" /> {deleting ? "Deleting..." : `Delete (${selectedIds.size})`}
+            </Button>
+          )}
           {modifiedIds.size > 0 && (
             <div className="flex items-center gap-2 text-xs text-yellow-500">
               <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 animate-pulse" />
@@ -455,6 +517,14 @@ export function BulkEditTable({
           <table ref={tableRef} className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/50">
+                <th className="px-4 py-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                    onChange={toggleSelectAll}
+                    className="rounded border-muted-foreground/50"
+                  />
+                </th>
                 <th className="px-4 py-3 text-left text-[0.68rem] font-medium uppercase tracking-wider text-muted-foreground w-12">#</th>
                 <th className="px-4 py-3 text-left text-[0.68rem] font-medium uppercase tracking-wider text-muted-foreground">Product</th>
                 <th className="px-4 py-3 text-left text-[0.68rem] font-medium uppercase tracking-wider text-muted-foreground">Name</th>
@@ -473,6 +543,15 @@ export function BulkEditTable({
                     key={product.id}
                     className={`border-b transition-colors hover:bg-muted/30 ${isModified ? "border-l-2 border-l-yellow-500" : ""}`}
                   >
+                    {/* Select checkbox */}
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(product.id)}
+                        onChange={() => toggleSelect(product.id)}
+                        className="rounded border-muted-foreground/50"
+                      />
+                    </td>
                     {/* Serial */}
                     <td className="px-4 py-3 text-xs text-muted-foreground text-center" data-row={rowIdx} data-col={0}
                       onClick={() => setFocusedCell({ row: rowIdx, col: 0 })} tabIndex={-1}>
@@ -606,7 +685,10 @@ export function BulkEditTable({
             </div>
             <div className="space-y-2">
               <Label>{t("uploadCsvFile")}</Label>
-              <Input ref={fileInputRef} type="file" accept=".csv" onChange={handleImport} disabled={importing} />
+              <Input ref={fileInputRef} type="file" accept=".csv" onChange={handleFileSelect} disabled={importing} />
+              {importFile && !importing && (
+                <p className="text-sm text-muted-foreground">Selected: {importFile.name}</p>
+              )}
               {importing && <p className="text-sm text-muted-foreground">{t("importingProducts")}</p>}
             </div>
             {importResult && showImportModal && (
@@ -619,7 +701,10 @@ export function BulkEditTable({
             <Button variant="outline" onClick={downloadTemplate} className="gap-2">
               <Download className="h-4 w-4" /> {t("downloadSampleCsv")}
             </Button>
-            <Button variant="outline" onClick={() => setShowImportModal(false)}>{tCommon("cancel")}</Button>
+            <Button variant="outline" onClick={() => { setShowImportModal(false); setImportFile(null) }}>{tCommon("cancel")}</Button>
+            <Button onClick={handleStartImport} disabled={!importFile || importing} className="gap-2">
+              <Upload className="h-4 w-4" /> {importing ? t("importingProducts") : "Start Importing"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
