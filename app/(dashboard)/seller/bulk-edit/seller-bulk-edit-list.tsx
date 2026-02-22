@@ -2,11 +2,13 @@
 
 import { useState, useTransition, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Save, Trash2, Upload, Download, Search } from "lucide-react"
+import { Save, Trash2, Upload, Download, Search, FileSpreadsheet } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { EmptyState } from "@/components/ui/empty-state"
 import { updateProduct, deleteProduct, bulkImportProducts } from "@/lib/actions/products"
 
@@ -39,7 +41,7 @@ function parseCSV(text: string): Record<string, string>[] {
 }
 
 function downloadTemplate() {
-  const csv = "name,model_number,main_category,category,price_per_meter,stock,description\nExample Product,EX-001,Aluminum Profiles,Window & Door Profiles,10.00,100,Sample description"
+  const csv = "name,model_number,description,main_category,category,price_per_meter,stock,image_path\nExample Product,EX-001,Sample description,Aluminum Profiles,Window & Door Profiles,10.00,100,/images/example.jpg"
   const blob = new Blob([csv], { type: "text/csv" })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
@@ -56,6 +58,7 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
   const [search, setSearch] = useState("")
   const [importResult, setImportResult] = useState<string | null>(null)
   const [importIsError, setImportIsError] = useState(false)
+  const [showImportModal, setShowImportModal] = useState(false)
   const [isPending, startTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
@@ -128,6 +131,7 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
       } else {
         setImportIsError(false)
         setImportResult(`Successfully imported ${result.count} products!`)
+        setShowImportModal(false)
         router.refresh()
       }
     } catch {
@@ -146,20 +150,16 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products..." className="pl-9" />
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" onClick={downloadTemplate} className="gap-2">
-            <Download className="h-4 w-4" /> Download Template
+          <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2">
+            <Upload className="h-4 w-4" /> Import CSV
           </Button>
-          <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={importing} className="gap-2">
-            <Upload className="h-4 w-4" /> {importing ? "Importing..." : "Import CSV"}
-          </Button>
-          <input ref={fileInputRef} type="file" accept=".csv" onChange={handleImport} className="hidden" />
           <Button onClick={handleSave} disabled={saving} className="gap-2">
             <Save className="h-4 w-4" /> {saving ? "Saving..." : "Save All Changes"}
           </Button>
         </div>
       </div>
 
-      {importResult && (
+      {importResult && !showImportModal && (
         <div className={`p-3 rounded-lg text-sm ${importIsError ? "bg-destructive/10 text-destructive" : "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"}`}>
           {importResult}
         </div>
@@ -197,6 +197,52 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
           </TableBody>
         </Table>
       </Card>
+
+      {/* Import CSV Modal */}
+      <Dialog open={showImportModal} onOpenChange={setShowImportModal}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Import Products from CSV</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-4">
+            <p className="text-sm text-muted-foreground">
+              Upload a CSV file to bulk import products. The CSV should include the following columns:
+            </p>
+            <div className="rounded-lg border p-4 bg-muted/50">
+              <div className="flex items-center gap-2 mb-3">
+                <FileSpreadsheet className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">Required CSV Columns</span>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <span className="text-muted-foreground">Product Name</span><span className="font-mono text-xs">name</span>
+                <span className="text-muted-foreground">Model Number</span><span className="font-mono text-xs">model_number</span>
+                <span className="text-muted-foreground">Description</span><span className="font-mono text-xs">description</span>
+                <span className="text-muted-foreground">Category</span><span className="font-mono text-xs">main_category</span>
+                <span className="text-muted-foreground">Sub Category</span><span className="font-mono text-xs">category</span>
+                <span className="text-muted-foreground">Price</span><span className="font-mono text-xs">price_per_meter</span>
+                <span className="text-muted-foreground">Stock</span><span className="font-mono text-xs">stock</span>
+                <span className="text-muted-foreground">Image Path</span><span className="font-mono text-xs">image_path</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Upload CSV File</Label>
+              <Input ref={fileInputRef} type="file" accept=".csv" onChange={handleImport} disabled={importing} />
+              {importing && <p className="text-sm text-muted-foreground">Importing products...</p>}
+            </div>
+
+            {importResult && showImportModal && (
+              <div className={`p-3 rounded-lg text-sm ${importIsError ? "bg-destructive/10 text-destructive" : "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"}`}>
+                {importResult}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={downloadTemplate} className="gap-2">
+              <Download className="h-4 w-4" /> Download Sample CSV
+            </Button>
+            <Button variant="outline" onClick={() => setShowImportModal(false)}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
