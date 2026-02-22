@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,6 +30,8 @@ export default function SupportClient({ tickets: initialTickets }: SupportClient
   const [tickets, setTickets] = useState(initialTickets)
   const [showForm, setShowForm] = useState(false)
   const [pending, startTransition] = useTransition()
+  const t = useTranslations("support")
+  const tCommon = useTranslations("common")
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -62,9 +65,9 @@ export default function SupportClient({ tickets: initialTickets }: SupportClient
   return (
     <div className="space-y-6 max-w-3xl">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Support Tickets</h2>
+        <h2 className="text-lg font-semibold">{t("yourTickets")}</h2>
         <Button onClick={() => setShowForm(!showForm)} variant={showForm ? "outline" : "default"} className="gap-2">
-          <Plus className="h-4 w-4" /> {showForm ? "Cancel" : "New Ticket"}
+          <Plus className="h-4 w-4" /> {showForm ? tCommon("cancel") : t("newTicket")}
         </Button>
       </div>
 
@@ -87,15 +90,15 @@ export default function SupportClient({ tickets: initialTickets }: SupportClient
                 ]} placeholder="Select issue type" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="subject">Subject</Label>
+                <Label htmlFor="subject">{t("subject")}</Label>
                 <Input id="subject" name="subject" placeholder="Brief description of your issue" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="message">Message</Label>
+                <Label htmlFor="message">{t("message")}</Label>
                 <Textarea id="message" name="message" placeholder="Describe your issue in detail..." rows={5} required />
               </div>
               <Button type="submit" disabled={pending}>
-                {pending ? "Submitting..." : "Submit Ticket"}
+                {pending ? t("submitting") : t("submitTicket")}
               </Button>
             </form>
           </CardContent>
@@ -103,7 +106,7 @@ export default function SupportClient({ tickets: initialTickets }: SupportClient
       )}
 
       {tickets.length === 0 ? (
-        <EmptyState icon={Ticket} title="No tickets yet" description="Create a support ticket if you need help." />
+        <EmptyState icon={Ticket} title={t("noTickets")} description={t("noTicketsDesc")} />
       ) : (
         <div className="space-y-3">
           {tickets.map((ticket) => (

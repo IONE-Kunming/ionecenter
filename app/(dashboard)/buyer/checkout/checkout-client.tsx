@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { CreditCard, Building, Smartphone, Wallet } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,12 +10,12 @@ import { cn, formatCurrency, calculateOrderTotals, DEPOSIT_OPTIONS } from "@/lib
 import { createOrdersFromCart } from "@/lib/actions/orders"
 import type { CartItem, PaymentMethod } from "@/types/database"
 
-const paymentMethods = [
-  { id: "alipay" as const, label: "Alipay", icon: Smartphone },
-  { id: "wechat" as const, label: "WeChat Pay", icon: Wallet },
-  { id: "bank_transfer" as const, label: "Bank Transfer", icon: Building },
-  { id: "card" as const, label: "Card Payment", icon: CreditCard },
-]
+const paymentMethodKeys = [
+  { id: "alipay" as const, key: "alipay", icon: Smartphone },
+  { id: "wechat" as const, key: "wechat", icon: Wallet },
+  { id: "bank_transfer" as const, key: "bankTransfer", icon: Building },
+  { id: "card" as const, key: "card", icon: CreditCard },
+] as const
 
 interface EnrichedItem extends CartItem {
   name: string
@@ -29,6 +30,8 @@ interface CheckoutClientProps {
 
 export default function CheckoutClient({ cartItems, subtotal, enrichedItems }: CheckoutClientProps) {
   const router = useRouter()
+  const t = useTranslations("checkout")
+  const tCart = useTranslations("cart")
   const [depositPct, setDepositPct] = useState<number | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
   const [processing, setProcessing] = useState(false)
@@ -55,7 +58,7 @@ export default function CheckoutClient({ cartItems, subtotal, enrichedItems }: C
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Order Summary */}
       <Card>
-        <CardHeader><CardTitle>Order Summary</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{tCart("orderSummary")}</CardTitle></CardHeader>
         <CardContent className="space-y-2 text-sm">
           {enrichedItems.map((item) => (
             <div key={item.product_id} className="flex justify-between">
@@ -65,15 +68,15 @@ export default function CheckoutClient({ cartItems, subtotal, enrichedItems }: C
               <span>{formatCurrency(item.price * item.quantity)}</span>
             </div>
           ))}
-          <div className="border-t pt-2 flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Tax (10%)</span><span>{formatCurrency(tax)}</span></div>
-          <div className="border-t pt-2 flex justify-between font-semibold text-base"><span>Total</span><span>{formatCurrency(total)}</span></div>
+          <div className="border-t pt-2 flex justify-between"><span className="text-muted-foreground">{tCart("subtotal")}</span><span>{formatCurrency(subtotal)}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">{tCart("tax10")}</span><span>{formatCurrency(tax)}</span></div>
+          <div className="border-t pt-2 flex justify-between font-semibold text-base"><span>{tCart("total")}</span><span>{formatCurrency(total)}</span></div>
         </CardContent>
       </Card>
 
       {/* Deposit Selection */}
       <Card>
-        <CardHeader><CardTitle>Select Deposit Amount</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("selectDeposit")}</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {DEPOSIT_OPTIONS.map((pct) => (
@@ -92,8 +95,8 @@ export default function CheckoutClient({ cartItems, subtotal, enrichedItems }: C
           </div>
           {depositPct && (
             <div className="mt-4 p-3 rounded-lg bg-muted text-sm space-y-1">
-              <div className="flex justify-between"><span>Deposit Amount:</span><span className="font-medium">{formatCurrency(deposit)}</span></div>
-              <div className="flex justify-between"><span>Remaining Balance:</span><span className="font-medium">{formatCurrency(remaining)}</span></div>
+              <div className="flex justify-between"><span>{t("depositAmount")}:</span><span className="font-medium">{formatCurrency(deposit)}</span></div>
+              <div className="flex justify-between"><span>{t("remainingBalance")}:</span><span className="font-medium">{formatCurrency(remaining)}</span></div>
             </div>
           )}
         </CardContent>
@@ -101,10 +104,10 @@ export default function CheckoutClient({ cartItems, subtotal, enrichedItems }: C
 
       {/* Payment Method */}
       <Card>
-        <CardHeader><CardTitle>Payment Method</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("paymentMethod")}</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-3">
-            {paymentMethods.map((method) => (
+            {paymentMethodKeys.map((method) => (
               <button
                 key={method.id}
                 onClick={() => setPaymentMethod(method.id)}
@@ -114,7 +117,7 @@ export default function CheckoutClient({ cartItems, subtotal, enrichedItems }: C
                 )}
               >
                 <method.icon className="h-5 w-5" />
-                <span className="text-sm font-medium">{method.label}</span>
+                <span className="text-sm font-medium">{t(method.key)}</span>
               </button>
             ))}
           </div>
@@ -133,7 +136,7 @@ export default function CheckoutClient({ cartItems, subtotal, enrichedItems }: C
         disabled={!depositPct || !paymentMethod || processing}
         onClick={handleCheckout}
       >
-        {processing ? "Processing Payment..." : `Pay ${depositPct ? formatCurrency(deposit) : "Select deposit"}`}
+        {processing ? t("placingOrder") : depositPct ? `${t("placeOrder")} — ${formatCurrency(deposit)}` : t("selectDeposit")}
       </Button>
     </div>
   )
