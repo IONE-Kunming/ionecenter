@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import {
   Save, Upload, Download, Search, FileSpreadsheet,
-  RotateCcw, GripVertical, Package,
+  RotateCcw, Package,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Input } from "@/components/ui/input"
@@ -44,6 +44,9 @@ export interface ImportRow {
 }
 
 type FilterMode = "all" | "available" | "unavailable" | "modified"
+
+// Columns that have editable text inputs (auto-activate on arrow nav)
+const EDITABLE_COLS = [1, 2, 3, 4] // name, model, price, stock
 
 // ─── CSV Parser ─────────────────────────────────────────────────────────────
 function parseCSV(text: string): Record<string, string>[] {
@@ -99,7 +102,6 @@ function Toast({ message, type, onDone }: { message: string; type: "success" | "
 export function BulkEditTable({
   initialProducts,
   onSave,
-  onDelete,
   onImport,
   title = "Bulk Edit",
   subtitle = "PRODUCT MANAGEMENT — INLINE EDITOR",
@@ -122,7 +124,7 @@ export function BulkEditTable({
   const [focusedCell, setFocusedCell] = useState({ row: -1, col: -1 })
   const fileInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
-  let toastCounter = useRef(0)
+  const toastCounter = useRef(0)
 
   // ─── Filtering ──────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -268,7 +270,6 @@ export function BulkEditTable({
 
   // ─── Keyboard navigation ───────────────────────────────────────────────
   const COLS = 6 // serial, name, model, price, stock, availability
-  const EDITABLE_COLS = [1, 2, 3, 4] // name, model, price, stock
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
