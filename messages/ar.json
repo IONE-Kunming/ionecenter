@@ -440,9 +440,20 @@
   "bulkEdit": {
     "saveAll": "حفظ جميع التغييرات",
     "importCsv": "استيراد CSV",
+    "bulkImport": "استيراد جماعي",
     "downloadTemplate": "تنزيل القالب",
+    "downloadSampleCsv": "تنزيل نموذج CSV",
     "noProducts": "لا توجد منتجات للتعديل",
-    "noProductsDesc": "أضف منتجات أولاً قبل التعديل الجماعي."
+    "noProductsDesc": "أضف منتجات أولاً قبل التعديل الجماعي.",
+    "importTitle": "استيراد المنتجات بالجملة",
+    "importDescription": "قم بتحميل ملف CSV لاستيراد المنتجات بالجملة. يجب أن يتضمن ملف CSV الأعمدة التالية:",
+    "requiredColumns": "أعمدة CSV المطلوبة",
+    "uploadCsvFile": "تحميل ملف CSV",
+    "importingProducts": "جاري استيراد المنتجات...",
+    "noValidRows": "لم يتم العثور على صفوف صالحة في CSV.",
+    "importSuccess": "تم استيراد {count} منتج بنجاح!",
+    "importError": "خطأ في الاستيراد: {error}",
+    "importFailed": "فشل استيراد ملف CSV."
   },
   "adminDashboard": {
     "totalUsers": "إجمالي المستخدمين",

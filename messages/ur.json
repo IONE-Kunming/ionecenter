@@ -440,9 +440,20 @@
   "bulkEdit": {
     "saveAll": "تمام تبدیلیاں محفوظ کریں",
     "importCsv": "CSV درآمد کریں",
+    "bulkImport": "بلک درآمد",
     "downloadTemplate": "ٹیمپلیٹ ڈاؤن لوڈ کریں",
+    "downloadSampleCsv": "نمونہ CSV ڈاؤن لوڈ کریں",
     "noProducts": "ترمیم کے لیے کوئی مصنوعات نہیں",
-    "noProductsDesc": "بلک ایڈیٹنگ سے پہلے مصنوعات شامل کریں۔"
+    "noProductsDesc": "بلک ایڈیٹنگ سے پہلے مصنوعات شامل کریں۔",
+    "importTitle": "مصنوعات بلک درآمد",
+    "importDescription": "مصنوعات کی بلک درآمد کے لیے CSV فائل اپ لوڈ کریں۔ CSV میں درج ذیل کالم شامل ہونے چاہیئں:",
+    "requiredColumns": "ضروری CSV کالم",
+    "uploadCsvFile": "CSV فائل اپ لوڈ کریں",
+    "importingProducts": "مصنوعات درآمد ہو رہی ہیں...",
+    "noValidRows": "CSV میں کوئی درست قطاریں نہیں ملیں۔",
+    "importSuccess": "{count} مصنوعات کامیابی سے درآمد ہو گئیں!",
+    "importError": "درآمد میں خرابی: {error}",
+    "importFailed": "CSV فائل درآمد کرنے میں ناکامی۔"
   },
   "adminDashboard": {
     "totalUsers": "کل صارفین",

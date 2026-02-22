@@ -118,14 +118,9 @@ export function AdminProductsList({ products }: { products: Product[] }) {
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchProducts")} className="pl-9" />
         </div>
         <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder={tCommon("allCategories")} className="w-full sm:w-56" />
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2">
-            <Upload className="h-4 w-4" /> {tBulk("importCsv")}
-          </Button>
-          <Button variant="outline" onClick={downloadTemplate} className="gap-2">
-            <Download className="h-4 w-4" /> {tBulk("downloadTemplate")}
-          </Button>
-        </div>
+        <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2">
+          <Upload className="h-4 w-4" /> {tBulk("bulkImport")}
+        </Button>
       </div>
 
       {importResult && !showImportModal && (
@@ -171,18 +166,18 @@ export function AdminProductsList({ products }: { products: Product[] }) {
         <EmptyState icon={Package} title={t("noProducts")} />
       )}
 
-      {/* Import CSV Modal */}
+      {/* Bulk Import Modal */}
       <Dialog open={showImportModal} onOpenChange={setShowImportModal}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Import Products from CSV</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{tBulk("importTitle")}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
             <p className="text-sm text-muted-foreground">
-              Upload a CSV file to bulk import products. The CSV should include the following columns:
+              {tBulk("importDescription")}
             </p>
             <div className="rounded-lg border p-4 bg-muted/50">
               <div className="flex items-center gap-2 mb-3">
                 <FileSpreadsheet className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">Required CSV Columns</span>
+                <span className="text-sm font-medium">{tBulk("requiredColumns")}</span>
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                 <span className="text-muted-foreground">Product Name</span><span className="font-mono text-xs">name</span>
@@ -197,9 +192,9 @@ export function AdminProductsList({ products }: { products: Product[] }) {
             </div>
 
             <div className="space-y-2">
-              <Label>Upload CSV File</Label>
+              <Label>{tBulk("uploadCsvFile")}</Label>
               <Input ref={fileInputRef} type="file" accept=".csv" onChange={handleImport} disabled={importing} />
-              {importing && <p className="text-sm text-muted-foreground">{tCommon("loading")}</p>}
+              {importing && <p className="text-sm text-muted-foreground">{tBulk("importingProducts")}</p>}
             </div>
 
             {importResult && showImportModal && (
@@ -210,7 +205,7 @@ export function AdminProductsList({ products }: { products: Product[] }) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={downloadTemplate} className="gap-2">
-              <Download className="h-4 w-4" /> {tBulk("downloadTemplate")}
+              <Download className="h-4 w-4" /> {tBulk("downloadSampleCsv")}
             </Button>
             <Button variant="outline" onClick={() => setShowImportModal(false)}>{tCommon("cancel")}</Button>
           </DialogFooter>

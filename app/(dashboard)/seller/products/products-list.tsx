@@ -117,7 +117,7 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
         </div>
         <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder="All Categories" className="w-full sm:w-56" />
         <Button onClick={() => setShowAddModal(true)} className="gap-2"><Plus className="h-4 w-4" /> Add Product</Button>
-        <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2"><Upload className="h-4 w-4" /> Import CSV</Button>
+        <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2"><Upload className="h-4 w-4" /> Bulk Import</Button>
       </div>
 
       {filtered.length > 0 ? (
@@ -187,10 +187,10 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
         </DialogContent>
       </Dialog>
 
-      {/* Import CSV Modal */}
+      {/* Bulk Import Modal */}
       <Dialog open={showImportModal} onOpenChange={setShowImportModal}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Import Products from CSV</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Bulk Import Products</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
             <p className="text-sm text-muted-foreground">
               Upload a CSV file to bulk import products. The CSV should include the following columns:

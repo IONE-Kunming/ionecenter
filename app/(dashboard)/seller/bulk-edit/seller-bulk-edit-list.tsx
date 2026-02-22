@@ -151,7 +151,7 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2">
-            <Upload className="h-4 w-4" /> Import CSV
+            <Upload className="h-4 w-4" /> Bulk Import
           </Button>
           <Button onClick={handleSave} disabled={saving} className="gap-2">
             <Save className="h-4 w-4" /> {saving ? "Saving..." : "Save All Changes"}
@@ -198,10 +198,10 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
         </Table>
       </Card>
 
-      {/* Import CSV Modal */}
+      {/* Bulk Import Modal */}
       <Dialog open={showImportModal} onOpenChange={setShowImportModal}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Import Products from CSV</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Bulk Import Products</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
             <p className="text-sm text-muted-foreground">
               Upload a CSV file to bulk import products. The CSV should include the following columns:

@@ -440,9 +440,20 @@
   "bulkEdit": {
     "saveAll": "Save All Changes",
     "importCsv": "Import CSV",
+    "bulkImport": "Bulk Import",
     "downloadTemplate": "Download Template",
+    "downloadSampleCsv": "Download Sample CSV",
     "noProducts": "No products to edit",
-    "noProductsDesc": "Add products first before bulk editing."
+    "noProductsDesc": "Add products first before bulk editing.",
+    "importTitle": "Bulk Import Products",
+    "importDescription": "Upload a CSV file to bulk import products. The CSV should include the following columns:",
+    "requiredColumns": "Required CSV Columns",
+    "uploadCsvFile": "Upload CSV File",
+    "importingProducts": "Importing products...",
+    "noValidRows": "No valid rows found in CSV.",
+    "importSuccess": "Successfully imported {count} products!",
+    "importError": "Import error: {error}",
+    "importFailed": "Failed to import CSV file."
   },
   "adminDashboard": {
     "totalUsers": "Total Users",

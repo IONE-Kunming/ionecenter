@@ -440,9 +440,20 @@
   "bulkEdit": {
     "saveAll": "保存所有更改",
     "importCsv": "导入CSV",
+    "bulkImport": "批量导入",
     "downloadTemplate": "下载模板",
+    "downloadSampleCsv": "下载示例CSV",
     "noProducts": "没有可编辑的产品",
-    "noProductsDesc": "请先添加产品再进行批量编辑。"
+    "noProductsDesc": "请先添加产品再进行批量编辑。",
+    "importTitle": "批量导入产品",
+    "importDescription": "上传CSV文件批量导入产品。CSV文件应包含以下列：",
+    "requiredColumns": "必需的CSV列",
+    "uploadCsvFile": "上传CSV文件",
+    "importingProducts": "正在导入产品...",
+    "noValidRows": "CSV中未找到有效行。",
+    "importSuccess": "成功导入 {count} 个产品！",
+    "importError": "导入错误：{error}",
+    "importFailed": "导入CSV文件失败。"
   },
   "adminDashboard": {
     "totalUsers": "总用户数",
