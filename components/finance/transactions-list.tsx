@@ -97,7 +97,7 @@ export function TransactionsList({ transactions }: { transactions: Transaction[]
               />
             </div>
             <Select aria-label="Filter by type" options={typeOptions.map(o => ({ value: o.value, label: o.labelKey === "allTypes" ? tCommon(o.labelKey) : t(o.labelKey) }))} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="w-full sm:w-40" />
-            <Select aria-label="Filter by status" options={statusOptions.map(o => ({ value: o.value, label: o.labelKey === "allStatuses" ? tCommon(o.labelKey) : tCommon(o.labelKey) }))} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full sm:w-40" />
+            <Select aria-label="Filter by status" options={statusOptions.map(o => ({ value: o.value, label: tCommon(o.labelKey) }))} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full sm:w-40" />
           </div>
         </CardHeader>
         <CardContent>
