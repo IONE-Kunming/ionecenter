@@ -56,7 +56,7 @@ export async function addToCart(productId: string, quantity: number) {
     .eq("user_id", user.id)
     .single()
 
-  const items: CartItem[] = (cart?.items as CartItem[]) ?? []
+  const items: CartItem[] = Array.isArray(cart?.items) ? (cart.items as CartItem[]) : []
   const existing = items.find((i) => i.product_id === productId)
 
   if (existing) {

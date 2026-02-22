@@ -23,7 +23,15 @@ function parseCSV(text: string): Record<string, string>[] {
   if (lines.length < 2) return []
   const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/\s+/g, "_"))
   return lines.slice(1).map((line) => {
-    const values = line.split(",").map((v) => v.trim())
+    const values: string[] = []
+    let current = ""
+    let inQuotes = false
+    for (const ch of line) {
+      if (ch === '"') { inQuotes = !inQuotes; continue }
+      if (ch === "," && !inQuotes) { values.push(current.trim()); current = ""; continue }
+      current += ch
+    }
+    values.push(current.trim())
     const row: Record<string, string> = {}
     headers.forEach((h, i) => { row[h] = values[i] ?? "" })
     return row
@@ -47,6 +55,7 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
   const [importing, setImporting] = useState(false)
   const [search, setSearch] = useState("")
   const [importResult, setImportResult] = useState<string | null>(null)
+  const [importIsError, setImportIsError] = useState(false)
   const [isPending, startTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
@@ -70,9 +79,11 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
           stock: product.stock,
         })
       }
+      setImportIsError(false)
       setImportResult("All changes saved successfully!")
       router.refresh()
     } catch {
+      setImportIsError(true)
       setImportResult("Failed to save changes.")
     }
     setSaving(false)
@@ -96,6 +107,7 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
       const text = await file.text()
       const rows = parseCSV(text)
       if (rows.length === 0) {
+        setImportIsError(true)
         setImportResult("No valid rows found in CSV.")
         setImporting(false)
         return
@@ -111,12 +123,15 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
       }))
       const result = await bulkImportProducts(mapped)
       if (result.error) {
+        setImportIsError(true)
         setImportResult(`Import error: ${result.error}`)
       } else {
+        setImportIsError(false)
         setImportResult(`Successfully imported ${result.count} products!`)
         router.refresh()
       }
     } catch {
+      setImportIsError(true)
       setImportResult("Failed to import CSV file.")
     }
     setImporting(false)
@@ -145,7 +160,7 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
       </div>
 
       {importResult && (
-        <div className={`p-3 rounded-lg text-sm ${importResult.startsWith("Error") || importResult.startsWith("Failed") || importResult.startsWith("Import error") || importResult.startsWith("No valid") ? "bg-destructive/10 text-destructive" : "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"}`}>
+        <div className={`p-3 rounded-lg text-sm ${importIsError ? "bg-destructive/10 text-destructive" : "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"}`}>
           {importResult}
         </div>
       )}

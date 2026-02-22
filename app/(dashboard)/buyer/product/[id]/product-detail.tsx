@@ -84,7 +84,7 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
                 min={1}
                 max={product.stock}
                 value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock, Number(e.target.value))))}
                 className="w-20 rounded-md border px-3 py-1.5 text-sm"
               />
             </div>

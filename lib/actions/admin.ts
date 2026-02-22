@@ -198,24 +198,19 @@ export async function adminBulkImportProducts(
 
   const sellerId = sellers?.[0]?.id ?? user.id
 
-  let count = 0
-  for (const row of rows) {
-    const { error } = await supabase
-      .from("products")
-      .insert({
-        name: row.name,
-        model_number: row.model_number,
-        main_category: row.main_category,
-        category: row.category,
-        price_per_meter: row.price_per_meter,
-        stock: row.stock,
-        description: row.description ?? null,
-        seller_id: sellerId,
-      })
+  const insertRows = rows.map((row) => ({
+    name: row.name,
+    model_number: row.model_number,
+    main_category: row.main_category,
+    category: row.category,
+    price_per_meter: row.price_per_meter,
+    stock: row.stock,
+    description: row.description ?? null,
+    seller_id: sellerId,
+  }))
 
-    if (error) return { error: error.message }
-    count++
-  }
+  const { error } = await supabase.from("products").insert(insertRows)
 
-  return { success: true, count }
+  if (error) return { error: error.message }
+  return { success: true, count: insertRows.length }
 }
