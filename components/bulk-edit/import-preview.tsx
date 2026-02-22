@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import { Upload, X, ImagePlus, Trash2, FileSpreadsheet } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -23,10 +23,15 @@ interface ImportPreviewProps {
 }
 
 export function ImportPreview({ open, onClose, initialRows, onFinishImport, importing }: ImportPreviewProps) {
-  const [rows, setRows] = useState<PreviewRow[]>(() =>
-    initialRows.map((r) => ({ ...r, imageFile: null, imagePreview: null }))
-  )
+  const [rows, setRows] = useState<PreviewRow[]>([])
   const fileRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  // Re-initialize rows when initialRows change (e.g., new CSV parsed)
+  useEffect(() => {
+    if (initialRows.length > 0) {
+      setRows(initialRows.map((r) => ({ ...r, imageFile: null, imagePreview: null })))
+    }
+  }, [initialRows])
 
   const updateRow = useCallback((index: number, field: keyof ImportRow, value: string | number) => {
     setRows((prev) => prev.map((r, i) => i === index ? { ...r, [field]: value } : r))

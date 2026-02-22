@@ -65,10 +65,16 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
   // Auto-select conversation from URL param
   useEffect(() => {
     if (initialConversationId && conversations.some((c) => c.id === initialConversationId)) {
-      selectConversation(initialConversationId)
+      setSelectedId(initialConversationId)
+      setShowSidebar(false)
+      setMessages([])
+      startLoadMessages(async () => {
+        const msgs = await getMessages(initialConversationId)
+        setMessages(msgs)
+      })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialConversationId])
+  }, [initialConversationId, conversations])
 
   // Real-time subscription
   useEffect(() => {
