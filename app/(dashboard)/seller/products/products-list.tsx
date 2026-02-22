@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { Package, Plus, Search, Upload, Download, Pencil, Trash2, FileSpreadsheet } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Card, CardContent } from "@/components/ui/card"
@@ -131,8 +132,18 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
             return (
               <Card key={product.id} className="group">
                 <CardContent className="p-0">
-                  <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center">
-                    <Package className="h-12 w-12 text-muted-foreground/30" />
+                  <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center overflow-hidden">
+                    {product.image_url ? (
+                      <Image
+                        src={product.image_url}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      />
+                    ) : (
+                      <Package className="h-12 w-12 text-muted-foreground/30" />
+                    )}
                   </div>
                   <div className="p-4">
                     <Badge variant="secondary" className="text-xs mb-2">{product.category}</Badge>

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
+import Image from "next/image"
 import { ShoppingCart, Trash2, Minus, Plus, Package } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -76,8 +77,18 @@ export default function CartClient({ items: initialItems }: { items: EnrichedCar
           <Card key={item.id}>
             <CardContent className="p-4">
               <div className="flex gap-4">
-                <div className="h-20 w-20 bg-gradient-to-br from-muted to-muted/50 rounded-lg flex items-center justify-center shrink-0">
-                  <Package className="h-8 w-8 text-muted-foreground/30" />
+                <div className="h-20 w-20 relative bg-gradient-to-br from-muted to-muted/50 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                  {item.image_url ? (
+                    <Image
+                      src={item.image_url}
+                      alt={item.name}
+                      fill
+                      className="object-cover"
+                      sizes="80px"
+                    />
+                  ) : (
+                    <Package className="h-8 w-8 text-muted-foreground/30" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold">{item.name}</h3>

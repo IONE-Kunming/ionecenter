@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
+import Image from "next/image"
 import { Package, Search, ShoppingCart, MessageSquare } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -51,8 +52,18 @@ export function AllProductsList({ products }: { products: Product[] }) {
               <Card key={product.id} className="group hover:shadow-md transition-all">
                 <CardContent className="p-0">
                   <Link href={`/buyer/product/${product.id}`}>
-                    <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center">
-                      <Package className="h-12 w-12 text-muted-foreground/30" />
+                    <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center overflow-hidden">
+                      {product.image_url ? (
+                        <Image
+                          src={product.image_url}
+                          alt={product.name}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        />
+                      ) : (
+                        <Package className="h-12 w-12 text-muted-foreground/30" />
+                      )}
                     </div>
                   </Link>
                   <div className="p-4">

@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
+import Image from "next/image"
 import { Package, ArrowLeft, Search, ShoppingCart, MessageSquare } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,6 +13,7 @@ import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency } from "@/lib/utils"
 import { CATEGORIES, MAIN_CATEGORIES } from "@/types/categories"
+import { getCategoryImage } from "@/lib/constants/category-images"
 
 type BrowseLevel = "categories" | "subcategories" | "products"
 
@@ -24,6 +26,7 @@ interface CatalogProduct {
   price_per_meter: number
   stock: number
   seller_name: string
+  image_url: string | null
 }
 
 const ITEMS_PER_PAGE = 12
@@ -77,21 +80,45 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
       {/* Category Grid */}
       {level === "categories" && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {MAIN_CATEGORIES.map((cat) => (
+          {MAIN_CATEGORIES.map((cat) => {
+            const imageUrl = getCategoryImage(cat)
+            return (
             <Card
               key={cat}
-              className="cursor-pointer hover:shadow-md transition-all hover:-translate-y-1"
+              className="cursor-pointer hover:shadow-md transition-all hover:-translate-y-1 overflow-hidden"
               onClick={() => { setSelectedCategory(cat); setLevel("subcategories"); setCurrentPage(1) }}
             >
-              <CardContent className="p-6 text-center">
-                <Package className="h-8 w-8 mx-auto text-primary" />
-                <h3 className="mt-3 font-semibold text-sm">{cat}</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {CATEGORIES[cat]?.subcategories.length || 0} {t("subcategories")}
-                </p>
+              <CardContent className="p-0">
+                {imageUrl ? (
+                  <div className="relative h-[140px]">
+                    <Image
+                      src={imageUrl}
+                      alt={cat}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                    <div className="absolute bottom-3 left-4 right-4 text-center">
+                      <h3 className="font-semibold text-sm text-white">{cat}</h3>
+                      <p className="text-xs text-white/80 mt-1">
+                        {CATEGORIES[cat]?.subcategories.length || 0} {t("subcategories")}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-6 text-center">
+                    <Package className="h-8 w-8 mx-auto text-primary" />
+                    <h3 className="mt-3 font-semibold text-sm">{cat}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {CATEGORIES[cat]?.subcategories.length || 0} {t("subcategories")}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
-          ))}
+            )
+          })}
         </div>
       )}
 
@@ -134,8 +161,18 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
                   <Card key={product.id} className="group hover:shadow-md transition-all">
                     <CardContent className="p-0">
                       <Link href={`/buyer/product/${product.id}`}>
-                        <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center">
-                          <Package className="h-12 w-12 text-muted-foreground/30" />
+                        <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center overflow-hidden">
+                          {product.image_url ? (
+                            <Image
+                              src={product.image_url}
+                              alt={product.name}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                            />
+                          ) : (
+                            <Package className="h-12 w-12 text-muted-foreground/30" />
+                          )}
                         </div>
                       </Link>
                       <div className="p-4">
