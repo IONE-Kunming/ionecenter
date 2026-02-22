@@ -7,22 +7,22 @@ export default async function GuestLayout({ children }: { children: React.ReactN
   const nav = await getTranslations("nav")
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
+    <div className="min-h-screen bg-[#000000] text-white">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#131923]/90 backdrop-blur-md">
+        <div className="max-w-[1320px] mx-auto flex h-16 items-center justify-between px-6">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#C4EF17] text-black font-bold text-lg">
               IC
             </div>
-            <span className="text-xl font-bold">IONE Center</span>
+            <span className="text-xl font-bold text-white">IONE Center</span>
           </Link>
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
             <Link href="/sign-in">
-              <Button variant="ghost" size="sm">{nav("logIn")}</Button>
+              <Button variant="ghost" size="sm" className="text-[#ABB8C3] hover:text-white">{nav("logIn")}</Button>
             </Link>
             <Link href="/sign-up">
-              <Button size="sm">{nav("signUpFree")}</Button>
+              <Button size="sm" className="bg-[#C4EF17] text-black hover:bg-[#d4ff27]">{nav("signUpFree")}</Button>
             </Link>
           </div>
         </div>

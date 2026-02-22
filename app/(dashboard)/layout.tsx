@@ -26,7 +26,7 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen">
       <Sidebar role={role} />
-      <div className="md:ml-64">
+      <div className="md:ms-64">
         <DashboardHeader />
         <main className="p-6">{children}</main>
       </div>

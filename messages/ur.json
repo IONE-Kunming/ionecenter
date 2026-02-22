@@ -19,7 +19,9 @@
     "activeUsers": "فعال صارفین",
     "inTransactions": "لین دین میں",
     "uptime": "اپ ٹائم",
-    "products": "مصنوعات"
+    "products": "مصنوعات",
+    "countries": "ممالک",
+    "happyCustomers": "خوش گاہک"
   },
   "features": {
     "title": "IONE Center کیوں منتخب کریں؟",
@@ -70,7 +72,8 @@
     "title": "تجارت شروع کرنے کے لیے تیار ہیں؟",
     "subtitle": "ہزاروں کاروباروں میں شامل ہوں جو پہلے سے IONE Center پر تجارت کر رہے ہیں۔ آج ہی اپنا مفت اکاؤنٹ بنائیں۔",
     "createAccount": "مفت اکاؤنٹ بنائیں",
-    "exploreProducts": "مصنوعات دریافت کریں"
+    "exploreProducts": "مصنوعات دریافت کریں",
+    "testimonialsHeading": "ہزاروں کاروباروں میں شامل ہوں جو پہلے سے IONE Center پر تجارت کر رہے ہیں"
   },
   "footer": {
     "description": "دنیا بھر میں مصنوعات کی تجارت کے لیے آپ کا قابل اعتماد B2B ای کامرس پلیٹ فارم۔",
@@ -84,7 +87,10 @@
     "privacyPolicy": "رازداری کی پالیسی",
     "termsOfService": "سروس کی شرائط",
     "cookiePolicy": "کوکی پالیسی",
-    "copyright": "© {year} IONE Center۔ جملہ حقوق محفوظ ہیں۔"
+    "copyright": "© {year} IONE Center۔ جملہ حقوق محفوظ ہیں۔",
+    "newsletter": "نیوز لیٹر",
+    "newsletterDesc": "تازہ ترین خصوصیات اور ریلیز کے بارے میں اپ ڈیٹ رہنے کے لیے سبسکرائب کریں۔",
+    "emailPlaceholder": "اپنا ای میل درج کریں"
   },
   "auth": {
     "welcomeBack": "خوش آمدید",

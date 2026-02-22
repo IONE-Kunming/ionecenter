@@ -261,7 +261,7 @@ export function Sidebar({ role }: SidebarProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="fixed top-4 left-4 z-50 md:hidden"
+        className="fixed top-4 start-4 z-50 md:hidden"
         onClick={() => setMobileOpen(!mobileOpen)}
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -278,8 +278,8 @@ export function Sidebar({ role }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-full w-64 border-r bg-sidebar text-sidebar-foreground transition-transform duration-200 md:translate-x-0",
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed start-0 top-0 z-40 h-full w-64 border-e bg-sidebar text-sidebar-foreground transition-transform duration-200 md:translate-x-0 rtl:md:translate-x-0",
+          mobileOpen ? "translate-x-0" : "-translate-x-full rtl:translate-x-full"
         )}
       >
         {sidebarContent}

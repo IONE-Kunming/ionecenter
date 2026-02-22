@@ -19,7 +19,9 @@
     "activeUsers": "Active Users",
     "inTransactions": "In Transactions",
     "uptime": "Uptime",
-    "products": "Products"
+    "products": "Products",
+    "countries": "Countries",
+    "happyCustomers": "Happy Customers"
   },
   "features": {
     "title": "Why Choose IONE Center?",
@@ -70,7 +72,8 @@
     "title": "Ready to Start Trading?",
     "subtitle": "Join thousands of businesses already trading on IONE Center. Create your free account today.",
     "createAccount": "Create Free Account",
-    "exploreProducts": "Explore Products"
+    "exploreProducts": "Explore Products",
+    "testimonialsHeading": "Join thousands of businesses already trading on IONE Center"
   },
   "footer": {
     "description": "Your trusted B2B ecommerce platform for trading products worldwide.",
@@ -84,7 +87,10 @@
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "cookiePolicy": "Cookie Policy",
-    "copyright": "© {year} IONE Center. All rights reserved."
+    "copyright": "© {year} IONE Center. All rights reserved.",
+    "newsletter": "Newsletter",
+    "newsletterDesc": "Subscribe to stay updated with the latest features and releases.",
+    "emailPlaceholder": "Enter your email"
   },
   "auth": {
     "welcomeBack": "Welcome Back",
