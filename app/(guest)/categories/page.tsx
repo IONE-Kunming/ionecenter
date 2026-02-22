@@ -1,19 +1,45 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Layers, Box, Blocks, Wrench, Building2, Package, Shield, Recycle } from "lucide-react"
+import {
+  Building2, Shirt, Car, Briefcase, FlaskConical, Monitor, Smartphone, Zap,
+  Cpu, Sun, Leaf, UtensilsCrossed, Armchair, Gamepad2, Wrench, Heart,
+  TreePine, Refrigerator, Crosshair, Lightbulb, Luggage, Factory, Ruler,
+  Gem, Printer, Shield, Footprints, Scissors, Truck, Package,
+} from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { CATEGORIES, MAIN_CATEGORIES } from "@/types/categories"
 import { getCategoryImage } from "@/lib/constants/category-images"
 
 const categoryIcons: Record<string, React.ElementType> = {
-  "Aluminum Profiles": Layers,
-  "Aluminum Sheets": Box,
-  "Glass Products": Blocks,
-  "Hardware & Accessories": Wrench,
-  "Steel Products": Building2,
-  "Insulation Materials": Shield,
-  "Tools & Equipment": Package,
-  "Raw Materials": Recycle,
+  "Construction": Building2,
+  "Apparel & Accessories": Shirt,
+  "Automobiles & Motorcycles": Car,
+  "Business Services": Briefcase,
+  "Chemicals": FlaskConical,
+  "Computer Products & Office Electronics": Monitor,
+  "Consumer Electronics": Smartphone,
+  "Electrical Equipment & Supplies": Zap,
+  "Electronics Components & Supplies": Cpu,
+  "Energy": Sun,
+  "Environment": Leaf,
+  "Food & Beverage": UtensilsCrossed,
+  "Furniture": Armchair,
+  "Gifts, Sports & Toys": Gamepad2,
+  "Hardware": Wrench,
+  "Health & Beauty": Heart,
+  "Home & Garden": TreePine,
+  "Home Appliances": Refrigerator,
+  "Industry Laser Equipment": Crosshair,
+  "Lights & Lighting": Lightbulb,
+  "Luggage, Bags & Cases": Luggage,
+  "Machinery": Factory,
+  "Measurement & Analysis Instruments": Ruler,
+  "Metallurgy, Mineral & Energy": Gem,
+  "Packaging & Printing": Printer,
+  "Security & Protection": Shield,
+  "Shoes & Accessories": Footprints,
+  "Textiles & Leather Products": Scissors,
+  "Transportation": Truck,
 }
 
 export default function GuestCategoriesPage() {
@@ -22,7 +48,7 @@ export default function GuestCategoriesPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Browse Categories</h1>
         <p className="mt-2 text-muted-foreground">
-          Explore our wide range of aluminum and construction materials.
+          Explore our B2B Marketplace.
         </p>
       </div>
 

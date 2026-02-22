@@ -39,7 +39,7 @@ function parseCSV(text: string): Record<string, string>[] {
 }
 
 function downloadTemplate() {
-  const csv = "name,model_number,description,main_category,category,price_per_meter,stock,image_path\nExample Product,EX-001,Sample description,Aluminum Profiles,Window & Door Profiles,10.00,100,/images/example.jpg"
+  const csv = "name,model_number,description,main_category,category,price_per_meter,stock,image_path\nExample Product,EX-001,Sample description,Construction,Exterior Gates,10.00,100,/images/example.jpg"
   const blob = new Blob([csv], { type: "text/csv" })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
@@ -86,7 +86,7 @@ export function AdminProductsList({ products }: { products: Product[] }) {
       const mapped = rows.map((r) => ({
         name: r.name || "Unnamed Product",
         model_number: r.model_number || "",
-        main_category: r.main_category || "Aluminum Profiles",
+        main_category: r.main_category || "",
         category: r.category || "",
         price_per_meter: Number(r.price_per_meter) || 0,
         stock: Number(r.stock) || 0,

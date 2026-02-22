@@ -11,15 +11,15 @@ INSERT INTO users (id, clerk_id, email, display_name, role, company, phone_numbe
 
 -- Test Products
 INSERT INTO products (id, seller_id, name, model_number, main_category, category, subcategory, price_per_meter, description, stock, is_active) VALUES
-  ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', 'Premium Window Profile', 'WP-6063-T5', 'Aluminum Profiles', 'Window & Door Profiles', NULL, 12.50, 'High-quality 6063-T5 aluminum window profile with thermal break technology.', 500, true),
-  ('10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002', 'Curtain Wall Section', 'CW-100-A', 'Aluminum Profiles', 'Curtain Wall Profiles', NULL, 28.00, 'Structural curtain wall profile for commercial buildings.', 350, true),
-  ('10000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000002', 'Industrial T-Slot Profile', 'TS-4040-V2', 'Aluminum Profiles', 'Industrial Profiles', NULL, 8.75, 'Versatile 40x40mm T-slot profile for industrial framing.', 1200, true),
-  ('10000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000004', 'Coated Aluminum Sheet 3mm', 'AS-3MM-PE', 'Aluminum Sheets', 'Coated Sheets', NULL, 45.00, 'PE coated aluminum sheet, 3mm thickness, various colors available.', 800, true),
-  ('10000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000004', 'Tempered Glass Panel 10mm', 'TG-10-CLR', 'Glass Products', 'Tempered Glass', NULL, 65.00, 'Clear tempered safety glass, 10mm thickness, custom sizes.', 200, true),
-  ('10000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000002', 'Door Handle Set Chrome', 'DH-CHR-01', 'Hardware & Accessories', 'Handles & Locks', NULL, 35.00, 'Premium chrome-plated door handle set with lock mechanism.', 450, true),
-  ('10000000-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000005', 'Aluminum Gate', 'AG-EXT-01', 'Hardware & Accessories', 'Exterior Gates', NULL, 299.99, 'High quality aluminum gate for exterior use.', 50, true),
-  ('10000000-0000-0000-0000-000000000008', '00000000-0000-0000-0000-000000000005', 'Steel Fence', 'SF-RES-01', 'Steel Products', 'Fencing', NULL, 149.99, 'Durable steel fencing for residential use.', 100, true),
-  ('10000000-0000-0000-0000-000000000009', '00000000-0000-0000-0000-000000000005', 'Glass Balustrade', 'GB-MOD-01', 'Glass Products', 'Balustrades', NULL, 499.99, 'Modern glass balustrade system.', 25, true);
+  ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', 'Premium Window Profile', 'WP-6063-T5', 'Construction', 'Aluminum', NULL, 12.50, 'High-quality 6063-T5 aluminum window profile with thermal break technology.', 500, true),
+  ('10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002', 'Curtain Wall Section', 'CW-100-A', 'Construction', 'Glass', NULL, 28.00, 'Structural curtain wall profile for commercial buildings.', 350, true),
+  ('10000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000002', 'Industrial T-Slot Profile', 'TS-4040-V2', 'Construction', 'Steel', NULL, 8.75, 'Versatile 40x40mm T-slot profile for industrial framing.', 1200, true),
+  ('10000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000004', 'Coated Aluminum Sheet 3mm', 'AS-3MM-PE', 'Construction', 'Aluminum', NULL, 45.00, 'PE coated aluminum sheet, 3mm thickness, various colors available.', 800, true),
+  ('10000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000004', 'Tempered Glass Panel 10mm', 'TG-10-CLR', 'Construction', 'Glass', NULL, 65.00, 'Clear tempered safety glass, 10mm thickness, custom sizes.', 200, true),
+  ('10000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000002', 'Door Handle Set Chrome', 'DH-CHR-01', 'Hardware', 'Locks & Keys', NULL, 35.00, 'Premium chrome-plated door handle set with lock mechanism.', 450, true),
+  ('10000000-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000005', 'Aluminum Gate', 'AG-EXT-01', 'Construction', 'Exterior Gates', NULL, 299.99, 'High quality aluminum gate for exterior use.', 50, true),
+  ('10000000-0000-0000-0000-000000000008', '00000000-0000-0000-0000-000000000005', 'Steel Fence', 'SF-RES-01', 'Construction', 'Fencing', NULL, 149.99, 'Durable steel fencing for residential use.', 100, true),
+  ('10000000-0000-0000-0000-000000000009', '00000000-0000-0000-0000-000000000005', 'Glass Balustrade', 'GB-MOD-01', 'Construction', 'Balustrades', NULL, 499.99, 'Modern glass balustrade system.', 25, true);
 
 -- Test Orders
 INSERT INTO orders (id, buyer_id, seller_id, subtotal, tax, tax_rate, total, deposit_amount, deposit_percentage, remaining_balance, payment_method, payment_status, status) VALUES
