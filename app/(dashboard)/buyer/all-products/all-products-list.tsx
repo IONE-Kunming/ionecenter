@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
+import Image from "next/image"
 import { Package, Search, ShoppingCart, MessageSquare } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -15,6 +17,8 @@ import { MAIN_CATEGORIES } from "@/types/categories"
 import type { Product } from "@/types/database"
 
 export function AllProductsList({ products }: { products: Product[] }) {
+  const t = useTranslations("catalog")
+  const tCommon = useTranslations("common")
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -36,9 +40,9 @@ export function AllProductsList({ products }: { products: Product[] }) {
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }} placeholder="Search products..." className="pl-9" />
+          <Input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }} placeholder={tCommon("searchProducts")} className="pl-9" />
         </div>
-        <Select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1) }} options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder="All Categories" className="w-full sm:w-56" />
+        <Select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1) }} options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder={tCommon("allCategories")} className="w-full sm:w-56" />
       </div>
 
       {paginated.length > 0 ? (
@@ -48,8 +52,18 @@ export function AllProductsList({ products }: { products: Product[] }) {
               <Card key={product.id} className="group hover:shadow-md transition-all">
                 <CardContent className="p-0">
                   <Link href={`/buyer/product/${product.id}`}>
-                    <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center">
-                      <Package className="h-12 w-12 text-muted-foreground/30" />
+                    <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center overflow-hidden">
+                      {product.image_url ? (
+                        <Image
+                          src={product.image_url}
+                          alt={product.name}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        />
+                      ) : (
+                        <Package className="h-12 w-12 text-muted-foreground/30" />
+                      )}
                     </div>
                   </Link>
                   <div className="p-4">
@@ -75,7 +89,7 @@ export function AllProductsList({ products }: { products: Product[] }) {
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </>
       ) : (
-        <EmptyState icon={Package} title="No products found" description="Try adjusting your search or filter." />
+        <EmptyState icon={Package} title={t("noProducts")} description={t("noProductsDesc")} />
       )}
     </div>
   )

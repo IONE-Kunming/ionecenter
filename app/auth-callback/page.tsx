@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
+import { getCurrentUser } from "@/lib/actions/users"
 import type { UserRole } from "@/types/database"
 
 export default async function AuthCallbackPage() {
@@ -9,7 +10,9 @@ export default async function AuthCallbackPage() {
     redirect("/sign-in")
   }
 
-  const role = user.publicMetadata?.role as UserRole | undefined
+  // Check Supabase first (source of truth for admin-assigned roles), then Clerk metadata
+  const dbUser = await getCurrentUser()
+  const role = (dbUser?.role as UserRole) || (user.publicMetadata?.role as UserRole | undefined)
 
   if (!role) {
     redirect("/select-role")

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Building2, Plus, Pencil, Trash2, MapPin, Phone, Mail } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,12 +12,14 @@ import { EmptyState } from "@/components/ui/empty-state"
 import type { Branch } from "@/types/database"
 
 export function BranchesList({ initialBranches }: { initialBranches: Branch[] }) {
+  const t = useTranslations("branches")
+  const tCommon = useTranslations("common")
   const [branches] = useState(initialBranches)
   const [showAddModal, setShowAddModal] = useState(false)
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end"><Button onClick={() => setShowAddModal(true)} className="gap-2"><Plus className="h-4 w-4" /> Add Branch</Button></div>
+      <div className="flex justify-end"><Button onClick={() => setShowAddModal(true)} className="gap-2"><Plus className="h-4 w-4" /> {t("addBranch")}</Button></div>
 
       {branches.length > 0 ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -39,27 +42,27 @@ export function BranchesList({ initialBranches }: { initialBranches: Branch[] })
             </Card>
           ))}
         </div>
-      ) : (<EmptyState icon={Building2} title="No branches" action={{ label: "Add Branch", onClick: () => setShowAddModal(true) }} />)}
+      ) : (<EmptyState icon={Building2} title={t("noBranches")} action={{ label: t("addBranch"), onClick: () => setShowAddModal(true) }} />)}
 
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Add New Branch</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t("addBranch")}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
-            <div className="space-y-2"><Label>Branch Name</Label><Input placeholder="e.g., Main Factory" /></div>
-            <div className="space-y-2"><Label>Address</Label><Input placeholder="Street address" /></div>
+            <div className="space-y-2"><Label>{t("branchName")}</Label><Input placeholder="e.g., Main Factory" /></div>
+            <div className="space-y-2"><Label>{t("address")}</Label><Input placeholder="Street address" /></div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2"><Label>City</Label><Input placeholder="City" /></div>
               <div className="space-y-2"><Label>State</Label><Input placeholder="State/Province" /></div>
             </div>
             <div className="space-y-2"><Label>Country</Label><Input placeholder="Country" /></div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Phone</Label><Input placeholder="+1-234-567-8901" /></div>
-              <div className="space-y-2"><Label>Email</Label><Input type="email" placeholder="branch@example.com" /></div>
+              <div className="space-y-2"><Label>{t("phone")}</Label><Input placeholder="+1-234-567-8901" /></div>
+              <div className="space-y-2"><Label>{t("email")}</Label><Input type="email" placeholder="branch@example.com" /></div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
-            <Button onClick={() => setShowAddModal(false)}>Add Branch</Button>
+            <Button variant="outline" onClick={() => setShowAddModal(false)}>{tCommon("cancel")}</Button>
+            <Button onClick={() => setShowAddModal(false)}>{t("addBranch")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

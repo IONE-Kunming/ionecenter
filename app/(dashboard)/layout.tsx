@@ -1,8 +1,8 @@
-import { auth, currentUser } from "@clerk/nextjs/server"
+import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import { Sidebar } from "@/components/layout/sidebar"
 import { DashboardHeader } from "@/components/layout/dashboard-header"
-import { ensureUserInSupabase } from "@/lib/actions/users"
+import { ensureUserInSupabase, getCurrentUser } from "@/lib/actions/users"
 import type { UserRole } from "@/types/database"
 
 export default async function DashboardLayout({
@@ -19,9 +19,9 @@ export default async function DashboardLayout({
   // Ensure user exists in Supabase (replaces webhook sync)
   await ensureUserInSupabase()
 
-  const user = await currentUser()
-  // Get role from Clerk metadata or default to buyer
-  const role = (user?.publicMetadata?.role as UserRole) || "buyer"
+  // Read role from Supabase (source of truth, editable by admin)
+  const dbUser = await getCurrentUser()
+  const role = (dbUser?.role as UserRole) || "buyer"
 
   return (
     <div className="min-h-screen">

@@ -13,6 +13,7 @@ export default async function BuyerCatalogPage() {
     price_per_meter: p.price_per_meter,
     stock: p.stock,
     seller_name: p.seller_name ?? "Unknown",
+    image_url: p.image_url ?? null,
   }))
 
   return <BuyerCatalogBrowser products={mapped} />

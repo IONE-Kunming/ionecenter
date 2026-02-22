@@ -4,6 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useUser, useClerk } from "@clerk/nextjs"
+import { useTranslations } from "next-intl"
 import {
   LayoutDashboard, Package, ShoppingCart, FileText, Users, MessageSquare,
   Bell, Settings, HelpCircle, LogOut, ChevronDown, Sun, Moon, Menu, X,
@@ -24,29 +25,31 @@ interface NavItem {
   children?: NavItem[]
 }
 
-function getNavItems(role: UserRole): NavItem[] {
+type TranslationFn = (key: string) => string
+
+function getNavItems(role: UserRole, t: TranslationFn): NavItem[] {
   const financeItems: NavItem[] = [
-    { label: "Dashboard", href: "finances/dashboard", icon: DollarSign },
-    { label: "Transactions", href: "finances/transactions", icon: Receipt },
-    { label: "Accounts", href: "finances/accounts", icon: BarChart3 },
-    { label: "Reports", href: "finances/reports", icon: ClipboardList },
-    { label: "Tax", href: "finances/tax", icon: Calculator },
-    { label: "Reconciliation", href: "finances/reconciliation", icon: Scale },
+    { label: t("financesDashboard"), href: "finances/dashboard", icon: DollarSign },
+    { label: t("transactions"), href: "finances/transactions", icon: Receipt },
+    { label: t("accounts"), href: "finances/accounts", icon: BarChart3 },
+    { label: t("reports"), href: "finances/reports", icon: ClipboardList },
+    { label: t("tax"), href: "finances/tax", icon: Calculator },
+    { label: t("reconciliation"), href: "finances/reconciliation", icon: Scale },
   ]
 
   if (role === "buyer") {
     return [
-      { label: "Dashboard", href: "/buyer/dashboard", icon: LayoutDashboard },
-      { label: "Catalog", href: "/buyer/catalog", icon: Layers },
-      { label: "All Products", href: "/buyer/all-products", icon: Package },
-      { label: "Cart", href: "/buyer/cart", icon: ShoppingCart },
-      { label: "Orders", href: "/buyer/orders", icon: FileText },
-      { label: "Invoices", href: "/buyer/invoices", icon: Receipt },
-      { label: "Sellers", href: "/buyer/sellers", icon: Store },
-      { label: "Chats", href: "/buyer/chats", icon: MessageSquare },
-      { label: "Notifications", href: "/buyer/notifications", icon: Bell },
+      { label: t("dashboard"), href: "/buyer/dashboard", icon: LayoutDashboard },
+      { label: t("catalog"), href: "/buyer/catalog", icon: Layers },
+      { label: t("allProducts"), href: "/buyer/all-products", icon: Package },
+      { label: t("cart"), href: "/buyer/cart", icon: ShoppingCart },
+      { label: t("orders"), href: "/buyer/orders", icon: FileText },
+      { label: t("invoices"), href: "/buyer/invoices", icon: Receipt },
+      { label: t("sellers"), href: "/buyer/sellers", icon: Store },
+      { label: t("chats"), href: "/buyer/chats", icon: MessageSquare },
+      { label: t("notifications"), href: "/buyer/notifications", icon: Bell },
       {
-        label: "Finances",
+        label: t("finances"),
         href: "/buyer/finances",
         icon: DollarSign,
         children: financeItems.map((item) => ({
@@ -54,23 +57,23 @@ function getNavItems(role: UserRole): NavItem[] {
           href: `/buyer/${item.href}`,
         })),
       },
-      { label: "Support", href: "/buyer/support", icon: HelpCircle },
-      { label: "Profile", href: "/buyer/profile", icon: Settings },
+      { label: t("support"), href: "/buyer/support", icon: HelpCircle },
+      { label: t("profile"), href: "/buyer/profile", icon: Settings },
     ]
   }
 
   if (role === "seller") {
     return [
-      { label: "Dashboard", href: "/seller/dashboard", icon: LayoutDashboard },
-      { label: "Products", href: "/seller/products", icon: Package },
-      { label: "Bulk Edit", href: "/seller/bulk-edit", icon: Pencil },
-      { label: "Orders", href: "/seller/orders", icon: FileText },
-      { label: "Invoices", href: "/seller/invoices", icon: Receipt },
-      { label: "Branches", href: "/seller/branches", icon: Building2 },
-      { label: "Chats", href: "/seller/chats", icon: MessageSquare },
-      { label: "Notifications", href: "/seller/notifications", icon: Bell },
+      { label: t("dashboard"), href: "/seller/dashboard", icon: LayoutDashboard },
+      { label: t("products"), href: "/seller/products", icon: Package },
+      { label: t("bulkEdit"), href: "/seller/bulk-edit", icon: Pencil },
+      { label: t("orders"), href: "/seller/orders", icon: FileText },
+      { label: t("invoices"), href: "/seller/invoices", icon: Receipt },
+      { label: t("branches"), href: "/seller/branches", icon: Building2 },
+      { label: t("chats"), href: "/seller/chats", icon: MessageSquare },
+      { label: t("notifications"), href: "/seller/notifications", icon: Bell },
       {
-        label: "Finances",
+        label: t("finances"),
         href: "/seller/finances",
         icon: DollarSign,
         children: financeItems.map((item) => ({
@@ -78,23 +81,23 @@ function getNavItems(role: UserRole): NavItem[] {
           href: `/seller/${item.href}`,
         })),
       },
-      { label: "Support", href: "/seller/support", icon: HelpCircle },
-      { label: "Profile", href: "/seller/profile", icon: Settings },
+      { label: t("support"), href: "/seller/support", icon: HelpCircle },
+      { label: t("profile"), href: "/seller/profile", icon: Settings },
     ]
   }
 
   // Admin
   return [
-    { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-    { label: "Users", href: "/admin/users", icon: Users },
-    { label: "Sellers", href: "/admin/sellers", icon: Store },
-    { label: "Products", href: "/admin/products", icon: Package },
-    { label: "Bulk Edit", href: "/admin/bulk-edit", icon: Pencil },
-    { label: "Orders", href: "/admin/orders", icon: FileText },
-    { label: "Invoices", href: "/admin/invoices", icon: Receipt },
-    { label: "Support", href: "/admin/support", icon: HelpCircle },
+    { label: t("dashboard"), href: "/admin/dashboard", icon: LayoutDashboard },
+    { label: t("users"), href: "/admin/users", icon: Users },
+    { label: t("sellers"), href: "/admin/sellers", icon: Store },
+    { label: t("products"), href: "/admin/products", icon: Package },
+    { label: t("bulkEdit"), href: "/admin/bulk-edit", icon: Pencil },
+    { label: t("orders"), href: "/admin/orders", icon: FileText },
+    { label: t("invoices"), href: "/admin/invoices", icon: Receipt },
+    { label: t("support"), href: "/admin/support", icon: HelpCircle },
     {
-      label: "Finances",
+      label: t("finances"),
       href: "/admin/finances",
       icon: DollarSign,
       children: financeItems.map((item) => ({
@@ -102,7 +105,7 @@ function getNavItems(role: UserRole): NavItem[] {
         href: `/admin/${item.href}`,
       })),
     },
-    { label: "Profile", href: "/admin/profile", icon: Settings },
+    { label: t("profile"), href: "/admin/profile", icon: Settings },
   ]
 }
 
@@ -115,9 +118,10 @@ export function Sidebar({ role }: SidebarProps) {
   const { user } = useUser()
   const { signOut } = useClerk()
   const { theme, setTheme } = useTheme()
+  const t = useTranslations("sidebar")
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const [expandedItems, setExpandedItems] = React.useState<string[]>([])
-  const navItems = getNavItems(role)
+  const navItems = getNavItems(role, t)
 
   const toggleExpanded = (label: string) => {
     setExpandedItems((prev) =>

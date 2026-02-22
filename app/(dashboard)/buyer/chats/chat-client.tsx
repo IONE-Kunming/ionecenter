@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition, useRef, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import { MessageSquare, Send } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -43,6 +44,7 @@ function relativeTime(dateStr: string | null) {
 }
 
 export default function ChatClient({ conversations, currentUserId, userRole }: ChatClientProps) {
+  const t = useTranslations("chat")
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [message, setMessage] = useState("")
@@ -102,11 +104,11 @@ export default function ChatClient({ conversations, currentUserId, userRole }: C
       {/* Conversation List */}
       <div className={cn("w-full md:w-80 border-r bg-card flex flex-col", selectedId && !showSidebar && "hidden md:flex")}>
         <div className="p-4 border-b">
-          <h2 className="font-semibold">Messages</h2>
+          <h2 className="font-semibold">{t("conversations")}</h2>
         </div>
         <div className="flex-1 overflow-y-auto">
           {conversations.length === 0 ? (
-            <EmptyState icon={MessageSquare} title="No conversations" description="Start a conversation from a product page." className="py-8" />
+            <EmptyState icon={MessageSquare} title={t("noConversations")} description={t("noConversationsDesc")} className="py-8" />
           ) : (
             conversations.map((conv) => {
               const other = otherParty(conv)
@@ -170,7 +172,7 @@ export default function ChatClient({ conversations, currentUserId, userRole }: C
               <Input
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Type a message..."
+                placeholder={t("typeMessage")}
                 className="flex-1"
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
               />

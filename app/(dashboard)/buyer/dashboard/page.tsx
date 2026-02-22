@@ -4,11 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { getBuyerDashboardStats, getBuyerOrders } from "@/lib/actions/orders"
+import { getTranslations } from "next-intl/server"
 
 export default async function BuyerDashboardPage() {
-  const [stats, orders] = await Promise.all([
+  const [stats, orders, t, tCommon] = await Promise.all([
     getBuyerDashboardStats(),
     getBuyerOrders(),
+    getTranslations("buyerDashboard"),
+    getTranslations("common"),
   ])
 
   const recentOrders = orders.slice(0, 5)
@@ -17,16 +20,16 @@ export default async function BuyerDashboardPage() {
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Orders" value={stats?.totalOrders ?? 0} icon={FileText} />
-        <StatCard title="Total Spending" value={formatCurrency(stats?.totalSpending ?? 0)} icon={DollarSign} />
-        <StatCard title="Pending Orders" value={stats?.pendingOrders ?? 0} icon={ShoppingCart} />
-        <StatCard title="Recent Orders" value={recentOrders.length} icon={Package} />
+        <StatCard title={t("totalOrders")} value={stats?.totalOrders ?? 0} icon={FileText} />
+        <StatCard title={t("totalSpending")} value={formatCurrency(stats?.totalSpending ?? 0)} icon={DollarSign} />
+        <StatCard title={t("pendingOrders")} value={stats?.pendingOrders ?? 0} icon={ShoppingCart} />
+        <StatCard title={t("recentOrders")} value={recentOrders.length} icon={Package} />
       </div>
 
       {/* Recent Orders */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Orders</CardTitle>
+          <CardTitle>{t("recentOrders")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -48,7 +51,7 @@ export default async function BuyerDashboardPage() {
                 </div>
               </div>
             )) : (
-              <p className="text-sm text-muted-foreground text-center py-4">No orders yet.</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t("noOrders")}</p>
             )}
           </div>
         </CardContent>

@@ -1,7 +1,9 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Layers, Box, Blocks, Wrench, Building2, Package, Shield, Recycle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { CATEGORIES, MAIN_CATEGORIES } from "@/types/categories"
+import { getCategoryImage } from "@/lib/constants/category-images"
 
 const categoryIcons: Record<string, React.ElementType> = {
   "Aluminum Profiles": Layers,
@@ -28,18 +30,37 @@ export default function GuestCategoriesPage() {
         {MAIN_CATEGORIES.map((categoryName) => {
           const category = CATEGORIES[categoryName]
           const Icon = categoryIcons[categoryName] || Package
+          const imageUrl = getCategoryImage(categoryName)
           return (
             <Link
               key={categoryName}
               href={`/guest/catalog?category=${encodeURIComponent(categoryName)}`}
             >
-              <Card className="group hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer h-full">
-                <CardContent className="p-6">
-                  <div className="rounded-full bg-primary/10 p-3 w-fit group-hover:bg-primary/20 transition-colors">
-                    <Icon className="h-6 w-6 text-primary" />
+              <Card className="group hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer h-full overflow-hidden">
+                {imageUrl ? (
+                  <div className="relative h-[200px]">
+                    <Image
+                      src={imageUrl}
+                      alt={categoryName}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                    <div className="absolute bottom-3 left-4 right-4">
+                      <h3 className="font-semibold text-white">{categoryName}</h3>
+                    </div>
                   </div>
-                  <h3 className="mt-4 font-semibold">{categoryName}</h3>
-                  <ul className="mt-2 space-y-1">
+                ) : (
+                  <div className="p-6 pb-0">
+                    <div className="rounded-full bg-primary/10 p-3 w-fit group-hover:bg-primary/20 transition-colors">
+                      <Icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="mt-4 font-semibold">{categoryName}</h3>
+                  </div>
+                )}
+                <CardContent className="p-6 pt-3">
+                  <ul className="space-y-1">
                     {category.subcategories.map((sub) => (
                       <li key={sub} className="text-sm text-muted-foreground">
                         • {sub}

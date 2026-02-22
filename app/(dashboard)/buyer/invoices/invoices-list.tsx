@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Receipt, Search, Download } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -24,6 +25,8 @@ interface InvoiceRow {
 }
 
 export function BuyerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
+  const t = useTranslations("invoices")
+  const tCommon = useTranslations("common")
   const [search, setSearch] = useState("")
 
   const filtered = invoices.filter((inv) =>
@@ -34,7 +37,7 @@ export function BuyerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
     <div className="space-y-6">
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search invoices..." className="pl-9" />
+        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchInvoices")} className="pl-9" />
       </div>
 
       {filtered.length > 0 ? (
@@ -42,14 +45,14 @@ export function BuyerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Seller</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Paid</TableHead>
-                <TableHead>Balance</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("invoiceNumber")}</TableHead>
+                <TableHead>{tCommon("date")}</TableHead>
+                <TableHead>{t("seller")}</TableHead>
+                <TableHead>{tCommon("total")}</TableHead>
+                <TableHead>{tCommon("paid")}</TableHead>
+                <TableHead>{t("balance")}</TableHead>
+                <TableHead>{t("dueDate")}</TableHead>
+                <TableHead>{tCommon("status")}</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -73,7 +76,7 @@ export function BuyerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
           </Table>
         </Card>
       ) : (
-        <EmptyState icon={Receipt} title="No invoices found" />
+        <EmptyState icon={Receipt} title={t("noInvoices")} />
       )}
     </div>
   )

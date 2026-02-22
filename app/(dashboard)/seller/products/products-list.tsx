@@ -2,7 +2,9 @@
 
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { Package, Plus, Search, Upload, Download, Pencil, Trash2, FileSpreadsheet } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -49,6 +51,9 @@ function downloadTemplate() {
 }
 
 export function SellerProductsList({ initialProducts }: { initialProducts: Product[] }) {
+  const t = useTranslations("sellerProducts")
+  const tCommon = useTranslations("common")
+  const tBulk = useTranslations("bulkEdit")
   const [products] = useState(initialProducts)
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("")
@@ -113,11 +118,11 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products..." className="pl-9" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchProducts")} className="pl-9" />
         </div>
-        <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder="All Categories" className="w-full sm:w-56" />
-        <Button onClick={() => setShowAddModal(true)} className="gap-2"><Plus className="h-4 w-4" /> Add Product</Button>
-        <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2"><Upload className="h-4 w-4" /> Import CSV</Button>
+        <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder={tCommon("allCategories")} className="w-full sm:w-56" />
+        <Button onClick={() => setShowAddModal(true)} className="gap-2"><Plus className="h-4 w-4" /> {t("addProduct")}</Button>
+        <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2"><Upload className="h-4 w-4" /> {tBulk("bulkImport")}</Button>
       </div>
 
       {filtered.length > 0 ? (
@@ -127,8 +132,18 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
             return (
               <Card key={product.id} className="group">
                 <CardContent className="p-0">
-                  <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center">
-                    <Package className="h-12 w-12 text-muted-foreground/30" />
+                  <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center overflow-hidden">
+                    {product.image_url ? (
+                      <Image
+                        src={product.image_url}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      />
+                    ) : (
+                      <Package className="h-12 w-12 text-muted-foreground/30" />
+                    )}
                   </div>
                   <div className="p-4">
                     <Badge variant="secondary" className="text-xs mb-2">{product.category}</Badge>
@@ -141,7 +156,7 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
                       </Badge>
                     </div>
                     <div className="flex gap-2 mt-3">
-                      <Button variant="outline" size="sm" className="flex-1 gap-1"><Pencil className="h-3 w-3" /> Edit</Button>
+                      <Button variant="outline" size="sm" className="flex-1 gap-1"><Pencil className="h-3 w-3" /> {tCommon("edit")}</Button>
                       <Button variant="outline" size="sm" className="text-destructive hover:text-destructive"><Trash2 className="h-3 w-3" /></Button>
                     </div>
                   </div>
@@ -151,54 +166,54 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
           })}
         </div>
       ) : (
-        <EmptyState icon={Package} title="No products found" action={{ label: "Add Product", onClick: () => setShowAddModal(true) }} />
+        <EmptyState icon={Package} title={t("noProducts")} action={{ label: t("addProduct"), onClick: () => setShowAddModal(true) }} />
       )}
 
       {/* Add Product Modal */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Add New Product</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t("addProduct")}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Product Name</Label><Input placeholder="e.g., Window Profile" /></div>
-              <div className="space-y-2"><Label>Model Number</Label><Input placeholder="e.g., WP-001" /></div>
+              <div className="space-y-2"><Label>{t("productName")}</Label><Input placeholder="e.g., Window Profile" /></div>
+              <div className="space-y-2"><Label>{t("modelNumber")}</Label><Input placeholder="e.g., WP-001" /></div>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Main Category</Label>
+                <Label>{t("mainCategory")}</Label>
                 <Select options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder="Select category" onChange={(e) => setSelectedCategory(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Subcategory</Label>
+                <Label>{t("subcategory")}</Label>
                 <Select options={getSubcategories(selectedCategory).map((c) => ({ value: c, label: c }))} placeholder="Select subcategory" />
               </div>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Price per Meter ($)</Label><Input type="number" step="0.01" placeholder="0.00" /></div>
-              <div className="space-y-2"><Label>Stock</Label><Input type="number" placeholder="0" /></div>
+              <div className="space-y-2"><Label>{t("pricePerMeter")}</Label><Input type="number" step="0.01" placeholder="0.00" /></div>
+              <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" placeholder="0" /></div>
             </div>
             <div className="space-y-2"><Label>Description</Label><Textarea placeholder="Product description..." rows={3} /></div>
             <div className="space-y-2"><Label>Product Image</Label><Input type="file" accept="image/*" /></div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
-            <Button onClick={() => setShowAddModal(false)}>Add Product</Button>
+            <Button variant="outline" onClick={() => setShowAddModal(false)}>{tCommon("cancel")}</Button>
+            <Button onClick={() => setShowAddModal(false)}>{t("addProduct")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Import CSV Modal */}
+      {/* Bulk Import Modal */}
       <Dialog open={showImportModal} onOpenChange={setShowImportModal}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Import Products from CSV</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{tBulk("importTitle")}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
             <p className="text-sm text-muted-foreground">
-              Upload a CSV file to bulk import products. The CSV should include the following columns:
+              {tBulk("importDescription")}
             </p>
             <div className="rounded-lg border p-4 bg-muted/50">
               <div className="flex items-center gap-2 mb-3">
                 <FileSpreadsheet className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">Required CSV Columns</span>
+                <span className="text-sm font-medium">{tBulk("requiredColumns")}</span>
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                 <span className="text-muted-foreground">Product Name</span><span className="font-mono text-xs">name</span>
@@ -213,9 +228,9 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
             </div>
 
             <div className="space-y-2">
-              <Label>Upload CSV File</Label>
+              <Label>{tBulk("uploadCsvFile")}</Label>
               <Input ref={fileInputRef} type="file" accept=".csv" onChange={handleImport} disabled={importing} />
-              {importing && <p className="text-sm text-muted-foreground">Importing products...</p>}
+              {importing && <p className="text-sm text-muted-foreground">{tBulk("importingProducts")}</p>}
             </div>
 
             {importResult && showImportModal && (
@@ -226,9 +241,9 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={downloadTemplate} className="gap-2">
-              <Download className="h-4 w-4" /> Download Sample CSV
+              <Download className="h-4 w-4" /> {tBulk("downloadSampleCsv")}
             </Button>
-            <Button variant="outline" onClick={() => setShowImportModal(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowImportModal(false)}>{tCommon("cancel")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

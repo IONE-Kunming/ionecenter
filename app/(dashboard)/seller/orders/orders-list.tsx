@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { FileText, Search } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
@@ -11,11 +12,6 @@ import { OrderStatusBadge, PaymentStatusBadge } from "@/components/ui/status-bad
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import type { OrderStatus, PaymentStatus } from "@/types/database"
-
-const SELLER_STATUSES = [
-  { value: "pending", label: "Under Review" }, { value: "processing", label: "Confirmed" },
-  { value: "shipped", label: "Shipped" }, { value: "delivered", label: "Delivered" }, { value: "cancelled", label: "Cancelled" },
-]
 
 interface SellerOrderRow {
   id: string
@@ -28,8 +24,15 @@ interface SellerOrderRow {
 }
 
 export function SellerOrdersList({ orders }: { orders: SellerOrderRow[] }) {
+  const t = useTranslations("orders")
+  const tCommon = useTranslations("common")
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
+
+  const SELLER_STATUSES = [
+    { value: "pending", label: t("underReview") }, { value: "processing", label: t("confirmed") },
+    { value: "shipped", label: tCommon("shipped") }, { value: "delivered", label: tCommon("delivered") }, { value: "cancelled", label: tCommon("cancelled") },
+  ]
 
   const filtered = orders.filter((o) => {
     const matchSearch = !search || o.buyer_name.toLowerCase().includes(search.toLowerCase()) || o.id.includes(search)
@@ -42,9 +45,9 @@ export function SellerOrdersList({ orders }: { orders: SellerOrderRow[] }) {
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search orders..." className="pl-9" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchOrders")} className="pl-9" />
         </div>
-        <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} placeholder="All Statuses" options={SELLER_STATUSES} className="w-full sm:w-48" />
+        <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} placeholder={tCommon("allStatuses")} options={SELLER_STATUSES} className="w-full sm:w-48" />
       </div>
 
       {filtered.length > 0 ? (
@@ -52,13 +55,13 @@ export function SellerOrdersList({ orders }: { orders: SellerOrderRow[] }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Buyer</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Payment</TableHead>
+                <TableHead>{t("orderId")}</TableHead>
+                <TableHead>{tCommon("date")}</TableHead>
+                <TableHead>{t("buyer")}</TableHead>
+                <TableHead>{tCommon("company")}</TableHead>
+                <TableHead>{tCommon("total")}</TableHead>
+                <TableHead>{tCommon("status")}</TableHead>
+                <TableHead>{t("payment")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -77,7 +80,7 @@ export function SellerOrdersList({ orders }: { orders: SellerOrderRow[] }) {
           </Table>
         </Card>
       ) : (
-        <EmptyState icon={FileText} title="No orders found" />
+        <EmptyState icon={FileText} title={t("noOrders")} />
       )}
     </div>
   )

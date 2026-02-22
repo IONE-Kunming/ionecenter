@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { ArrowLeft, Package, ShoppingCart, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -18,6 +19,8 @@ interface ProductDetailProps {
 
 export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
   const router = useRouter()
+  const t = useTranslations("productDetail")
+  const tCommon = useTranslations("common")
   const [chatPending, startChat] = useTransition()
   const [cartPending, startCart] = useTransition()
   const [quantity, setQuantity] = useState(1)
@@ -46,7 +49,7 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back
+        {tCommon("back")}
       </button>
 
       <div className="grid md:grid-cols-2 gap-8">
@@ -59,13 +62,13 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
         <div>
           <Badge variant="secondary">{product.category}</Badge>
           <h1 className="mt-3 text-3xl font-bold">{product.name}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Model: {product.model_number}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("modelNumber")}: {product.model_number}</p>
 
           <div className="mt-6">
             <span className="text-3xl font-bold text-primary">
               {formatCurrency(product.price_per_meter)}
             </span>
-            <span className="text-muted-foreground">/meter</span>
+            <span className="text-muted-foreground">{t("perMeter")}</span>
           </div>
 
           <div className="mt-4 flex items-center gap-4">
@@ -77,7 +80,7 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
 
           <div className="mt-6 space-y-3">
             <div className="flex items-center gap-3">
-              <label htmlFor="quantity" className="text-sm font-medium">Quantity:</label>
+              <label htmlFor="quantity" className="text-sm font-medium">{t("quantity")}:</label>
               <input
                 id="quantity"
                 type="number"
@@ -90,12 +93,12 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
             </div>
             <Button className="w-full gap-2" size="lg" onClick={handleAddToCart} disabled={cartPending}>
               <ShoppingCart className="h-4 w-4" />
-              {cartPending ? "Adding..." : "Add to Cart"}
+              {cartPending ? t("addingToCart") : t("addToCart")}
             </Button>
             {product.seller_id !== currentUserId && (
               <Button variant="outline" className="w-full gap-2" size="lg" onClick={handleChatWithSeller} disabled={chatPending}>
                 <MessageSquare className="h-4 w-4" />
-                {chatPending ? "Opening chat..." : "Chat with Seller"}
+                {chatPending ? tCommon("loading") : t("chatWithSeller")}
               </Button>
             )}
           </div>
@@ -103,7 +106,7 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
           {product.seller_name && (
             <Card className="mt-6">
               <CardContent className="p-4">
-                <h3 className="font-semibold">Seller</h3>
+                <h3 className="font-semibold">{t("sellerInfo")}</h3>
                 <p className="text-sm text-muted-foreground mt-1">{product.seller_name}</p>
               </CardContent>
             </Card>
@@ -131,11 +134,11 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
               <span className="font-medium">{product.main_category}</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span className="text-muted-foreground">Subcategory</span>
+              <span className="text-muted-foreground">{t("subcategory")}</span>
               <span className="font-medium">{product.category}</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span className="text-muted-foreground">Model Number</span>
+              <span className="text-muted-foreground">{t("modelNumber")}</span>
               <span className="font-medium">{product.model_number}</span>
             </div>
             <div className="flex justify-between py-2 border-b">

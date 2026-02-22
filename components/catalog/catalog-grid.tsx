@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import Image from "next/image"
 import { Search, Package } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -37,6 +39,8 @@ export function CatalogGrid({
   showSignupCta?: boolean
 }) {
   const searchParams = useSearchParams()
+  const t = useTranslations("catalog")
+  const tCommon = useTranslations("common")
   const initialCategory = searchParams.get("category") || ""
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState(initialCategory)
@@ -67,7 +71,7 @@ export function CatalogGrid({
           <Input
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
-            placeholder="Search products..."
+            placeholder={tCommon("searchProducts")}
             className="pl-9"
           />
         </div>
@@ -75,7 +79,7 @@ export function CatalogGrid({
           value={categoryFilter}
           onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1) }}
           options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))}
-          placeholder="All Categories"
+          placeholder={tCommon("allCategories")}
           className="w-full sm:w-56"
         />
       </div>
@@ -88,8 +92,18 @@ export function CatalogGrid({
               <Link key={product.id} href={`${basePath}/${product.id}`}>
                 <Card className="group hover:shadow-md transition-all cursor-pointer h-full">
                   <CardContent className="p-0">
-                    <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center">
-                      <Package className="h-12 w-12 text-muted-foreground/30" />
+                    <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center overflow-hidden">
+                      {product.image_url ? (
+                        <Image
+                          src={product.image_url}
+                          alt={product.name}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        />
+                      ) : (
+                        <Package className="h-12 w-12 text-muted-foreground/30" />
+                      )}
                     </div>
                     <div className="p-4">
                       <Badge variant="secondary" className="text-xs mb-2">
@@ -104,7 +118,7 @@ export function CatalogGrid({
                           {formatCurrency(product.price_per_meter)}/m
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          Stock: {product.stock}
+                          {t("stockLabel")} {product.stock}
                         </span>
                       </div>
                     </div>
@@ -123,17 +137,17 @@ export function CatalogGrid({
       ) : (
         <EmptyState
           icon={Package}
-          title="No products found"
-          description="Try adjusting your search or filter criteria."
+          title={t("noProducts")}
+          description={t("noProductsDesc")}
         />
       )}
 
       {showSignupCta && (
         <div className="mt-8 text-center p-6 rounded-xl bg-primary/5 border">
-          <p className="font-medium">Want to purchase these products?</p>
-          <p className="text-sm text-muted-foreground mt-1">Create a free account to add items to cart and place orders.</p>
+          <p className="font-medium">{t("wantToPurchase")}</p>
+          <p className="text-sm text-muted-foreground mt-1">{t("createFreeAccount")}</p>
           <Link href="/sign-up">
-            <Button className="mt-3">Sign Up to Purchase</Button>
+            <Button className="mt-3">{t("signUpToPurchase")}</Button>
           </Link>
         </div>
       )}

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
@@ -18,10 +19,10 @@ const statusVariant: Record<string, "default" | "success" | "warning" | "seconda
 }
 
 const statusOptions = [
-  { value: "open", label: "Open" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "resolved", label: "Resolved" },
-  { value: "closed", label: "Closed" },
+  { value: "open", labelKey: "open" as const },
+  { value: "in_progress", labelKey: "inProgress" as const },
+  { value: "resolved", labelKey: "resolved" as const },
+  { value: "closed", labelKey: "closed" as const },
 ]
 
 interface AdminSupportClientProps {
@@ -32,6 +33,8 @@ export default function AdminSupportClient({ tickets: initialTickets }: AdminSup
   const [tickets, setTickets] = useState(initialTickets)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  const t = useTranslations("support")
+  const tCommon = useTranslations("common")
 
   function handleStatusChange(ticketId: string, newStatus: string) {
     if (!newStatus) return
@@ -48,12 +51,12 @@ export default function AdminSupportClient({ tickets: initialTickets }: AdminSup
   }
 
   if (tickets.length === 0) {
-    return <EmptyState icon={Ticket} title="No tickets" description="No support tickets have been submitted yet." />
+    return <EmptyState icon={Ticket} title={t("noTickets")} description={t("noTicketsDesc")} />
   }
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <h2 className="text-lg font-semibold">All Support Tickets</h2>
+      <h2 className="text-lg font-semibold">{t("yourTickets")}</h2>
       <div className="space-y-3">
         {tickets.map((ticket) => (
           <Card key={ticket.id}>
@@ -77,7 +80,7 @@ export default function AdminSupportClient({ tickets: initialTickets }: AdminSup
                   value={ticket.status}
                   onChange={(e) => handleStatusChange(ticket.id, e.target.value)}
                   disabled={pending && updatingId === ticket.id}
-                  options={statusOptions}
+                  options={statusOptions.map(o => ({ value: o.value, label: tCommon(o.labelKey) }))}
                 />
               </div>
             </CardContent>

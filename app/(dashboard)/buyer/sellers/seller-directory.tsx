@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Store, Search, MessageSquare } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,6 +18,7 @@ interface SellerRow {
 
 export function SellerDirectory({ sellers }: { sellers: SellerRow[] }) {
   const [search, setSearch] = useState("")
+  const t = useTranslations("sellerDirectory")
 
   const filtered = sellers.filter((s) =>
     !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.company.toLowerCase().includes(search.toLowerCase())
@@ -26,7 +28,7 @@ export function SellerDirectory({ sellers }: { sellers: SellerRow[] }) {
     <div className="space-y-6">
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search sellers..." className="pl-9" />
+        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("searchSellers")} className="pl-9" />
       </div>
 
       {filtered.length > 0 ? (
@@ -43,14 +45,14 @@ export function SellerDirectory({ sellers }: { sellers: SellerRow[] }) {
                   </div>
                 </div>
                 <div className="mt-4 flex items-center justify-end">
-                  <Button size="sm" variant="outline"><MessageSquare className="h-3.5 w-3.5 mr-1" /> Chat</Button>
+                  <Button size="sm" variant="outline"><MessageSquare className="h-3.5 w-3.5 mr-1" /> {t("message")}</Button>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       ) : (
-        <EmptyState icon={Store} title="No sellers found" />
+        <EmptyState icon={Store} title={t("noSellers")} />
       )}
     </div>
   )

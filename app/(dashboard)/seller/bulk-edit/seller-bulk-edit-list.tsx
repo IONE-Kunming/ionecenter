@@ -3,6 +3,7 @@
 import { useState, useTransition, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Save, Trash2, Upload, Download, Search, FileSpreadsheet } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -52,6 +53,8 @@ function downloadTemplate() {
 }
 
 export function SellerBulkEditList({ initialProducts }: { initialProducts: ProductRow[] }) {
+  const t = useTranslations("bulkEdit")
+  const tCommon = useTranslations("common")
   const [products, setProducts] = useState(initialProducts)
   const [saving, setSaving] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -147,14 +150,14 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products..." className="pl-9" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchProducts")} className="pl-9" />
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2">
-            <Upload className="h-4 w-4" /> Import CSV
+            <Upload className="h-4 w-4" /> {t("bulkImport")}
           </Button>
           <Button onClick={handleSave} disabled={saving} className="gap-2">
-            <Save className="h-4 w-4" /> {saving ? "Saving..." : "Save All Changes"}
+            <Save className="h-4 w-4" /> {saving ? tCommon("saving") : t("saveAll")}
           </Button>
         </div>
       </div>
@@ -180,7 +183,7 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5}>
-                  <EmptyState icon={Search} title="No products found" description="Try adjusting your search." className="py-8" />
+                  <EmptyState icon={Search} title={tCommon("noResults")} description="Try adjusting your search." className="py-8" />
                 </TableCell>
               </TableRow>
             ) : (
@@ -198,18 +201,18 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
         </Table>
       </Card>
 
-      {/* Import CSV Modal */}
+      {/* Bulk Import Modal */}
       <Dialog open={showImportModal} onOpenChange={setShowImportModal}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Import Products from CSV</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t("importTitle")}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
             <p className="text-sm text-muted-foreground">
-              Upload a CSV file to bulk import products. The CSV should include the following columns:
+              {t("importDescription")}
             </p>
             <div className="rounded-lg border p-4 bg-muted/50">
               <div className="flex items-center gap-2 mb-3">
                 <FileSpreadsheet className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">Required CSV Columns</span>
+                <span className="text-sm font-medium">{t("requiredColumns")}</span>
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                 <span className="text-muted-foreground">Product Name</span><span className="font-mono text-xs">name</span>
@@ -224,9 +227,9 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
             </div>
 
             <div className="space-y-2">
-              <Label>Upload CSV File</Label>
+              <Label>{t("uploadCsvFile")}</Label>
               <Input ref={fileInputRef} type="file" accept=".csv" onChange={handleImport} disabled={importing} />
-              {importing && <p className="text-sm text-muted-foreground">Importing products...</p>}
+              {importing && <p className="text-sm text-muted-foreground">{t("importingProducts")}</p>}
             </div>
 
             {importResult && showImportModal && (
@@ -237,9 +240,9 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: Produ
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={downloadTemplate} className="gap-2">
-              <Download className="h-4 w-4" /> Download Sample CSV
+              <Download className="h-4 w-4" /> {t("downloadSampleCsv")}
             </Button>
-            <Button variant="outline" onClick={() => setShowImportModal(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowImportModal(false)}>{tCommon("cancel")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
