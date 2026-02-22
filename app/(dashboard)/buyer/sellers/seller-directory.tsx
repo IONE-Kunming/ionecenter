@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { Store, Search, MessageSquare } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/ui/avatar"
 import { EmptyState } from "@/components/ui/empty-state"
+import { getOrCreateConversation } from "@/lib/actions/chat"
 
 interface SellerRow {
   id: string
@@ -18,7 +20,18 @@ interface SellerRow {
 
 export function SellerDirectory({ sellers }: { sellers: SellerRow[] }) {
   const [search, setSearch] = useState("")
+  const [chatPending, startChat] = useTransition()
+  const router = useRouter()
   const t = useTranslations("sellerDirectory")
+
+  function handleMessage(sellerId: string) {
+    startChat(async () => {
+      const conversation = await getOrCreateConversation(null, sellerId)
+      if (conversation) {
+        router.push("/buyer/chats")
+      }
+    })
+  }
 
   const filtered = sellers.filter((s) =>
     !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.company.toLowerCase().includes(search.toLowerCase())
@@ -45,7 +58,7 @@ export function SellerDirectory({ sellers }: { sellers: SellerRow[] }) {
                   </div>
                 </div>
                 <div className="mt-4 flex items-center justify-end">
-                  <Button size="sm" variant="outline"><MessageSquare className="h-3.5 w-3.5 mr-1" /> {t("message")}</Button>
+                  <Button size="sm" variant="outline" onClick={() => handleMessage(seller.id)} disabled={chatPending}><MessageSquare className="h-3.5 w-3.5 mr-1" /> {t("message")}</Button>
                 </div>
               </CardContent>
             </Card>
