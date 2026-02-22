@@ -41,43 +41,44 @@
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-marcellus), ui-serif, Georgia, serif;
+  --font-arabic: var(--font-arabic), "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
   --radius: 0.625rem;
-  /* Default theme: dark palette matching the brand design */
-  --background: #000000;
-  --foreground: #FFFFFF;
-  --card: #131923;
-  --card-foreground: #FFFFFF;
-  --popover: #131923;
-  --popover-foreground: #FFFFFF;
-  --primary: #C4EF17;
-  --primary-foreground: #000000;
-  --secondary: #131923;
-  --secondary-foreground: #FFFFFF;
-  --muted: #131923;
-  --muted-foreground: #ABB8C3;
-  --accent: #C4EF17;
-  --accent-foreground: #000000;
+  /* Light theme */
+  --background: #FAFBFC;
+  --foreground: #0F1729;
+  --card: #FFFFFF;
+  --card-foreground: #0F1729;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F1729;
+  --primary: #3B7A0A;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F0F2F5;
+  --secondary-foreground: #0F1729;
+  --muted: #F0F2F5;
+  --muted-foreground: #5F6B7A;
+  --accent: #3B7A0A;
+  --accent-foreground: #FFFFFF;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: #FFFFFF;
-  --border: rgba(255, 255, 255, 0.12);
-  --input: rgba(255, 255, 255, 0.12);
-  --ring: #C4EF17;
-  --chart-1: #C4EF17;
-  --chart-2: #00fcfa;
+  --border: #E2E6EB;
+  --input: #E2E6EB;
+  --ring: #3B7A0A;
+  --chart-1: #3B7A0A;
+  --chart-2: #0891B2;
   --chart-3: #003796;
-  --chart-4: #ffe34c;
-  --chart-5: #ABB8C3;
-  --sidebar: #131923;
-  --sidebar-foreground: #FFFFFF;
-  --sidebar-primary: #C4EF17;
-  --sidebar-primary-foreground: #000000;
-  --sidebar-accent: rgba(196, 239, 23, 0.1);
-  --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: rgba(255, 255, 255, 0.12);
-  --sidebar-ring: #C4EF17;
+  --chart-4: #CA8A04;
+  --chart-5: #5F6B7A;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #0F1729;
+  --sidebar-primary: #3B7A0A;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: rgba(59, 122, 10, 0.08);
+  --sidebar-accent-foreground: #0F1729;
+  --sidebar-border: #E2E6EB;
+  --sidebar-ring: #3B7A0A;
 }
 
 .dark {
@@ -129,7 +130,7 @@
   }
   button:after {
     content: "";
-    background: #C4EF17;
+    background: rgba(59, 122, 10, 0.12);
     position: absolute;
     z-index: -1;
     left: -20%;
@@ -149,6 +150,64 @@
   background: rgba(196, 239, 23, 0.15);
 }
 
+/* Light mode stat/service card overrides */
+:root .stat-card {
+  background: #FFFFFF;
+  border-color: #E2E6EB;
+}
+:root .stat-card:hover {
+  border-color: #3B7A0A;
+}
+:root .service-card {
+  background: #FFFFFF;
+  border-color: #E2E6EB;
+}
+:root .service-card:hover {
+  border-color: #3B7A0A;
+}
+:root .service-card .service-number {
+  color: rgba(0,0,0,0.06);
+}
+:root .service-card:hover .service-number {
+  color: #3B7A0A;
+}
+:root .testimonial-card {
+  background: #FFFFFF;
+  border-color: #E2E6EB;
+}
+:root .team-card {
+  background: #F0F2F5;
+}
+
+/* Dark mode keeps the original brand styles */
+.dark .stat-card {
+  background: #131923;
+  border-color: rgba(255,255,255,0.08);
+}
+.dark .stat-card:hover {
+  border-color: #C4EF17;
+}
+.dark .service-card {
+  background: #131923;
+  border-color: rgba(255,255,255,0.08);
+}
+.dark .service-card:hover {
+  border-color: #C4EF17;
+}
+.dark .service-card .service-number {
+  color: rgba(255,255,255,0.08);
+}
+.dark .service-card:hover .service-number {
+  color: #C4EF17;
+}
+.dark .testimonial-card {
+  background: #131923;
+  border-color: rgba(255,255,255,0.08);
+}
+.dark .team-card {
+  background: #131923;
+}
+
 /* ========== Design System Styles ========== */
 
 /* Heading font family */
@@ -162,7 +221,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: #ABB8C3;
+  color: var(--muted-foreground);
   margin-bottom: 15px;
 }
 
@@ -173,7 +232,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .section-title .title span {
-  color: #C4EF17;
+  color: var(--primary);
 }
 
 /* Circle button styles */
@@ -330,8 +389,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Stat counter animation */
 .stat-card {
-  background: #131923;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--border);
   padding: 2rem;
   border-radius: 16px;
   text-align: center;
@@ -339,13 +397,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .stat-card:hover {
-  border-color: #C4EF17;
+  border-color: var(--primary);
 }
 
 /* Service card styles */
 .service-card {
-  background: #131923;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 2rem;
   transition: all 0.4s;
@@ -353,7 +410,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .service-card:hover {
-  border-color: #C4EF17;
+  border-color: var(--primary);
   transform: translateY(-4px);
 }
 
@@ -361,13 +418,12 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 64px;
   font-weight: 400;
   font-family: var(--font-heading);
-  color: rgba(255,255,255,0.08);
   line-height: 1;
   transition: color 0.3s;
 }
 
 .service-card:hover .service-number {
-  color: #C4EF17;
+  color: var(--primary);
 }
 
 /* Team member card */
@@ -375,7 +431,6 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
   overflow: hidden;
   border-radius: 16px;
-  background: #131923;
 }
 
 .team-card .team-overlay {
@@ -395,8 +450,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Testimonial styles */
 .testimonial-card {
-  background: #131923;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 2.5rem;
 }
@@ -508,6 +562,11 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   padding-bottom: 16px;
+  /* Ensure content stretches beyond viewport */
+  margin-left: -24px;
+  margin-right: -24px;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
 .horizontal-scroll::-webkit-scrollbar {
@@ -516,5 +575,5 @@ h1, h2, h3, h4, h5, h6 {
 
 .horizontal-scroll > * {
   scroll-snap-align: start;
-  flex-shrink: 0;
+  flex: 0 0 auto;
 }

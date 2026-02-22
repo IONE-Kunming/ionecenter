@@ -143,7 +143,7 @@ export async function getAllSellers() {
 }
 
 export async function adminBulkUpdateProducts(
-  updates: { id: string; name: string; model_number: string; price_per_meter: number; stock: number }[]
+  updates: { id: string; name: string; model_number: string; price_per_meter: number; stock: number; is_active?: boolean }[]
 ) {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return { error: "Not authorized" }
@@ -151,20 +151,38 @@ export async function adminBulkUpdateProducts(
   const supabase = await createClient()
 
   for (const update of updates) {
+    const updateData: Record<string, unknown> = {
+      name: update.name,
+      model_number: update.model_number,
+      price_per_meter: update.price_per_meter,
+      stock: update.stock,
+    }
+    if (update.is_active !== undefined) {
+      updateData.is_active = update.is_active
+    }
     const { error } = await supabase
       .from("products")
-      .update({
-        name: update.name,
-        model_number: update.model_number,
-        price_per_meter: update.price_per_meter,
-        stock: update.stock,
-      })
+      .update(updateData)
       .eq("id", update.id)
 
     if (error) return { error: error.message }
   }
 
   return { success: true }
+}
+
+export async function adminGetProductsBySeller(sellerId: string): Promise<Product[]> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return []
+
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("products")
+    .select("*")
+    .eq("seller_id", sellerId)
+    .order("created_at", { ascending: false })
+
+  return (data ?? []) as Product[]
 }
 
 export async function adminDeleteProduct(id: string) {
@@ -182,21 +200,26 @@ export async function adminDeleteProduct(id: string) {
 }
 
 export async function adminBulkImportProducts(
-  rows: { name: string; model_number: string; main_category: string; category: string; price_per_meter: number; stock: number; description?: string }[]
+  rows: { name: string; model_number: string; main_category: string; category: string; price_per_meter: number; stock: number; description?: string }[],
+  sellerId?: string
 ) {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return { error: "Not authorized" }
 
   const supabase = await createClient()
 
-  // Use the first seller found, or the admin's own ID as default seller
-  const { data: sellers } = await supabase
-    .from("users")
-    .select("id")
-    .eq("role", "seller")
-    .limit(1)
+  let targetSellerId = sellerId
 
-  const sellerId = sellers?.[0]?.id ?? user.id
+  if (!targetSellerId) {
+    // Use the first seller found as default
+    const { data: sellers } = await supabase
+      .from("users")
+      .select("id")
+      .eq("role", "seller")
+      .limit(1)
+
+    targetSellerId = sellers?.[0]?.id ?? user.id
+  }
 
   const insertRows = rows.map((row) => ({
     name: row.name,
@@ -206,7 +229,7 @@ export async function adminBulkImportProducts(
     price_per_meter: row.price_per_meter,
     stock: row.stock,
     description: row.description ?? null,
-    seller_id: sellerId,
+    seller_id: targetSellerId,
   }))
 
   const { error } = await supabase.from("products").insert(insertRows)
