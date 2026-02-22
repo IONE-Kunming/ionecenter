@@ -48,7 +48,7 @@ export default function GuestCategoriesPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Browse Categories</h1>
         <p className="mt-2 text-muted-foreground">
-          Explore our B2B Marketplace.
+          Explore Our Wide Range B2B Product Categories.
         </p>
       </div>
 

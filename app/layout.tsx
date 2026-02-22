@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Outfit, Marcellus } from "next/font/google"
+import { Outfit, Marcellus, Noto_Sans_Arabic } from "next/font/google"
 import { ClerkProvider } from "@clerk/nextjs"
 import { NextIntlClientProvider } from "next-intl"
 import { getLocale, getMessages } from "next-intl/server"
@@ -18,6 +18,13 @@ const marcellus = Marcellus({
   subsets: ["latin"],
   variable: "--font-marcellus",
   display: "swap",
+})
+
+const notoSansArabic = Noto_Sans_Arabic({
+  subsets: ["arabic"],
+  variable: "--font-arabic",
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700"],
 })
 
 export const dynamic = 'force-dynamic'
@@ -46,9 +53,11 @@ export default async function RootLayout({
   const locale = await getLocale()
   const messages = await getMessages()
 
+  const isRtl = locale === "ar" || locale === "ur"
+
   const content = (
-    <html lang={locale} dir={locale === "ar" || locale === "ur" ? "rtl" : "ltr"} suppressHydrationWarning>
-      <body className={`${outfit.variable} ${marcellus.variable} font-sans antialiased`}>
+    <html lang={locale} dir={isRtl ? "rtl" : "ltr"} suppressHydrationWarning>
+      <body className={`${outfit.variable} ${marcellus.variable} ${notoSansArabic.variable} ${isRtl ? "font-arabic" : "font-sans"} antialiased`}>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
             attribute="class"
