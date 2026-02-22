@@ -30,7 +30,7 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
     startChat(async () => {
       const conversation = await getOrCreateConversation(product.id, product.seller_id)
       if (conversation) {
-        router.push("/buyer/chats")
+        router.push(`/buyer/chats?id=${conversation.id}`)
       }
     })
   }
