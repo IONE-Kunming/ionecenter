@@ -19,7 +19,9 @@
     "activeUsers": "活跃用户",
     "inTransactions": "交易总额",
     "uptime": "正常运行时间",
-    "products": "产品"
+    "products": "产品",
+    "countries": "国家",
+    "happyCustomers": "满意客户"
   },
   "features": {
     "title": "为什么选择 IONE Center？",
@@ -84,7 +86,10 @@
     "privacyPolicy": "隐私政策",
     "termsOfService": "服务条款",
     "cookiePolicy": "Cookie 政策",
-    "copyright": "© {year} IONE Center。保留所有权利。"
+    "copyright": "© {year} IONE Center。保留所有权利。",
+    "newsletter": "新闻通讯",
+    "newsletterDesc": "订阅以获取最新功能和版本更新。",
+    "emailPlaceholder": "输入您的邮箱"
   },
   "auth": {
     "welcomeBack": "欢迎回来",

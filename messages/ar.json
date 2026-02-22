@@ -19,7 +19,9 @@
     "activeUsers": "مستخدم نشط",
     "inTransactions": "في المعاملات",
     "uptime": "وقت التشغيل",
-    "products": "المنتجات"
+    "products": "المنتجات",
+    "countries": "الدول",
+    "happyCustomers": "العملاء السعداء"
   },
   "features": {
     "title": "لماذا تختار IONE Center؟",
@@ -84,7 +86,10 @@
     "privacyPolicy": "سياسة الخصوصية",
     "termsOfService": "شروط الخدمة",
     "cookiePolicy": "سياسة ملفات تعريف الارتباط",
-    "copyright": "© {year} IONE Center. جميع الحقوق محفوظة."
+    "copyright": "© {year} IONE Center. جميع الحقوق محفوظة.",
+    "newsletter": "النشرة الإخبارية",
+    "newsletterDesc": "اشترك للبقاء على اطلاع بأحدث الميزات والإصدارات.",
+    "emailPlaceholder": "أدخل بريدك الإلكتروني"
   },
   "auth": {
     "welcomeBack": "مرحباً بعودتك",

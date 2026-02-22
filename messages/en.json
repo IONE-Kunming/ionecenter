@@ -19,7 +19,9 @@
     "activeUsers": "Active Users",
     "inTransactions": "In Transactions",
     "uptime": "Uptime",
-    "products": "Products"
+    "products": "Products",
+    "countries": "Countries",
+    "happyCustomers": "Happy Customers"
   },
   "features": {
     "title": "Why Choose IONE Center?",
@@ -84,7 +86,10 @@
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "cookiePolicy": "Cookie Policy",
-    "copyright": "© {year} IONE Center. All rights reserved."
+    "copyright": "© {year} IONE Center. All rights reserved.",
+    "newsletter": "Newsletter",
+    "newsletterDesc": "Subscribe to stay updated with the latest features and releases.",
+    "emailPlaceholder": "Enter your email"
   },
   "auth": {
     "welcomeBack": "Welcome Back",
