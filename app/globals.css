@@ -327,6 +327,23 @@ h1, h2, h3, h4, h5, h6 {
   to { transform: translateX(-50%); }
 }
 
+/* Team marquee styles */
+.team-marquee {
+  overflow: hidden;
+  width: 100%;
+}
+
+.team-marquee-content {
+  display: flex;
+  gap: 24px;
+  width: max-content;
+  animation: marquee 40s linear infinite;
+}
+
+.team-marquee:hover .team-marquee-content {
+  animation-play-state: paused;
+}
+
 /* Header sticky styles */
 .header-sticky {
   position: fixed;
@@ -431,21 +448,6 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
   overflow: hidden;
   border-radius: 16px;
-}
-
-.team-card .team-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 24px;
-  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-  transform: translateY(60%);
-  transition: transform 0.4s ease;
-}
-
-.team-card:hover .team-overlay {
-  transform: translateY(0);
 }
 
 /* Testimonial styles */
