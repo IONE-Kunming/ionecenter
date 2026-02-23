@@ -41,7 +41,8 @@ function formatMessageTime(dateStr: string | null) {
   try {
     const date = new Date(dateStr)
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-    const shortTz = date.toLocaleTimeString("en-US", { timeZoneName: "short" }).split(" ").pop() ?? ""
+    const parts = new Intl.DateTimeFormat("en-US", { timeZoneName: "short" }).formatToParts(date)
+    const shortTz = parts.find((p) => p.type === "timeZoneName")?.value ?? ""
     return `${format(date, "MMM d, yyyy h:mm a")} ${shortTz} (${timeZone})`
   } catch {
     return ""

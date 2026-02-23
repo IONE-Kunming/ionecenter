@@ -124,7 +124,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
   }
 
   // ─── Cell renderer ─────────────────────────────────────────────────────
-  function renderCell(col: ColumnDef, row: PreviewRow, idx: number) {
+  function renderCell(col: ColumnDef, row: PreviewRow, idx: number): React.ReactNode {
     switch (col.key) {
       case "name":
         return (
@@ -236,6 +236,8 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
             )}
           </>
         )
+      default:
+        return null
     }
   }
 
