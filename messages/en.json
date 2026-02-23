@@ -950,5 +950,18 @@
     "landTransport": "Land Transport",
     "expressDelivery": "Express Delivery",
     "supplyChainSolutions": "Supply Chain Solutions"
+  },
+  "team": {
+    "ceoAndFounder": "CEO and Founder",
+    "cofounder": "Cofounder",
+    "generalManager": "General Manager",
+    "boardOfDirectorsMember": "Board of Directors Member",
+    "middleEastSalesDirector": "Middle East Sales Director",
+    "svpAndHeadOfCX": "SVP and Head of CX",
+    "chiefOfSecretary": "Chief of Secretary",
+    "leadDeveloper": "Lead Developer",
+    "marketingDirector": "Marketing Director",
+    "middleEastSalesManager": "Middle East Sales Manager",
+    "salesExpert": "Sales Expert"
   }
 }

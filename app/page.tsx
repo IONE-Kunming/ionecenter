@@ -16,17 +16,17 @@ const serviceKeys = [
 ] as const
 
 const teamMembers = [
-  { name: "Khalil Shwaiki", role: "CEO and Founder", image: "/team/Khalil Shwaiki.png" },
-  { name: "Ye Chenwang", role: "Cofounder", image: "/team/Ye Chenwang.png" },
-  { name: "Abed Shwaiki", role: "General Manager", image: "/team/Abed Shwaiki.png" },
-  { name: "Ihab Ghanemat", role: "Assistant Director", image: "/team/Ihab Ghanemat.png" },
-  { name: "Mohamed Zurob", role: "Middle East Sales Director", image: "/team/Mohamed Zurob.png" },
-  { name: "Mohamed Radwan", role: "SVP and Head of CX", image: "/team/Mohamed Radwan.jpg" },
-  { name: "Moxi", role: "Chief of Secretary", image: "/team/Moxi.png" },
-  { name: "Tala Qassrawi", role: "Lead Developer", image: "/team/Tala Qassrawi.jpg" },
-  { name: "Rowan Ghoniem", role: "Marketing Director", image: "/team/Rawan Ghoniem.jpg" },
-  { name: "Mohamed Said", role: "Middle East Sales Manager", image: "/team/Mohamed Said.png" },
-  { name: "Mohamed Qassrawi", role: "Sales Expert", image: "/team/Mohamed Qassrawi.png" },
+  { name: "Khalil Shwaiki", roleKey: "ceoAndFounder", image: "/team/Khalil Shwaiki.png", contain: true },
+  { name: "Ye Chenwang", roleKey: "cofounder", image: "/team/Ye Chenwang.png", contain: false },
+  { name: "Abed Shwaiki", roleKey: "generalManager", image: "/team/Abed Shwaiki.png", contain: false },
+  { name: "Ihab Ghanemat", roleKey: "boardOfDirectorsMember", image: "/team/Ihab Ghanemat.png", contain: false },
+  { name: "Mohamed Zurob", roleKey: "middleEastSalesDirector", image: "/team/Mohamed Zurob.png", contain: false },
+  { name: "Mohamed Radwan", roleKey: "svpAndHeadOfCX", image: "/team/Mohamed Radwan.jpg", contain: false },
+  { name: "Moxi", roleKey: "chiefOfSecretary", image: "/team/Moxi.png", contain: true },
+  { name: "Tala Qassrawi", roleKey: "leadDeveloper", image: "/team/Tala Qassrawi.jpg", contain: false },
+  { name: "Rowan Ghoniem", roleKey: "marketingDirector", image: "/team/Rawan Ghoniem.jpg", contain: false },
+  { name: "Mohamed Said", roleKey: "middleEastSalesManager", image: "/team/Mohamed Said.png", contain: true },
+  { name: "Mohamed Qassrawi", roleKey: "salesExpert", image: "/team/Mohamed Qassrawi.png", contain: false },
 ]
 const teamMembersDouble = [...teamMembers, ...teamMembers]
 
@@ -51,6 +51,7 @@ export default async function LandingPage() {
   const benefitsT = await getTranslations("benefits")
   const ctaT = await getTranslations("cta")
   const footerT = await getTranslations("footer")
+  const teamT = await getTranslations("team")
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -291,7 +292,7 @@ export default async function LandingPage() {
                 preload="metadata"
                 poster=""
               >
-                <source src="/Our Factory.mp4" type="video/mp4" />
+                <source src="/Our%20Factory.mp4" type="video/mp4" />
               </video>
             </div>
           </div>
@@ -349,12 +350,12 @@ export default async function LandingPage() {
                   <img
                     src={member.image}
                     alt={member.name}
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full ${member.contain ? "object-contain" : "object-cover"}`}
                   />
                 </div>
                 <div className="pt-3 text-center">
                   <h3 className="text-base font-semibold">{member.name}</h3>
-                  <p className="text-primary text-sm mt-0.5">{member.role}</p>
+                  <p className="text-primary text-sm mt-0.5">{teamT(member.roleKey)}</p>
                 </div>
               </div>
             ))}

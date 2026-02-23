@@ -955,5 +955,18 @@
     "landTransport": "زمینی نقل و حمل",
     "expressDelivery": "ایکسپریس ڈیلیوری",
     "supplyChainSolutions": "سپلائی چین حل"
+  },
+  "team": {
+    "ceoAndFounder": "سی ای او اور بانی",
+    "cofounder": "شریک بانی",
+    "generalManager": "جنرل مینیجر",
+    "boardOfDirectorsMember": "بورڈ آف ڈائریکٹرز کا رکن",
+    "middleEastSalesDirector": "مشرق وسطیٰ سیلز ڈائریکٹر",
+    "svpAndHeadOfCX": "سینئر نائب صدر اور سی ایکس کے سربراہ",
+    "chiefOfSecretary": "چیف سیکرٹری",
+    "leadDeveloper": "لیڈ ڈیولپر",
+    "marketingDirector": "مارکیٹنگ ڈائریکٹر",
+    "middleEastSalesManager": "مشرق وسطیٰ سیلز مینیجر",
+    "salesExpert": "سیلز ماہر"
   }
 }
