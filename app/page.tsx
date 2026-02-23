@@ -16,11 +16,19 @@ const serviceKeys = [
 ] as const
 
 const teamMembers = [
-  { name: "Ye Chenwang", role: "Co-Founder", initials: "YC" },
-  { name: "Khalil Shwaiki", role: "CEO", initials: "KS" },
-  { name: "Mose", role: "Chief of Secretary", initials: "ML" },
-  { name: "Abed Shwaiki", role: "General Manager", initials: "AS" },
+  { name: "Khalil Shwaiki", role: "CEO and Founder", image: "/team/Khalil Shwaiki.png" },
+  { name: "Ye Chenwang", role: "Cofounder", image: "/team/Ye Chenwang.png" },
+  { name: "Abed Shwaiki", role: "General Manager", image: "/team/Abed Shwaiki.png" },
+  { name: "Ihab Ghanemat", role: "Assistant Director", image: "/team/Ihab Ghanemat.png" },
+  { name: "Mohamed Zurob", role: "Middle East Sales Director", image: "/team/Mohamed Zurob.png" },
+  { name: "Mohamed Radwan", role: "SVP and Head of CX", image: "/team/Mohamed Radwan.jpg" },
+  { name: "Moxi", role: "Chief of Secretary", image: "/team/Moxi.png" },
+  { name: "Tala Qassrawi", role: "Lead Developer", image: "/team/Tala Qassrawi.jpg" },
+  { name: "Rowan Ghoniem", role: "Marketing Director", image: "/team/Rawan Ghoniem.jpg" },
+  { name: "Mohamed Said", role: "Middle East Sales Manager", image: "/team/Mohamed Said.png" },
+  { name: "Mohamed Qassrawi", role: "Sales Expert", image: "/team/Mohamed Qassrawi.png" },
 ]
+const teamMembersDouble = [...teamMembers, ...teamMembers]
 
 const testimonials = [
   { quote: "IONE Center transformed our supply chain. The platform is incredibly efficient and the support team is outstanding.", author: "David Kim", company: "KimTrade Co." },
@@ -325,15 +333,21 @@ export default async function LandingPage() {
               {footerT("aboutUs")}
             </h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {teamMembers.map((member) => (
-              <div key={member.name} className="team-card w-full h-[380px]">
-                <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
-                  <span className="text-[64px] font-bold text-foreground/10">{member.initials}</span>
+        </div>
+        <div className="team-marquee">
+          <div className="team-marquee-content">
+            {teamMembersDouble.map((member, i) => (
+              <div key={`${member.name}-${i}`} className="shrink-0 w-[260px] flex flex-col">
+                <div className="team-card w-full h-[300px] bg-muted/50">
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className="w-full h-full object-contain"
+                  />
                 </div>
-                <div className="team-overlay">
-                  <h3 className="text-white text-xl">{member.name}</h3>
-                  <p className="text-primary text-sm mt-1">{member.role}</p>
+                <div className="pt-3 text-center">
+                  <h3 className="text-base font-semibold">{member.name}</h3>
+                  <p className="text-primary text-sm mt-0.5">{member.role}</p>
                 </div>
               </div>
             ))}
