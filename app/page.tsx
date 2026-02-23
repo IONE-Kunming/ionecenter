@@ -1,7 +1,7 @@
 import Link from "next/link"
 import {
   Globe, Users,
-  ArrowRight, CheckCircle, Play, Twitter, Linkedin, Instagram, Mail,
+  ArrowRight, CheckCircle, Twitter, Linkedin, Instagram, Mail,
 } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 import { LanguageSwitcher } from "@/components/language-switcher"
@@ -284,8 +284,15 @@ export default async function LandingPage() {
             <h2 className="text-[36px] md:text-[56px] leading-[1.1] max-w-3xl mx-auto mb-12">
               {ctaT("title")}
             </h2>
-            <div className="w-20 h-20 rounded-full bg-primary mx-auto flex items-center justify-center cursor-pointer hover:scale-110 hover:shadow-lg transition-all">
-              <Play className="h-8 w-8 text-primary-foreground ml-1" fill="currentColor" />
+            <div className="max-w-4xl mx-auto rounded-2xl overflow-hidden border border-border">
+              <video
+                className="w-full"
+                controls
+                preload="metadata"
+                poster=""
+              >
+                <source src="/Our Factory.mp4" type="video/mp4" />
+              </video>
             </div>
           </div>
         </div>
@@ -342,7 +349,7 @@ export default async function LandingPage() {
                   <img
                     src={member.image}
                     alt={member.name}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="pt-3 text-center">

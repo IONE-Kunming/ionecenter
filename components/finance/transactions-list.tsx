@@ -73,14 +73,14 @@ export function TransactionsList({ transactions }: { transactions: Transaction[]
         <ArrowLeftRight className="h-8 w-8 text-primary" />
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t("transactions")}</h1>
-          <p className="text-muted-foreground">View and manage your transaction history</p>
+          <p className="text-muted-foreground">{t("transactionsDesc")}</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle>Recent Transactions</CardTitle>
+            <CardTitle>{t("recentTransactions")}</CardTitle>
             <Button variant="outline" size="sm" onClick={() => exportCSV(filtered)}>
               <Download className="h-4 w-4" />
               {t("exportCsv")}
@@ -107,10 +107,10 @@ export function TransactionsList({ transactions }: { transactions: Transaction[]
                 <tr className="border-b text-left">
                   <th className="pb-3 pr-4 font-medium text-muted-foreground">{tCommon("date")}</th>
                   <th className="pb-3 pr-4 font-medium text-muted-foreground">{t("reference")}</th>
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground">Description</th>
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground">Account</th>
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">Debit</th>
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">Credit</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground">{t("description")}</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground">{t("account")}</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">{t("debit")}</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">{t("credit")}</th>
                   <th className="pb-3 font-medium text-muted-foreground">{tCommon("status")}</th>
                 </tr>
               </thead>

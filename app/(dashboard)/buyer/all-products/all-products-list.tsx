@@ -19,6 +19,7 @@ import type { Product } from "@/types/database"
 export function AllProductsList({ products }: { products: Product[] }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
+  const tChat = useTranslations("chat")
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -76,9 +77,9 @@ export function AllProductsList({ products }: { products: Product[] }) {
                       <span className="font-bold text-primary">{formatCurrency(product.price_per_meter)}/m</span>
                       <div className="flex gap-1">
                         <Link href={`/buyer/product/${product.id}`}>
-                          <Button size="sm" variant="ghost" title="Chat with Seller"><MessageSquare className="h-3.5 w-3.5" /></Button>
+                          <Button size="sm" variant="ghost" title={tChat("chatWithSeller")}><MessageSquare className="h-3.5 w-3.5" /></Button>
                         </Link>
-                        <Button size="sm" variant="outline"><ShoppingCart className="h-3.5 w-3.5 mr-1" /> Add</Button>
+                        <Button size="sm" variant="outline"><ShoppingCart className="h-3.5 w-3.5 mr-1" /> {tCommon("add")}</Button>
                       </div>
                     </div>
                   </div>

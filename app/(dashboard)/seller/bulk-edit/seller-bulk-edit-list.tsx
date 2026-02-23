@@ -1,9 +1,11 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { BulkEditTable, type BulkEditProduct, type ImportRow } from "@/components/bulk-edit/bulk-edit-table"
 import { updateProduct, deleteProduct, bulkImportProducts } from "@/lib/actions/products"
 
 export function SellerBulkEditList({ initialProducts }: { initialProducts: BulkEditProduct[] }) {
+  const t = useTranslations("bulkEdit")
   const handleSave = async (products: BulkEditProduct[]) => {
     for (const product of products) {
       const result = await updateProduct(product.id, {
@@ -33,8 +35,8 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: BulkE
       onSave={handleSave}
       onDelete={handleDelete}
       onImport={handleImport}
-      title="Bulk Edit"
-      subtitle="MY PRODUCTS — INLINE EDITOR"
+      title={t("bulkEditTitle")}
+      subtitle={t("bulkEditSubtitle")}
     />
   )
 }

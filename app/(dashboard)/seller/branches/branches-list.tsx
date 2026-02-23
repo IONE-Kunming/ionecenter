@@ -48,16 +48,16 @@ export function BranchesList({ initialBranches }: { initialBranches: Branch[] })
         <DialogContent>
           <DialogHeader><DialogTitle>{t("addBranch")}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
-            <div className="space-y-2"><Label>{t("branchName")}</Label><Input placeholder="e.g., Main Factory" /></div>
-            <div className="space-y-2"><Label>{t("address")}</Label><Input placeholder="Street address" /></div>
+            <div className="space-y-2"><Label>{t("branchName")}</Label><Input placeholder={t("branchNamePlaceholder")} /></div>
+            <div className="space-y-2"><Label>{t("address")}</Label><Input placeholder={t("streetPlaceholder")} /></div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>City</Label><Input placeholder="City" /></div>
-              <div className="space-y-2"><Label>State</Label><Input placeholder="State/Province" /></div>
+              <div className="space-y-2"><Label>{t("city")}</Label><Input placeholder={t("cityPlaceholder")} /></div>
+              <div className="space-y-2"><Label>{t("state")}</Label><Input placeholder={t("statePlaceholder")} /></div>
             </div>
-            <div className="space-y-2"><Label>Country</Label><Input placeholder="Country" /></div>
+            <div className="space-y-2"><Label>{t("country")}</Label><Input placeholder={t("countryPlaceholder")} /></div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>{t("phone")}</Label><Input placeholder="+1-234-567-8901" /></div>
-              <div className="space-y-2"><Label>{t("email")}</Label><Input type="email" placeholder="branch@example.com" /></div>
+              <div className="space-y-2"><Label>{t("phone")}</Label><Input placeholder={t("phonePlaceholder")} /></div>
+              <div className="space-y-2"><Label>{t("email")}</Label><Input type="email" placeholder={t("emailPlaceholder")} /></div>
             </div>
           </div>
           <DialogFooter>
