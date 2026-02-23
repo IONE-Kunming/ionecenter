@@ -93,7 +93,7 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
       const rows = parseCSV(text)
       if (rows.length === 0) {
         setImportIsError(true)
-        setImportResult("No valid rows found in CSV.")
+        setImportResult(t("noValidRowsCsv"))
         return
       }
       const mapped: ImportRow[] = rows.map((r) => ({
@@ -111,7 +111,7 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
       setShowPreview(true)
     } catch {
       setImportIsError(true)
-      setImportResult("Failed to parse CSV file.")
+      setImportResult(t("failedParseCsv"))
     }
   }
 
@@ -214,25 +214,25 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
           <DialogHeader><DialogTitle>{t("addProduct")}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>{t("productName")}</Label><Input placeholder="e.g., Window Profile" /></div>
-              <div className="space-y-2"><Label>{t("modelNumber")}</Label><Input placeholder="e.g., WP-001" /></div>
+              <div className="space-y-2"><Label>{t("productName")}</Label><Input placeholder={t("productNamePlaceholder")} /></div>
+              <div className="space-y-2"><Label>{t("modelNumber")}</Label><Input placeholder={t("modelNumberPlaceholder")} /></div>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("mainCategory")}</Label>
-                <Select options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder="Select category" onChange={(e) => setSelectedCategory(e.target.value)} />
+                <Select options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder={t("selectCategory")} onChange={(e) => setSelectedCategory(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label>{t("subcategory")}</Label>
-                <Select options={getSubcategories(selectedCategory).map((c) => ({ value: c, label: c }))} placeholder="Select subcategory" />
+                <Select options={getSubcategories(selectedCategory).map((c) => ({ value: c, label: c }))} placeholder={t("selectSubcategory")} />
               </div>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2"><Label>{t("pricePerMeter")}</Label><Input type="number" step="0.01" placeholder="0.00" /></div>
               <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" placeholder="0" /></div>
             </div>
-            <div className="space-y-2"><Label>Description</Label><Textarea placeholder="Product description..." rows={3} /></div>
-            <div className="space-y-2"><Label>Product Image</Label><Input type="file" accept="image/*" /></div>
+            <div className="space-y-2"><Label>{t("description")}</Label><Textarea placeholder={t("descriptionPlaceholder")} rows={3} /></div>
+            <div className="space-y-2"><Label>{t("productImage")}</Label><Input type="file" accept="image/*" /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddModal(false)}>{tCommon("cancel")}</Button>
@@ -255,14 +255,14 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
                 <span className="text-sm font-medium">{tBulk("requiredColumns")}</span>
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                <span className="text-muted-foreground">Product Name</span><span className="font-mono text-xs">name</span>
-                <span className="text-muted-foreground">Model Number</span><span className="font-mono text-xs">model_number</span>
-                <span className="text-muted-foreground">Description</span><span className="font-mono text-xs">description</span>
-                <span className="text-muted-foreground">Category</span><span className="font-mono text-xs">main_category</span>
-                <span className="text-muted-foreground">Sub Category</span><span className="font-mono text-xs">category</span>
-                <span className="text-muted-foreground">Price</span><span className="font-mono text-xs">price_per_meter</span>
-                <span className="text-muted-foreground">Stock</span><span className="font-mono text-xs">stock</span>
-                <span className="text-muted-foreground">Image Path</span><span className="font-mono text-xs">image_path</span>
+                <span className="text-muted-foreground">{t("productNameCol")}</span><span className="font-mono text-xs">name</span>
+                <span className="text-muted-foreground">{t("modelNumberCol")}</span><span className="font-mono text-xs">model_number</span>
+                <span className="text-muted-foreground">{t("descriptionCol")}</span><span className="font-mono text-xs">description</span>
+                <span className="text-muted-foreground">{t("categoryCol")}</span><span className="font-mono text-xs">main_category</span>
+                <span className="text-muted-foreground">{t("subCategoryCol")}</span><span className="font-mono text-xs">category</span>
+                <span className="text-muted-foreground">{t("priceCol")}</span><span className="font-mono text-xs">price_per_meter</span>
+                <span className="text-muted-foreground">{t("stockCol")}</span><span className="font-mono text-xs">stock</span>
+                <span className="text-muted-foreground">{t("imagePathCol")}</span><span className="font-mono text-xs">image_path</span>
               </div>
             </div>
 
@@ -287,7 +287,7 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
             </Button>
             <Button variant="outline" onClick={() => { setShowImportModal(false); setImportFile(null) }}>{tCommon("cancel")}</Button>
             <Button onClick={handleAnalyzePreview} disabled={!importFile} className="gap-2">
-              <FileSpreadsheet className="h-4 w-4" /> Analyze &amp; Preview
+              <FileSpreadsheet className="h-4 w-4" /> {t("analyzePreview")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,4 +1,7 @@
+"use client"
+
 import { Receipt, Percent } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatCard } from "@/components/ui/stat-card"
 import { Badge } from "@/components/ui/badge"
@@ -21,50 +24,53 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive" | "o
 }
 
 export default function TaxPage() {
+  const t = useTranslations("finance")
+  const tCommon = useTranslations("common")
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Receipt className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Tax Management</h1>
-          <p className="text-muted-foreground">Track tax collection, payments, and compliance</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("taxManagement")}</h1>
+          <p className="text-muted-foreground">{t("taxManagementDesc")}</p>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
-          title="Current Tax Rate"
+          title={t("currentTaxRate")}
           value="10%"
           icon={Percent}
         />
         <StatCard
-          title="Tax Collected (YTD)"
+          title={t("taxCollectedYTD")}
           value={formatCurrency(4825.0)}
           icon={Receipt}
-          trend={{ value: 8.3, label: "from last year" }}
+          trend={{ value: 8.3, label: t("fromLastYear") }}
         />
         <StatCard
-          title="Tax Remitted (YTD)"
+          title={t("taxRemittedYTD")}
           value={formatCurrency(3720.0)}
           icon={Receipt}
-          trend={{ value: 5.1, label: "from last year" }}
+          trend={{ value: 5.1, label: t("fromLastYear") }}
         />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Tax Entries</CardTitle>
+          <CardTitle>{t("taxEntries")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left">
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground">Date</th>
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground">Description</th>
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">Taxable Amount</th>
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">Tax (10%)</th>
-                  <th className="pb-3 font-medium text-muted-foreground">Status</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground">{tCommon("date")}</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground">{t("description")}</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">{t("taxableAmount")}</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">{t("tax10")}</th>
+                  <th className="pb-3 font-medium text-muted-foreground">{tCommon("status")}</th>
                 </tr>
               </thead>
               <tbody>

@@ -7,10 +7,13 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/select"
+import { useTranslations } from "next-intl"
 import { updateUserProfile } from "@/lib/actions/users"
 import type { User } from "@/types/database"
 
 export default function SellerProfileForm({ user }: { user: User }) {
+  const t = useTranslations("profile")
+  const tCommon = useTranslations("common")
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
@@ -47,43 +50,43 @@ export default function SellerProfileForm({ user }: { user: User }) {
     if (result.error) {
       setMessage({ type: "error", text: result.error })
     } else {
-      setMessage({ type: "success", text: "Profile saved successfully." })
+      setMessage({ type: "success", text: tCommon("profileSaved") })
     }
   }
 
   return (
     <div className="max-w-2xl space-y-6">
       <Card>
-        <CardHeader><CardTitle>Personal Information</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("personalInfo")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>Display Name</Label><Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} /></div>
-            <div className="space-y-2"><Label>Company</Label><Input value={company} onChange={(e) => setCompany(e.target.value)} /></div>
+            <div className="space-y-2"><Label>{t("displayName")}</Label><Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} /></div>
+            <div className="space-y-2"><Label>{tCommon("company")}</Label><Input value={company} onChange={(e) => setCompany(e.target.value)} /></div>
           </div>
-          <div className="space-y-2"><Label>Email</Label><Input type="email" value={user.email} disabled /></div>
+          <div className="space-y-2"><Label>{t("emailAddress")}</Label><Input type="email" value={user.email} disabled /></div>
           <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>Phone Number</Label><Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} /></div>
-            <div className="space-y-2"><Label>Language</Label><Select value={preferredLanguage} onChange={(e) => setPreferredLanguage(e.target.value)} options={[{ value: "en", label: "English" }, { value: "zh", label: "Chinese" }, { value: "ar", label: "Arabic" }, { value: "ur", label: "Urdu" }]} /></div>
+            <div className="space-y-2"><Label>{t("phoneNumber")}</Label><Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} /></div>
+            <div className="space-y-2"><Label>{t("language")}</Label><Select value={preferredLanguage} onChange={(e) => setPreferredLanguage(e.target.value)} options={[{ value: "en", label: t("english") }, { value: "zh", label: t("chinese") }, { value: "ar", label: t("arabic") }, { value: "ur", label: t("urdu") }]} /></div>
           </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Payment / Bank Details</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("paymentBankDetails")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>Bank Name</Label><Input value={bankName} onChange={(e) => setBankName(e.target.value)} /></div>
-            <div className="space-y-2"><Label>Account Name</Label><Input value={accountName} onChange={(e) => setAccountName(e.target.value)} /></div>
+            <div className="space-y-2"><Label>{t("bankName")}</Label><Input value={bankName} onChange={(e) => setBankName(e.target.value)} /></div>
+            <div className="space-y-2"><Label>{t("accountName")}</Label><Input value={accountName} onChange={(e) => setAccountName(e.target.value)} /></div>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>Account / IBAN Number</Label><Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} /></div>
-            <div className="space-y-2"><Label>SWIFT Code</Label><Input value={swiftCode} onChange={(e) => setSwiftCode(e.target.value)} /></div>
+            <div className="space-y-2"><Label>{t("ibanNumber")}</Label><Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} /></div>
+            <div className="space-y-2"><Label>{t("swiftCode")}</Label><Input value={swiftCode} onChange={(e) => setSwiftCode(e.target.value)} /></div>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>Bank Branch</Label><Input value={bankBranch} onChange={(e) => setBankBranch(e.target.value)} /></div>
-            <div className="space-y-2"><Label>Currency</Label><Select value={currency} onChange={(e) => setCurrency(e.target.value)} options={[{ value: "USD", label: "USD" }, { value: "CNY", label: "CNY" }, { value: "EUR", label: "EUR" }, { value: "GBP", label: "GBP" }, { value: "AED", label: "AED" }, { value: "SAR", label: "SAR" }, { value: "PKR", label: "PKR" }]} /></div>
+            <div className="space-y-2"><Label>{t("bankBranch")}</Label><Input value={bankBranch} onChange={(e) => setBankBranch(e.target.value)} /></div>
+            <div className="space-y-2"><Label>{t("currency")}</Label><Select value={currency} onChange={(e) => setCurrency(e.target.value)} options={[{ value: "USD", label: "USD" }, { value: "CNY", label: "CNY" }, { value: "EUR", label: "EUR" }, { value: "GBP", label: "GBP" }, { value: "AED", label: "AED" }, { value: "SAR", label: "SAR" }, { value: "PKR", label: "PKR" }]} /></div>
           </div>
-          <div className="space-y-2"><Label>Payment Notes</Label><Textarea value={paymentNotes} onChange={(e) => setPaymentNotes(e.target.value)} placeholder="Additional payment instructions..." rows={3} /></div>
+          <div className="space-y-2"><Label>{t("paymentNotes")}</Label><Textarea value={paymentNotes} onChange={(e) => setPaymentNotes(e.target.value)} placeholder={t("paymentNotesPlaceholder")} rows={3} /></div>
         </CardContent>
       </Card>
 
@@ -93,7 +96,7 @@ export default function SellerProfileForm({ user }: { user: User }) {
         </p>
       )}
 
-      <Button onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save Changes"}</Button>
+      <Button onClick={handleSave} disabled={saving}>{saving ? tCommon("saving") : t("saveChanges")}</Button>
     </div>
   )
 }

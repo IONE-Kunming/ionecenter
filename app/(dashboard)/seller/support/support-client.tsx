@@ -74,28 +74,28 @@ export default function SupportClient({ tickets: initialTickets }: SupportClient
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><HelpCircle className="h-5 w-5" /> Create Ticket</CardTitle>
-            <CardDescription>Submit a support request and our team will get back to you.</CardDescription>
+            <CardTitle className="flex items-center gap-2"><HelpCircle className="h-5 w-5" /> {t("createTicket")}</CardTitle>
+            <CardDescription>{t("createTicketDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="type">Issue Type</Label>
+                <Label htmlFor="type">{t("issueType")}</Label>
                 <Select id="type" name="type" options={[
-                  { value: "order", label: "Order Issue" },
-                  { value: "payment", label: "Payment Issue" },
-                  { value: "product", label: "Product Issue" },
-                  { value: "account", label: "Account Issue" },
-                  { value: "other", label: "Other" },
-                ]} placeholder="Select issue type" />
+                  { value: "order", label: t("orderIssue") },
+                  { value: "payment", label: t("paymentIssue") },
+                  { value: "product", label: t("productIssue") },
+                  { value: "account", label: t("accountIssue") },
+                  { value: "other", label: t("other") },
+                ]} placeholder={t("selectIssueType")} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="subject">{t("subject")}</Label>
-                <Input id="subject" name="subject" placeholder="Brief description of your issue" required />
+                <Input id="subject" name="subject" placeholder={t("subjectPlaceholder")} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="message">{t("message")}</Label>
-                <Textarea id="message" name="message" placeholder="Describe your issue in detail..." rows={5} required />
+                <Textarea id="message" name="message" placeholder={t("messagePlaceholder")} rows={5} required />
               </div>
               <Button type="submit" disabled={pending}>
                 {pending ? t("submitting") : t("submitTicket")}
