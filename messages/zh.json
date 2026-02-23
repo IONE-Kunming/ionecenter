@@ -955,5 +955,18 @@
     "landTransport": "陆运",
     "expressDelivery": "快递",
     "supplyChainSolutions": "供应链方案"
+  },
+  "team": {
+    "ceoAndFounder": "首席执行官兼创始人",
+    "cofounder": "联合创始人",
+    "generalManager": "总经理",
+    "boardOfDirectorsMember": "董事会成员",
+    "middleEastSalesDirector": "中东销售总监",
+    "svpAndHeadOfCX": "高级副总裁兼客户体验负责人",
+    "chiefOfSecretary": "秘书长",
+    "leadDeveloper": "首席开发人员",
+    "marketingDirector": "营销总监",
+    "middleEastSalesManager": "中东销售经理",
+    "salesExpert": "销售专家"
   }
 }

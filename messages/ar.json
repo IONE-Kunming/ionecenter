@@ -955,5 +955,18 @@
     "landTransport": "نقل بري",
     "expressDelivery": "توصيل سريع",
     "supplyChainSolutions": "حلول سلسلة التوريد"
+  },
+  "team": {
+    "ceoAndFounder": "الرئيس التنفيذي والمؤسس",
+    "cofounder": "الشريك المؤسس",
+    "generalManager": "المدير العام",
+    "boardOfDirectorsMember": "عضو مجلس الإدارة",
+    "middleEastSalesDirector": "مدير مبيعات الشرق الأوسط",
+    "svpAndHeadOfCX": "نائب الرئيس الأول ورئيس تجربة العملاء",
+    "chiefOfSecretary": "رئيس الأمانة",
+    "leadDeveloper": "المطور الرئيسي",
+    "marketingDirector": "مدير التسويق",
+    "middleEastSalesManager": "مدير مبيعات الشرق الأوسط",
+    "salesExpert": "خبير مبيعات"
   }
 }
