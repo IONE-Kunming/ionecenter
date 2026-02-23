@@ -75,8 +75,8 @@ export default function BuyerProfileForm({ user }: { user: User }) {
             <div className="space-y-2">
               <Label htmlFor="language">{t("preferredLanguage")}</Label>
               <Select id="language" value={preferredLanguage} onChange={(e) => setPreferredLanguage(e.target.value)} options={[
-                { value: "en", label: "English" }, { value: "zh", label: "Chinese" },
-                { value: "ar", label: "Arabic" }, { value: "ur", label: "Urdu" },
+                { value: "en", label: t("english") }, { value: "zh", label: t("chinese") },
+                { value: "ar", label: t("arabic") }, { value: "ur", label: t("urdu") },
               ]} />
             </div>
           </div>

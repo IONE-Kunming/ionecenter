@@ -181,7 +181,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
         })
       }
     } catch {
-      setUploadError("Failed to upload file")
+      setUploadError(t("failedUpload"))
     }
     setUploading(false)
     if (fileInputRef.current) fileInputRef.current.value = ""
@@ -219,7 +219,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                       <span className="text-xs text-muted-foreground">{formatMessageTime(conv.last_message_at)}</span>
                     </div>
                     {other.company && <p className="text-xs text-muted-foreground">{other.company}</p>}
-                    <p className="text-xs text-muted-foreground truncate">{conv.last_message ?? "No messages yet"}</p>
+                    <p className="text-xs text-muted-foreground truncate">{conv.last_message ?? t("noMessagesYet")}</p>
                   </div>
                 </button>
               )
@@ -242,7 +242,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {loadingMessages && messages.length === 0 && (
-                <p className="text-center text-sm text-muted-foreground">Loading messages...</p>
+                <p className="text-center text-sm text-muted-foreground">{t("loadingMessages")}</p>
               )}
               {messages.map((msg) => {
                 const isMe = msg.sender_id === currentUserId
@@ -251,12 +251,12 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                     <div className={cn("max-w-[70%] rounded-lg px-4 py-2 text-sm", isMe ? "bg-primary text-primary-foreground" : "bg-muted")}>
                       {msg.type === "image" && msg.file_url ? (
                         <a href={msg.file_url} target="_blank" rel="noopener noreferrer">
-                          <img src={msg.file_url} alt={msg.file_name ?? "Image"} className="max-w-full rounded max-h-60 object-contain" />
+                          <img src={msg.file_url} alt={msg.file_name ?? t("image")} className="max-w-full rounded max-h-60 object-contain" />
                         </a>
                       ) : msg.type === "pdf" && msg.file_url ? (
                         <a href={msg.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 underline">
                           <FileText className="h-4 w-4 flex-shrink-0" />
-                          <span className="truncate">{msg.file_name ?? "Document.pdf"}</span>
+                          <span className="truncate">{msg.file_name ?? t("document")}</span>
                         </a>
                       ) : (
                         <p>{msg.text}</p>
@@ -286,7 +286,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                 variant="ghost"
                 disabled={uploading}
                 onClick={() => fileInputRef.current?.click()}
-                title="Attach file"
+                title={t("attachFile")}
               >
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
               </Button>
@@ -303,7 +303,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
             </div>
           </>
         ) : (
-          <EmptyState icon={MessageSquare} title="Select a conversation" description="Choose a conversation from the sidebar." className="flex-1" />
+          <EmptyState icon={MessageSquare} title={t("selectConversation")} description={t("selectConversationDesc")} className="flex-1" />
         )}
       </div>
     </div>

@@ -34,6 +34,7 @@ const ITEMS_PER_PAGE = 12
 export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
+  const tChat = useTranslations("chat")
   const [level, setLevel] = useState<BrowseLevel>("categories")
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedSubcategory, setSelectedSubcategory] = useState("")
@@ -41,7 +42,7 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
   const [currentPage, setCurrentPage] = useState(1)
 
   const breadcrumb = useMemo(() => {
-    const items = [{ label: "Categories", onClick: () => { setLevel("categories"); setSelectedCategory(""); setSelectedSubcategory("") } }]
+    const items = [{ label: t("categoriesLabel"), onClick: () => { setLevel("categories"); setSelectedCategory(""); setSelectedSubcategory("") } }]
     if (selectedCategory) {
       items.push({ label: selectedCategory, onClick: () => { setLevel("subcategories"); setSelectedSubcategory("") } })
     }
@@ -126,7 +127,7 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
       {level === "subcategories" && selectedCategory && (
         <div className="space-y-4">
           <Button variant="ghost" size="sm" onClick={() => { setLevel("categories"); setSelectedCategory("") }}>
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back
+            <ArrowLeft className="h-4 w-4 mr-2" /> {tCommon("back")}
           </Button>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {CATEGORIES[selectedCategory]?.subcategories.map((sub) => (
@@ -148,7 +149,7 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
       {level === "products" && (
         <div className="space-y-4">
           <Button variant="ghost" size="sm" onClick={() => { setLevel("subcategories"); setSelectedSubcategory("") }}>
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back
+            <ArrowLeft className="h-4 w-4 mr-2" /> {tCommon("back")}
           </Button>
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -186,10 +187,10 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
                           <span className="font-bold text-primary">{formatCurrency(product.price_per_meter)}/m</span>
                           <div className="flex gap-1">
                             <Link href={`/buyer/product/${product.id}`}>
-                              <Button size="sm" variant="ghost" title="Chat with Seller"><MessageSquare className="h-3.5 w-3.5" /></Button>
+                              <Button size="sm" variant="ghost" title={tChat("chatWithSeller")}><MessageSquare className="h-3.5 w-3.5" /></Button>
                             </Link>
                             <Button size="sm" variant="outline">
-                              <ShoppingCart className="h-3.5 w-3.5 mr-1" /> Add
+                              <ShoppingCart className="h-3.5 w-3.5 mr-1" /> {tCommon("add")}
                             </Button>
                           </div>
                         </div>

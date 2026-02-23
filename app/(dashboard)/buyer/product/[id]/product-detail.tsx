@@ -75,7 +75,7 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
             <Badge variant={stockStatus.color === "green" ? "success" : stockStatus.color === "yellow" ? "warning" : "destructive"}>
               {stockStatus.label}
             </Badge>
-            <span className="text-sm text-muted-foreground">{product.stock} units available</span>
+            <span className="text-sm text-muted-foreground">{product.stock} {t("unitsAvailable")}</span>
           </div>
 
           <div className="mt-6 space-y-3">
@@ -118,7 +118,7 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
       {product.description && (
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-3">Product Description</h2>
+            <h2 className="text-lg font-semibold mb-3">{t("productDescription")}</h2>
             <p className="text-muted-foreground">{product.description}</p>
           </CardContent>
         </Card>
@@ -127,10 +127,10 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
       {/* Specifications */}
       <Card>
         <CardContent className="p-6">
-          <h2 className="text-lg font-semibold mb-3">Specifications</h2>
+          <h2 className="text-lg font-semibold mb-3">{t("specifications")}</h2>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex justify-between py-2 border-b">
-              <span className="text-muted-foreground">Category</span>
+              <span className="text-muted-foreground">{t("category")}</span>
               <span className="font-medium">{product.main_category}</span>
             </div>
             <div className="flex justify-between py-2 border-b">
@@ -142,7 +142,7 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
               <span className="font-medium">{product.model_number}</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span className="text-muted-foreground">Price per Meter</span>
+              <span className="text-muted-foreground">{t("pricePerMeter")}</span>
               <span className="font-medium">{formatCurrency(product.price_per_meter)}</span>
             </div>
           </div>
