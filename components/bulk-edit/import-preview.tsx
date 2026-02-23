@@ -77,8 +77,8 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
-      <DialogContent className="max-w-[95vw] w-full max-h-[90vh] flex flex-col p-0">
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }} fullWidth>
+      <DialogContent className="w-full max-h-[90vh] flex flex-col p-0">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <div className="flex items-center gap-3">

@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { cn } from "@/lib/utils"
 import { getMessages, sendMessage, sendAttachment } from "@/lib/actions/chat"
 import { createClient } from "@/lib/supabase/client"
-import { formatDistanceToNow } from "date-fns"
+import { format } from "date-fns"
 import type { Message } from "@/types/database"
 
 interface ConversationParty {
@@ -36,10 +36,13 @@ interface ChatClientProps {
   initialConversationId?: string
 }
 
-function relativeTime(dateStr: string | null) {
+function formatMessageTime(dateStr: string | null) {
   if (!dateStr) return ""
   try {
-    return formatDistanceToNow(new Date(dateStr), { addSuffix: true })
+    const date = new Date(dateStr)
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const shortTz = date.toLocaleTimeString("en-US", { timeZoneName: "short" }).split(" ").pop() ?? ""
+    return `${format(date, "MMM d, yyyy h:mm a")} ${shortTz} (${timeZone})`
   } catch {
     return ""
   }
@@ -212,7 +215,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{other.display_name}</span>
-                      <span className="text-xs text-muted-foreground">{relativeTime(conv.last_message_at)}</span>
+                      <span className="text-xs text-muted-foreground">{formatMessageTime(conv.last_message_at)}</span>
                     </div>
                     {other.company && <p className="text-xs text-muted-foreground">{other.company}</p>}
                     <p className="text-xs text-muted-foreground truncate">{conv.last_message ?? "No messages yet"}</p>
@@ -258,7 +261,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                         <p>{msg.text}</p>
                       )}
                       <p className={cn("text-xs mt-1", isMe ? "text-primary-foreground/70" : "text-muted-foreground")}>
-                        {relativeTime(msg.created_at)}
+                        {formatMessageTime(msg.created_at)}
                       </p>
                     </div>
                   </div>

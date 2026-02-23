@@ -8,6 +8,7 @@ import {
   RotateCcw, Package, Trash2,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
+import readXlsxFile from "read-excel-file"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -77,6 +78,22 @@ function parseCSV(text: string): Record<string, string>[] {
     headers.forEach((h, i) => { row[h] = values[i] ?? "" })
     return row
   })
+}
+
+async function parseExcelFile(file: File): Promise<Record<string, string>[]> {
+  const rows = await readXlsxFile(file)
+  if (rows.length < 2) return []
+  const headers = rows[0].map((h) => String(h ?? "").trim().toLowerCase().replace(/\s+/g, "_"))
+  return rows.slice(1).map((row) => {
+    const record: Record<string, string> = {}
+    headers.forEach((h, i) => { record[h] = String(row[i] ?? "") })
+    return record
+  })
+}
+
+function isExcelFile(file: File): boolean {
+  const ext = file.name.toLowerCase()
+  return ext.endsWith(".xlsx") || ext.endsWith(".xls")
 }
 
 function downloadTemplate() {
@@ -253,11 +270,16 @@ export function BulkEditTable({
   const handleAnalyzePreview = useCallback(async () => {
     if (!importFile) return
     try {
-      const text = await importFile.text()
-      const rows = parseCSV(text)
+      let rows: Record<string, string>[]
+      if (isExcelFile(importFile)) {
+        rows = await parseExcelFile(importFile)
+      } else {
+        const text = await importFile.text()
+        rows = parseCSV(text)
+      }
       if (rows.length === 0) {
         setImportIsError(true)
-        setImportResult("No valid rows found in CSV.")
+        setImportResult("No valid rows found in the file.")
         return
       }
       const mapped: ImportRow[] = rows.map((r) => ({
@@ -275,7 +297,7 @@ export function BulkEditTable({
       setShowPreview(true)
     } catch {
       setImportIsError(true)
-      setImportResult("Failed to parse CSV file.")
+      setImportResult("Failed to parse file. Please ensure it is a valid CSV or Excel file.")
     }
   }, [importFile])
 
@@ -712,8 +734,8 @@ export function BulkEditTable({
               </div>
             </div>
             <div className="space-y-2">
-              <Label>{t("uploadCsvFile")}</Label>
-              <Input ref={fileInputRef} type="file" accept=".csv" onChange={handleFileSelect} disabled={importing} />
+              <Label>{t("uploadCsvFile")} (.csv, .xlsx, .xls)</Label>
+              <Input ref={fileInputRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleFileSelect} disabled={importing} />
               {importFile && !importing && (
                 <p className="text-sm text-muted-foreground">Selected: {importFile.name}</p>
               )}
