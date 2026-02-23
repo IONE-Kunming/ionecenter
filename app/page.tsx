@@ -16,10 +16,10 @@ const serviceKeys = [
 ] as const
 
 const teamMembers = [
-  { name: "Sarah Chen", role: "CEO & Founder", initials: "SC" },
-  { name: "Ahmed Hassan", role: "CTO", initials: "AH" },
-  { name: "Maria Lopez", role: "Head of Operations", initials: "ML" },
-  { name: "James Wu", role: "Lead Developer", initials: "JW" },
+  { name: "Ye Chenwang", role: "Co-Founder", initials: "YC" },
+  { name: "Khalil Shwaiki", role: "CEO", initials: "KS" },
+  { name: "Mose", role: "Chief of Secretary", initials: "ML" },
+  { name: "Abed Shwaiki", role: "General Manager", initials: "AS" },
 ]
 
 const testimonials = [
