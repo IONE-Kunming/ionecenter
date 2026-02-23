@@ -8,9 +8,10 @@ interface DialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   children: React.ReactNode
+  fullWidth?: boolean
 }
 
-function Dialog({ open, onOpenChange, children }: DialogProps) {
+function Dialog({ open, onOpenChange, children, fullWidth }: DialogProps) {
   if (!open) return null
 
   return (
@@ -20,7 +21,7 @@ function Dialog({ open, onOpenChange, children }: DialogProps) {
         onClick={() => onOpenChange(false)}
       />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <div className="relative z-50 w-full max-w-lg animate-in fade-in-0 zoom-in-95">
+        <div className={cn("relative z-50 w-full animate-in fade-in-0 zoom-in-95", fullWidth ? "max-w-[95vw]" : "max-w-lg")}>
           {children}
         </div>
       </div>

@@ -325,9 +325,9 @@ export default async function LandingPage() {
               {footerT("aboutUs")}
             </h2>
           </div>
-          <div className="horizontal-scroll">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {teamMembers.map((member) => (
-              <div key={member.name} className="team-card min-w-[240px] md:min-w-[280px] max-w-[320px] h-[380px]">
+              <div key={member.name} className="team-card w-full h-[380px]">
                 <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
                   <span className="text-[64px] font-bold text-foreground/10">{member.initials}</span>
                 </div>
