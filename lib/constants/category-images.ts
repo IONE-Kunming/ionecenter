@@ -253,7 +253,6 @@ export const SUBCATEGORY_IMAGES: Record<string, string> = {
   "Living Room Furniture": u("photo-1555041469-a586c61ea9bc"),
   "Bedroom Furniture": u("photo-1524758631624-e2822e304c36"),
   "Dining Room Furniture": u("photo-1556228453-efd6c1ff04f6"),
-  "Office Furniture": u("photo-1524758631624-e2822e304c36"),
   "Outdoor Furniture": u("photo-1555041469-a586c61ea9bc"),
   "Kitchen Furniture": u("photo-1556228453-efd6c1ff04f6"),
   "Children Furniture": u("photo-1524758631624-e2822e304c36"),
@@ -384,7 +383,6 @@ export const SUBCATEGORY_IMAGES: Record<string, string> = {
   // --- Metallurgy, Mineral & Energy ---
   "Metal Processing": u("photo-1587293852726-70cdb56c2866"),
   "Mineral Processing": u("photo-1587293852726-70cdb56c2866"),
-  "Mining Equipment": u("photo-1587293852726-70cdb56c2866"),
   "Smelting Equipment": u("photo-1587293852726-70cdb56c2866"),
   "Casting Equipment": u("photo-1587293852726-70cdb56c2866"),
   "Rolling Mills": u("photo-1587293852726-70cdb56c2866"),
@@ -437,7 +435,6 @@ export const SUBCATEGORY_IMAGES: Record<string, string> = {
   "Technical Textiles": u("photo-1558171813-4c088753af8f"),
   "Leather Products": u("photo-1558171813-4c088753af8f"),
   "Synthetic Leather": u("photo-1558171813-4c088753af8f"),
-  "Textile Machinery": u("photo-1558171813-4c088753af8f"),
   "Dyeing & Finishing": u("photo-1558171813-4c088753af8f"),
   "Textile Accessories": u("photo-1558171813-4c088753af8f"),
 

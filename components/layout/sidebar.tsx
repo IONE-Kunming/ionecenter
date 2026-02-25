@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useUser, useClerk } from "@clerk/nextjs"
 import { useTranslations } from "next-intl"
@@ -139,7 +140,7 @@ export function Sidebar({ role }: SidebarProps) {
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="flex items-center gap-2 border-b px-6 py-4">
-        <img src="/logo.svg" alt="IONE Center" className="h-8 w-auto" />
+        <Image src="/logo.svg" alt="IONE Center" width={120} height={32} className="h-8 w-auto" />
       </div>
 
       {/* Navigation */}
