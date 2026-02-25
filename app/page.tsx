@@ -175,9 +175,9 @@ export default async function LandingPage() {
               {featuresT("title")}
             </h2>
           </div>
-          <div className="horizontal-scroll">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {serviceKeys.map((sk) => (
-              <div key={sk.num} className="service-card min-w-[280px] md:min-w-[360px] max-w-[400px]">
+              <div key={sk.num} className="service-card">
                 <div className="service-number">{sk.num}</div>
                 <h3 className="mt-6 text-xl">{featuresT(sk.title)}</h3>
                 <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{featuresT(sk.desc)}</p>
