@@ -90,7 +90,6 @@ function getNavItems(role: UserRole, t: TranslationFn): NavItem[] {
   return [
     { label: t("dashboard"), href: "/admin/dashboard", icon: LayoutDashboard },
     { label: t("users"), href: "/admin/users", icon: Users },
-    { label: t("sellers"), href: "/admin/sellers", icon: Store },
     { label: t("products"), href: "/admin/products", icon: Package },
     { label: t("bulkEdit"), href: "/admin/bulk-edit", icon: Pencil },
     { label: t("orders"), href: "/admin/orders", icon: FileText },
@@ -140,10 +139,7 @@ export function Sidebar({ role }: SidebarProps) {
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="flex items-center gap-2 border-b px-6 py-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-          IC
-        </div>
-        <span className="text-lg font-bold">IONE Center</span>
+        <img src="/logo.svg" alt="IONE Center" className="h-8 w-auto" />
       </div>
 
       {/* Navigation */}

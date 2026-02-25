@@ -675,7 +675,7 @@ export function BulkEditTable({
                     {/* Availability toggle */}
                     <td className="px-4 py-3" data-row={rowIdx} data-col={5}
                       onClick={() => setFocusedCell({ row: rowIdx, col: 5 })} tabIndex={-1}>
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-2.5 min-w-[130px]">
                         <label className="relative inline-flex cursor-pointer">
                           <input
                             type="checkbox"
@@ -686,7 +686,7 @@ export function BulkEditTable({
                           <div className="w-9 h-5 rounded-full bg-muted border peer-checked:bg-green-500/20 peer-checked:border-green-500 transition-colors" />
                           <div className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-muted-foreground transition-transform peer-checked:translate-x-4 peer-checked:bg-green-500 peer-checked:shadow-[0_0_8px_rgba(74,222,128,0.4)]" />
                         </label>
-                        <span className={`text-xs font-medium ${product.is_active ? "text-green-500" : "text-red-500"}`}>
+                        <span className={`text-xs font-medium whitespace-nowrap ${product.is_active ? "text-green-500" : "text-red-500"}`}>
                           {product.is_active ? "In Stock" : "Out of Stock"}
                         </span>
                       </div>
