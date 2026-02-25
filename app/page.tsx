@@ -1,10 +1,12 @@
 import Link from "next/link"
+import Image from "next/image"
 import {
   Globe, Users,
   ArrowRight, CheckCircle, Twitter, Linkedin, Instagram, Mail,
 } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 const serviceKeys = [
   { num: "01", title: "secureTrading", desc: "secureTradingDesc" },
@@ -37,8 +39,7 @@ const testimonials = [
 ]
 
 const baseBrandNames = [
-  "Global Trade", "Pacific Supply", "Euro Materials", "Asia Connect",
-  "Atlantic Partners", "Nordic Wholesale", "Desert Trading", "Ocean Freight",
+  "IONE Palestine", "IONE Saudi Arabia", "IONE Kunming", "IONE Shenzhen",
 ]
 const brandNames = [...baseBrandNames, ...baseBrandNames]
 
@@ -59,10 +60,7 @@ export default async function LandingPage() {
       <header className="fixed top-0 left-0 w-full z-50 bg-background/80 backdrop-blur-sm border-b border-border/50">
         <div className="max-w-[1320px] mx-auto flex h-20 items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-lg">
-              IC
-            </div>
-            <span className="text-xl font-bold">IONE Center</span>
+            <Image src="/logo.svg" alt="IONE Center" width={150} height={40} className="h-10 w-auto" />
           </Link>
           <nav className="hidden md:flex items-center gap-8">
             <Link href="#services" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -80,6 +78,7 @@ export default async function LandingPage() {
           </nav>
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
+            <ThemeToggle />
             <Link href="/sign-in" className="hidden sm:inline-flex text-sm text-muted-foreground hover:text-foreground transition-colors px-4 py-2">
               {nav("logIn")}
             </Link>
@@ -177,9 +176,9 @@ export default async function LandingPage() {
               {featuresT("title")}
             </h2>
           </div>
-          <div className="horizontal-scroll">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {serviceKeys.map((sk) => (
-              <div key={sk.num} className="service-card min-w-[280px] md:min-w-[360px] max-w-[400px]">
+              <div key={sk.num} className="service-card">
                 <div className="service-number">{sk.num}</div>
                 <h3 className="mt-6 text-xl">{featuresT(sk.title)}</h3>
                 <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{featuresT(sk.desc)}</p>
@@ -395,10 +394,7 @@ export default async function LandingPage() {
             {/* Logo & description */}
             <div className="md:col-span-1">
               <div className="flex items-center gap-3 mb-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-lg">
-                  IC
-                </div>
-                <span className="text-xl font-bold">IONE Center</span>
+                <Image src="/logo.svg" alt="IONE Center" width={150} height={40} className="h-10 w-auto" />
               </div>
               <p className="text-muted-foreground text-sm leading-relaxed mb-6">
                 {footerT("description")}

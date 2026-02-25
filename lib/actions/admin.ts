@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
+import { generateSKU } from "@/lib/sku"
 import type { User, Product, Order, Invoice } from "@/types/database"
 
 export async function getAdminDashboardStats() {
@@ -221,9 +222,10 @@ export async function adminBulkImportProducts(
     targetSellerId = sellers?.[0]?.id ?? user.id
   }
 
-  const insertRows = rows.map((row) => ({
+  const timestamp = Date.now()
+  const insertRows = rows.map((row, i) => ({
     name: row.name,
-    model_number: row.model_number,
+    model_number: row.model_number || `IONE-${generateSKU(row.main_category, row.category, timestamp % 10000 + i)}`,
     main_category: row.main_category,
     category: row.category,
     price_per_meter: row.price_per_meter,
@@ -237,4 +239,57 @@ export async function adminBulkImportProducts(
 
   if (error) return { error: error.message }
   return { success: true, count: insertRows.length }
+}
+
+// ─── Admin User Management ──────────────────────────────────────────────────
+
+export async function adminUpdateUser(
+  userId: string,
+  updates: { display_name?: string; email?: string; role?: string; company?: string }
+) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+  const supabase = createAdminClient()
+  const updateData: Record<string, unknown> = {}
+  if (updates.display_name !== undefined) updateData.display_name = updates.display_name
+  if (updates.email !== undefined) updateData.email = updates.email
+  if (updates.role !== undefined) updateData.role = updates.role
+  if (updates.company !== undefined) updateData.company = updates.company
+
+  const { error } = await supabase
+    .from("users")
+    .update(updateData)
+    .eq("id", userId)
+
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
+export async function adminDeactivateUser(userId: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from("users")
+    .update({ role: "deactivated" as string })
+    .eq("id", userId)
+
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
+export async function adminDeleteUser(userId: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from("users")
+    .delete()
+    .eq("id", userId)
+
+  if (error) return { error: error.message }
+  return { success: true }
 }

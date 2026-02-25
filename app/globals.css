@@ -46,39 +46,39 @@
 
 :root {
   --radius: 0.625rem;
-  /* Light theme */
+  /* Light theme - Modern Sparkling Deep Sea Blue */
   --background: #FAFBFC;
   --foreground: #0F1729;
   --card: #FFFFFF;
   --card-foreground: #0F1729;
   --popover: #FFFFFF;
   --popover-foreground: #0F1729;
-  --primary: #3B7A0A;
+  --primary: #0369A1;
   --primary-foreground: #FFFFFF;
   --secondary: #F0F2F5;
   --secondary-foreground: #0F1729;
   --muted: #F0F2F5;
   --muted-foreground: #5F6B7A;
-  --accent: #3B7A0A;
+  --accent: #0369A1;
   --accent-foreground: #FFFFFF;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: #FFFFFF;
   --border: #E2E6EB;
   --input: #E2E6EB;
-  --ring: #3B7A0A;
-  --chart-1: #3B7A0A;
+  --ring: #0369A1;
+  --chart-1: #0369A1;
   --chart-2: #0891B2;
   --chart-3: #003796;
   --chart-4: #CA8A04;
   --chart-5: #5F6B7A;
   --sidebar: #FFFFFF;
   --sidebar-foreground: #0F1729;
-  --sidebar-primary: #3B7A0A;
+  --sidebar-primary: #0369A1;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: rgba(59, 122, 10, 0.08);
+  --sidebar-accent: rgba(3, 105, 161, 0.08);
   --sidebar-accent-foreground: #0F1729;
   --sidebar-border: #E2E6EB;
-  --sidebar-ring: #3B7A0A;
+  --sidebar-ring: #0369A1;
 }
 
 .dark {
@@ -130,7 +130,7 @@
   }
   button:after {
     content: "";
-    background: rgba(59, 122, 10, 0.12);
+    background: rgba(3, 105, 161, 0.12);
     position: absolute;
     z-index: -1;
     left: -20%;
@@ -156,20 +156,20 @@
   border-color: #E2E6EB;
 }
 :root .stat-card:hover {
-  border-color: #3B7A0A;
+  border-color: #0369A1;
 }
 :root .service-card {
   background: #FFFFFF;
   border-color: #E2E6EB;
 }
 :root .service-card:hover {
-  border-color: #3B7A0A;
+  border-color: #0369A1;
 }
 :root .service-card .service-number {
   color: rgba(0,0,0,0.06);
 }
 :root .service-card:hover .service-number {
-  color: #3B7A0A;
+  color: #0369A1;
 }
 :root .testimonial-card {
   background: #FFFFFF;

@@ -1,10 +1,12 @@
 "use client"
 
-import { usePathname } from "next/navigation"
-import { Breadcrumb } from "@/components/layout/breadcrumb"
+import { usePathname, useRouter } from "next/navigation"
+import { ArrowLeft } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export function DashboardHeader() {
   const pathname = usePathname()
+  const router = useRouter()
   const parts = pathname.split("/").filter(Boolean)
   const title = parts[parts.length - 1]
     ?.replace(/-/g, " ")
@@ -12,8 +14,12 @@ export function DashboardHeader() {
 
   return (
     <header className="border-b bg-background px-6 py-4">
-      <Breadcrumb />
-      <h1 className="text-2xl font-bold mt-1">{title}</h1>
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h1 className="text-2xl font-bold">{title}</h1>
+      </div>
     </header>
   )
 }

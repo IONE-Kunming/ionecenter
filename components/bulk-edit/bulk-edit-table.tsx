@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { ImportPreview } from "./import-preview"
 import { uploadProductImage } from "@/lib/actions/products"
+import { MAIN_CATEGORIES, getSubcategories, isMainCategory, getMainCategoryForSubcategory } from "@/types/categories"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface BulkEditProduct {
@@ -286,16 +287,57 @@ export function BulkEditTable({
         setImportResult("No valid rows found in the file.")
         return
       }
-      const mapped: ImportRow[] = rows.map((r) => ({
-        name: r.name || r.product_name || "Unnamed Product",
-        model_number: r.model_number || "",
-        main_category: r.main_category || r.category_main || "",
-        category: r.category || r.subcategory || r.sub_category || "",
-        price_per_meter: Number(r.price_per_meter || r.price) || 0,
-        stock: Number(r.stock || r.quantity) || 0,
-        description: r.description || undefined,
-        image_url: r.image_url || r.image_path || undefined,
-      }))
+      const mapped: ImportRow[] = rows.map((r) => {
+        // Smart category detection: try to figure out main_category and subcategory
+        let mainCat = r.main_category || r.category_main || ""
+        let subCat = r.category || r.subcategory || r.sub_category || ""
+
+        // If mainCat is empty but subCat looks like a main category, swap them
+        if (!mainCat && subCat && isMainCategory(subCat)) {
+          mainCat = subCat
+          subCat = ""
+        }
+
+        // If mainCat is not recognized but could be a subcategory, fix it
+        if (mainCat && !isMainCategory(mainCat)) {
+          const parent = getMainCategoryForSubcategory(mainCat)
+          if (parent) {
+            subCat = mainCat
+            mainCat = parent
+          } else {
+            // Try case-insensitive match for main category
+            const match = MAIN_CATEGORIES.find((c) => c.toLowerCase() === mainCat.toLowerCase())
+            if (match) mainCat = match
+          }
+        }
+
+        // If subCat is not in the subcategories of mainCat, try to find a match
+        if (mainCat && subCat) {
+          const subs = getSubcategories(mainCat)
+          if (!subs.includes(subCat)) {
+            // Case-insensitive match
+            const match = subs.find((s) => s.toLowerCase() === subCat.toLowerCase())
+            if (match) subCat = match
+          }
+        }
+
+        // If no mainCat yet but subCat is a known subcategory, auto-detect parent
+        if (!mainCat && subCat) {
+          const parent = getMainCategoryForSubcategory(subCat)
+          if (parent) mainCat = parent
+        }
+
+        return {
+          name: r.name || r.product_name || "Unnamed Product",
+          model_number: r.model_number || "",
+          main_category: mainCat,
+          category: subCat,
+          price_per_meter: Number(r.price_per_meter || r.price) || 0,
+          stock: Number(r.stock || r.quantity) || 0,
+          description: r.description || undefined,
+          image_url: r.image_url || r.image_path || undefined,
+        }
+      })
       setPreviewRows(mapped)
       setShowImportModal(false)
       setShowPreview(true)
@@ -675,7 +717,7 @@ export function BulkEditTable({
                     {/* Availability toggle */}
                     <td className="px-4 py-3" data-row={rowIdx} data-col={5}
                       onClick={() => setFocusedCell({ row: rowIdx, col: 5 })} tabIndex={-1}>
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-2.5 min-w-[130px]">
                         <label className="relative inline-flex cursor-pointer">
                           <input
                             type="checkbox"
@@ -686,7 +728,7 @@ export function BulkEditTable({
                           <div className="w-9 h-5 rounded-full bg-muted border peer-checked:bg-green-500/20 peer-checked:border-green-500 transition-colors" />
                           <div className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-muted-foreground transition-transform peer-checked:translate-x-4 peer-checked:bg-green-500 peer-checked:shadow-[0_0_8px_rgba(74,222,128,0.4)]" />
                         </label>
-                        <span className={`text-xs font-medium ${product.is_active ? "text-green-500" : "text-red-500"}`}>
+                        <span className={`text-xs font-medium whitespace-nowrap ${product.is_active ? "text-green-500" : "text-red-500"}`}>
                           {product.is_active ? "In Stock" : "Out of Stock"}
                         </span>
                       </div>
