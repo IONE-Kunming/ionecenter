@@ -13,7 +13,7 @@ import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency } from "@/lib/utils"
 import { CATEGORIES, MAIN_CATEGORIES } from "@/types/categories"
-import { getCategoryImage } from "@/lib/constants/category-images"
+import { getCategoryImage, getSubcategoryImage } from "@/lib/constants/category-images"
 
 type BrowseLevel = "categories" | "subcategories" | "products"
 
@@ -80,38 +80,38 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
 
       {/* Category Grid */}
       {level === "categories" && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {MAIN_CATEGORIES.map((cat) => {
             const imageUrl = getCategoryImage(cat)
             return (
             <Card
               key={cat}
-              className="cursor-pointer hover:shadow-md transition-all hover:-translate-y-1 overflow-hidden"
+              className="cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden"
               onClick={() => { setSelectedCategory(cat); setLevel("subcategories"); setCurrentPage(1) }}
             >
               <CardContent className="p-0">
                 {imageUrl ? (
-                  <div className="relative h-[140px]">
+                  <div className="relative h-[200px]">
                     <Image
                       src={imageUrl}
                       alt={cat}
                       fill
                       className="object-cover"
-                      sizes="(max-width: 768px) 50vw, 25vw"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                    <div className="absolute bottom-3 left-4 right-4 text-center">
-                      <h3 className="font-semibold text-sm text-white">{cat}</h3>
-                      <p className="text-xs text-white/80 mt-1">
+                    <div className="absolute bottom-4 left-5 right-5 text-center">
+                      <h3 className="font-semibold text-base text-white">{cat}</h3>
+                      <p className="text-sm text-white/80 mt-1">
                         {CATEGORIES[cat]?.subcategories.length || 0} {t("subcategories")}
                       </p>
                     </div>
                   </div>
                 ) : (
-                  <div className="p-6 text-center">
-                    <Package className="h-8 w-8 mx-auto text-primary" />
-                    <h3 className="mt-3 font-semibold text-sm">{cat}</h3>
-                    <p className="text-xs text-muted-foreground mt-1">
+                  <div className="p-8 text-center">
+                    <Package className="h-10 w-10 mx-auto text-primary" />
+                    <h3 className="mt-4 font-semibold text-base">{cat}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
                       {CATEGORIES[cat]?.subcategories.length || 0} {t("subcategories")}
                     </p>
                   </div>
@@ -130,17 +130,39 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
             <ArrowLeft className="h-4 w-4 mr-2" /> {tCommon("back")}
           </Button>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {CATEGORIES[selectedCategory]?.subcategories.map((sub) => (
+            {CATEGORIES[selectedCategory]?.subcategories.map((sub) => {
+              const subImageUrl = getSubcategoryImage(sub)
+              return (
               <Card
                 key={sub}
-                className="cursor-pointer hover:shadow-md transition-all hover:-translate-y-1"
+                className="cursor-pointer hover:shadow-md transition-all hover:-translate-y-1 overflow-hidden"
                 onClick={() => { setSelectedSubcategory(sub); setLevel("products"); setCurrentPage(1) }}
               >
-                <CardContent className="p-6 text-center">
-                  <h3 className="font-semibold text-sm">{sub}</h3>
+                <CardContent className="p-0">
+                  {subImageUrl ? (
+                    <div className="relative h-[160px]">
+                      <Image
+                        src={subImageUrl}
+                        alt={sub}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                      <div className="absolute bottom-3 left-4 right-4 text-center">
+                        <h3 className="font-semibold text-sm text-white">{sub}</h3>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center">
+                      <Package className="h-8 w-8 mx-auto text-primary" />
+                      <h3 className="mt-2 font-semibold text-sm">{sub}</h3>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
