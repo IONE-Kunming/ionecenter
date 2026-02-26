@@ -70,7 +70,7 @@ const DEFAULT_BULK_COLUMNS: BulkEditColumnDef[] = [
 
 // ─── CSV Parser ─────────────────────────────────────────────────────────────
 function normalizeHeader(h: string): string {
-  return h.trim().toLowerCase().replace(/\s+/g, "_")
+  return h.trim().toLowerCase().replace(/[\s-]+/g, "_")
 }
 
 function parseCsvLine(line: string): string[] {
@@ -966,7 +966,15 @@ export function BulkEditTable({
       </div>
 
       {/* Bulk Import Modal */}
-      <Dialog open={showImportModal} onOpenChange={setShowImportModal}>
+      <Dialog open={showImportModal} onOpenChange={(v) => {
+        setShowImportModal(v)
+        if (!v) {
+          setImportFile(null)
+          setImportResult(null)
+          setImportIsError(false)
+          if (fileInputRef.current) fileInputRef.current.value = ""
+        }
+      }}>
         <DialogContent>
           <DialogHeader><DialogTitle>{t("importTitle")}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">

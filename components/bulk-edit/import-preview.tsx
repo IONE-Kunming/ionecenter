@@ -67,7 +67,10 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
     setRows((prev) => prev.map((r, i) => {
       if (i !== index) return r
       const subs = getSubcategories(value)
-      return { ...r, main_category: value, category: subs[0] ?? "" }
+      // Keep the current subcategory if it's valid for the new main category
+      const lowerCat = r.category.toLowerCase()
+      const matched = subs.find((s) => s.toLowerCase() === lowerCat)
+      return { ...r, main_category: value, category: matched ?? subs[0] ?? "" }
     }))
   }, [])
 
