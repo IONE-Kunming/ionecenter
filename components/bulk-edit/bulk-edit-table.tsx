@@ -909,7 +909,7 @@ export function BulkEditTable({
                               step="0.01"
                               value={product.price_per_meter}
                               onChange={(e) => updateField(product.id, "price_per_meter", Number(e.target.value))}
-                              className="w-full max-w-[100px] bg-transparent border border-transparent rounded pl-5 pr-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
+                              className="w-full max-w-[140px] bg-transparent border border-transparent rounded pl-5 pr-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
                             />
                           </div>
                         )}
@@ -919,7 +919,7 @@ export function BulkEditTable({
                             min="0"
                             value={product.stock}
                             onChange={(e) => updateField(product.id, "stock", Number(e.target.value))}
-                            className="w-full max-w-[80px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
+                            className="w-full max-w-[120px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
                           />
                         )}
                         {col.key === "availability" && (
