@@ -811,6 +811,7 @@ export function BulkEditTable({
                       draggedCol === colIdx && "opacity-50",
                       dragOverCol === colIdx && draggedCol !== colIdx && "border-l-2 border-l-primary"
                     )}
+                    style={col.key === "price" ? { minWidth: 180 } : col.key === "stock" ? { minWidth: 150 } : undefined}
                   >
                     <span className="flex items-center gap-1">
                       <GripVertical className="h-3 w-3 opacity-40 shrink-0" />
@@ -869,6 +870,7 @@ export function BulkEditTable({
                         onClick={() => setFocusedCell({ row: rowIdx, col: colIdx })}
                         tabIndex={-1}
                         className={col.key === "product" || col.key === "availability" ? "px-4 py-3" : "px-4 py-2 rounded-sm"}
+                        style={col.key === "price" ? { minWidth: 180 } : col.key === "stock" ? { minWidth: 150 } : undefined}
                       >
                         {col.key === "product" && (
                           <div className="flex items-center gap-3">
