@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Users, Search, Pencil, Trash2, UserX } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
@@ -35,7 +34,6 @@ function roleBadgeVariant(role: UserRole) {
 export function AdminUsersList({ users }: { users: UserRow[] }) {
   const t = useTranslations("adminUsers")
   const tCommon = useTranslations("common")
-  const router = useRouter()
   const [search, setSearch] = useState("")
 
   // Edit modal state
@@ -79,7 +77,7 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
     setEditSaving(false)
     if (!result.error) {
       setEditUser(null)
-      router.refresh()
+      window.location.reload()
     }
   }
 
@@ -90,7 +88,7 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
     setDeleting(false)
     if (!result.error) {
       setDeleteUser(null)
-      router.refresh()
+      window.location.reload()
     }
   }
 
@@ -101,7 +99,7 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
     setDeactivating(false)
     if (!result.error) {
       setDeactivateUser(null)
-      router.refresh()
+      window.location.reload()
     }
   }
 

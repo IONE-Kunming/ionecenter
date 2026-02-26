@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { CreditCard, Building, Smartphone, Wallet } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -29,7 +28,6 @@ interface CheckoutClientProps {
 }
 
 export default function CheckoutClient({ cartItems, subtotal, enrichedItems }: CheckoutClientProps) {
-  const router = useRouter()
   const t = useTranslations("checkout")
   const tCart = useTranslations("cart")
   const [depositPct, setDepositPct] = useState<number | null>(null)
@@ -50,7 +48,7 @@ export default function CheckoutClient({ cartItems, subtotal, enrichedItems }: C
       setError(result.error)
       setProcessing(false)
     } else {
-      router.push("/buyer/orders")
+      window.location.href = "/buyer/orders"
     }
   }
 

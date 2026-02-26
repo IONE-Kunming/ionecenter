@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
-import Link from "next/link"
+import Link from "@/components/ui/link"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { Search, Package } from "lucide-react"

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import Link from "next/link"
+import Link from "@/components/ui/link"
 import { ArrowLeft } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"

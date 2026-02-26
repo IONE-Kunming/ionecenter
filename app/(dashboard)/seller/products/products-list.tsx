@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Package, Plus, Search, Upload, Download, Pencil, Trash2, FileSpreadsheet } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -87,7 +86,6 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
   })
   const [newProductImage, setNewProductImage] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
 
   // Edit modal state
   const [editProduct, setEditProduct] = useState<Product | null>(null)
@@ -198,7 +196,7 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
         setProducts((prev) => [result.data as Product, ...prev])
         setShowAddModal(false)
         resetAddForm()
-        router.refresh()
+        window.location.reload()
       }
     } catch {
       // error handled
@@ -311,7 +309,7 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
       setPreviewRows([])
       setImportFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ""
-      router.refresh()
+      window.location.reload()
     } catch {
       // error handled
     }
