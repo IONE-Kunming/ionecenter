@@ -154,8 +154,8 @@ export function Sidebar({ role }: SidebarProps) {
                   <button
                     onClick={() => toggleExpanded(item.label)}
                     className={cn(
-                      "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground",
-                      pathname.startsWith(item.href) && "bg-accent text-foreground"
+                      "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground dark:hover:text-accent-foreground",
+                      pathname.startsWith(item.href) && "bg-accent text-foreground dark:text-accent-foreground"
                     )}
                   >
                     <item.icon className="h-4 w-4" />
@@ -175,9 +175,9 @@ export function Sidebar({ role }: SidebarProps) {
                             href={child.href}
                             onClick={() => setMobileOpen(false)}
                             className={cn(
-                              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-foreground",
+                              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-foreground dark:hover:text-accent-foreground",
                               pathname === child.href
-                                ? "bg-accent font-medium text-foreground"
+                                ? "bg-accent font-medium text-foreground dark:text-accent-foreground"
                                 : "text-muted-foreground"
                             )}
                           >
@@ -194,9 +194,9 @@ export function Sidebar({ role }: SidebarProps) {
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground",
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground dark:hover:text-accent-foreground",
                     pathname === item.href
-                      ? "bg-accent text-foreground"
+                      ? "bg-accent text-foreground dark:text-accent-foreground"
                       : "text-muted-foreground"
                   )}
                 >
