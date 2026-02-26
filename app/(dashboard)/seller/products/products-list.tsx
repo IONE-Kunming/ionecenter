@@ -4,6 +4,7 @@ import { useState, useRef } from "react"
 import Image from "next/image"
 import { Package, Plus, Search, Upload, Download, Pencil, Trash2, FileSpreadsheet } from "lucide-react"
 import { useTranslations } from "next-intl"
+import readXlsxFile from "read-excel-file"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -19,6 +20,10 @@ import { createProduct, updateProduct, deleteProduct, bulkImportProducts, upload
 import { ImportPreview } from "@/components/bulk-edit/import-preview"
 import type { ImportRow } from "@/components/bulk-edit/bulk-edit-table"
 import type { Product } from "@/types/database"
+
+function normalizeHeader(h: string): string {
+  return h.trim().toLowerCase().replace(/[\s-]+/g, "_")
+}
 
 function parseCsvLine(line: string): string[] {
   const values: string[] = []
@@ -38,7 +43,7 @@ function parseCSV(text: string): Record<string, string>[] {
   const cleaned = text.replace(/^\ufeff/, "")
   const lines = cleaned.split(/\r?\n/).filter((l) => l.trim())
   if (lines.length < 2) return []
-  const headers = parseCsvLine(lines[0]).map((h) => h.trim().toLowerCase().replace(/\s+/g, "_"))
+  const headers = parseCsvLine(lines[0]).map(normalizeHeader)
   return lines.slice(1).map((line) => {
     const values = parseCsvLine(line)
     const row: Record<string, string> = {}
@@ -47,8 +52,24 @@ function parseCSV(text: string): Record<string, string>[] {
   })
 }
 
+async function parseExcelFile(file: File): Promise<Record<string, string>[]> {
+  const rows = await readXlsxFile(file)
+  if (rows.length < 2) return []
+  const headers = rows[0].map((h) => normalizeHeader(String(h ?? "")))
+  return rows.slice(1).map((row) => {
+    const record: Record<string, string> = {}
+    headers.forEach((h, i) => { record[h] = String(row[i] ?? "").trim() })
+    return record
+  })
+}
+
+function isExcelFile(file: File): boolean {
+  const ext = file.name.toLowerCase()
+  return ext.endsWith(".xlsx") || ext.endsWith(".xls")
+}
+
 function downloadTemplate() {
-  const csv = "name,model_number,description,main_category,category,price_per_meter,stock,image_path\nExample Product,EX-001,Sample description,Construction,Exterior Gates,10.00,100,/images/example.jpg"
+  const csv = "name,model_number,description,main_category,category,price_per_meter,stock\nExample Product,EX-001,Sample description,Construction,Exterior Gates,10.00,100"
   const blob = new Blob([csv], { type: "text/csv" })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
@@ -215,8 +236,13 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
   const handleAnalyzePreview = async () => {
     if (!importFile) return
     try {
-      const text = await importFile.text()
-      const rows = parseCSV(text)
+      let rows: Record<string, string>[]
+      if (isExcelFile(importFile)) {
+        rows = await parseExcelFile(importFile)
+      } else {
+        const text = await importFile.text()
+        rows = parseCSV(text)
+      }
       if (rows.length === 0) {
         setImportIsError(true)
         setImportResult(t("noValidRowsCsv"))
@@ -274,7 +300,7 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
           price_per_meter: Number(r.price_per_meter || r.price) || 0,
           stock: Number(r.stock || r.quantity) || 0,
           description: r.description || undefined,
-          image_url: r.image_url || r.image_path || undefined,
+          image_url: undefined,
         }
       })
       setPreviewRows(mapped)
@@ -439,13 +465,12 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
                 <span className="text-muted-foreground">{t("subCategoryCol")}</span><span className="font-mono text-xs">category</span>
                 <span className="text-muted-foreground">{t("priceCol")}</span><span className="font-mono text-xs">price_per_meter</span>
                 <span className="text-muted-foreground">{t("stockCol")}</span><span className="font-mono text-xs">stock</span>
-                <span className="text-muted-foreground">{t("imagePathCol")}</span><span className="font-mono text-xs">image_path</span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>{tBulk("uploadCsvFile")}</Label>
-              <Input ref={fileInputRef} type="file" accept=".csv" onChange={handleFileSelect} disabled={importing} />
+              <Label>{tBulk("uploadCsvFile")} (.csv, .xlsx, .xls)</Label>
+              <Input ref={fileInputRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleFileSelect} disabled={importing} />
               {importFile && !importing && (
                 <p className="text-sm text-muted-foreground">Selected: {importFile.name}</p>
               )}

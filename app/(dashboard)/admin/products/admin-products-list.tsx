@@ -39,7 +39,7 @@ function parseCSV(text: string): Record<string, string>[] {
 }
 
 function downloadTemplate() {
-  const csv = "name,model_number,description,main_category,category,price_per_meter,stock,image_path\nExample Product,EX-001,Sample description,Construction,Exterior Gates,10.00,100,/images/example.jpg"
+  const csv = "name,model_number,description,main_category,category,price_per_meter,stock\nExample Product,EX-001,Sample description,Construction,Exterior Gates,10.00,100"
   const blob = new Blob([csv], { type: "text/csv" })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
@@ -261,7 +261,6 @@ export function AdminProductsList({ products }: { products: Product[] }) {
                 <span className="text-muted-foreground">Sub Category</span><span className="font-mono text-xs">category</span>
                 <span className="text-muted-foreground">Price</span><span className="font-mono text-xs">price_per_meter</span>
                 <span className="text-muted-foreground">Stock</span><span className="font-mono text-xs">stock</span>
-                <span className="text-muted-foreground">Image Path</span><span className="font-mono text-xs">image_path</span>
               </div>
             </div>
 
