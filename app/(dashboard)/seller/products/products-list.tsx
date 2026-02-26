@@ -294,6 +294,9 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
           const result = await uploadProductImage(formData)
           if (result.url) {
             finalRows[i] = { ...finalRows[i], image_url: result.url }
+          } else {
+            // Upload failed — clear local path so it doesn't get saved
+            finalRows[i] = { ...finalRows[i], image_url: undefined }
           }
         } else if (finalRows[i].image_url && !finalRows[i].image_url!.startsWith("http")) {
           // Clear local file paths that aren't valid server URLs
@@ -341,7 +344,7 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
             return (
               <Card key={product.id} className="group">
                 <CardContent className="p-0">
-                  <div className="aspect-square relative bg-muted rounded-t-xl flex items-center justify-center overflow-hidden">
+                  <div className="aspect-square relative rounded-t-xl flex items-center justify-center overflow-hidden">
                     {product.image_url ? (
                       <Image
                         src={product.image_url}
