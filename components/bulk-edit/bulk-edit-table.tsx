@@ -352,7 +352,7 @@ export function BulkEditTable({
     try {
       // Upload images first
       const finalRows = [...rows]
-      for (let i = 0; i < imageFiles.length; i++) {
+      for (let i = 0; i < finalRows.length; i++) {
         const file = imageFiles[i]
         if (file) {
           const formData = new FormData()
@@ -361,6 +361,9 @@ export function BulkEditTable({
           if (result.url) {
             finalRows[i] = { ...finalRows[i], image_url: result.url }
           }
+        } else if (finalRows[i].image_url && !finalRows[i].image_url!.startsWith("http")) {
+          // Clear local file paths that aren't valid server URLs
+          finalRows[i] = { ...finalRows[i], image_url: undefined }
         }
       }
 

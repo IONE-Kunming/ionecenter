@@ -15,8 +15,8 @@ import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency, getStockStatus } from "@/lib/utils"
-import { MAIN_CATEGORIES, getSubcategories } from "@/types/categories"
-import { bulkImportProducts, uploadProductImage } from "@/lib/actions/products"
+import { MAIN_CATEGORIES, getSubcategories, isMainCategory, getMainCategoryForSubcategory } from "@/types/categories"
+import { createProduct, bulkImportProducts, uploadProductImage } from "@/lib/actions/products"
 import { ImportPreview } from "@/components/bulk-edit/import-preview"
 import type { ImportRow } from "@/components/bulk-edit/bulk-edit-table"
 import type { Product } from "@/types/database"
@@ -63,7 +63,7 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
   const t = useTranslations("sellerProducts")
   const tCommon = useTranslations("common")
   const tBulk = useTranslations("bulkEdit")
-  const [products] = useState(initialProducts)
+  const [products, setProducts] = useState(initialProducts)
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("")
   const [showAddModal, setShowAddModal] = useState(false)
@@ -75,8 +75,61 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
   const [previewRows, setPreviewRows] = useState<ImportRow[]>([])
   const [showPreview, setShowPreview] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState("")
+  const [addingProduct, setAddingProduct] = useState(false)
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    model_number: "",
+    main_category: "",
+    category: "",
+    price_per_meter: 0,
+    stock: 0,
+    description: "",
+  })
+  const [newProductImage, setNewProductImage] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+
+  const resetAddForm = () => {
+    setNewProduct({ name: "", model_number: "", main_category: "", category: "", price_per_meter: 0, stock: 0, description: "" })
+    setNewProductImage(null)
+    setSelectedCategory("")
+  }
+
+  const handleAddProduct = async () => {
+    if (!newProduct.name) return
+    setAddingProduct(true)
+    try {
+      let imageUrl: string | null = null
+      if (newProductImage) {
+        const formData = new FormData()
+        formData.append("file", newProductImage)
+        const uploadResult = await uploadProductImage(formData)
+        if (uploadResult.url) imageUrl = uploadResult.url
+      }
+      const result = await createProduct({
+        name: newProduct.name,
+        model_number: newProduct.model_number,
+        main_category: newProduct.main_category,
+        category: newProduct.category,
+        subcategory: newProduct.category || null,
+        price_per_meter: newProduct.price_per_meter,
+        stock: newProduct.stock,
+        description: newProduct.description || null,
+        image_url: imageUrl,
+        additional_images: null,
+        is_active: true,
+      })
+      if (result.data) {
+        setProducts((prev) => [result.data as Product, ...prev])
+        setShowAddModal(false)
+        resetAddForm()
+        router.refresh()
+      }
+    } catch {
+      // error handled
+    }
+    setAddingProduct(false)
+  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -96,16 +149,57 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
         setImportResult(t("noValidRowsCsv"))
         return
       }
-      const mapped: ImportRow[] = rows.map((r) => ({
-        name: r.name || r.product_name || "Unnamed Product",
-        model_number: r.model_number || "",
-        main_category: r.main_category || r.category_main || "",
-        category: r.category || r.subcategory || r.sub_category || "",
-        price_per_meter: Number(r.price_per_meter || r.price) || 0,
-        stock: Number(r.stock || r.quantity) || 0,
-        description: r.description || undefined,
-        image_url: r.image_url || r.image_path || undefined,
-      }))
+      const mapped: ImportRow[] = rows.map((r) => {
+        // Smart category detection: try to figure out main_category and subcategory
+        let mainCat = r.main_category || r.category_main || ""
+        let subCat = r.category || r.subcategory || r.sub_category || ""
+
+        // If mainCat is empty but subCat looks like a main category, swap them
+        if (!mainCat && subCat && isMainCategory(subCat)) {
+          mainCat = subCat
+          subCat = ""
+        }
+
+        // If mainCat is not recognized but could be a subcategory, fix it
+        if (mainCat && !isMainCategory(mainCat)) {
+          const parent = getMainCategoryForSubcategory(mainCat)
+          if (parent) {
+            subCat = mainCat
+            mainCat = parent
+          } else {
+            // Try case-insensitive match for main category
+            const match = MAIN_CATEGORIES.find((c) => c.toLowerCase() === mainCat.toLowerCase())
+            if (match) mainCat = match
+          }
+        }
+
+        // If subCat is not in the subcategories of mainCat, try to find a match
+        if (mainCat && subCat) {
+          const subs = getSubcategories(mainCat)
+          if (!subs.includes(subCat)) {
+            // Case-insensitive match
+            const match = subs.find((s) => s.toLowerCase() === subCat.toLowerCase())
+            if (match) subCat = match
+          }
+        }
+
+        // If no mainCat yet but subCat is a known subcategory, auto-detect parent
+        if (!mainCat && subCat) {
+          const parent = getMainCategoryForSubcategory(subCat)
+          if (parent) mainCat = parent
+        }
+
+        return {
+          name: r.name || r.product_name || "Unnamed Product",
+          model_number: r.model_number || "",
+          main_category: mainCat,
+          category: subCat,
+          price_per_meter: Number(r.price_per_meter || r.price) || 0,
+          stock: Number(r.stock || r.quantity) || 0,
+          description: r.description || undefined,
+          image_url: r.image_url || r.image_path || undefined,
+        }
+      })
       setPreviewRows(mapped)
       setShowImportModal(false)
       setShowPreview(true)
@@ -119,7 +213,7 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
     setImporting(true)
     try {
       const finalRows = [...rows]
-      for (let i = 0; i < imageFiles.length; i++) {
+      for (let i = 0; i < finalRows.length; i++) {
         const file = imageFiles[i]
         if (file) {
           const formData = new FormData()
@@ -128,6 +222,9 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
           if (result.url) {
             finalRows[i] = { ...finalRows[i], image_url: result.url }
           }
+        } else if (finalRows[i].image_url && !finalRows[i].image_url!.startsWith("http")) {
+          // Clear local file paths that aren't valid server URLs
+          finalRows[i] = { ...finalRows[i], image_url: undefined }
         }
       }
       const result = await bulkImportProducts(finalRows)
@@ -209,34 +306,34 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
       )}
 
       {/* Add Product Modal */}
-      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+      <Dialog open={showAddModal} onOpenChange={(v) => { setShowAddModal(v); if (!v) resetAddForm() }}>
         <DialogContent>
           <DialogHeader><DialogTitle>{t("addProduct")}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>{t("productName")}</Label><Input placeholder={t("productNamePlaceholder")} /></div>
-              <div className="space-y-2"><Label>{t("modelNumber")}</Label><Input placeholder={t("modelNumberPlaceholder")} /></div>
+              <div className="space-y-2"><Label>{t("productName")}</Label><Input placeholder={t("productNamePlaceholder")} value={newProduct.name} onChange={(e) => setNewProduct((p) => ({ ...p, name: e.target.value }))} /></div>
+              <div className="space-y-2"><Label>{t("modelNumber")}</Label><Input placeholder={t("modelNumberPlaceholder")} value={newProduct.model_number} onChange={(e) => setNewProduct((p) => ({ ...p, model_number: e.target.value }))} /></div>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("mainCategory")}</Label>
-                <Select options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder={t("selectCategory")} onChange={(e) => setSelectedCategory(e.target.value)} />
+                <Select options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder={t("selectCategory")} value={newProduct.main_category} onChange={(e) => { setSelectedCategory(e.target.value); setNewProduct((p) => ({ ...p, main_category: e.target.value, category: "" })) }} />
               </div>
               <div className="space-y-2">
                 <Label>{t("subcategory")}</Label>
-                <Select options={getSubcategories(selectedCategory).map((c) => ({ value: c, label: c }))} placeholder={t("selectSubcategory")} />
+                <Select options={getSubcategories(newProduct.main_category || selectedCategory).map((c) => ({ value: c, label: c }))} placeholder={t("selectSubcategory")} value={newProduct.category} onChange={(e) => setNewProduct((p) => ({ ...p, category: e.target.value }))} />
               </div>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>{t("pricePerMeter")}</Label><Input type="number" step="0.01" placeholder="0.00" /></div>
-              <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" placeholder="0" /></div>
+              <div className="space-y-2"><Label>{t("pricePerMeter")}</Label><Input type="number" step="0.01" placeholder="0.00" value={newProduct.price_per_meter || ""} onChange={(e) => setNewProduct((p) => ({ ...p, price_per_meter: Number(e.target.value) }))} /></div>
+              <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" placeholder="0" value={newProduct.stock || ""} onChange={(e) => setNewProduct((p) => ({ ...p, stock: Number(e.target.value) }))} /></div>
             </div>
-            <div className="space-y-2"><Label>{t("description")}</Label><Textarea placeholder={t("descriptionPlaceholder")} rows={3} /></div>
-            <div className="space-y-2"><Label>{t("productImage")}</Label><Input type="file" accept="image/*" /></div>
+            <div className="space-y-2"><Label>{t("description")}</Label><Textarea placeholder={t("descriptionPlaceholder")} rows={3} value={newProduct.description} onChange={(e) => setNewProduct((p) => ({ ...p, description: e.target.value }))} /></div>
+            <div className="space-y-2"><Label>{t("productImage")}</Label><Input type="file" accept="image/*" onChange={(e) => setNewProductImage(e.target.files?.[0] || null)} /></div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddModal(false)}>{tCommon("cancel")}</Button>
-            <Button onClick={() => setShowAddModal(false)}>{t("addProduct")}</Button>
+            <Button variant="outline" onClick={() => { setShowAddModal(false); resetAddForm() }}>{tCommon("cancel")}</Button>
+            <Button onClick={handleAddProduct} disabled={addingProduct || !newProduct.name}>{addingProduct ? tCommon("saving") : t("addProduct")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

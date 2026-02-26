@@ -47,6 +47,8 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
   const [columns, setColumns] = useState<ColumnDef[]>(DEFAULT_COLUMNS)
   const [draggedCol, setDraggedCol] = useState<number | null>(null)
   const [dragOverCol, setDragOverCol] = useState<number | null>(null)
+  const [draggedRow, setDraggedRow] = useState<number | null>(null)
+  const [dragOverRow, setDragOverRow] = useState<number | null>(null)
   const fileRefs = useRef<(HTMLInputElement | null)[]>([])
 
   // Re-initialize rows when initialRows change (e.g., new CSV parsed)
@@ -107,6 +109,60 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
     setDraggedCol(null)
     setDragOverCol(null)
   }, [draggedCol, dragOverCol])
+
+  // ─── Row drag-and-drop ────────────────────────────────────────────────
+  const handleRowDragStart = useCallback((rowIndex: number) => {
+    setDraggedRow(rowIndex)
+  }, [])
+
+  const handleRowDragOver = useCallback((e: React.DragEvent, rowIndex: number) => {
+    e.preventDefault()
+    setDragOverRow(rowIndex)
+  }, [])
+
+  const handleRowDragEnd = useCallback(() => {
+    if (draggedRow !== null && dragOverRow !== null && draggedRow !== dragOverRow) {
+      setRows((prev) => {
+        const next = [...prev]
+        const [moved] = next.splice(draggedRow, 1)
+        next.splice(dragOverRow, 0, moved)
+        return next
+      })
+    }
+    setDraggedRow(null)
+    setDragOverRow(null)
+  }, [draggedRow, dragOverRow])
+
+  // ─── Keyboard reordering (Alt+Arrow) ──────────────────────────────────
+  useEffect(() => {
+    if (!open) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!e.altKey) return
+      const active = document.activeElement as HTMLElement | null
+      const row = active?.closest("tr")
+      if (!row) return
+      const rowIndex = Number(row.dataset.rowIndex)
+      if (isNaN(rowIndex)) return
+
+      if (e.key === "ArrowUp" && rowIndex > 0) {
+        e.preventDefault()
+        setRows((prev) => {
+          const next = [...prev]
+          ;[next[rowIndex - 1], next[rowIndex]] = [next[rowIndex], next[rowIndex - 1]]
+          return next
+        })
+      } else if (e.key === "ArrowDown" && rowIndex < rows.length - 1) {
+        e.preventDefault()
+        setRows((prev) => {
+          const next = [...prev]
+          ;[next[rowIndex], next[rowIndex + 1]] = [next[rowIndex + 1], next[rowIndex]]
+          return next
+        })
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [open, rows.length])
 
   const handleFinish = async () => {
     const importRows: ImportRow[] = rows.map((r) => ({
@@ -291,8 +347,25 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
               </thead>
               <tbody>
                 {rows.map((row, idx) => (
-                  <tr key={idx} className="border-b hover:bg-muted/30 transition-colors">
-                    <td className="px-3 py-2 text-xs text-muted-foreground text-center">{idx + 1}</td>
+                  <tr
+                    key={idx}
+                    data-row-index={idx}
+                    draggable
+                    onDragStart={() => handleRowDragStart(idx)}
+                    onDragOver={(e) => handleRowDragOver(e, idx)}
+                    onDragEnd={handleRowDragEnd}
+                    className={cn(
+                      "border-b hover:bg-muted/30 transition-colors",
+                      draggedRow === idx && "opacity-50",
+                      dragOverRow === idx && draggedRow !== idx && "border-t-2 border-t-primary"
+                    )}
+                  >
+                    <td className={cn("px-3 py-2 text-xs text-muted-foreground text-center", draggedRow === idx ? "cursor-grabbing" : "cursor-grab")}>
+                      <span className="flex items-center gap-1 justify-center">
+                        <GripVertical className="h-3 w-3 opacity-40 shrink-0" />
+                        {idx + 1}
+                      </span>
+                    </td>
                     {columns.map((col) => (
                       <td key={col.key} className="px-3 py-1.5">
                         {renderCell(col, row, idx)}
