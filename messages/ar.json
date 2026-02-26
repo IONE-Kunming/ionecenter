@@ -534,7 +534,8 @@
     "saveChanges": "حفظ التغييرات",
     "deleting": "جارٍ الحذف...",
     "skuPreview": "معاينة رمز SKU",
-    "skuPreviewHint": "رمز SKU التلقائي: {sku}"
+    "skuPreviewHint": "رمز SKU التلقائي: {sku}",
+    "buyerPreviewBanner": "أنت تعرض المتجر كما يراه المشتري. هذا معاينة للقراءة فقط."
   },
   "branches": {
     "title": "الفروع",

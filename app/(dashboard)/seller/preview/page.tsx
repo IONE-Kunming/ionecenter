@@ -1,7 +1,9 @@
+import { getTranslations } from "next-intl/server"
 import { getProducts } from "@/lib/actions/products"
 import { BuyerCatalogBrowser } from "@/app/(dashboard)/buyer/catalog/catalog-browser"
 
 export default async function SellerPreviewPage() {
+  const t = await getTranslations("sellerProducts")
   const rawProducts = await getProducts()
   const products = rawProducts.map((p) => ({
     id: p.id,
@@ -18,7 +20,7 @@ export default async function SellerPreviewPage() {
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-primary">
-        You are viewing the store as a buyer would see it. This is a read-only preview.
+        {t("buyerPreviewBanner")}
       </div>
       <BuyerCatalogBrowser products={products} />
     </div>

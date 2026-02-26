@@ -534,7 +534,8 @@
     "saveChanges": "تبدیلیاں محفوظ کریں",
     "deleting": "حذف ہو رہا ہے...",
     "skuPreview": "SKU کوڈ پریویو",
-    "skuPreviewHint": "خودکار SKU: {sku}"
+    "skuPreviewHint": "خودکار SKU: {sku}",
+    "buyerPreviewBanner": "آپ اسٹور کو خریدار کی نظر سے دیکھ رہے ہیں۔ یہ صرف پڑھنے کی پریویو ہے۔"
   },
   "branches": {
     "title": "شاخیں",

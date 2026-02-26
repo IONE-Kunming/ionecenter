@@ -534,7 +534,8 @@
     "saveChanges": "保存更改",
     "deleting": "删除中...",
     "skuPreview": "SKU码预览",
-    "skuPreviewHint": "自动生成SKU：{sku}"
+    "skuPreviewHint": "自动生成SKU：{sku}",
+    "buyerPreviewBanner": "您正在以买家视角浏览商店。这是只读预览。"
   },
   "branches": {
     "title": "分支机构",

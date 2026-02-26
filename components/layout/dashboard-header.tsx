@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { ArrowLeft, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,6 +10,7 @@ import { Input } from "@/components/ui/input"
 export function DashboardHeader() {
   const pathname = usePathname()
   const router = useRouter()
+  const tCommon = useTranslations("common")
   const parts = pathname.split("/").filter(Boolean)
   const title = parts[parts.length - 1]
     ?.replace(/-/g, " ")
@@ -43,7 +45,7 @@ export function DashboardHeader() {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search products, categories..."
+              placeholder={tCommon("searchAll")}
               className="pl-9 h-9"
             />
           </div>

@@ -534,7 +534,8 @@
     "saveChanges": "Save Changes",
     "deleting": "Deleting...",
     "skuPreview": "SKU Code Preview",
-    "skuPreviewHint": "Auto-generated SKU: {sku}"
+    "skuPreviewHint": "Auto-generated SKU: {sku}",
+    "buyerPreviewBanner": "You are viewing the store as a buyer would see it. This is a read-only preview."
   },
   "branches": {
     "title": "Branches",
