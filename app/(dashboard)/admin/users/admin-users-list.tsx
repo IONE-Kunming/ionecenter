@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Users, Search, Pencil, Trash2, UserX } from "lucide-react"
+import { Users, Search, Pencil, Trash2, UserX, Check, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatDate } from "@/lib/utils"
-import { adminUpdateUser, adminDeleteUser, adminDeactivateUser } from "@/lib/actions/admin"
+import { adminUpdateUser, adminDeleteUser, adminDeactivateUser, adminUpdateUserCode } from "@/lib/actions/admin"
 import type { UserRole } from "@/types/database"
 
 interface UserRow {
@@ -22,6 +22,7 @@ interface UserRow {
   email: string
   role: UserRole
   company: string | null
+  user_code: string | null
   created_at: string
 }
 
@@ -51,6 +52,12 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
   // Deactivate modal state
   const [deactivateUser, setDeactivateUser] = useState<UserRow | null>(null)
   const [deactivating, setDeactivating] = useState(false)
+
+  // User code editing state
+  const [editingCodeUserId, setEditingCodeUserId] = useState<string | null>(null)
+  const [editingCodeValue, setEditingCodeValue] = useState("")
+  const [codeSaving, setCodeSaving] = useState(false)
+  const [codeError, setCodeError] = useState<string | null>(null)
 
   const filtered = users.filter((u) => {
     const matchSearch = !search || u.display_name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase())
@@ -103,6 +110,33 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
     }
   }
 
+  const startEditCode = (user: UserRow) => {
+    setEditingCodeUserId(user.id)
+    setEditingCodeValue(user.user_code ?? (user.role === "buyer" ? "B" : user.role === "seller" ? "S" : ""))
+    setCodeError(null)
+  }
+
+  const cancelEditCode = () => {
+    setEditingCodeUserId(null)
+    setEditingCodeValue("")
+    setCodeError(null)
+  }
+
+  const handleSaveCode = async (userId: string) => {
+    if (!editingCodeValue.trim()) return
+    setCodeSaving(true)
+    setCodeError(null)
+    const result = await adminUpdateUserCode(userId, editingCodeValue.trim())
+    setCodeSaving(false)
+    if (result.error) {
+      setCodeError(result.error)
+    } else {
+      setEditingCodeUserId(null)
+      setEditingCodeValue("")
+      window.location.reload()
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -117,23 +151,62 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">#</TableHead>
                 <TableHead>{tCommon("name")}</TableHead>
                 <TableHead>{tCommon("email")}</TableHead>
                 <TableHead>{t("role")}</TableHead>
+                <TableHead>User Code</TableHead>
                 <TableHead>{tCommon("company")}</TableHead>
                 <TableHead>{t("joined")}</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((user) => (
+              {filtered.map((user, index) => (
                 <TableRow key={user.id}>
+                  <TableCell className="text-muted-foreground">{index + 1}</TableCell>
                   <TableCell className="font-medium">{user.display_name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
                     <Badge variant={roleBadgeVariant(user.role)}>
                       {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {editingCodeUserId === user.id ? (
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1">
+                          <Input
+                            value={editingCodeValue}
+                            onChange={(e) => setEditingCodeValue(e.target.value)}
+                            className="h-7 w-24 text-sm"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleSaveCode(user.id)
+                              if (e.key === "Escape") cancelEditCode()
+                            }}
+                            disabled={codeSaving}
+                            autoFocus
+                          />
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleSaveCode(user.id)} disabled={codeSaving}>
+                            <Check className="h-3.5 w-3.5 text-green-600" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelEditCode} disabled={codeSaving}>
+                            <X className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        </div>
+                        {codeError && (
+                          <p className="text-xs text-destructive max-w-[200px]">{codeError}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        className="text-sm hover:underline cursor-pointer text-left"
+                        onClick={() => startEditCode(user)}
+                        title="Click to edit user code"
+                      >
+                        {user.user_code || <span className="text-muted-foreground italic">Set code</span>}
+                      </button>
+                    )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{user.company ?? "—"}</TableCell>
                   <TableCell>{formatDate(user.created_at)}</TableCell>

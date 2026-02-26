@@ -33,6 +33,7 @@ export interface User {
   bank_branch: string | null
   currency: string
   payment_notes: string | null
+  user_code: string | null
   created_at: string
   updated_at: string
 }

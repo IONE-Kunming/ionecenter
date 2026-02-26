@@ -280,6 +280,35 @@ export async function adminDeactivateUser(userId: string) {
   return { success: true }
 }
 
+export async function adminUpdateUserCode(userId: string, code: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+  const supabase = createAdminClient()
+
+  // Check if code is already used by another user
+  const { data: existing } = await supabase
+    .from("users")
+    .select("id, display_name")
+    .eq("user_code", code)
+    .neq("id", userId)
+    .maybeSingle()
+
+  if (existing) {
+    return {
+      error: `This code is already used for ${existing.display_name}. Please choose a different number.`,
+    }
+  }
+
+  const { error } = await supabase
+    .from("users")
+    .update({ user_code: code })
+    .eq("id", userId)
+
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
 export async function adminDeleteUser(userId: string) {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return { error: "Not authorized" }
