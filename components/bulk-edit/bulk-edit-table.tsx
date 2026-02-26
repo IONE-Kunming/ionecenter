@@ -823,10 +823,7 @@ export function BulkEditTable({
                   <tr
                     key={product.id}
                     data-row-index={rowIdx}
-                    draggable
-                    onDragStart={() => handleRowDragStart(rowIdx)}
                     onDragOver={(e) => handleRowDragOver(e, rowIdx)}
-                    onDragEnd={handleRowDragEnd}
                     className={cn(
                       "border-b transition-colors hover:bg-muted/30",
                       isModified && "border-l-2 border-l-yellow-500",
@@ -845,6 +842,9 @@ export function BulkEditTable({
                     </td>
                     {/* Row drag handle + Serial */}
                     <td
+                      draggable
+                      onDragStart={() => handleRowDragStart(rowIdx)}
+                      onDragEnd={handleRowDragEnd}
                       className={cn("px-4 py-3 text-xs text-muted-foreground text-center touch-none", draggedRow === rowIdx ? "cursor-grabbing" : "cursor-grab")}
                       onTouchStart={() => handleRowTouchStart(rowIdx)}
                       onTouchMove={handleRowTouchMove}
