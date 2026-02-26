@@ -228,9 +228,13 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
         let subCat = r.category || r.subcategory || r.sub_category || ""
 
         // If mainCat is empty but subCat looks like a main category, swap them
-        if (!mainCat && subCat && isMainCategory(subCat)) {
-          mainCat = subCat
-          subCat = ""
+        const mainCatMatch = !mainCat && subCat
+          ? MAIN_CATEGORIES.find((c) => c.toLowerCase() === subCat.toLowerCase())
+          : null
+        if (mainCatMatch) {
+          mainCat = mainCatMatch
+          // Since r.category was used as main category, check other fields for actual subcategory
+          subCat = r.sub_category || r.subcategory || ""
         }
 
         // If mainCat is not recognized but could be a subcategory, fix it

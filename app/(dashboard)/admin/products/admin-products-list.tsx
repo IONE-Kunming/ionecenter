@@ -13,14 +13,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency } from "@/lib/utils"
-import { MAIN_CATEGORIES } from "@/types/categories"
+import { MAIN_CATEGORIES, getSubcategories, isMainCategory, getMainCategoryForSubcategory } from "@/types/categories"
 import { adminBulkImportProducts, adminDeleteProduct } from "@/lib/actions/admin"
 import type { Product } from "@/types/database"
 
 function parseCSV(text: string): Record<string, string>[] {
-  const lines = text.split("\n").filter((l) => l.trim())
+  const cleaned = text.replace(/^\ufeff/, "")
+  const lines = cleaned.split(/\r?\n/).filter((l) => l.trim())
   if (lines.length < 2) return []
-  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/\s+/g, "_"))
+  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/[\s-]+/g, "_"))
   return lines.slice(1).map((line) => {
     const values: string[] = []
     let current = ""
@@ -100,16 +101,54 @@ export function AdminProductsList({ products }: { products: Product[] }) {
         return
       }
       const mapped = rows.map((r) => {
-        const imgUrl = r.image_url || r.image_path || ""
+        // Smart category detection
+        let mainCat = r.main_category || r.category_main || ""
+        let subCat = r.category || r.subcategory || r.sub_category || ""
+
+        // If mainCat is empty but subCat looks like a main category, swap them
+        const mainCatMatch = !mainCat && subCat
+          ? MAIN_CATEGORIES.find((c) => c.toLowerCase() === subCat.toLowerCase())
+          : null
+        if (mainCatMatch) {
+          mainCat = mainCatMatch
+          subCat = r.sub_category || r.subcategory || ""
+        }
+
+        // If mainCat is not recognized but could be a subcategory, fix it
+        if (mainCat && !isMainCategory(mainCat)) {
+          const parent = getMainCategoryForSubcategory(mainCat)
+          if (parent) {
+            subCat = mainCat
+            mainCat = parent
+          } else {
+            const match = MAIN_CATEGORIES.find((c) => c.toLowerCase() === mainCat.toLowerCase())
+            if (match) mainCat = match
+          }
+        }
+
+        // If subCat is not in the subcategories of mainCat, try case-insensitive match
+        if (mainCat && subCat) {
+          const subs = getSubcategories(mainCat)
+          if (!subs.includes(subCat)) {
+            const match = subs.find((s) => s.toLowerCase() === subCat.toLowerCase())
+            if (match) subCat = match
+          }
+        }
+
+        // If no mainCat yet but subCat is a known subcategory, auto-detect parent
+        if (!mainCat && subCat) {
+          const parent = getMainCategoryForSubcategory(subCat)
+          if (parent) mainCat = parent
+        }
+
         return {
-          name: r.name || "Unnamed Product",
+          name: r.name || r.product_name || "Unnamed Product",
           model_number: r.model_number || "",
-          main_category: r.main_category || "",
-          category: r.category || "",
-          price_per_meter: Number(r.price_per_meter) || 0,
-          stock: Number(r.stock) || 0,
+          main_category: mainCat,
+          category: subCat,
+          price_per_meter: Number(r.price_per_meter || r.price) || 0,
+          stock: Number(r.stock || r.quantity) || 0,
           description: r.description || undefined,
-          image_url: imgUrl.startsWith("http") ? imgUrl : undefined,
         }
       })
       const result = await adminBulkImportProducts(mapped)
