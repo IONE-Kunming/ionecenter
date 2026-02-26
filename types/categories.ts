@@ -475,10 +475,11 @@ export function getSubcategories(mainCategory: string): string[] {
   return CATEGORIES[mainCategory]?.subcategories || []
 }
 
-// Get main category for a subcategory
+// Get main category for a subcategory (case-insensitive)
 export function getMainCategoryForSubcategory(subcategory: string): string | null {
+  const lower = subcategory.toLowerCase()
   for (const [mainCategory, config] of Object.entries(CATEGORIES)) {
-    if (config.subcategories.includes(subcategory)) {
+    if (config.subcategories.some((s) => s.toLowerCase() === lower)) {
       return mainCategory
     }
   }
