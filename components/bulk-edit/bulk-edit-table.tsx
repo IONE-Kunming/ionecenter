@@ -117,7 +117,7 @@ function isExcelFile(file: File): boolean {
 }
 
 function downloadTemplate() {
-  const csv = "name,model_number,description,main_category,category,price_per_meter,stock,image_path\nExample Product,EX-001,Sample description,Construction,Exterior Gates,10.00,100,/images/example.jpg"
+  const csv = "name,model_number,description,main_category,category,price_per_meter,stock\nExample Product,EX-001,Sample description,Construction,Exterior Gates,10.00,100"
   const blob = new Blob([csv], { type: "text/csv" })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
@@ -360,7 +360,7 @@ export function BulkEditTable({
           price_per_meter: Number(r.price_per_meter || r.price) || 0,
           stock: Number(r.stock || r.quantity) || 0,
           description: r.description || undefined,
-          image_url: r.image_url || r.image_path || undefined,
+          image_url: undefined,
         }
       })
       setPreviewRows(mapped)
@@ -992,7 +992,6 @@ export function BulkEditTable({
                 <span className="text-muted-foreground">Sub Category</span><span className="font-mono text-xs">category</span>
                 <span className="text-muted-foreground">Price</span><span className="font-mono text-xs">price_per_meter</span>
                 <span className="text-muted-foreground">Stock</span><span className="font-mono text-xs">stock</span>
-                <span className="text-muted-foreground">Image Path</span><span className="font-mono text-xs">image_path</span>
               </div>
             </div>
             <div className="space-y-2">
