@@ -107,7 +107,7 @@ async function parseExcelFile(file: File): Promise<Record<string, string>[]> {
   const headers = rows[0].map((h) => normalizeHeader(String(h ?? "")))
   return rows.slice(1).map((row) => {
     const record: Record<string, string> = {}
-    headers.forEach((h, i) => { record[h] = String(row[i] ?? "") })
+    headers.forEach((h, i) => { record[h] = String(row[i] ?? "").trim() })
     return record
   })
 }
@@ -316,9 +316,13 @@ export function BulkEditTable({
         let subCat = r.category || r.subcategory || r.sub_category || ""
 
         // If mainCat is empty but subCat looks like a main category, swap them
-        if (!mainCat && subCat && isMainCategory(subCat)) {
-          mainCat = subCat
-          subCat = ""
+        const mainCatMatch = !mainCat && subCat
+          ? MAIN_CATEGORIES.find((c) => c.toLowerCase() === subCat.toLowerCase())
+          : null
+        if (mainCatMatch) {
+          mainCat = mainCatMatch
+          // Since r.category was used as main category, check other fields for actual subcategory
+          subCat = r.sub_category || r.subcategory || ""
         }
 
         // If mainCat is not recognized but could be a subcategory, fix it
@@ -383,6 +387,9 @@ export function BulkEditTable({
           const result = await uploadProductImage(formData)
           if (result.url) {
             finalRows[i] = { ...finalRows[i], image_url: result.url }
+          } else {
+            // Upload failed — clear local path so it doesn't get saved
+            finalRows[i] = { ...finalRows[i], image_url: undefined }
           }
         } else if (finalRows[i].image_url && !finalRows[i].image_url!.startsWith("http")) {
           // Clear local file paths that aren't valid server URLs
