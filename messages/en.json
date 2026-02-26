@@ -525,7 +525,12 @@
     "imagePathCol": "Image Path",
     "analyzePreview": "Analyze & Preview",
     "noValidRowsCsv": "No valid rows found in CSV.",
-    "failedParseCsv": "Failed to parse CSV file."
+    "failedParseCsv": "Failed to parse CSV file.",
+    "editProduct": "Edit Product",
+    "deleteProduct": "Delete Product",
+    "deleteConfirmation": "Are you sure you want to permanently delete \"{name}\"? This action cannot be undone.",
+    "saveChanges": "Save Changes",
+    "deleting": "Deleting..."
   },
   "branches": {
     "title": "Branches",
