@@ -99,15 +99,19 @@ export function AdminProductsList({ products }: { products: Product[] }) {
         setImporting(false)
         return
       }
-      const mapped = rows.map((r) => ({
-        name: r.name || "Unnamed Product",
-        model_number: r.model_number || "",
-        main_category: r.main_category || "",
-        category: r.category || "",
-        price_per_meter: Number(r.price_per_meter) || 0,
-        stock: Number(r.stock) || 0,
-        description: r.description || undefined,
-      }))
+      const mapped = rows.map((r) => {
+        const imgUrl = r.image_url || r.image_path || ""
+        return {
+          name: r.name || "Unnamed Product",
+          model_number: r.model_number || "",
+          main_category: r.main_category || "",
+          category: r.category || "",
+          price_per_meter: Number(r.price_per_meter) || 0,
+          stock: Number(r.stock) || 0,
+          description: r.description || undefined,
+          image_url: imgUrl.startsWith("http") ? imgUrl : undefined,
+        }
+      })
       const result = await adminBulkImportProducts(mapped)
       if (result.error) {
         setImportIsError(true)

@@ -83,7 +83,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
     setRows((prev) => prev.map((r, i) => {
       if (i !== index) return r
       if (r.imagePreview) URL.revokeObjectURL(r.imagePreview)
-      return { ...r, imageFile: file, imagePreview: URL.createObjectURL(file) }
+      return { ...r, imageFile: file, imagePreview: URL.createObjectURL(file), image_url: undefined }
     }))
   }, [])
 
