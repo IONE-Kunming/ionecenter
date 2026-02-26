@@ -348,7 +348,7 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
             return (
               <Card key={product.id} className="group">
                 <CardContent className="p-0">
-                  <div className="aspect-square relative rounded-t-xl flex items-center justify-center overflow-hidden">
+                  <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center overflow-hidden">
                     {product.image_url ? (
                       <Image
                         src={product.image_url}
