@@ -123,7 +123,10 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
   }
 
   const handleSaveCode = async (userId: string) => {
-    if (!editingCodeValue.trim()) return
+    if (!editingCodeValue.trim()) {
+      setCodeError("Code cannot be empty.")
+      return
+    }
     setCodeSaving(true)
     setCodeError(null)
     const result = await adminUpdateUserCode(userId, editingCodeValue.trim())

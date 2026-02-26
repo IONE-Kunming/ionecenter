@@ -284,13 +284,21 @@ export async function adminUpdateUserCode(userId: string, code: string) {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return { error: "Not authorized" }
 
+  const trimmed = code.trim()
+  if (!trimmed) return { error: "Code cannot be empty." }
+
+  // Validate format: must start with B or S followed by a number
+  if (!/^[BS]\d+$/.test(trimmed)) {
+    return { error: "Code must start with B (buyer) or S (seller) followed by a number (e.g. B250, S101)." }
+  }
+
   const supabase = createAdminClient()
 
   // Check if code is already used by another user
   const { data: existing } = await supabase
     .from("users")
     .select("id, display_name")
-    .eq("user_code", code)
+    .eq("user_code", trimmed)
     .neq("id", userId)
     .maybeSingle()
 
@@ -302,7 +310,7 @@ export async function adminUpdateUserCode(userId: string, code: string) {
 
   const { error } = await supabase
     .from("users")
-    .update({ user_code: code })
+    .update({ user_code: trimmed })
     .eq("id", userId)
 
   if (error) return { error: error.message }
