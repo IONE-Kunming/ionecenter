@@ -65,8 +65,9 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
-            <Toaster />
+            <Toaster>
+              {children}
+            </Toaster>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>
