@@ -352,6 +352,7 @@
     "message": "消息"
   },
   "productDetail": {
+    "title": "产品详情",
     "perMeter": "/米",
     "inStock": "有库存",
     "outOfStock": "缺货",

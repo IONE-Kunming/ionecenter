@@ -11,10 +11,17 @@ export function DashboardHeader() {
   const pathname = usePathname()
   const router = useRouter()
   const tCommon = useTranslations("common")
+  const tProductDetail = useTranslations("productDetail")
   const parts = pathname.split("/").filter(Boolean)
-  const title = parts[parts.length - 1]
-    ?.replace(/-/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase()) || "Dashboard"
+
+  // Detect product detail page pattern: /buyer/product/[id] or /seller/product/[id]
+  const isProductDetailPage = parts.length >= 3 && parts[1] === "product"
+
+  const title = isProductDetailPage
+    ? tProductDetail("title")
+    : parts[parts.length - 1]
+        ?.replace(/-/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase()) || "Dashboard"
 
   const [searchQuery, setSearchQuery] = useState("")
 

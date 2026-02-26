@@ -352,6 +352,7 @@
     "message": "پیغام"
   },
   "productDetail": {
+    "title": "مصنوعات کی تفصیلات",
     "perMeter": "/میٹر",
     "inStock": "دستیاب ہے",
     "outOfStock": "دستیاب نہیں",

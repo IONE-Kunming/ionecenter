@@ -40,14 +40,17 @@ export async function addToCart(productId: string, quantity: number) {
 
   const supabase = await createClient()
 
-  // Get product price
+  // Get product price and stock
   const { data: product } = await supabase
     .from("products")
-    .select("price_per_meter")
+    .select("price_per_meter, stock")
     .eq("id", productId)
     .single()
 
   if (!product) return { error: "Product not found" }
+
+  // Validate quantity
+  if (quantity < 1) return { error: "Quantity must be at least 1" }
 
   // Get existing cart
   const { data: cart } = await supabase
@@ -58,6 +61,11 @@ export async function addToCart(productId: string, quantity: number) {
 
   const items: CartItem[] = Array.isArray(cart?.items) ? (cart.items as CartItem[]) : []
   const existing = items.find((i) => i.product_id === productId)
+  const currentQty = existing ? existing.quantity : 0
+
+  if (currentQty + quantity > product.stock) {
+    return { error: `Cannot exceed available stock (${product.stock} units available, ${currentQty} already in cart)` }
+  }
 
   if (existing) {
     existing.quantity += quantity
