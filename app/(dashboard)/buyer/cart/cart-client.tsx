@@ -63,7 +63,7 @@ export default function CartClient({ items: initialItems }: { items: EnrichedCar
         icon={ShoppingCart}
         title={t("emptyCart")}
         description={t("emptyCartDesc")}
-        action={{ label: t("browseCatalog"), onClick: () => { window.location.href = "/buyer/catalog" } }}
+        action={{ label: t("browseCatalog"), onClick: () => window.location.href = "/buyer/catalog" }}
       />
     )
   }
