@@ -360,7 +360,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
                       dragOverRow === idx && draggedRow !== idx && "border-t-2 border-t-primary"
                     )}
                   >
-                    <td className="px-3 py-2 text-xs text-muted-foreground text-center cursor-grab">
+                    <td className={cn("px-3 py-2 text-xs text-muted-foreground text-center", draggedRow === idx ? "cursor-grabbing" : "cursor-grab")}>
                       <span className="flex items-center gap-1 justify-center">
                         <GripVertical className="h-3 w-3 opacity-40 shrink-0" />
                         {idx + 1}

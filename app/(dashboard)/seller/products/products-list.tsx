@@ -109,7 +109,7 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
       const result = await createProduct({
         name: newProduct.name,
         model_number: newProduct.model_number,
-        main_category: newProduct.main_category || selectedCategory,
+        main_category: newProduct.main_category,
         category: newProduct.category,
         subcategory: newProduct.category || null,
         price_per_meter: newProduct.price_per_meter,
