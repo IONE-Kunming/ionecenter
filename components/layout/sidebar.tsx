@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, FileText, Users, MessageSquare,
   Bell, Settings, HelpCircle, LogOut, ChevronDown, Sun, Moon, Menu, X,
   Building2, Pencil, DollarSign, BarChart3, Receipt, Calculator, Scale,
-  Layers, Store, ClipboardList, Globe
+  Layers, Store, ClipboardList, Globe, Eye
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -84,6 +84,7 @@ function getNavItems(role: UserRole, t: TranslationFn): NavItem[] {
       },
       { label: t("support"), href: "/seller/support", icon: HelpCircle },
       { label: t("profile"), href: "/seller/profile", icon: Settings },
+      { label: t("viewAsBuyer"), href: "/seller/preview", icon: Eye },
     ]
   }
 

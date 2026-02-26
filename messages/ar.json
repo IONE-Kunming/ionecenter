@@ -140,7 +140,8 @@
     "lightMode": "الوضع الفاتح",
     "darkMode": "الوضع الداكن",
     "language": "اللغة",
-    "signOut": "تسجيل الخروج"
+    "signOut": "تسجيل الخروج",
+    "viewAsBuyer": "عرض كمشتري"
   },
   "common": {
     "search": "بحث...",
@@ -197,7 +198,8 @@
     "resolved": "تم الحل",
     "closed": "مغلق",
     "profileSaved": "تم حفظ الملف الشخصي بنجاح",
-    "saveFailed": "فشل في الحفظ"
+    "saveFailed": "فشل في الحفظ",
+    "searchAll": "البحث عن منتجات وفئات..."
   },
   "buyerDashboard": {
     "totalOrders": "إجمالي الطلبات",
@@ -530,7 +532,9 @@
     "deleteProduct": "حذف المنتج",
     "deleteConfirmation": "هل أنت متأكد أنك تريد حذف \"{name}\" نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.",
     "saveChanges": "حفظ التغييرات",
-    "deleting": "جارٍ الحذف..."
+    "deleting": "جارٍ الحذف...",
+    "skuPreview": "معاينة رمز SKU",
+    "skuPreviewHint": "رمز SKU التلقائي: {sku}"
   },
   "branches": {
     "title": "الفروع",

@@ -140,7 +140,8 @@
     "lightMode": "浅色模式",
     "darkMode": "深色模式",
     "language": "语言",
-    "signOut": "退出登录"
+    "signOut": "退出登录",
+    "viewAsBuyer": "以买家身份预览"
   },
   "common": {
     "search": "搜索...",
@@ -197,7 +198,8 @@
     "resolved": "已解决",
     "closed": "已关闭",
     "profileSaved": "个人资料保存成功",
-    "saveFailed": "保存失败"
+    "saveFailed": "保存失败",
+    "searchAll": "搜索产品、分类..."
   },
   "buyerDashboard": {
     "totalOrders": "总订单数",
@@ -530,7 +532,9 @@
     "deleteProduct": "删除产品",
     "deleteConfirmation": "您确定要永久删除\"{name}\"吗？此操作无法撤消。",
     "saveChanges": "保存更改",
-    "deleting": "删除中..."
+    "deleting": "删除中...",
+    "skuPreview": "SKU码预览",
+    "skuPreviewHint": "自动生成SKU：{sku}"
   },
   "branches": {
     "title": "分支机构",
