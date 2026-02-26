@@ -17,6 +17,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency, getStockStatus } from "@/lib/utils"
 import { MAIN_CATEGORIES, getSubcategories, isMainCategory, getMainCategoryForSubcategory } from "@/types/categories"
 import { createProduct, updateProduct, deleteProduct, bulkImportProducts, uploadProductImage } from "@/lib/actions/products"
+import { getCategoryIndex, getSubcategoryIndex } from "@/lib/sku"
 import { ImportPreview } from "@/components/bulk-edit/import-preview"
 import type { ImportRow } from "@/components/bulk-edit/bulk-edit-table"
 import type { Product } from "@/types/database"
@@ -79,12 +80,12 @@ function downloadTemplate() {
   URL.revokeObjectURL(url)
 }
 
-export function SellerProductsList({ initialProducts }: { initialProducts: Product[] }) {
+export function SellerProductsList({ initialProducts, initialSearch = "" }: { initialProducts: Product[]; initialSearch?: string }) {
   const t = useTranslations("sellerProducts")
   const tCommon = useTranslations("common")
   const tBulk = useTranslations("bulkEdit")
   const [products, setProducts] = useState(initialProducts)
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState(initialSearch)
   const [categoryFilter, setCategoryFilter] = useState("")
   const [showAddModal, setShowAddModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
@@ -430,6 +431,14 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
                 <Select options={getSubcategories(newProduct.main_category || selectedCategory).map((c) => ({ value: c, label: c }))} placeholder={t("selectSubcategory")} value={newProduct.category} onChange={(e) => setNewProduct((p) => ({ ...p, category: e.target.value }))} />
               </div>
             </div>
+            {newProduct.main_category && newProduct.category && (
+              <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm">
+                <span className="text-muted-foreground">{t("skuPreview")}: </span>
+                <span className="font-mono font-medium text-primary">
+                  IONE-{getCategoryIndex(newProduct.main_category)}-{getSubcategoryIndex(newProduct.main_category, newProduct.category)}-XXXX
+                </span>
+              </div>
+            )}
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2"><Label>{t("pricePerMeter")}</Label><Input type="number" step="0.01" placeholder="0.00" value={newProduct.price_per_meter || ""} onChange={(e) => setNewProduct((p) => ({ ...p, price_per_meter: Number(e.target.value) }))} /></div>
               <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" placeholder="0" value={newProduct.stock || ""} onChange={(e) => setNewProduct((p) => ({ ...p, stock: Number(e.target.value) }))} /></div>
@@ -523,6 +532,14 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
                 <Select options={getSubcategories(editForm.main_category || editCategory).map((c) => ({ value: c, label: c }))} placeholder={t("selectSubcategory")} value={editForm.category} onChange={(e) => setEditForm((f) => ({ ...f, category: e.target.value }))} />
               </div>
             </div>
+            {editForm.main_category && editForm.category && (
+              <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm">
+                <span className="text-muted-foreground">{t("skuPreview")}: </span>
+                <span className="font-mono font-medium text-primary">
+                  IONE-{getCategoryIndex(editForm.main_category)}-{getSubcategoryIndex(editForm.main_category, editForm.category)}-XXXX
+                </span>
+              </div>
+            )}
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2"><Label>{t("pricePerMeter")}</Label><Input type="number" step="0.01" value={editForm.price_per_meter || ""} onChange={(e) => setEditForm((f) => ({ ...f, price_per_meter: Number(e.target.value) }))} /></div>
               <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" value={editForm.stock || ""} onChange={(e) => setEditForm((f) => ({ ...f, stock: Number(e.target.value) }))} /></div>

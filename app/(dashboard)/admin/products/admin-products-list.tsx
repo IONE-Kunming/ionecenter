@@ -49,12 +49,12 @@ function downloadTemplate() {
   URL.revokeObjectURL(url)
 }
 
-export function AdminProductsList({ products }: { products: Product[] }) {
+export function AdminProductsList({ products, initialSearch = "" }: { products: Product[]; initialSearch?: string }) {
   const t = useTranslations("adminProducts")
   const tBulk = useTranslations("bulkEdit")
   const tCommon = useTranslations("common")
 
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState(initialSearch)
   const [categoryFilter, setCategoryFilter] = useState("")
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState<string | null>(null)

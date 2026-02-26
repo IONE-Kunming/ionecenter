@@ -16,11 +16,11 @@ import { formatCurrency } from "@/lib/utils"
 import { MAIN_CATEGORIES } from "@/types/categories"
 import type { Product } from "@/types/database"
 
-export function AllProductsList({ products }: { products: Product[] }) {
+export function AllProductsList({ products, initialSearch = "" }: { products: Product[]; initialSearch?: string }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState(initialSearch)
   const [categoryFilter, setCategoryFilter] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const perPage = 12

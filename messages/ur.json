@@ -140,7 +140,8 @@
     "lightMode": "لائٹ موڈ",
     "darkMode": "ڈارک موڈ",
     "language": "زبان",
-    "signOut": "سائن آؤٹ"
+    "signOut": "سائن آؤٹ",
+    "viewAsBuyer": "خریدار کے طور پر دیکھیں"
   },
   "common": {
     "search": "تلاش...",
@@ -197,7 +198,8 @@
     "resolved": "حل شدہ",
     "closed": "بند",
     "profileSaved": "پروفائل کامیابی سے محفوظ ہو گیا",
-    "saveFailed": "محفوظ کرنے میں ناکامی"
+    "saveFailed": "محفوظ کرنے میں ناکامی",
+    "searchAll": "مصنوعات، زمرے تلاش کریں..."
   },
   "buyerDashboard": {
     "totalOrders": "کل آرڈرز",
@@ -530,7 +532,10 @@
     "deleteProduct": "مصنوعات حذف کریں",
     "deleteConfirmation": "کیا آپ واقعی \"{name}\" کو مستقل طور پر حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں ہو سکتا۔",
     "saveChanges": "تبدیلیاں محفوظ کریں",
-    "deleting": "حذف ہو رہا ہے..."
+    "deleting": "حذف ہو رہا ہے...",
+    "skuPreview": "SKU کوڈ پریویو",
+    "skuPreviewHint": "خودکار SKU: {sku}",
+    "buyerPreviewBanner": "آپ اسٹور کو خریدار کی نظر سے دیکھ رہے ہیں۔ یہ صرف پڑھنے کی پریویو ہے۔"
   },
   "branches": {
     "title": "شاخیں",

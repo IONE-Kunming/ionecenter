@@ -140,7 +140,8 @@
     "lightMode": "Light Mode",
     "darkMode": "Dark Mode",
     "language": "Language",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "viewAsBuyer": "View as Buyer"
   },
   "common": {
     "search": "Search...",
@@ -197,7 +198,8 @@
     "resolved": "Resolved",
     "closed": "Closed",
     "profileSaved": "Profile saved successfully",
-    "saveFailed": "Failed to save"
+    "saveFailed": "Failed to save",
+    "searchAll": "Search products, categories..."
   },
   "buyerDashboard": {
     "totalOrders": "Total Orders",
@@ -530,7 +532,10 @@
     "deleteProduct": "Delete Product",
     "deleteConfirmation": "Are you sure you want to permanently delete \"{name}\"? This action cannot be undone.",
     "saveChanges": "Save Changes",
-    "deleting": "Deleting..."
+    "deleting": "Deleting...",
+    "skuPreview": "SKU Code Preview",
+    "skuPreviewHint": "Auto-generated SKU: {sku}",
+    "buyerPreviewBanner": "You are viewing the store as a buyer would see it. This is a read-only preview."
   },
   "branches": {
     "title": "Branches",
