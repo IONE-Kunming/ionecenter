@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
-import Link from "next/link"
+import Link from "@/components/ui/link"
 import Image from "next/image"
 import { ShoppingCart, Trash2, Minus, Plus, Package } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,7 +25,6 @@ export default function CartClient({ items: initialItems }: { items: EnrichedCar
   const t = useTranslations("cart")
   const [items, setItems] = useState<EnrichedCartItem[]>(initialItems)
   const [isPending, startTransition] = useTransition()
-  const router = useRouter()
 
   const persistCart = (updated: EnrichedCartItem[]) => {
     startTransition(async () => {
@@ -65,7 +63,7 @@ export default function CartClient({ items: initialItems }: { items: EnrichedCar
         icon={ShoppingCart}
         title={t("emptyCart")}
         description={t("emptyCartDesc")}
-        action={{ label: t("browseCatalog"), onClick: () => router.push("/buyer/catalog") }}
+        action={{ label: t("browseCatalog"), onClick: () => window.location.href = "/buyer/catalog" }}
       />
     )
   }

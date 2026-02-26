@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { ShoppingBag, Store } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -10,7 +9,6 @@ import type { UserRole } from "@/types/database"
 import { useTranslations } from "next-intl"
 
 export default function SelectRolePage() {
-  const router = useRouter()
   const [selected, setSelected] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -23,9 +21,9 @@ export default function SelectRolePage() {
     const result = await setUserRole(selected)
     if (result.success) {
       if (selected === "seller") {
-        router.push("/seller/dashboard")
+        window.location.href = "/seller/dashboard"
       } else {
-        router.push("/buyer/catalog")
+        window.location.href = "/buyer/catalog"
       }
     } else {
       setError(result.error ?? "Something went wrong")

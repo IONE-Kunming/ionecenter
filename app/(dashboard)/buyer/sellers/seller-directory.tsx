@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { Store, Search, MessageSquare } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
@@ -21,14 +20,13 @@ interface SellerRow {
 export function SellerDirectory({ sellers }: { sellers: SellerRow[] }) {
   const [search, setSearch] = useState("")
   const [chatPending, startChat] = useTransition()
-  const router = useRouter()
   const t = useTranslations("sellerDirectory")
 
   function handleMessage(sellerId: string) {
     startChat(async () => {
       const conversation = await getOrCreateConversation(null, sellerId)
       if (conversation) {
-        router.push(`/buyer/chats?id=${conversation.id}`)
+        window.location.href = `/buyer/chats?id=${conversation.id}`
       }
     })
   }

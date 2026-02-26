@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { Package, Search, Upload, Download, FileSpreadsheet, Trash2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
@@ -63,7 +62,6 @@ export function AdminProductsList({ products }: { products: Product[] }) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
 
   const filtered = products.filter((p) => {
     const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.model_number.toLowerCase().includes(search.toLowerCase())
@@ -79,7 +77,7 @@ export function AdminProductsList({ products }: { products: Product[] }) {
       if (result.error) {
         setDeleteError(result.error)
       } else {
-        router.refresh()
+        window.location.reload()
       }
     } catch {
       setDeleteError("Failed to delete product")
@@ -118,7 +116,7 @@ export function AdminProductsList({ products }: { products: Product[] }) {
         setImportIsError(false)
         setImportResult(`Successfully imported ${result.count} products!`)
         setShowImportModal(false)
-        router.refresh()
+        window.location.reload()
       }
     } catch {
       setImportIsError(true)

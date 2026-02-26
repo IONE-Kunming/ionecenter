@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react"
-import { useRouter } from "next/navigation"
 import Image from "next/image"
 import {
   Save, Upload, Download, Search, FileSpreadsheet,
@@ -157,7 +156,6 @@ export function BulkEditTable({
 }: BulkEditTableProps) {
   const t = useTranslations("bulkEdit")
   const tCommon = useTranslations("common")
-  const router = useRouter()
 
   const [products, setProducts] = useState<BulkEditProduct[]>(initialProducts)
   const [originalData] = useState<BulkEditProduct[]>(() => JSON.parse(JSON.stringify(initialProducts)))
@@ -278,13 +276,13 @@ export function BulkEditTable({
       } else {
         showToast(`✓ ${products.length} products saved`)
         setModifiedIds(new Set())
-        router.refresh()
+        window.location.reload()
       }
     } catch {
       showToast("Failed to save changes", "error")
     }
     setSaving(false)
-  }, [products, onSave, showToast, router])
+  }, [products, onSave, showToast])
 
   // ─── Import ────────────────────────────────────────────────────────────
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -406,13 +404,13 @@ export function BulkEditTable({
         setPreviewRows([])
         setImportFile(null)
         if (fileInputRef.current) fileInputRef.current.value = ""
-        router.refresh()
+        window.location.reload()
       }
     } catch {
       showToast("Failed to import products", "error")
     }
     setImporting(false)
-  }, [onImport, showToast, router])
+  }, [onImport, showToast])
 
   // ─── Select all / Bulk delete ──────────────────────────────────────────
   const toggleSelectAll = useCallback(() => {
@@ -446,13 +444,13 @@ export function BulkEditTable({
         showToast(`✓ ${selectedIds.size} products deleted`)
         setProducts((prev) => prev.filter((p) => !selectedIds.has(p.id)))
         setSelectedIds(new Set())
-        router.refresh()
+        window.location.reload()
       }
     } catch {
       showToast("Failed to delete products", "error")
     }
     setDeleting(false)
-  }, [selectedIds, onDelete, showToast, router])
+  }, [selectedIds, onDelete, showToast])
 
   // ─── Row / Column reorder helpers ─────────────────────────────────────
   const moveRow = useCallback((fromFilteredIdx: number, toFilteredIdx: number) => {

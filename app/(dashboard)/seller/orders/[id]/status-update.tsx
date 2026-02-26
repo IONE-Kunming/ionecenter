@@ -1,7 +1,7 @@
 "use client"
 
 import { useTransition } from "react"
-import { useRouter } from "next/navigation"
+
 import { Select } from "@/components/ui/select"
 import { updateOrderStatus } from "@/lib/actions/orders"
 import type { OrderStatus } from "@/types/database"
@@ -15,14 +15,13 @@ const statusOptions: { value: OrderStatus; label: string }[] = [
 
 export function StatusUpdate({ orderId, currentStatus }: { orderId: string; currentStatus: OrderStatus }) {
   const [isPending, startTransition] = useTransition()
-  const router = useRouter()
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newStatus = e.target.value as OrderStatus
     if (!newStatus || newStatus === currentStatus) return
     startTransition(async () => {
       await updateOrderStatus(orderId, newStatus)
-      router.refresh()
+      window.location.reload()
     })
   }
 

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { ArrowLeft, Package, ShoppingCart, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -18,7 +17,6 @@ interface ProductDetailProps {
 }
 
 export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
-  const router = useRouter()
   const t = useTranslations("productDetail")
   const tCommon = useTranslations("common")
   const [chatPending, startChat] = useTransition()
@@ -30,7 +28,7 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
     startChat(async () => {
       const conversation = await getOrCreateConversation(product.id, product.seller_id)
       if (conversation) {
-        router.push(`/buyer/chats?id=${conversation.id}`)
+        window.location.href = `/buyer/chats?id=${conversation.id}`
       }
     })
   }
@@ -38,14 +36,14 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
   function handleAddToCart() {
     startCart(async () => {
       await addToCart(product.id, quantity)
-      router.push("/buyer/cart")
+      window.location.href = "/buyer/cart"
     })
   }
 
   return (
     <div className="space-y-6">
       <button
-        onClick={() => router.back()}
+        onClick={() => window.history.back()}
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />

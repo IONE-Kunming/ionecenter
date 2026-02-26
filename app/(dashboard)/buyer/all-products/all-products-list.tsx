@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
-import Link from "next/link"
+import Link from "@/components/ui/link"
 import Image from "next/image"
 import { Package, Search, ShoppingCart, MessageSquare } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
