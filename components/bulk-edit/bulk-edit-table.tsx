@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import {
   Save, Upload, Download, Search, FileSpreadsheet,
-  RotateCcw, Package, Trash2,
+  RotateCcw, Package, Trash2, GripVertical,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import readXlsxFile from "read-excel-file"
@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { cn } from "@/lib/utils"
 import { ImportPreview } from "./import-preview"
 import { uploadProductImage } from "@/lib/actions/products"
 import { MAIN_CATEGORIES, getSubcategories, isMainCategory, getMainCategoryForSubcategory } from "@/types/categories"
@@ -50,8 +51,23 @@ export interface ImportRow {
 
 type FilterMode = "all" | "available" | "unavailable" | "modified"
 
-// Columns that have editable text inputs (auto-activate on arrow nav)
-const EDITABLE_COLS = [1, 2, 3, 4] // name, model, price, stock
+// ─── Column definitions for reorderable data columns ────────────────────────
+type BulkEditColumnKey = "product" | "name" | "model_number" | "price" | "stock" | "availability"
+
+interface BulkEditColumnDef {
+  key: BulkEditColumnKey
+  label: string
+  hasTextInput: boolean
+}
+
+const DEFAULT_BULK_COLUMNS: BulkEditColumnDef[] = [
+  { key: "product", label: "Product", hasTextInput: false },
+  { key: "name", label: "Name", hasTextInput: true },
+  { key: "model_number", label: "Model #", hasTextInput: true },
+  { key: "price", label: "Price", hasTextInput: true },
+  { key: "stock", label: "Stock", hasTextInput: true },
+  { key: "availability", label: "Availability", hasTextInput: false },
+]
 
 // ─── CSV Parser ─────────────────────────────────────────────────────────────
 function normalizeHeader(h: string): string {
@@ -163,6 +179,13 @@ export function BulkEditTable({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
   const toastCounter = useRef(0)
+
+  // ─── Drag-and-drop reordering ───────────────────────────────────────────
+  const [columnOrder, setColumnOrder] = useState<BulkEditColumnDef[]>(DEFAULT_BULK_COLUMNS)
+  const [draggedCol, setDraggedCol] = useState<number | null>(null)
+  const [dragOverCol, setDragOverCol] = useState<number | null>(null)
+  const [draggedRow, setDraggedRow] = useState<number | null>(null)
+  const [dragOverRow, setDragOverRow] = useState<number | null>(null)
 
   // ─── Filtering ──────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -424,15 +447,155 @@ export function BulkEditTable({
     setDeleting(false)
   }, [selectedIds, onDelete, showToast, router])
 
+  // ─── Row / Column reorder helpers ─────────────────────────────────────
+  const moveRow = useCallback((fromFilteredIdx: number, toFilteredIdx: number) => {
+    if (fromFilteredIdx < 0 || fromFilteredIdx >= filtered.length) return
+    if (toFilteredIdx < 0 || toFilteredIdx >= filtered.length) return
+    const src = filtered[fromFilteredIdx]
+    const tgt = filtered[toFilteredIdx]
+    setProducts((prev) => {
+      const next = [...prev]
+      const fi = next.findIndex((p) => p.id === src.id)
+      const ti = next.findIndex((p) => p.id === tgt.id)
+      if (fi >= 0 && ti >= 0) {
+        const [moved] = next.splice(fi, 1)
+        next.splice(ti, 0, moved)
+      }
+      return next
+    })
+  }, [filtered])
+
+  const moveColumn = useCallback((fromIdx: number, toIdx: number) => {
+    setColumnOrder((prev) => {
+      const next = [...prev]
+      const [moved] = next.splice(fromIdx, 1)
+      next.splice(toIdx, 0, moved)
+      return next
+    })
+  }, [])
+
+  // ─── Column drag-and-drop ─────────────────────────────────────────────
+  const handleColDragStart = useCallback((colIndex: number) => {
+    setDraggedCol(colIndex)
+  }, [])
+
+  const handleColDragOver = useCallback((e: React.DragEvent, colIndex: number) => {
+    e.preventDefault()
+    setDragOverCol(colIndex)
+  }, [])
+
+  const handleColDragEnd = useCallback(() => {
+    if (draggedCol !== null && dragOverCol !== null && draggedCol !== dragOverCol) {
+      moveColumn(draggedCol, dragOverCol)
+    }
+    setDraggedCol(null)
+    setDragOverCol(null)
+  }, [draggedCol, dragOverCol, moveColumn])
+
+  // ─── Row drag-and-drop ────────────────────────────────────────────────
+  const handleRowDragStart = useCallback((rowIndex: number) => {
+    setDraggedRow(rowIndex)
+  }, [])
+
+  const handleRowDragOver = useCallback((e: React.DragEvent, rowIndex: number) => {
+    e.preventDefault()
+    setDragOverRow(rowIndex)
+  }, [])
+
+  const handleRowDragEnd = useCallback(() => {
+    if (draggedRow !== null && dragOverRow !== null && draggedRow !== dragOverRow) {
+      moveRow(draggedRow, dragOverRow)
+    }
+    setDraggedRow(null)
+    setDragOverRow(null)
+  }, [draggedRow, dragOverRow, moveRow])
+
+  // ─── Touch drag support for rows ──────────────────────────────────────
+  const handleRowTouchStart = useCallback((rowIndex: number) => {
+    setDraggedRow(rowIndex)
+  }, [])
+
+  const handleRowTouchMove = useCallback((e: React.TouchEvent) => {
+    if (draggedRow === null) return
+    const touch = e.touches[0]
+    const el = document.elementFromPoint(touch.clientX, touch.clientY)
+    const row = el?.closest("tr[data-row-index]") as HTMLElement | null
+    if (row) {
+      const idx = Number(row.dataset.rowIndex)
+      if (!isNaN(idx)) setDragOverRow(idx)
+    }
+  }, [draggedRow])
+
+  const handleRowTouchEnd = useCallback(() => {
+    if (draggedRow !== null && dragOverRow !== null && draggedRow !== dragOverRow) {
+      moveRow(draggedRow, dragOverRow)
+    }
+    setDraggedRow(null)
+    setDragOverRow(null)
+  }, [draggedRow, dragOverRow, moveRow])
+
+  // ─── Touch drag support for columns ───────────────────────────────────
+  const handleColTouchStart = useCallback((colIndex: number) => {
+    setDraggedCol(colIndex)
+  }, [])
+
+  const handleColTouchMove = useCallback((e: React.TouchEvent) => {
+    if (draggedCol === null) return
+    const touch = e.touches[0]
+    const el = document.elementFromPoint(touch.clientX, touch.clientY)
+    const th = el?.closest("th[data-col-index]") as HTMLElement | null
+    if (th) {
+      const idx = Number(th.dataset.colIndex)
+      if (!isNaN(idx)) setDragOverCol(idx)
+    }
+  }, [draggedCol])
+
+  const handleColTouchEnd = useCallback(() => {
+    if (draggedCol !== null && dragOverCol !== null && draggedCol !== dragOverCol) {
+      moveColumn(draggedCol, dragOverCol)
+    }
+    setDraggedCol(null)
+    setDragOverCol(null)
+  }, [draggedCol, dragOverCol, moveColumn])
+
   // ─── Keyboard navigation ───────────────────────────────────────────────
-  const COLS = 6 // serial, name, model, price, stock, availability
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const active = document.activeElement as HTMLElement | null
       const inInput = active?.tagName === "INPUT" && (active as HTMLInputElement).type !== "checkbox" && active?.closest("td")
       const maxRow = filtered.length - 1
-      const maxCol = COLS - 1
+      const maxCol = columnOrder.length - 1
+
+      // Alt+Arrow: reorder rows/columns
+      if (e.altKey && focusedCell.row >= 0) {
+        const { row, col } = focusedCell
+        if (e.key === "ArrowUp" && row > 0) {
+          e.preventDefault()
+          moveRow(row, row - 1)
+          setFocusedCell((prev) => ({ ...prev, row: prev.row - 1 }))
+          return
+        }
+        if (e.key === "ArrowDown" && row < maxRow) {
+          e.preventDefault()
+          moveRow(row, row + 1)
+          setFocusedCell((prev) => ({ ...prev, row: prev.row + 1 }))
+          return
+        }
+        if (e.key === "ArrowLeft" && col > 0) {
+          e.preventDefault()
+          moveColumn(col, col - 1)
+          setFocusedCell((prev) => ({ ...prev, col: prev.col - 1 }))
+          return
+        }
+        if (e.key === "ArrowRight" && col < maxCol) {
+          e.preventDefault()
+          moveColumn(col, col + 1)
+          setFocusedCell((prev) => ({ ...prev, col: prev.col + 1 }))
+          return
+        }
+        return
+      }
 
       if (focusedCell.row < 0 && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
         e.preventDefault()
@@ -501,7 +664,7 @@ export function BulkEditTable({
 
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [focusedCell, filtered.length])
+  }, [focusedCell, filtered.length, columnOrder.length, moveRow, moveColumn])
 
   // ─── Auto-focus cell ───────────────────────────────────────────────────
   useEffect(() => {
@@ -513,7 +676,7 @@ export function BulkEditTable({
     tableRef.current.querySelectorAll("td.ring-2").forEach((el) => el.classList.remove("ring-2", "ring-primary/50", "bg-primary/5"))
     td.classList.add("ring-2", "ring-primary/50", "bg-primary/5")
 
-    if (EDITABLE_COLS.includes(focusedCell.col)) {
+    if (columnOrder[focusedCell.col]?.hasTextInput) {
       const inp = td.querySelector("input:not([type=checkbox])") as HTMLInputElement | null
       if (inp) { inp.focus(); inp.select() }
     } else {
@@ -521,7 +684,7 @@ export function BulkEditTable({
       if (chk) chk.focus()
       else td.focus()
     }
-  }, [focusedCell])
+  }, [focusedCell, columnOrder])
 
   const filterBtns: { key: FilterMode; label: string }[] = [
     { key: "all", label: "All" },
@@ -565,6 +728,8 @@ export function BulkEditTable({
         <span className="flex items-center gap-1.5"><kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[0.6rem]">Enter</kbd> Next row</span>
         <span className="flex items-center gap-1.5"><kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[0.6rem]">Esc</kbd> Exit edit</span>
         <span className="flex items-center gap-1.5"><kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[0.6rem]">Tab</kbd> Next cell</span>
+        <span className="flex items-center gap-1.5"><kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[0.6rem]">Alt+↑↓</kbd> Reorder rows</span>
+        <span className="flex items-center gap-1.5"><kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[0.6rem]">Alt+←→</kbd> Reorder columns</span>
       </div>
 
       {/* Stats */}
@@ -625,12 +790,29 @@ export function BulkEditTable({
                   />
                 </th>
                 <th className="px-4 py-3 text-left text-[0.68rem] font-medium uppercase tracking-wider text-muted-foreground w-12">#</th>
-                <th className="px-4 py-3 text-left text-[0.68rem] font-medium uppercase tracking-wider text-muted-foreground">Product</th>
-                <th className="px-4 py-3 text-left text-[0.68rem] font-medium uppercase tracking-wider text-muted-foreground">Name</th>
-                <th className="px-4 py-3 text-left text-[0.68rem] font-medium uppercase tracking-wider text-muted-foreground">Model #</th>
-                <th className="px-4 py-3 text-left text-[0.68rem] font-medium uppercase tracking-wider text-muted-foreground">Price</th>
-                <th className="px-4 py-3 text-left text-[0.68rem] font-medium uppercase tracking-wider text-muted-foreground">Stock</th>
-                <th className="px-4 py-3 text-left text-[0.68rem] font-medium uppercase tracking-wider text-muted-foreground">Availability</th>
+                {columnOrder.map((col, colIdx) => (
+                  <th
+                    key={col.key}
+                    data-col-index={colIdx}
+                    draggable
+                    onDragStart={() => handleColDragStart(colIdx)}
+                    onDragOver={(e) => handleColDragOver(e, colIdx)}
+                    onDragEnd={handleColDragEnd}
+                    onTouchStart={() => handleColTouchStart(colIdx)}
+                    onTouchMove={handleColTouchMove}
+                    onTouchEnd={handleColTouchEnd}
+                    className={cn(
+                      "px-4 py-3 text-left text-[0.68rem] font-medium uppercase tracking-wider text-muted-foreground cursor-grab select-none touch-none",
+                      draggedCol === colIdx && "opacity-50",
+                      dragOverCol === colIdx && draggedCol !== colIdx && "border-l-2 border-l-primary"
+                    )}
+                  >
+                    <span className="flex items-center gap-1">
+                      <GripVertical className="h-3 w-3 opacity-40 shrink-0" />
+                      {col.label}
+                    </span>
+                  </th>
+                ))}
                 <th className="px-4 py-3 text-left text-[0.68rem] font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
               </tr>
             </thead>
@@ -640,7 +822,14 @@ export function BulkEditTable({
                 return (
                   <tr
                     key={product.id}
-                    className={`border-b transition-colors hover:bg-muted/30 ${isModified ? "border-l-2 border-l-yellow-500" : ""}`}
+                    data-row-index={rowIdx}
+                    onDragOver={(e) => handleRowDragOver(e, rowIdx)}
+                    className={cn(
+                      "border-b transition-colors hover:bg-muted/30",
+                      isModified && "border-l-2 border-l-yellow-500",
+                      draggedRow === rowIdx && "opacity-50",
+                      dragOverRow === rowIdx && draggedRow !== rowIdx && "border-t-2 border-t-primary"
+                    )}
                   >
                     {/* Select checkbox */}
                     <td className="px-4 py-3">
@@ -651,91 +840,102 @@ export function BulkEditTable({
                         className="rounded border-muted-foreground/50"
                       />
                     </td>
-                    {/* Serial */}
-                    <td className="px-4 py-3 text-xs text-muted-foreground text-center" data-row={rowIdx} data-col={0}
-                      onClick={() => setFocusedCell({ row: rowIdx, col: 0 })} tabIndex={-1}>
-                      {rowIdx + 1}
+                    {/* Row drag handle + Serial */}
+                    <td
+                      draggable
+                      onDragStart={() => handleRowDragStart(rowIdx)}
+                      onDragEnd={handleRowDragEnd}
+                      className={cn("px-4 py-3 text-xs text-muted-foreground text-center touch-none", draggedRow === rowIdx ? "cursor-grabbing" : "cursor-grab")}
+                      onTouchStart={() => handleRowTouchStart(rowIdx)}
+                      onTouchMove={handleRowTouchMove}
+                      onTouchEnd={handleRowTouchEnd}
+                    >
+                      <span className="flex items-center gap-1 justify-center">
+                        <GripVertical className="h-3 w-3 opacity-40 shrink-0" />
+                        {rowIdx + 1}
+                      </span>
                     </td>
-                    {/* Product image + ID */}
-                    <td className="px-4 py-3" data-row={rowIdx} data-col={0}>
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg border bg-muted/50 flex-shrink-0 overflow-hidden flex items-center justify-center">
-                          {product.image_url ? (
-                            <Image src={product.image_url} alt={product.name} width={40} height={40} className="object-cover w-full h-full" />
-                          ) : (
-                            <Package className="h-4 w-4 text-muted-foreground/40" />
-                          )}
-                        </div>
-                        <span className="text-[0.68rem] text-muted-foreground font-mono bg-muted border rounded px-1.5 py-0.5 select-all">
-                          {product.id.slice(0, 8)}…
-                        </span>
-                      </div>
-                    </td>
-                    {/* Name */}
-                    <td className="px-4 py-2 rounded-sm" data-row={rowIdx} data-col={1}
-                      onClick={() => setFocusedCell({ row: rowIdx, col: 1 })} tabIndex={-1}>
-                      <input
-                        type="text"
-                        value={product.name}
-                        onChange={(e) => updateField(product.id, "name", e.target.value)}
-                        className="w-full min-w-[140px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
-                      />
-                    </td>
-                    {/* Model */}
-                    <td className="px-4 py-2 rounded-sm" data-row={rowIdx} data-col={2}
-                      onClick={() => setFocusedCell({ row: rowIdx, col: 2 })} tabIndex={-1}>
-                      <input
-                        type="text"
-                        value={product.model_number}
-                        onChange={(e) => updateField(product.id, "model_number", e.target.value)}
-                        className="w-full min-w-[100px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
-                      />
-                    </td>
-                    {/* Price */}
-                    <td className="px-4 py-2 rounded-sm" data-row={rowIdx} data-col={3}
-                      onClick={() => setFocusedCell({ row: rowIdx, col: 3 })} tabIndex={-1}>
-                      <div className="relative">
-                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={product.price_per_meter}
-                          onChange={(e) => updateField(product.id, "price_per_meter", Number(e.target.value))}
-                          className="w-full max-w-[100px] bg-transparent border border-transparent rounded pl-5 pr-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
-                        />
-                      </div>
-                    </td>
-                    {/* Stock */}
-                    <td className="px-4 py-2 rounded-sm" data-row={rowIdx} data-col={4}
-                      onClick={() => setFocusedCell({ row: rowIdx, col: 4 })} tabIndex={-1}>
-                      <input
-                        type="number"
-                        min="0"
-                        value={product.stock}
-                        onChange={(e) => updateField(product.id, "stock", Number(e.target.value))}
-                        className="w-full max-w-[80px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
-                      />
-                    </td>
-                    {/* Availability toggle */}
-                    <td className="px-4 py-3" data-row={rowIdx} data-col={5}
-                      onClick={() => setFocusedCell({ row: rowIdx, col: 5 })} tabIndex={-1}>
-                      <div className="flex items-center gap-2.5 min-w-[130px]">
-                        <label className="relative inline-flex cursor-pointer">
+                    {/* Dynamic columns */}
+                    {columnOrder.map((col, colIdx) => (
+                      <td
+                        key={col.key}
+                        data-row={rowIdx}
+                        data-col={colIdx}
+                        onClick={() => setFocusedCell({ row: rowIdx, col: colIdx })}
+                        tabIndex={-1}
+                        className={col.key === "product" || col.key === "availability" ? "px-4 py-3" : "px-4 py-2 rounded-sm"}
+                      >
+                        {col.key === "product" && (
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-lg border bg-muted/50 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                              {product.image_url ? (
+                                <Image src={product.image_url} alt={product.name} width={40} height={40} className="object-cover w-full h-full" />
+                              ) : (
+                                <Package className="h-4 w-4 text-muted-foreground/40" />
+                              )}
+                            </div>
+                            <span className="text-[0.68rem] text-muted-foreground font-mono bg-muted border rounded px-1.5 py-0.5 select-all">
+                              {product.id.slice(0, 8)}…
+                            </span>
+                          </div>
+                        )}
+                        {col.key === "name" && (
                           <input
-                            type="checkbox"
-                            checked={product.is_active}
-                            onChange={(e) => updateField(product.id, "is_active", e.target.checked)}
-                            className="sr-only peer"
+                            type="text"
+                            value={product.name}
+                            onChange={(e) => updateField(product.id, "name", e.target.value)}
+                            className="w-full min-w-[140px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
                           />
-                          <div className="w-9 h-5 rounded-full bg-muted border peer-checked:bg-green-500/20 peer-checked:border-green-500 transition-colors" />
-                          <div className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-muted-foreground transition-transform peer-checked:translate-x-4 peer-checked:bg-green-500 peer-checked:shadow-[0_0_8px_rgba(74,222,128,0.4)]" />
-                        </label>
-                        <span className={`text-xs font-medium whitespace-nowrap ${product.is_active ? "text-green-500" : "text-red-500"}`}>
-                          {product.is_active ? "In Stock" : "Out of Stock"}
-                        </span>
-                      </div>
-                    </td>
+                        )}
+                        {col.key === "model_number" && (
+                          <input
+                            type="text"
+                            value={product.model_number}
+                            onChange={(e) => updateField(product.id, "model_number", e.target.value)}
+                            className="w-full min-w-[100px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
+                          />
+                        )}
+                        {col.key === "price" && (
+                          <div className="relative">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={product.price_per_meter}
+                              onChange={(e) => updateField(product.id, "price_per_meter", Number(e.target.value))}
+                              className="w-full max-w-[100px] bg-transparent border border-transparent rounded pl-5 pr-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
+                            />
+                          </div>
+                        )}
+                        {col.key === "stock" && (
+                          <input
+                            type="number"
+                            min="0"
+                            value={product.stock}
+                            onChange={(e) => updateField(product.id, "stock", Number(e.target.value))}
+                            className="w-full max-w-[80px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
+                          />
+                        )}
+                        {col.key === "availability" && (
+                          <div className="flex items-center gap-2.5 min-w-[130px]">
+                            <label className="relative inline-flex cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={product.is_active}
+                                onChange={(e) => updateField(product.id, "is_active", e.target.checked)}
+                                className="sr-only peer"
+                              />
+                              <div className="w-9 h-5 rounded-full bg-muted border peer-checked:bg-green-500/20 peer-checked:border-green-500 transition-colors" />
+                              <div className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-muted-foreground transition-transform peer-checked:translate-x-4 peer-checked:bg-green-500 peer-checked:shadow-[0_0_8px_rgba(74,222,128,0.4)]" />
+                            </label>
+                            <span className={`text-xs font-medium whitespace-nowrap ${product.is_active ? "text-green-500" : "text-red-500"}`}>
+                              {product.is_active ? "In Stock" : "Out of Stock"}
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                    ))}
                     {/* Actions */}
                     <td className="px-4 py-3">
                       <button
