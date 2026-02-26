@@ -352,6 +352,7 @@
     "message": "Message"
   },
   "productDetail": {
+    "title": "Product Details",
     "perMeter": "/m",
     "inStock": "In Stock",
     "outOfStock": "Out of Stock",

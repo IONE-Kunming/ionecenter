@@ -6,6 +6,7 @@ import { ArrowLeft, Package, ShoppingCart, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/components/ui/toaster"
 import { formatCurrency, getStockStatus } from "@/lib/utils"
 import { getOrCreateConversation } from "@/lib/actions/chat"
 import { addToCart } from "@/lib/actions/cart"
@@ -19,6 +20,7 @@ interface ProductDetailProps {
 export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
   const t = useTranslations("productDetail")
   const tCommon = useTranslations("common")
+  const { addToast } = useToast()
   const [chatPending, startChat] = useTransition()
   const [cartPending, startCart] = useTransition()
   const [quantity, setQuantity] = useState(1)
@@ -35,8 +37,12 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
 
   function handleAddToCart() {
     startCart(async () => {
-      await addToCart(product.id, quantity)
-      window.location.href = "/buyer/cart"
+      const result = await addToCart(product.id, quantity)
+      if (result.error) {
+        addToast("error", result.error)
+      } else {
+        addToast("success", t("addedToCart"))
+      }
     })
   }
 

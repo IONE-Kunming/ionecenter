@@ -79,7 +79,7 @@ export function AllProductsList({ products, initialSearch = "" }: { products: Pr
                         <Link href={`/buyer/product/${product.id}`}>
                           <Button size="sm" variant="ghost" title={tChat("chatWithSeller")}><MessageSquare className="h-3.5 w-3.5" /></Button>
                         </Link>
-                        <Button size="sm" variant="outline"><ShoppingCart className="h-3.5 w-3.5 mr-1" /> {tCommon("add")}</Button>
+                        <Link href={`/buyer/product/${product.id}`}><Button size="sm" variant="outline"><ShoppingCart className="h-3.5 w-3.5 mr-1" /> {tCommon("add")}</Button></Link>
                       </div>
                     </div>
                   </div>

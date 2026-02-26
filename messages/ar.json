@@ -352,6 +352,7 @@
     "message": "رسالة"
   },
   "productDetail": {
+    "title": "تفاصيل المنتج",
     "perMeter": "/م",
     "inStock": "متوفر",
     "outOfStock": "غير متوفر",
