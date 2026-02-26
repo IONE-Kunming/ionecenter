@@ -133,7 +133,7 @@ export async function bulkImportProducts(
     price_per_meter: row.price_per_meter,
     stock: row.stock,
     description: row.description ?? null,
-    image_url: row.image_url ?? null,
+    image_url: row.image_url && row.image_url.startsWith("http") ? row.image_url : null,
     seller_id: user.id,
   }))
 
