@@ -525,7 +525,12 @@
     "imagePathCol": "图片路径",
     "analyzePreview": "分析并预览",
     "noValidRowsCsv": "CSV中未找到有效行。",
-    "failedParseCsv": "解析CSV文件失败。"
+    "failedParseCsv": "解析CSV文件失败。",
+    "editProduct": "编辑产品",
+    "deleteProduct": "删除产品",
+    "deleteConfirmation": "您确定要永久删除"{name}"吗？此操作无法撤消。",
+    "saveChanges": "保存更改",
+    "deleting": "删除中..."
   },
   "branches": {
     "title": "分支机构",

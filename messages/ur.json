@@ -525,7 +525,12 @@
     "imagePathCol": "تصویر کا راستہ",
     "analyzePreview": "تجزیہ اور پیش نظارہ",
     "noValidRowsCsv": "CSV میں کوئی درست قطاریں نہیں ملیں۔",
-    "failedParseCsv": "CSV فائل پارس کرنے میں ناکامی۔"
+    "failedParseCsv": "CSV فائل پارس کرنے میں ناکامی۔",
+    "editProduct": "مصنوعات میں ترمیم کریں",
+    "deleteProduct": "مصنوعات حذف کریں",
+    "deleteConfirmation": "کیا آپ واقعی \"{name}\" کو مستقل طور پر حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں ہو سکتا۔",
+    "saveChanges": "تبدیلیاں محفوظ کریں",
+    "deleting": "حذف ہو رہا ہے..."
   },
   "branches": {
     "title": "شاخیں",

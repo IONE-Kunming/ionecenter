@@ -525,7 +525,12 @@
     "imagePathCol": "مسار الصورة",
     "analyzePreview": "تحليل ومعاينة",
     "noValidRowsCsv": "لم يتم العثور على صفوف صالحة في CSV.",
-    "failedParseCsv": "فشل تحليل ملف CSV."
+    "failedParseCsv": "فشل تحليل ملف CSV.",
+    "editProduct": "تعديل المنتج",
+    "deleteProduct": "حذف المنتج",
+    "deleteConfirmation": "هل أنت متأكد أنك تريد حذف \"{name}\" نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.",
+    "saveChanges": "حفظ التغييرات",
+    "deleting": "جارٍ الحذف..."
   },
   "branches": {
     "title": "الفروع",

@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency, getStockStatus } from "@/lib/utils"
 import { MAIN_CATEGORIES, getSubcategories, isMainCategory, getMainCategoryForSubcategory } from "@/types/categories"
-import { createProduct, bulkImportProducts, uploadProductImage } from "@/lib/actions/products"
+import { createProduct, updateProduct, deleteProduct, bulkImportProducts, uploadProductImage } from "@/lib/actions/products"
 import { ImportPreview } from "@/components/bulk-edit/import-preview"
 import type { ImportRow } from "@/components/bulk-edit/bulk-edit-table"
 import type { Product } from "@/types/database"
@@ -88,6 +88,81 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
   const [newProductImage, setNewProductImage] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+
+  // Edit modal state
+  const [editProduct, setEditProduct] = useState<Product | null>(null)
+  const [editForm, setEditForm] = useState({ name: "", model_number: "", main_category: "", category: "", price_per_meter: 0, stock: 0, description: "" })
+  const [editImage, setEditImage] = useState<File | null>(null)
+  const [editSaving, setEditSaving] = useState(false)
+  const [editCategory, setEditCategory] = useState("")
+
+  // Delete confirmation state
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  const openEdit = (product: Product) => {
+    setEditProduct(product)
+    setEditForm({
+      name: product.name,
+      model_number: product.model_number,
+      main_category: product.main_category,
+      category: product.category,
+      price_per_meter: product.price_per_meter,
+      stock: product.stock,
+      description: product.description || "",
+    })
+    setEditCategory(product.main_category)
+    setEditImage(null)
+  }
+
+  const handleEditSave = async () => {
+    if (!editProduct) return
+    setEditSaving(true)
+    try {
+      let imageUrl: string | undefined
+      if (editImage) {
+        const formData = new FormData()
+        formData.append("file", editImage)
+        const uploadResult = await uploadProductImage(formData)
+        if (uploadResult.url) imageUrl = uploadResult.url
+      }
+      const updates: Partial<Product> = {
+        name: editForm.name,
+        model_number: editForm.model_number,
+        main_category: editForm.main_category,
+        category: editForm.category,
+        subcategory: editForm.category || null,
+        price_per_meter: editForm.price_per_meter,
+        stock: editForm.stock,
+        description: editForm.description || null,
+      }
+      if (imageUrl) updates.image_url = imageUrl
+      const result = await updateProduct(editProduct.id, updates)
+      if (!result.error) {
+        setProducts((prev) => prev.map((p) => p.id === editProduct.id ? { ...p, ...updates, image_url: imageUrl ?? p.image_url } : p))
+        setEditProduct(null)
+      }
+    } catch {
+      // error handled
+    }
+    setEditSaving(false)
+  }
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      const result = await deleteProduct(deleteTarget.id)
+      if (!result.error) {
+        setProducts((prev) => prev.filter((p) => p.id !== deleteTarget.id))
+        setDeleteTarget(null)
+        window.location.reload()
+      }
+    } catch {
+      // error handled
+    }
+    setDeleting(false)
+  }
 
   const resetAddForm = () => {
     setNewProduct({ name: "", model_number: "", main_category: "", category: "", price_per_meter: 0, stock: 0, description: "" })
@@ -292,8 +367,8 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
                       </Badge>
                     </div>
                     <div className="flex gap-2 mt-3">
-                      <Button variant="outline" size="sm" className="flex-1 gap-1"><Pencil className="h-3 w-3" /> {tCommon("edit")}</Button>
-                      <Button variant="outline" size="sm" className="text-destructive hover:text-destructive"><Trash2 className="h-3 w-3" /></Button>
+                      <Button variant="outline" size="sm" className="flex-1 gap-1" onClick={() => openEdit(product)}><Pencil className="h-3 w-3" /> {tCommon("edit")}</Button>
+                      <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(product)}><Trash2 className="h-3 w-3" /></Button>
                     </div>
                   </div>
                 </CardContent>
@@ -398,6 +473,70 @@ export function SellerProductsList({ initialProducts }: { initialProducts: Produ
         onFinishImport={handleFinishImport}
         importing={importing}
       />
+
+      {/* Edit Product Modal */}
+      <Dialog open={!!editProduct} onOpenChange={(v) => { if (!v) setEditProduct(null) }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{t("editProduct")}</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-2"><Label>{t("productName")}</Label><Input value={editForm.name} onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))} /></div>
+              <div className="space-y-2"><Label>{t("modelNumber")}</Label><Input value={editForm.model_number} onChange={(e) => setEditForm((f) => ({ ...f, model_number: e.target.value }))} /></div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t("mainCategory")}</Label>
+                <Select options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder={t("selectCategory")} value={editForm.main_category} onChange={(e) => { setEditCategory(e.target.value); setEditForm((f) => ({ ...f, main_category: e.target.value, category: "" })) }} />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("subcategory")}</Label>
+                <Select options={getSubcategories(editForm.main_category || editCategory).map((c) => ({ value: c, label: c }))} placeholder={t("selectSubcategory")} value={editForm.category} onChange={(e) => setEditForm((f) => ({ ...f, category: e.target.value }))} />
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-2"><Label>{t("pricePerMeter")}</Label><Input type="number" step="0.01" value={editForm.price_per_meter || ""} onChange={(e) => setEditForm((f) => ({ ...f, price_per_meter: Number(e.target.value) }))} /></div>
+              <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" value={editForm.stock || ""} onChange={(e) => setEditForm((f) => ({ ...f, stock: Number(e.target.value) }))} /></div>
+            </div>
+            <div className="space-y-2"><Label>{t("description")}</Label><Textarea rows={3} value={editForm.description} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} /></div>
+            <div className="space-y-2">
+              <Label>{t("productImage")}</Label>
+              {editProduct?.image_url && !editImage && (
+                <div className="relative w-20 h-20 rounded border overflow-hidden mb-2">
+                  <Image src={editProduct.image_url} alt={editProduct.name} fill className="object-cover" sizes="80px" />
+                </div>
+              )}
+              {editImage && (
+                <p className="text-sm text-muted-foreground mb-2">{editImage.name}</p>
+              )}
+              <Input type="file" accept="image/*" onChange={(e) => setEditImage(e.target.files?.[0] || null)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditProduct(null)}>{tCommon("cancel")}</Button>
+            <Button onClick={handleEditSave} disabled={editSaving || !editForm.name}>
+              {editSaving ? tCommon("saving") : t("saveChanges")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Product Confirmation */}
+      <Dialog open={!!deleteTarget} onOpenChange={(v) => { if (!v) setDeleteTarget(null) }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{t("deleteProduct")}</DialogTitle></DialogHeader>
+          <div className="mt-4">
+            <p className="text-sm text-muted-foreground">
+              {t("deleteConfirmation", { name: deleteTarget?.name ?? "" })}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>{tCommon("cancel")}</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+              {deleting ? t("deleting") : tCommon("delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
