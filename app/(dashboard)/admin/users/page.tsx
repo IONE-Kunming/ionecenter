@@ -10,6 +10,7 @@ export default async function AdminUsersPage() {
     email: u.email,
     role: u.role,
     company: u.company,
+    user_code: u.user_code,
     created_at: u.created_at,
   }))
 
