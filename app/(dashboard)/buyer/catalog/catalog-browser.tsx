@@ -31,6 +31,10 @@ interface CatalogProduct {
 
 const ITEMS_PER_PAGE = 12
 
+const CATEGORY_BADGE_BASE = "rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold shadow-md"
+const CATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE}`
+const SUBCATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE} text-[10px]`
+
 export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
@@ -81,8 +85,9 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
       {/* Category Grid */}
       {level === "categories" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {MAIN_CATEGORIES.map((cat) => {
+          {MAIN_CATEGORIES.map((cat, catIdx) => {
             const imageUrl = getCategoryImage(cat)
+            const categoryCode = String(catIdx + 1).padStart(2, '0')
             return (
             <Card
               key={cat}
@@ -100,6 +105,9 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                    <div className={`${CATEGORY_BADGE_ABSOLUTE} text-xs`} aria-label={`Category ${categoryCode}`}>
+                      {categoryCode}
+                    </div>
                     <div className="absolute bottom-4 left-5 right-5 text-center">
                       <h3 className="font-semibold text-base text-white">{cat}</h3>
                       <p className="text-sm text-white/80 mt-1">
@@ -108,7 +116,10 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
                     </div>
                   </div>
                 ) : (
-                  <div className="p-8 text-center">
+                  <div className="p-8 text-center relative">
+                    <div className={`${CATEGORY_BADGE_ABSOLUTE} text-xs`} aria-label={`Category ${categoryCode}`}>
+                      {categoryCode}
+                    </div>
                     <Package className="h-10 w-10 mx-auto text-primary" />
                     <h3 className="mt-4 font-semibold text-base">{cat}</h3>
                     <p className="text-sm text-muted-foreground mt-1">
@@ -130,8 +141,10 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
             <ArrowLeft className="h-4 w-4 mr-2" /> {tCommon("back")}
           </Button>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {CATEGORIES[selectedCategory]?.subcategories.map((sub) => {
+            {CATEGORIES[selectedCategory]?.subcategories.map((sub, subIdx) => {
               const subImageUrl = getSubcategoryImage(sub)
+              const parentIdx = MAIN_CATEGORIES.indexOf(selectedCategory) + 1
+              const subcategoryCode = `${parentIdx}:${subIdx + 1}`
               return (
               <Card
                 key={sub}
@@ -149,12 +162,18 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                      <div className={SUBCATEGORY_BADGE_ABSOLUTE} aria-label={`Subcategory ${subcategoryCode}`}>
+                        {subcategoryCode}
+                      </div>
                       <div className="absolute bottom-3 left-4 right-4 text-center">
                         <h3 className="font-semibold text-sm text-white">{sub}</h3>
                       </div>
                     </div>
                   ) : (
-                    <div className="p-6 text-center">
+                    <div className="p-6 text-center relative">
+                      <div className={SUBCATEGORY_BADGE_ABSOLUTE} aria-label={`Subcategory ${subcategoryCode}`}>
+                        {subcategoryCode}
+                      </div>
                       <Package className="h-8 w-8 mx-auto text-primary" />
                       <h3 className="mt-2 font-semibold text-sm">{sub}</h3>
                     </div>
