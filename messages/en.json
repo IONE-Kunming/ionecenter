@@ -141,7 +141,8 @@
     "darkMode": "Dark Mode",
     "language": "Language",
     "signOut": "Sign Out",
-    "viewAsBuyer": "View as Buyer"
+    "viewAsBuyer": "View as Buyer",
+    "categories": "Categories"
   },
   "common": {
     "search": "Search...",
