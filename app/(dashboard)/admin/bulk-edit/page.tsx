@@ -1,11 +1,15 @@
 import { getAllProducts, getAllSellers } from "@/lib/actions/admin"
+import { getSiteCategories } from "@/lib/actions/site-settings"
+import { buildCategoryData } from "@/lib/categories"
 import { AdminBulkEditList } from "./admin-bulk-edit-list"
 
 export default async function AdminBulkEditPage() {
-  const [products, sellers] = await Promise.all([
+  const [products, sellers, siteCategories] = await Promise.all([
     getAllProducts(),
     getAllSellers(),
+    getSiteCategories(),
   ])
+  const categoryData = buildCategoryData(siteCategories)
 
   const mapped = products.map((p) => ({
     id: p.id,
@@ -24,5 +28,5 @@ export default async function AdminBulkEditPage() {
     company: s.company ?? "",
   }))
 
-  return <AdminBulkEditList initialProducts={mapped} sellers={sellerList} />
+  return <AdminBulkEditList initialProducts={mapped} sellers={sellerList} categoryData={categoryData} />
 }

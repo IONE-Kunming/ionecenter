@@ -3,8 +3,9 @@
 import { useTranslations } from "next-intl"
 import { BulkEditTable, type BulkEditProduct, type ImportRow } from "@/components/bulk-edit/bulk-edit-table"
 import { updateProduct, deleteProduct, bulkImportProducts } from "@/lib/actions/products"
+import type { CategoryData } from "@/lib/categories"
 
-export function SellerBulkEditList({ initialProducts }: { initialProducts: BulkEditProduct[] }) {
+export function SellerBulkEditList({ initialProducts, categoryData }: { initialProducts: BulkEditProduct[]; categoryData: CategoryData }) {
   const t = useTranslations("bulkEdit")
   const handleSave = async (products: BulkEditProduct[]) => {
     for (const product of products) {
@@ -37,6 +38,7 @@ export function SellerBulkEditList({ initialProducts }: { initialProducts: BulkE
       onImport={handleImport}
       title={t("bulkEditTitle")}
       subtitle={t("bulkEditSubtitle")}
+      categoryData={categoryData}
     />
   )
 }

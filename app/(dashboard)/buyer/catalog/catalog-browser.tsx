@@ -12,8 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency } from "@/lib/utils"
-import { CATEGORIES, MAIN_CATEGORIES } from "@/types/categories"
-import { getCategoryImage, getSubcategoryImage } from "@/lib/constants/category-images"
+import type { CategoryData } from "@/lib/categories"
 
 type BrowseLevel = "categories" | "subcategories" | "products"
 
@@ -35,7 +34,7 @@ const CATEGORY_BADGE_BASE = "rounded-full bg-primary text-primary-foreground fle
 const CATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE}`
 const SUBCATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE} text-[10px]`
 
-export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }) {
+export function BuyerCatalogBrowser({ products, categoryData }: { products: CatalogProduct[]; categoryData: CategoryData }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
@@ -85,8 +84,8 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
       {/* Category Grid */}
       {level === "categories" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {MAIN_CATEGORIES.map((cat, catIdx) => {
-            const imageUrl = getCategoryImage(cat)
+          {categoryData.mainCategories.map((cat, catIdx) => {
+            const subcategories = categoryData.categoryMap[cat] ?? []
             const categoryCode = String(catIdx + 1).padStart(2, '0')
             return (
             <Card
@@ -95,38 +94,16 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
               onClick={() => { setSelectedCategory(cat); setLevel("subcategories"); setCurrentPage(1) }}
             >
               <CardContent className="p-0">
-                {imageUrl ? (
-                  <div className="relative h-[200px]">
-                    <Image
-                      src={imageUrl}
-                      alt={cat}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                    <div className={`${CATEGORY_BADGE_ABSOLUTE} text-xs`} aria-label={`Category ${categoryCode}`}>
-                      {categoryCode}
-                    </div>
-                    <div className="absolute bottom-4 left-5 right-5 text-center">
-                      <h3 className="font-semibold text-base text-white">{cat}</h3>
-                      <p className="text-sm text-white/80 mt-1">
-                        {CATEGORIES[cat]?.subcategories.length || 0} {t("subcategories")}
-                      </p>
-                    </div>
+                <div className="p-8 text-center relative">
+                  <div className={`${CATEGORY_BADGE_ABSOLUTE} text-xs`} aria-label={`Category ${categoryCode}`}>
+                    {categoryCode}
                   </div>
-                ) : (
-                  <div className="p-8 text-center relative">
-                    <div className={`${CATEGORY_BADGE_ABSOLUTE} text-xs`} aria-label={`Category ${categoryCode}`}>
-                      {categoryCode}
-                    </div>
-                    <Package className="h-10 w-10 mx-auto text-primary" />
-                    <h3 className="mt-4 font-semibold text-base">{cat}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {CATEGORIES[cat]?.subcategories.length || 0} {t("subcategories")}
-                    </p>
-                  </div>
-                )}
+                  <Package className="h-10 w-10 mx-auto text-primary" />
+                  <h3 className="mt-4 font-semibold text-base">{cat}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {subcategories.length} {t("subcategories")}
+                  </p>
+                </div>
               </CardContent>
             </Card>
             )
@@ -141,9 +118,8 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
             <ArrowLeft className="h-4 w-4 mr-2" /> {tCommon("back")}
           </Button>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {CATEGORIES[selectedCategory]?.subcategories.map((sub, subIdx) => {
-              const subImageUrl = getSubcategoryImage(sub)
-              const parentIdx = MAIN_CATEGORIES.indexOf(selectedCategory) + 1
+            {(categoryData.categoryMap[selectedCategory] ?? []).map((sub, subIdx) => {
+              const parentIdx = categoryData.mainCategories.indexOf(selectedCategory) + 1
               const subcategoryCode = `${parentIdx}:${subIdx + 1}`
               return (
               <Card
@@ -152,32 +128,13 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
                 onClick={() => { setSelectedSubcategory(sub); setLevel("products"); setCurrentPage(1) }}
               >
                 <CardContent className="p-0">
-                  {subImageUrl ? (
-                    <div className="relative h-[160px]">
-                      <Image
-                        src={subImageUrl}
-                        alt={sub}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                      <div className={SUBCATEGORY_BADGE_ABSOLUTE} aria-label={`Subcategory ${subcategoryCode}`}>
-                        {subcategoryCode}
-                      </div>
-                      <div className="absolute bottom-3 left-4 right-4 text-center">
-                        <h3 className="font-semibold text-sm text-white">{sub}</h3>
-                      </div>
+                  <div className="p-6 text-center relative">
+                    <div className={SUBCATEGORY_BADGE_ABSOLUTE} aria-label={`Subcategory ${subcategoryCode}`}>
+                      {subcategoryCode}
                     </div>
-                  ) : (
-                    <div className="p-6 text-center relative">
-                      <div className={SUBCATEGORY_BADGE_ABSOLUTE} aria-label={`Subcategory ${subcategoryCode}`}>
-                        {subcategoryCode}
-                      </div>
-                      <Package className="h-8 w-8 mx-auto text-primary" />
-                      <h3 className="mt-2 font-semibold text-sm">{sub}</h3>
-                    </div>
-                  )}
+                    <Package className="h-8 w-8 mx-auto text-primary" />
+                    <h3 className="mt-2 font-semibold text-sm">{sub}</h3>
+                  </div>
                 </CardContent>
               </Card>
               )

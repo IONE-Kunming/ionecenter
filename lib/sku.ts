@@ -1,14 +1,12 @@
-import { CATEGORIES, MAIN_CATEGORIES } from "@/types/categories"
-
-const sortedMainCategories = [...MAIN_CATEGORIES].sort((a, b) =>
-  a.localeCompare(b)
-)
+import type { CategoryData } from "@/lib/categories"
+import { getSubcategoriesFromData } from "@/lib/categories"
 
 /**
  * Returns the 1-based alphabetical position of a main category.
  */
-export function getCategoryIndex(mainCategory: string): number {
-  const index = sortedMainCategories.indexOf(mainCategory)
+export function getCategoryIndex(categoryData: CategoryData, mainCategory: string): number {
+  const sorted = [...categoryData.mainCategories].sort((a, b) => a.localeCompare(b))
+  const index = sorted.indexOf(mainCategory)
   if (index === -1) return -1
   return index + 1
 }
@@ -17,14 +15,13 @@ export function getCategoryIndex(mainCategory: string): number {
  * Returns the 1-based alphabetical position of a subcategory within its parent category.
  */
 export function getSubcategoryIndex(
+  categoryData: CategoryData,
   mainCategory: string,
   subcategory: string
 ): number {
-  const category = CATEGORIES[mainCategory]
-  if (!category) return -1
-  const sorted = [...category.subcategories].sort((a, b) =>
-    a.localeCompare(b)
-  )
+  const subs = getSubcategoriesFromData(categoryData, mainCategory)
+  if (subs.length === 0) return -1
+  const sorted = [...subs].sort((a, b) => a.localeCompare(b))
   const index = sorted.indexOf(subcategory)
   if (index === -1) return -1
   return index + 1
@@ -35,11 +32,12 @@ export function getSubcategoryIndex(
  * Format: "categoryIndex-subcategoryIndex-productIndex"
  */
 export function generateSKU(
+  categoryData: CategoryData,
   mainCategory: string,
   subcategory: string,
   productIndex: number
 ): string {
-  const catIdx = getCategoryIndex(mainCategory)
-  const subIdx = getSubcategoryIndex(mainCategory, subcategory)
+  const catIdx = getCategoryIndex(categoryData, mainCategory)
+  const subIdx = getSubcategoryIndex(categoryData, mainCategory, subcategory)
   return `${catIdx}-${subIdx}-${productIndex}`
 }

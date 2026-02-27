@@ -1,10 +1,16 @@
 import { getTranslations } from "next-intl/server"
 import { getProducts } from "@/lib/actions/products"
+import { getSiteCategories } from "@/lib/actions/site-settings"
+import { buildCategoryData } from "@/lib/categories"
 import { BuyerCatalogBrowser } from "@/app/(dashboard)/buyer/catalog/catalog-browser"
 
 export default async function SellerPreviewPage() {
   const t = await getTranslations("sellerProducts")
-  const rawProducts = await getProducts()
+  const [rawProducts, siteCategories] = await Promise.all([
+    getProducts(),
+    getSiteCategories(),
+  ])
+  const categoryData = buildCategoryData(siteCategories)
   const products = rawProducts.map((p) => ({
     id: p.id,
     name: p.name,
@@ -22,7 +28,7 @@ export default async function SellerPreviewPage() {
       <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-primary">
         {t("buyerPreviewBanner")}
       </div>
-      <BuyerCatalogBrowser products={products} />
+      <BuyerCatalogBrowser products={products} categoryData={categoryData} />
     </div>
   )
 }

@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
-import { MAIN_CATEGORIES, getSubcategories } from "@/types/categories"
+import type { CategoryData } from "@/lib/categories"
+import { getSubcategoriesFromData } from "@/lib/categories"
 import type { ImportRow } from "./bulk-edit-table"
 
 interface PreviewRow extends ImportRow {
@@ -21,6 +22,7 @@ interface ImportPreviewProps {
   initialRows: ImportRow[]
   onFinishImport: (rows: ImportRow[], imageFiles: (File | null)[]) => Promise<void>
   importing: boolean
+  categoryData: CategoryData
 }
 
 type ColumnKey = "name" | "model_number" | "main_category" | "category" | "price_per_meter" | "stock" | "description" | "image"
@@ -42,7 +44,7 @@ const DEFAULT_COLUMNS: ColumnDef[] = [
   { key: "image", label: "Image", minWidth: "min-w-[100px]" },
 ]
 
-export function ImportPreview({ open, onClose, initialRows, onFinishImport, importing }: ImportPreviewProps) {
+export function ImportPreview({ open, onClose, initialRows, onFinishImport, importing, categoryData }: ImportPreviewProps) {
   const [rows, setRows] = useState<PreviewRow[]>([])
   const [columns, setColumns] = useState<ColumnDef[]>(DEFAULT_COLUMNS)
   const [draggedCol, setDraggedCol] = useState<number | null>(null)
@@ -66,13 +68,13 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
   const updateMainCategory = useCallback((index: number, value: string) => {
     setRows((prev) => prev.map((r, i) => {
       if (i !== index) return r
-      const subs = getSubcategories(value)
+      const subs = getSubcategoriesFromData(categoryData, value)
       // Keep the current subcategory if it's valid for the new main category
       const lowerCat = r.category.toLowerCase()
       const matched = subs.find((s) => s.toLowerCase() === lowerCat)
       return { ...r, main_category: value, category: matched ?? subs[0] ?? "" }
     }))
-  }, [])
+  }, [categoryData])
 
   const removeRow = useCallback((index: number) => {
     setRows((prev) => {
@@ -208,7 +210,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
           <Select
             value={row.main_category}
             onChange={(e) => updateMainCategory(idx, e.target.value)}
-            options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))}
+            options={categoryData.mainCategories.map((c) => ({ value: c, label: c }))}
             placeholder="Select category"
             className="h-8 text-xs"
           />
@@ -218,7 +220,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
           <Select
             value={row.category}
             onChange={(e) => updateRow(idx, "category", e.target.value)}
-            options={getSubcategories(row.main_category).map((c) => ({ value: c, label: c }))}
+            options={getSubcategoriesFromData(categoryData, row.main_category).map((c) => ({ value: c, label: c }))}
             placeholder="Select subcategory"
             className="h-8 text-xs"
           />

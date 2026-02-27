@@ -14,7 +14,7 @@ import { Pagination } from "@/components/ui/pagination"
 import { Select } from "@/components/ui/select"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency } from "@/lib/utils"
-import { MAIN_CATEGORIES } from "@/types/categories"
+import type { CategoryData } from "@/lib/categories"
 
 interface CatalogProduct {
   id: string
@@ -33,10 +33,12 @@ export function CatalogGrid({
   products,
   basePath = "/guest/product",
   showSignupCta = false,
+  categoryData,
 }: {
   products: CatalogProduct[]
   basePath?: string
   showSignupCta?: boolean
+  categoryData: CategoryData
 }) {
   const searchParams = useSearchParams()
   const t = useTranslations("catalog")
@@ -78,7 +80,7 @@ export function CatalogGrid({
         <Select
           value={categoryFilter}
           onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1) }}
-          options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))}
+          options={categoryData.mainCategories.map((c) => ({ value: c, label: c }))}
           placeholder={tCommon("allCategories")}
           className="w-full sm:w-56"
         />
