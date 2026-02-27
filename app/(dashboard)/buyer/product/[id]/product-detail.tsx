@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useTranslations } from "next-intl"
+import Image from "next/image"
 import { ArrowLeft, Package, ShoppingCart, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -58,8 +59,19 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* Product Image */}
-        <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 rounded-xl flex items-center justify-center">
-          <Package className="h-24 w-24 text-muted-foreground/20" />
+        <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-xl flex items-center justify-center overflow-hidden">
+          {product.image_url ? (
+            <Image
+              src={product.image_url}
+              alt={product.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
+              priority
+            />
+          ) : (
+            <Package className="h-24 w-24 text-muted-foreground/20" />
+          )}
         </div>
 
         {/* Product Info */}
