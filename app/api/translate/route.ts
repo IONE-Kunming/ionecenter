@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const OLLAMA_URL = process.env.OLLAMA_URL || "http://167.71.201.76:11434"
+const OLLAMA_URL = process.env.OLLAMA_URL || ""
 const OLLAMA_USER = process.env.OLLAMA_USER || ""
 const OLLAMA_PASSWORD = process.env.OLLAMA_PASSWORD || ""
 const MODEL = "gemma3:1b"
@@ -9,6 +9,14 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { text, target_language, target_language_name } = body
+
+    if (!OLLAMA_URL) {
+      console.error("OLLAMA_URL environment variable is not configured")
+      return NextResponse.json(
+        { error: "Translation service not configured" },
+        { status: 503 }
+      )
+    }
 
     if (!text || !target_language) {
       return NextResponse.json(
