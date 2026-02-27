@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import { BulkEditTable, type BulkEditProduct, type ImportRow } from "@/components/bulk-edit/bulk-edit-table"
 import { adminBulkUpdateProducts, adminDeleteProduct, adminBulkImportProducts } from "@/lib/actions/admin"
 import { Select } from "@/components/ui/select"
+import type { CategoryData } from "@/lib/categories"
 
 interface AdminProduct extends BulkEditProduct {
   seller_id: string
@@ -18,9 +19,11 @@ interface Seller {
 export function AdminBulkEditList({
   initialProducts,
   sellers,
+  categoryData,
 }: {
   initialProducts: AdminProduct[]
   sellers: Seller[]
+  categoryData: CategoryData
 }) {
   const [selectedSellerId, setSelectedSellerId] = useState("")
 
@@ -82,6 +85,7 @@ export function AdminBulkEditList({
           ? `MANAGING PRODUCTS FOR: ${sellers.find((s) => s.id === selectedSellerId)?.display_name ?? "SELECTED SELLER"}`
           : "ALL SELLER PRODUCTS — INLINE EDITOR"
         }
+        categoryData={categoryData}
       />
     </div>
   )

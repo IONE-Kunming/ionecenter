@@ -3,6 +3,8 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import { generateSKU } from "@/lib/sku"
+import { getSiteCategories } from "./site-settings"
+import { buildCategoryData } from "@/lib/categories"
 import type { User, Product, Order, Invoice } from "@/types/database"
 
 export async function getAdminDashboardStats() {
@@ -222,10 +224,13 @@ export async function adminBulkImportProducts(
     targetSellerId = sellers?.[0]?.id ?? user.id
   }
 
+  const siteCategories = await getSiteCategories()
+  const categoryData = buildCategoryData(siteCategories)
+
   const timestamp = Date.now()
   const insertRows = rows.map((row, i) => ({
     name: row.name,
-    model_number: row.model_number || `IONE-${generateSKU(row.main_category, row.category, timestamp % 10000 + i)}`,
+    model_number: row.model_number || `IONE-${generateSKU(categoryData, row.main_category, row.category, timestamp % 10000 + i)}`,
     main_category: row.main_category,
     category: row.category,
     price_per_meter: row.price_per_meter,

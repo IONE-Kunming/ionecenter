@@ -15,11 +15,11 @@ import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency, getStockStatus } from "@/lib/utils"
-import { MAIN_CATEGORIES, getSubcategories, isMainCategory, getMainCategoryForSubcategory } from "@/types/categories"
 import { createProduct, updateProduct, deleteProduct, bulkImportProducts, uploadProductImage } from "@/lib/actions/products"
-import { getCategoryIndex, getSubcategoryIndex } from "@/lib/sku"
 import { ImportPreview } from "@/components/bulk-edit/import-preview"
 import type { ImportRow } from "@/components/bulk-edit/bulk-edit-table"
+import type { CategoryData } from "@/lib/categories"
+import { getSubcategoriesFromData, isMainCategoryInData, getMainCategoryForSubcategoryInData } from "@/lib/categories"
 import type { Product } from "@/types/database"
 
 function normalizeHeader(h: string): string {
@@ -80,7 +80,7 @@ function downloadTemplate() {
   URL.revokeObjectURL(url)
 }
 
-export function SellerProductsList({ initialProducts, initialSearch = "" }: { initialProducts: Product[]; initialSearch?: string }) {
+export function SellerProductsList({ initialProducts, initialSearch = "", categoryData }: { initialProducts: Product[]; initialSearch?: string; categoryData: CategoryData }) {
   const t = useTranslations("sellerProducts")
   const tCommon = useTranslations("common")
   const tBulk = useTranslations("bulkEdit")
@@ -256,7 +256,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "" }: { in
 
         // If mainCat is empty but subCat looks like a main category, swap them
         const mainCatMatch = !mainCat && subCat
-          ? MAIN_CATEGORIES.find((c) => c.toLowerCase() === subCat.toLowerCase())
+          ? categoryData.mainCategories.find((c) => c.toLowerCase() === subCat.toLowerCase())
           : null
         if (mainCatMatch) {
           mainCat = mainCatMatch
@@ -265,21 +265,21 @@ export function SellerProductsList({ initialProducts, initialSearch = "" }: { in
         }
 
         // If mainCat is not recognized but could be a subcategory, fix it
-        if (mainCat && !isMainCategory(mainCat)) {
-          const parent = getMainCategoryForSubcategory(mainCat)
+        if (mainCat && !isMainCategoryInData(categoryData, mainCat)) {
+          const parent = getMainCategoryForSubcategoryInData(categoryData, mainCat)
           if (parent) {
             subCat = mainCat
             mainCat = parent
           } else {
             // Try case-insensitive match for main category
-            const match = MAIN_CATEGORIES.find((c) => c.toLowerCase() === mainCat.toLowerCase())
+            const match = categoryData.mainCategories.find((c) => c.toLowerCase() === mainCat.toLowerCase())
             if (match) mainCat = match
           }
         }
 
         // If subCat is not in the subcategories of mainCat, try to find a match
         if (mainCat && subCat) {
-          const subs = getSubcategories(mainCat)
+          const subs = getSubcategoriesFromData(categoryData, mainCat)
           if (!subs.includes(subCat)) {
             // Case-insensitive match
             const match = subs.find((s) => s.toLowerCase() === subCat.toLowerCase())
@@ -289,7 +289,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "" }: { in
 
         // If no mainCat yet but subCat is a known subcategory, auto-detect parent
         if (!mainCat && subCat) {
-          const parent = getMainCategoryForSubcategory(subCat)
+          const parent = getMainCategoryForSubcategoryInData(categoryData, subCat)
           if (parent) mainCat = parent
         }
 
@@ -363,7 +363,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "" }: { in
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchProducts")} className="pl-9" />
         </div>
-        <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder={tCommon("allCategories")} className="w-full sm:w-56" />
+        <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} options={categoryData.mainCategories.map((c) => ({ value: c, label: c }))} placeholder={tCommon("allCategories")} className="w-full sm:w-56" />
         <Button onClick={() => setShowAddModal(true)} className="gap-2"><Plus className="h-4 w-4" /> {t("addProduct")}</Button>
         <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2"><Upload className="h-4 w-4" /> {tBulk("bulkImport")}</Button>
       </div>
@@ -424,18 +424,18 @@ export function SellerProductsList({ initialProducts, initialSearch = "" }: { in
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("mainCategory")}</Label>
-                <Select options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder={t("selectCategory")} value={newProduct.main_category} onChange={(e) => { setSelectedCategory(e.target.value); setNewProduct((p) => ({ ...p, main_category: e.target.value, category: "" })) }} />
+                <Select options={categoryData.mainCategories.map((c) => ({ value: c, label: c }))} placeholder={t("selectCategory")} value={newProduct.main_category} onChange={(e) => { setSelectedCategory(e.target.value); setNewProduct((p) => ({ ...p, main_category: e.target.value, category: "" })) }} />
               </div>
               <div className="space-y-2">
                 <Label>{t("subcategory")}</Label>
-                <Select options={getSubcategories(newProduct.main_category || selectedCategory).map((c) => ({ value: c, label: c }))} placeholder={t("selectSubcategory")} value={newProduct.category} onChange={(e) => setNewProduct((p) => ({ ...p, category: e.target.value }))} />
+                <Select options={getSubcategoriesFromData(categoryData, newProduct.main_category || selectedCategory).map((c) => ({ value: c, label: c }))} placeholder={t("selectSubcategory")} value={newProduct.category} onChange={(e) => setNewProduct((p) => ({ ...p, category: e.target.value }))} />
               </div>
             </div>
             {newProduct.main_category && newProduct.category && (
               <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm">
                 <span className="text-muted-foreground">{t("skuPreview")}: </span>
                 <span className="font-mono font-medium text-primary">
-                  IONE-{getCategoryIndex(newProduct.main_category)}-{getSubcategoryIndex(newProduct.main_category, newProduct.category)}-XXXX
+                  IONE-{categoryData.mainCategories.indexOf(newProduct.main_category) + 1}-{(getSubcategoriesFromData(categoryData, newProduct.main_category).indexOf(newProduct.category)) + 1}-XXXX
                 </span>
               </div>
             )}
@@ -511,6 +511,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "" }: { in
         initialRows={previewRows}
         onFinishImport={handleFinishImport}
         importing={importing}
+        categoryData={categoryData}
       />
 
       {/* Edit Product Modal */}
@@ -525,18 +526,18 @@ export function SellerProductsList({ initialProducts, initialSearch = "" }: { in
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("mainCategory")}</Label>
-                <Select options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder={t("selectCategory")} value={editForm.main_category} onChange={(e) => { setEditCategory(e.target.value); setEditForm((f) => ({ ...f, main_category: e.target.value, category: "" })) }} />
+                <Select options={categoryData.mainCategories.map((c) => ({ value: c, label: c }))} placeholder={t("selectCategory")} value={editForm.main_category} onChange={(e) => { setEditCategory(e.target.value); setEditForm((f) => ({ ...f, main_category: e.target.value, category: "" })) }} />
               </div>
               <div className="space-y-2">
                 <Label>{t("subcategory")}</Label>
-                <Select options={getSubcategories(editForm.main_category || editCategory).map((c) => ({ value: c, label: c }))} placeholder={t("selectSubcategory")} value={editForm.category} onChange={(e) => setEditForm((f) => ({ ...f, category: e.target.value }))} />
+                <Select options={getSubcategoriesFromData(categoryData, editForm.main_category || editCategory).map((c) => ({ value: c, label: c }))} placeholder={t("selectSubcategory")} value={editForm.category} onChange={(e) => setEditForm((f) => ({ ...f, category: e.target.value }))} />
               </div>
             </div>
             {editForm.main_category && editForm.category && (
               <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm">
                 <span className="text-muted-foreground">{t("skuPreview")}: </span>
                 <span className="font-mono font-medium text-primary">
-                  IONE-{getCategoryIndex(editForm.main_category)}-{getSubcategoryIndex(editForm.main_category, editForm.category)}-XXXX
+                  IONE-{categoryData.mainCategories.indexOf(editForm.main_category) + 1}-{(getSubcategoriesFromData(categoryData, editForm.main_category).indexOf(editForm.category)) + 1}-XXXX
                 </span>
               </div>
             )}

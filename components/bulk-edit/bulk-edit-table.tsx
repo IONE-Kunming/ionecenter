@@ -15,7 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { cn } from "@/lib/utils"
 import { ImportPreview } from "./import-preview"
 import { uploadProductImage } from "@/lib/actions/products"
-import { MAIN_CATEGORIES, getSubcategories, isMainCategory, getMainCategoryForSubcategory } from "@/types/categories"
+import type { CategoryData } from "@/lib/categories"
+import { getSubcategoriesFromData, isMainCategoryInData, getMainCategoryForSubcategoryInData } from "@/lib/categories"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface BulkEditProduct {
@@ -35,6 +36,7 @@ interface BulkEditTableProps {
   onImport: (rows: ImportRow[]) => Promise<{ error?: string; success?: boolean; count?: number }>
   title?: string
   subtitle?: string
+  categoryData: CategoryData
 }
 
 export interface ImportRow {
@@ -153,6 +155,7 @@ export function BulkEditTable({
   onImport,
   title = "Bulk Edit",
   subtitle = "PRODUCT MANAGEMENT — INLINE EDITOR",
+  categoryData,
 }: BulkEditTableProps) {
   const t = useTranslations("bulkEdit")
   const tCommon = useTranslations("common")
@@ -315,7 +318,7 @@ export function BulkEditTable({
 
         // If mainCat is empty but subCat looks like a main category, swap them
         const mainCatMatch = !mainCat && subCat
-          ? MAIN_CATEGORIES.find((c) => c.toLowerCase() === subCat.toLowerCase())
+          ? categoryData.mainCategories.find((c) => c.toLowerCase() === subCat.toLowerCase())
           : null
         if (mainCatMatch) {
           mainCat = mainCatMatch
@@ -324,21 +327,21 @@ export function BulkEditTable({
         }
 
         // If mainCat is not recognized but could be a subcategory, fix it
-        if (mainCat && !isMainCategory(mainCat)) {
-          const parent = getMainCategoryForSubcategory(mainCat)
+        if (mainCat && !isMainCategoryInData(categoryData, mainCat)) {
+          const parent = getMainCategoryForSubcategoryInData(categoryData, mainCat)
           if (parent) {
             subCat = mainCat
             mainCat = parent
           } else {
             // Try case-insensitive match for main category
-            const match = MAIN_CATEGORIES.find((c) => c.toLowerCase() === mainCat.toLowerCase())
+            const match = categoryData.mainCategories.find((c) => c.toLowerCase() === mainCat.toLowerCase())
             if (match) mainCat = match
           }
         }
 
         // If subCat is not in the subcategories of mainCat, try to find a match
         if (mainCat && subCat) {
-          const subs = getSubcategories(mainCat)
+          const subs = getSubcategoriesFromData(categoryData, mainCat)
           if (!subs.includes(subCat)) {
             // Case-insensitive match
             const match = subs.find((s) => s.toLowerCase() === subCat.toLowerCase())
@@ -348,7 +351,7 @@ export function BulkEditTable({
 
         // If no mainCat yet but subCat is a known subcategory, auto-detect parent
         if (!mainCat && subCat) {
-          const parent = getMainCategoryForSubcategory(subCat)
+          const parent = getMainCategoryForSubcategoryInData(categoryData, subCat)
           if (parent) mainCat = parent
         }
 
@@ -1029,6 +1032,7 @@ export function BulkEditTable({
         initialRows={previewRows}
         onFinishImport={handleFinishImport}
         importing={importing}
+        categoryData={categoryData}
       />
     </div>
   )

@@ -13,7 +13,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency } from "@/lib/utils"
-import { MAIN_CATEGORIES, getSubcategories, isMainCategory, getMainCategoryForSubcategory } from "@/types/categories"
+import type { CategoryData } from "@/lib/categories"
+import { isMainCategoryInData, getMainCategoryForSubcategoryInData, getSubcategoriesFromData } from "@/lib/categories"
 import { adminBulkImportProducts, adminDeleteProduct } from "@/lib/actions/admin"
 import type { Product } from "@/types/database"
 
@@ -49,7 +50,7 @@ function downloadTemplate() {
   URL.revokeObjectURL(url)
 }
 
-export function AdminProductsList({ products, initialSearch = "" }: { products: Product[]; initialSearch?: string }) {
+export function AdminProductsList({ products, initialSearch = "", categoryData }: { products: Product[]; initialSearch?: string; categoryData: CategoryData }) {
   const t = useTranslations("adminProducts")
   const tBulk = useTranslations("bulkEdit")
   const tCommon = useTranslations("common")
@@ -107,7 +108,7 @@ export function AdminProductsList({ products, initialSearch = "" }: { products: 
 
         // If mainCat is empty but subCat looks like a main category, swap them
         const mainCatMatch = !mainCat && subCat
-          ? MAIN_CATEGORIES.find((c) => c.toLowerCase() === subCat.toLowerCase())
+          ? categoryData.mainCategories.find((c) => c.toLowerCase() === subCat.toLowerCase())
           : null
         if (mainCatMatch) {
           mainCat = mainCatMatch
@@ -115,20 +116,20 @@ export function AdminProductsList({ products, initialSearch = "" }: { products: 
         }
 
         // If mainCat is not recognized but could be a subcategory, fix it
-        if (mainCat && !isMainCategory(mainCat)) {
-          const parent = getMainCategoryForSubcategory(mainCat)
+        if (mainCat && !isMainCategoryInData(categoryData, mainCat)) {
+          const parent = getMainCategoryForSubcategoryInData(categoryData, mainCat)
           if (parent) {
             subCat = mainCat
             mainCat = parent
           } else {
-            const match = MAIN_CATEGORIES.find((c) => c.toLowerCase() === mainCat.toLowerCase())
+            const match = categoryData.mainCategories.find((c) => c.toLowerCase() === mainCat.toLowerCase())
             if (match) mainCat = match
           }
         }
 
         // If subCat is not in the subcategories of mainCat, try case-insensitive match
         if (mainCat && subCat) {
-          const subs = getSubcategories(mainCat)
+          const subs = getSubcategoriesFromData(categoryData, mainCat)
           if (!subs.includes(subCat)) {
             const match = subs.find((s) => s.toLowerCase() === subCat.toLowerCase())
             if (match) subCat = match
@@ -137,7 +138,7 @@ export function AdminProductsList({ products, initialSearch = "" }: { products: 
 
         // If no mainCat yet but subCat is a known subcategory, auto-detect parent
         if (!mainCat && subCat) {
-          const parent = getMainCategoryForSubcategory(subCat)
+          const parent = getMainCategoryForSubcategoryInData(categoryData, subCat)
           if (parent) mainCat = parent
         }
 
@@ -176,7 +177,7 @@ export function AdminProductsList({ products, initialSearch = "" }: { products: 
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchProducts")} className="pl-9" />
         </div>
-        <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder={tCommon("allCategories")} className="w-full sm:w-56" />
+        <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} options={categoryData.mainCategories.map((c) => ({ value: c, label: c }))} placeholder={tCommon("allCategories")} className="w-full sm:w-56" />
         <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2">
           <Upload className="h-4 w-4" /> {tBulk("bulkImport")}
         </Button>
