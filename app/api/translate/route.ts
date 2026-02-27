@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { text, target_language, target_language_name } = body
+    const { text, target_language } = body
 
     if (!text || !target_language) {
       return NextResponse.json(
@@ -17,7 +17,11 @@ export async function POST(req: NextRequest) {
     const { data, error } = await supabase.functions.invoke(
       "translate-message",
       {
-        body: { text, target_language, target_language_name },
+        body: {
+          text,
+          targetLanguages: [target_language],
+          sourceLanguage: "auto",
+        },
       }
     )
 
@@ -29,7 +33,10 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    return NextResponse.json(data)
+    // Edge function returns { translations: { [lang]: text }, original, sourceLanguage }
+    const translatedText = data?.translations?.[target_language] ?? text
+
+    return NextResponse.json({ translated_text: translatedText })
   } catch (error) {
     console.error("Translation API error:", error)
     return NextResponse.json(
