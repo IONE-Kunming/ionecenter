@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434"
+const OLLAMA_URL = process.env.OLLAMA_URL || "http://167.71.201.76:11434"
 const OLLAMA_USER = process.env.OLLAMA_USER || ""
 const OLLAMA_PASSWORD = process.env.OLLAMA_PASSWORD || ""
 const MODEL = "gemma3:1b"
