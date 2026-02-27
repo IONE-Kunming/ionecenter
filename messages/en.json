@@ -315,7 +315,18 @@
     "attachFile": "Attach file",
     "selectConversation": "Select a conversation",
     "selectConversationDesc": "Choose a conversation from the sidebar.",
-    "failedUpload": "Failed to upload file"
+    "failedUpload": "Failed to upload file",
+    "translateTo": "Translate",
+    "defaultLanguage": "Default",
+    "english": "English",
+    "chinese": "Chinese",
+    "arabic": "Arabic",
+    "urdu": "Urdu",
+    "translating": "Translating...",
+    "translationFailed": "Translation failed",
+    "mediaAndAttachments": "Media & Attachments",
+    "noMedia": "No media or attachments",
+    "noMediaDesc": "Shared images and documents will appear here."
   },
   "profile": {
     "personalInfo": "Personal Information",

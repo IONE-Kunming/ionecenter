@@ -1,14 +1,16 @@
 "use client"
 
-import { useState, useTransition, useRef, useEffect } from "react"
+import { useState, useTransition, useRef, useEffect, useCallback, useMemo } from "react"
 import { useTranslations } from "next-intl"
-import { MessageSquare, Send, Paperclip, FileText, Loader2 } from "lucide-react"
+import { MessageSquare, Send, Paperclip, FileText, Loader2, Languages, Image as ImageIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/ui/avatar"
 import { EmptyState } from "@/components/ui/empty-state"
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { getMessages, sendMessage, sendAttachment } from "@/lib/actions/chat"
+import { translateText } from "@/lib/translate"
 import { createClient } from "@/lib/supabase/client"
 import { format } from "date-fns"
 import type { Message } from "@/types/database"
@@ -34,7 +36,16 @@ interface ChatClientProps {
   currentUserId: string
   userRole: "buyer" | "seller"
   initialConversationId?: string
+  preferredLanguage: string
 }
+
+const TRANSLATE_LANGUAGES = [
+  { value: "default", labelKey: "defaultLanguage" },
+  { value: "en", labelKey: "english" },
+  { value: "zh", labelKey: "chinese" },
+  { value: "ar", labelKey: "arabic" },
+  { value: "ur", labelKey: "urdu" },
+] as const
 
 function formatMessageTime(dateStr: string | null) {
   if (!dateStr) return ""
@@ -49,7 +60,7 @@ function formatMessageTime(dateStr: string | null) {
   }
 }
 
-export default function ChatClient({ conversations, currentUserId, userRole, initialConversationId }: ChatClientProps) {
+export default function ChatClient({ conversations, currentUserId, userRole, initialConversationId, preferredLanguage }: ChatClientProps) {
   const t = useTranslations("chat")
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
@@ -62,6 +73,85 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Translation state
+  const [translateLang, setTranslateLang] = useState<string | null>(null)
+  const [translations, setTranslations] = useState<Record<string, string>>({})
+  const [translatingIds, setTranslatingIds] = useState<Set<string>>(new Set())
+
+  const resolvedLang = translateLang === "default" ? preferredLanguage : translateLang
+
+  // Translate all text messages when language changes
+  const translateAllMessages = useCallback(
+    async (msgs: Message[], targetLang: string) => {
+      const textMsgs = msgs.filter((m) => m.type === "text" && m.text)
+      if (textMsgs.length === 0) return
+
+      setTranslatingIds(new Set(textMsgs.map((m) => m.id)))
+
+      const results: Record<string, string> = {}
+      await Promise.all(
+        textMsgs.map(async (msg) => {
+          try {
+            const translated = await translateText(msg.text!, targetLang)
+            results[msg.id] = translated
+          } catch {
+            results[msg.id] = t("translationFailed")
+          } finally {
+            setTranslatingIds((prev) => {
+              const next = new Set(prev)
+              next.delete(msg.id)
+              return next
+            })
+          }
+        })
+      )
+
+      setTranslations((prev) => ({ ...prev, ...results }))
+    },
+    [t]
+  )
+
+  // When translate language changes, re-translate all messages
+  useEffect(() => {
+    if (!resolvedLang) {
+      setTranslations({})
+      setTranslatingIds(new Set())
+      return
+    }
+    translateAllMessages(messages, resolvedLang)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolvedLang])
+
+  // Translate a single new message if translation is active
+  const translateSingleMessage = useCallback(
+    async (msg: Message) => {
+      if (!resolvedLang || msg.type !== "text" || !msg.text) return
+      setTranslatingIds((prev) => new Set(prev).add(msg.id))
+      try {
+        const translated = await translateText(msg.text, resolvedLang)
+        setTranslations((prev) => ({ ...prev, [msg.id]: translated }))
+      } catch {
+        setTranslations((prev) => ({ ...prev, [msg.id]: t("translationFailed") }))
+      } finally {
+        setTranslatingIds((prev) => {
+          const next = new Set(prev)
+          next.delete(msg.id)
+          return next
+        })
+      }
+    },
+    [resolvedLang, t]
+  )
+
+  function handleTranslateSelect(langValue: string) {
+    if (langValue === translateLang) {
+      // Toggle off if same language selected again
+      setTranslateLang(null)
+    } else {
+      setTranslateLang(langValue)
+    }
+  }
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
@@ -72,12 +162,13 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
       setSelectedId(initialConversationId)
       setShowSidebar(false)
       setMessages([])
+      setTranslations({})
+      setTranslateLang(null)
       startLoadMessages(async () => {
         const msgs = await getMessages(initialConversationId)
         setMessages(msgs)
       })
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialConversationId, conversations])
 
   // Real-time subscription
@@ -109,6 +200,10 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
             }
             return [...prev, newMsg]
           })
+          // Auto-translate new incoming messages
+          if (newMsg.sender_id !== currentUserId) {
+            translateSingleMessage(newMsg)
+          }
         }
       )
       .subscribe()
@@ -116,7 +211,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [selectedId, currentUserId])
+  }, [selectedId, currentUserId, translateSingleMessage])
 
   function otherParty(conv: ConversationItem): ConversationParty {
     if (conv.buyer_id === currentUserId) return conv.seller ?? { id: conv.seller_id, display_name: "User", company: null }
@@ -127,6 +222,8 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
     setSelectedId(id)
     setShowSidebar(false)
     setMessages([])
+    setTranslations({})
+    setTranslateLang(null)
     startLoadMessages(async () => {
       const msgs = await getMessages(id)
       setMessages(msgs)
@@ -153,6 +250,8 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
       const result = await sendMessage(selectedId, text)
       if (result.message) {
         setMessages((prev) => prev.map((m) => (m.id === optimistic.id ? result.message! : m)))
+        // Translate the sent message too
+        translateSingleMessage(result.message)
       }
     })
   }
@@ -189,6 +288,12 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
 
   const selected = conversations.find((c) => c.id === selectedId)
   const selectedOther = selected ? otherParty(selected) : null
+
+  // Media & attachments for the selected conversation (images and PDFs sorted by date)
+  const mediaMessages = useMemo(
+    () => messages.filter((m) => (m.type === "image" || m.type === "pdf") && m.file_url).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+    [messages]
+  )
 
   return (
     <div className="flex h-[calc(100vh-12rem)] rounded-xl border overflow-hidden">
@@ -235,10 +340,38 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
             <div className="flex items-center gap-3 p-4 border-b">
               <Button variant="ghost" size="sm" className="md:hidden" onClick={() => setShowSidebar(true)}>←</Button>
               <Avatar alt={selectedOther.display_name} fallback={selectedOther.display_name.charAt(0)} size="sm" />
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm">{selectedOther.display_name}</p>
                 {selectedOther.company && <p className="text-xs text-muted-foreground">{selectedOther.company}</p>}
               </div>
+              {/* Translation dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1.5">
+                    <Languages className="h-4 w-4" />
+                    <span className="hidden sm:inline">{t("translateTo")}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {TRANSLATE_LANGUAGES.map((lang) => (
+                    <DropdownMenuItem
+                      key={lang.value}
+                      onClick={() => handleTranslateSelect(lang.value)}
+                      className={cn(translateLang === lang.value && "bg-accent font-medium")}
+                    >
+                      {t(lang.labelKey)}
+                    </DropdownMenuItem>
+                  ))}
+                  {translateLang && (
+                    <DropdownMenuItem
+                      onClick={() => setTranslateLang(null)}
+                      className="text-muted-foreground border-t mt-1 pt-1.5"
+                    >
+                      ✕ {t("translateTo")}
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {loadingMessages && messages.length === 0 && (
@@ -246,8 +379,10 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
               )}
               {messages.map((msg) => {
                 const isMe = msg.sender_id === currentUserId
+                const hasTranslation = translations[msg.id] !== undefined
+                const isTranslating = translatingIds.has(msg.id)
                 return (
-                  <div key={msg.id} className={cn("flex", isMe ? "justify-end" : "justify-start")}>
+                  <div key={msg.id} className={cn("flex flex-col", isMe ? "items-end" : "items-start")}>
                     <div className={cn("max-w-[70%] rounded-lg px-4 py-2 text-sm", isMe ? "bg-primary text-primary-foreground" : "bg-muted")}>
                       {msg.type === "image" && msg.file_url ? (
                         <a href={msg.file_url} target="_blank" rel="noopener noreferrer">
@@ -265,6 +400,19 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                         {formatMessageTime(msg.created_at)}
                       </p>
                     </div>
+                    {/* Translation row */}
+                    {resolvedLang && msg.type === "text" && msg.text && (
+                      <div className={cn("max-w-[70%] mt-1 rounded-md px-3 py-1.5 text-xs border border-dashed", isMe ? "bg-primary/5 text-foreground" : "bg-accent/50 text-foreground")}>
+                        {isTranslating ? (
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            {t("translating")}
+                          </span>
+                        ) : hasTranslation ? (
+                          <p>{translations[msg.id]}</p>
+                        ) : null}
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -306,6 +454,44 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
           <EmptyState icon={MessageSquare} title={t("selectConversation")} description={t("selectConversationDesc")} className="flex-1" />
         )}
       </div>
+
+      {/* Media & Attachments Panel */}
+      {selectedId && selectedOther && (
+        <div className="hidden lg:flex w-64 border-l bg-card flex-col">
+          <div className="p-4 border-b">
+            <h3 className="font-semibold text-sm">{t("mediaAndAttachments")}</h3>
+          </div>
+          <div className="flex-1 overflow-y-auto p-3">
+            {mediaMessages.length === 0 ? (
+              <EmptyState icon={ImageIcon} title={t("noMedia")} description={t("noMediaDesc")} className="py-6" />
+            ) : (
+              <div className="space-y-3">
+                {mediaMessages.map((msg) => (
+                  <a
+                    key={msg.id}
+                    href={msg.file_url!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block rounded-lg border overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all"
+                  >
+                    {msg.type === "image" ? (
+                      <img src={msg.file_url!} alt={msg.file_name ?? t("image")} className="w-full h-32 object-cover" />
+                    ) : (
+                      <div className="flex items-center gap-2 p-3 bg-muted">
+                        <FileText className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                        <span className="text-xs truncate">{msg.file_name ?? t("document")}</span>
+                      </div>
+                    )}
+                    <div className="px-2 py-1 text-xs text-muted-foreground">
+                      {format(new Date(msg.created_at), "MMM d, yyyy")}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

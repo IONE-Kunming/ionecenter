@@ -315,7 +315,18 @@
     "attachFile": "إرفاق ملف",
     "selectConversation": "اختر محادثة",
     "selectConversationDesc": "اختر محادثة من الشريط الجانبي.",
-    "failedUpload": "فشل رفع الملف"
+    "failedUpload": "فشل رفع الملف",
+    "translateTo": "ترجمة",
+    "defaultLanguage": "افتراضي",
+    "english": "الإنجليزية",
+    "chinese": "الصينية",
+    "arabic": "العربية",
+    "urdu": "الأردية",
+    "translating": "جاري الترجمة...",
+    "translationFailed": "فشلت الترجمة",
+    "mediaAndAttachments": "الوسائط والمرفقات",
+    "noMedia": "لا توجد وسائط أو مرفقات",
+    "noMediaDesc": "ستظهر الصور والمستندات المشتركة هنا."
   },
   "profile": {
     "personalInfo": "المعلومات الشخصية",

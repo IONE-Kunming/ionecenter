@@ -315,7 +315,18 @@
     "attachFile": "فائل منسلک کریں",
     "selectConversation": "گفتگو منتخب کریں",
     "selectConversationDesc": "سائیڈبار سے گفتگو منتخب کریں۔",
-    "failedUpload": "فائل اپ لوڈ ناکام"
+    "failedUpload": "فائل اپ لوڈ ناکام",
+    "translateTo": "ترجمہ",
+    "defaultLanguage": "ڈیفالٹ",
+    "english": "انگریزی",
+    "chinese": "چینی",
+    "arabic": "عربی",
+    "urdu": "اردو",
+    "translating": "ترجمہ ہو رہا ہے...",
+    "translationFailed": "ترجمہ ناکام",
+    "mediaAndAttachments": "میڈیا اور اٹیچمنٹس",
+    "noMedia": "کوئی میڈیا یا اٹیچمنٹ نہیں",
+    "noMediaDesc": "مشترکہ تصاویر اور دستاویزات یہاں ظاہر ہوں گی۔"
   },
   "profile": {
     "personalInfo": "ذاتی معلومات",
