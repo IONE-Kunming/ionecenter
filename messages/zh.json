@@ -315,7 +315,18 @@
     "attachFile": "附加文件",
     "selectConversation": "选择对话",
     "selectConversationDesc": "从侧边栏选择一个对话。",
-    "failedUpload": "文件上传失败"
+    "failedUpload": "文件上传失败",
+    "translateTo": "翻译",
+    "defaultLanguage": "默认",
+    "english": "英语",
+    "chinese": "中文",
+    "arabic": "阿拉伯语",
+    "urdu": "乌尔都语",
+    "translating": "翻译中...",
+    "translationFailed": "翻译失败",
+    "mediaAndAttachments": "媒体和附件",
+    "noMedia": "没有媒体或附件",
+    "noMediaDesc": "共享的图片和文档将显示在此处。"
   },
   "profile": {
     "personalInfo": "个人信息",

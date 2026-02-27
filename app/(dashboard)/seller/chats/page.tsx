@@ -8,5 +8,5 @@ export default async function SellerChatsPage({ searchParams }: { searchParams: 
   if (!user) redirect("/sign-in")
   const conversations = await getConversations()
   const { id } = await searchParams
-  return <ChatClient conversations={conversations} currentUserId={user.id} userRole="seller" initialConversationId={id} />
+  return <ChatClient conversations={conversations} currentUserId={user.id} userRole="seller" initialConversationId={id} preferredLanguage={user.preferred_language} />
 }

@@ -87,7 +87,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   const tBulk = useTranslations("bulkEdit")
   const [products, setProducts] = useState(initialProducts)
   const [search, setSearch] = useState(initialSearch)
-  const [categoryFilter, setCategoryFilter] = useState("")
+  const [categoryFilter] = useState("")
   const [showAddModal, setShowAddModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -375,7 +375,6 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchProducts")} className="pl-9" />
         </div>
-        <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} options={categoryData.mainCategories.map((c) => ({ value: c, label: c }))} placeholder={tCommon("allCategories")} className="w-full sm:w-56" />
         <Button onClick={() => setShowAddModal(true)} className="gap-2"><Plus className="h-4 w-4" /> {t("addProduct")}</Button>
         <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2"><Upload className="h-4 w-4" /> {tBulk("bulkImport")}</Button>
       </div>
