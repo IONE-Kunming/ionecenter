@@ -531,7 +531,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
       <Dialog open={!!editProduct} onOpenChange={(v) => { if (!v) setEditProduct(null) }}>
         <DialogContent>
           <DialogHeader><DialogTitle>{t("editProduct")}</DialogTitle></DialogHeader>
-          <div className="space-y-4 mt-4">
+          <div className="space-y-4 mt-4 overflow-y-auto min-h-0 flex-1">
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2"><Label>{t("productName")}</Label><Input value={editForm.name} onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))} /></div>
               <div className="space-y-2"><Label>{t("modelNumber")}</Label><Input value={editForm.model_number} onChange={(e) => setEditForm((f) => ({ ...f, model_number: e.target.value }))} /></div>

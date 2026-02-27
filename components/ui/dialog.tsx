@@ -37,7 +37,7 @@ function DialogContent({
   return (
     <div
       className={cn(
-        "rounded-lg border bg-background p-6 shadow-lg",
+        "rounded-lg border bg-background p-6 shadow-lg max-h-[calc(100vh-2rem)] flex flex-col",
         className
       )}
       {...props}
