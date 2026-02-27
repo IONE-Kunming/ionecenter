@@ -171,7 +171,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
         showToast("success", "Image uploaded")
       }
     } catch {
-      showToast("error", "Failed to upload image. The file may be too large.")
+      showToast("error", "Failed to upload image. Please try again with a smaller file.")
     }
     imageTargetRef.current = null
     setImageTarget(null)
@@ -211,7 +211,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
         showToast("success", "Video uploaded to Supabase")
       }
     } catch {
-      showToast("error", "Failed to upload video. The file may be too large.")
+      showToast("error", "Failed to upload video. Please try again with a smaller file.")
     }
     setLoading(false)
     if (videoInputRef.current) videoInputRef.current.value = ""
