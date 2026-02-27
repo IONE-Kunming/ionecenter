@@ -9,12 +9,6 @@ export default async function GuestCategoriesPage() {
   const siteCategories = await getSiteCategories()
   const categoryData = buildCategoryData(siteCategories)
 
-  // Build a lookup for image_url from site_categories
-  const catImageMap: Record<string, string | null> = {}
-  for (const sc of siteCategories) {
-    catImageMap[sc.name] = sc.image_url
-  }
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -27,7 +21,7 @@ export default async function GuestCategoriesPage() {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {categoryData.mainCategories.map((categoryName) => {
           const subcategories = categoryData.categoryMap[categoryName] ?? []
-          const imageUrl = catImageMap[categoryName] ?? null
+          const imageUrl = categoryData.categoryImageMap[categoryName] ?? null
           return (
             <Link
               key={categoryName}
