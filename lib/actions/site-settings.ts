@@ -90,6 +90,8 @@ export interface SiteCategory {
   parent_id: string | null
   image_url: string | null
   sort_order: number
+  ione_sku: string | null
+  factory_sku: string | null
   created_at: string
   updated_at: string
 }
@@ -107,7 +109,9 @@ export async function getSiteCategories(): Promise<SiteCategory[]> {
 export async function createSiteCategory(
   name: string,
   parentId: string | null,
-  sortOrder: number
+  sortOrder: number,
+  ioneSku?: string | null,
+  factorySku?: string | null
 ) {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return { error: "Not authorized" }
@@ -115,7 +119,7 @@ export async function createSiteCategory(
   const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("site_categories")
-    .insert({ name, parent_id: parentId, sort_order: sortOrder })
+    .insert({ name, parent_id: parentId, sort_order: sortOrder, ione_sku: ioneSku ?? null, factory_sku: factorySku ?? null })
     .select()
     .single()
 
@@ -125,7 +129,7 @@ export async function createSiteCategory(
 
 export async function updateSiteCategory(
   id: string,
-  updates: { name?: string; parent_id?: string | null; sort_order?: number; image_url?: string | null }
+  updates: { name?: string; parent_id?: string | null; sort_order?: number; image_url?: string | null; ione_sku?: string | null; factory_sku?: string | null }
 ) {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return { error: "Not authorized" }

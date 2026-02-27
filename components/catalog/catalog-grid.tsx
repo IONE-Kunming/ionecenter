@@ -33,10 +33,12 @@ export function CatalogGrid({
   products,
   basePath = "/guest/product",
   showSignupCta = false,
+  categoryNames,
 }: {
   products: CatalogProduct[]
   basePath?: string
   showSignupCta?: boolean
+  categoryNames?: string[]
 }) {
   const searchParams = useSearchParams()
   const t = useTranslations("catalog")
@@ -45,6 +47,8 @@ export function CatalogGrid({
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState(initialCategory)
   const [currentPage, setCurrentPage] = useState(1)
+
+  const dropdownCategories = categoryNames ?? MAIN_CATEGORIES
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
@@ -78,7 +82,7 @@ export function CatalogGrid({
         <Select
           value={categoryFilter}
           onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1) }}
-          options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))}
+          options={dropdownCategories.map((c) => ({ value: c, label: c }))}
           placeholder={tCommon("allCategories")}
           className="w-full sm:w-56"
         />
