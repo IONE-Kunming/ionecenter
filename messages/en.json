@@ -142,7 +142,8 @@
     "language": "Language",
     "signOut": "Sign Out",
     "viewAsBuyer": "View as Buyer",
-    "categories": "Categories"
+    "categories": "Categories",
+    "myList": "My List"
   },
   "common": {
     "search": "Search...",
@@ -987,5 +988,10 @@
     "marketingDirector": "Marketing Director",
     "middleEastSalesManager": "Middle East Sales Manager",
     "salesExpert": "Sales Expert"
+  },
+  "wishlist": {
+    "title": "My List",
+    "emptyTitle": "No saved products",
+    "emptyDescription": "Products you like will appear here"
   }
 }

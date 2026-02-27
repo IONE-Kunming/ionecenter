@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { EmptyState } from "@/components/ui/empty-state"
+import { WishlistButton } from "@/components/wishlist-button"
 import { formatCurrency, getStockStatus } from "@/lib/utils"
 import { createProduct, updateProduct, deleteProduct, bulkImportProducts, uploadProductImage } from "@/lib/actions/products"
 import { ImportPreview } from "@/components/bulk-edit/import-preview"
@@ -81,7 +82,7 @@ function downloadTemplate() {
   URL.revokeObjectURL(url)
 }
 
-export function SellerProductsList({ initialProducts, initialSearch = "", categoryData }: { initialProducts: Product[]; initialSearch?: string; categoryData: CategoryData }) {
+export function SellerProductsList({ initialProducts, initialSearch = "", categoryData, wishlistedIds = [] }: { initialProducts: Product[]; initialSearch?: string; categoryData: CategoryData; wishlistedIds?: string[] }) {
   const t = useTranslations("sellerProducts")
   const tCommon = useTranslations("common")
   const tBulk = useTranslations("bulkEdit")
@@ -412,6 +413,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                     <div className="flex gap-2 mt-3">
                       <Button variant="outline" size="sm" className="flex-1 gap-1" onClick={() => openEdit(product)}><Pencil className="h-3 w-3" /> {tCommon("edit")}</Button>
                       <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(product)}><Trash2 className="h-3 w-3" /></Button>
+                      <WishlistButton productId={product.id} initialLiked={wishlistedIds.includes(product.id)} />
                     </div>
                   </div>
                 </CardContent>

@@ -142,7 +142,8 @@
     "language": "اللغة",
     "signOut": "تسجيل الخروج",
     "viewAsBuyer": "عرض كمشتري",
-    "categories": "التصنيفات"
+    "categories": "التصنيفات",
+    "myList": "قائمتي"
   },
   "common": {
     "search": "بحث...",
@@ -992,5 +993,10 @@
     "marketingDirector": "مدير التسويق",
     "middleEastSalesManager": "مدير مبيعات الشرق الأوسط",
     "salesExpert": "خبير مبيعات"
+  },
+  "wishlist": {
+    "title": "قائمتي",
+    "emptyTitle": "لا توجد منتجات محفوظة",
+    "emptyDescription": "المنتجات التي تعجبك ستظهر هنا"
   }
 }

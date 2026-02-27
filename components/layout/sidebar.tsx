@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, FileText, Users, MessageSquare,
   Bell, Settings, HelpCircle, LogOut, ChevronDown, Sun, Moon, Menu, X,
   Building2, Pencil, DollarSign, BarChart3, Receipt, Calculator, Scale,
-  Layers, Store, ClipboardList, Globe, Eye, FolderTree
+  Layers, Store, ClipboardList, Globe, Eye, FolderTree, Heart
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -43,6 +43,7 @@ function getNavItems(role: UserRole, t: TranslationFn): NavItem[] {
       { label: t("dashboard"), href: "/buyer/dashboard", icon: LayoutDashboard },
       { label: t("catalog"), href: "/buyer/catalog", icon: Layers },
       { label: t("allProducts"), href: "/buyer/all-products", icon: Package },
+      { label: t("myList"), href: "/buyer/my-list", icon: Heart },
       { label: t("cart"), href: "/buyer/cart", icon: ShoppingCart },
       { label: t("orders"), href: "/buyer/orders", icon: FileText },
       { label: t("invoices"), href: "/buyer/invoices", icon: Receipt },
@@ -67,6 +68,7 @@ function getNavItems(role: UserRole, t: TranslationFn): NavItem[] {
     return [
       { label: t("dashboard"), href: "/seller/dashboard", icon: LayoutDashboard },
       { label: t("products"), href: "/seller/products", icon: Package },
+      { label: t("myList"), href: "/seller/my-list", icon: Heart },
       { label: t("bulkEdit"), href: "/seller/bulk-edit", icon: Pencil },
       { label: t("orders"), href: "/seller/orders", icon: FileText },
       { label: t("invoices"), href: "/seller/invoices", icon: Receipt },

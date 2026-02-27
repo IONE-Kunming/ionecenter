@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import Link from "@/components/ui/link"
 import Image from "next/image"
-import { Package, Search, ShoppingCart, MessageSquare } from "lucide-react"
+import { Package, Search, ShoppingCart, MessageSquare, Heart } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -12,11 +12,12 @@ import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
 import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
+import { WishlistButton } from "@/components/wishlist-button"
 import { formatCurrency } from "@/lib/utils"
 import type { CategoryData } from "@/lib/categories"
 import type { Product } from "@/types/database"
 
-export function AllProductsList({ products, initialSearch = "", categoryData }: { products: Product[]; initialSearch?: string; categoryData: CategoryData }) {
+export function AllProductsList({ products, initialSearch = "", categoryData, wishlistedIds = [] }: { products: Product[]; initialSearch?: string; categoryData: CategoryData; wishlistedIds?: string[] }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
@@ -75,7 +76,8 @@ export function AllProductsList({ products, initialSearch = "", categoryData }: 
                     <p className="text-xs text-muted-foreground mt-1">{product.model_number}</p>
                     <div className="flex items-center justify-between mt-3">
                       <span className="font-bold text-primary">{formatCurrency(product.price_per_meter)}/m</span>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 items-center">
+                        <WishlistButton productId={product.id} initialLiked={wishlistedIds.includes(product.id)} />
                         <Link href={`/buyer/product/${product.id}`}>
                           <Button size="sm" variant="ghost" title={tChat("chatWithSeller")}><MessageSquare className="h-3.5 w-3.5" /></Button>
                         </Link>
