@@ -142,7 +142,8 @@
     "language": "زبان",
     "signOut": "سائن آؤٹ",
     "viewAsBuyer": "خریدار کے طور پر دیکھیں",
-    "categories": "زمرہ جات"
+    "categories": "زمرہ جات",
+    "myList": "میری فہرست"
   },
   "common": {
     "search": "تلاش...",
@@ -992,5 +993,10 @@
     "marketingDirector": "مارکیٹنگ ڈائریکٹر",
     "middleEastSalesManager": "مشرق وسطیٰ سیلز مینیجر",
     "salesExpert": "سیلز ماہر"
+  },
+  "wishlist": {
+    "title": "میری فہرست",
+    "emptyTitle": "کوئی محفوظ شدہ مصنوعات نہیں",
+    "emptyDescription": "آپ کی پسند کردہ مصنوعات یہاں ظاہر ہوں گی"
   }
 }

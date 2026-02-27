@@ -4,13 +4,14 @@ import { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import Link from "@/components/ui/link"
 import Image from "next/image"
-import { Package, ArrowLeft, Search, ShoppingCart, MessageSquare } from "lucide-react"
+import { Package, ArrowLeft, Search, ShoppingCart, MessageSquare, Heart } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
+import { WishlistButton } from "@/components/wishlist-button"
 import { formatCurrency } from "@/lib/utils"
 import type { CategoryData } from "@/lib/categories"
 
@@ -34,7 +35,7 @@ const CATEGORY_BADGE_BASE = "rounded-full bg-primary text-primary-foreground fle
 const CATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE}`
 const SUBCATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE} text-[10px]`
 
-export function BuyerCatalogBrowser({ products, categoryData }: { products: CatalogProduct[]; categoryData: CategoryData }) {
+export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = [] }: { products: CatalogProduct[]; categoryData: CategoryData; wishlistedIds?: string[] }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
@@ -226,7 +227,8 @@ export function BuyerCatalogBrowser({ products, categoryData }: { products: Cata
                         <p className="text-xs text-muted-foreground">{product.seller_name}</p>
                         <div className="flex items-center justify-between mt-3">
                           <span className="font-bold text-primary">{formatCurrency(product.price_per_meter)}/m</span>
-                          <div className="flex gap-1">
+                          <div className="flex gap-1 items-center">
+                            <WishlistButton productId={product.id} initialLiked={wishlistedIds.includes(product.id)} />
                             <Link href={`/buyer/product/${product.id}`}>
                               <Button size="sm" variant="ghost" title={tChat("chatWithSeller")}><MessageSquare className="h-3.5 w-3.5" /></Button>
                             </Link>

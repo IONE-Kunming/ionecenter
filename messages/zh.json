@@ -142,7 +142,8 @@
     "language": "语言",
     "signOut": "退出登录",
     "viewAsBuyer": "以买家身份预览",
-    "categories": "分类管理"
+    "categories": "分类管理",
+    "myList": "我的收藏"
   },
   "common": {
     "search": "搜索...",
@@ -992,5 +993,10 @@
     "marketingDirector": "营销总监",
     "middleEastSalesManager": "中东销售经理",
     "salesExpert": "销售专家"
+  },
+  "wishlist": {
+    "title": "我的收藏",
+    "emptyTitle": "没有保存的产品",
+    "emptyDescription": "您喜欢的产品将显示在这里"
   }
 }
