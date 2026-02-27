@@ -106,7 +106,6 @@ export function BuyerCatalogBrowser({ products, categoryData }: { products: Cata
                       fill
                       className="object-cover"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      unoptimized
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                     <div className="absolute bottom-3 left-4 right-4">
@@ -164,7 +163,6 @@ export function BuyerCatalogBrowser({ products, categoryData }: { products: Cata
                         fill
                         className="object-cover"
                         sizes="(max-width: 768px) 50vw, 25vw"
-                        unoptimized
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                       <div className="absolute bottom-2 left-3 right-3">

@@ -41,8 +41,16 @@ export async function uploadSiteVideo(formData: FormData) {
     const ext = file.name.split(".").pop() || "mp4"
     const filePath = `videos/homepage-video.${ext}`
 
-    // Remove existing video if any
-    await supabase.storage.from("site-assets").remove([filePath])
+    // Remove all existing video files (may have different extension)
+    const { data: existingFiles } = await supabase.storage.from("site-assets").list("videos")
+    if (existingFiles && existingFiles.length > 0) {
+      const toRemove = existingFiles
+        .filter((f) => f.name.startsWith("homepage-video."))
+        .map((f) => `videos/${f.name}`)
+      if (toRemove.length > 0) {
+        await supabase.storage.from("site-assets").remove(toRemove)
+      }
+    }
 
     const { error: uploadError } = await supabase.storage
       .from("site-assets")
@@ -199,7 +207,7 @@ export async function uploadCategoryImage(categoryId: string, formData: FormData
     const { data: existingFiles } = await supabase.storage.from("site-assets").list("categories")
     if (existingFiles) {
       const toRemove = existingFiles
-        .filter((f) => f.name.startsWith(categoryId))
+        .filter((f) => f.name.startsWith(`${categoryId}.`))
         .map((f) => `categories/${f.name}`)
       if (toRemove.length > 0) {
         await supabase.storage.from("site-assets").remove(toRemove)
@@ -239,7 +247,7 @@ export async function removeCategoryImage(categoryId: string) {
     // List files matching category ID
     const { data: files } = await supabase.storage.from("site-assets").list("categories")
     if (files) {
-      const matching = files.filter((f) => f.name.startsWith(categoryId))
+      const matching = files.filter((f) => f.name.startsWith(`${categoryId}.`))
       if (matching.length > 0) {
         await supabase.storage.from("site-assets").remove(matching.map((f) => `categories/${f.name}`))
       }
