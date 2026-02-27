@@ -52,6 +52,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
   const imageInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
   const [imageTarget, setImageTarget] = useState<string | null>(null)
+  const imageTargetRef = useRef<string | null>(null)
 
   const mainCategories = categories.filter((c) => !c.parent_id).sort((a, b) => a.sort_order - b.sort_order)
   const getSubcategories = (parentId: string) =>
@@ -154,19 +155,25 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
   // ─── Image handlers ────────────────────────────────────
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    if (!imageTarget || !e.target.files?.[0]) return
+    const target = imageTargetRef.current
+    if (!target || !e.target.files?.[0]) return
     setLoading(true)
-    const formData = new FormData()
-    formData.append("file", e.target.files[0])
-    const res = await uploadCategoryImage(imageTarget, formData)
-    if (res.error) {
-      showToast("error", res.error)
-    } else if (res.url) {
-      setCategories((prev) =>
-        prev.map((c) => (c.id === imageTarget ? { ...c, image_url: res.url! } : c))
-      )
-      showToast("success", "Image uploaded")
+    try {
+      const formData = new FormData()
+      formData.append("file", e.target.files[0])
+      const res = await uploadCategoryImage(target, formData)
+      if (res.error) {
+        showToast("error", res.error)
+      } else if (res.url) {
+        setCategories((prev) =>
+          prev.map((c) => (c.id === target ? { ...c, image_url: res.url! } : c))
+        )
+        showToast("success", "Image uploaded")
+      }
+    } catch {
+      showToast("error", "Failed to upload image. The file may be too large.")
     }
+    imageTargetRef.current = null
     setImageTarget(null)
     setLoading(false)
     if (imageInputRef.current) imageInputRef.current.value = ""
@@ -174,12 +181,16 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
 
   async function handleRemoveImage(id: string) {
     setLoading(true)
-    const res = await removeCategoryImage(id)
-    if (res.error) {
-      showToast("error", res.error)
-    } else {
-      setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, image_url: null } : c)))
-      showToast("success", "Image removed")
+    try {
+      const res = await removeCategoryImage(id)
+      if (res.error) {
+        showToast("error", res.error)
+      } else {
+        setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, image_url: null } : c)))
+        showToast("success", "Image removed")
+      }
+    } catch {
+      showToast("error", "Failed to remove image")
     }
     setLoading(false)
   }
@@ -189,14 +200,18 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
   async function handleVideoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files?.[0]) return
     setLoading(true)
-    const formData = new FormData()
-    formData.append("file", e.target.files[0])
-    const res = await uploadSiteVideo(formData)
-    if (res.error) {
-      showToast("error", res.error)
-    } else if (res.url) {
-      setVideoUrl(res.url)
-      showToast("success", "Video uploaded to Supabase")
+    try {
+      const formData = new FormData()
+      formData.append("file", e.target.files[0])
+      const res = await uploadSiteVideo(formData)
+      if (res.error) {
+        showToast("error", res.error)
+      } else if (res.url) {
+        setVideoUrl(res.url)
+        showToast("success", "Video uploaded to Supabase")
+      }
+    } catch {
+      showToast("error", "Failed to upload video. The file may be too large.")
     }
     setLoading(false)
     if (videoInputRef.current) videoInputRef.current.value = ""
@@ -204,12 +219,16 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
 
   async function handleRemoveVideo() {
     setLoading(true)
-    const res = await removeSiteVideo()
-    if (res.error) {
-      showToast("error", res.error)
-    } else {
-      setVideoUrl("")
-      showToast("success", "Video removed — will use local fallback")
+    try {
+      const res = await removeSiteVideo()
+      if (res.error) {
+        showToast("error", res.error)
+      } else {
+        setVideoUrl("")
+        showToast("success", "Video removed — will use local fallback")
+      }
+    } catch {
+      showToast("error", "Failed to remove video")
     }
     setVideoDialogOpen(false)
     setLoading(false)
@@ -304,6 +323,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
               size="icon"
               className="h-7 w-7"
               onClick={() => {
+                imageTargetRef.current = cat.id
                 setImageTarget(cat.id)
                 imageInputRef.current?.click()
               }}
