@@ -70,7 +70,7 @@ export async function getWishlistProducts(): Promise<WishlistProductItem[]> {
   const supabase = createAdminClient()
   const { data } = await supabase
     .from("wishlists")
-    .select("id, product_id, created_at, product:products!product_id(*)")
+    .select("id, product_id, created_at, product:products!product_id(id, name, model_number, category, price_per_meter, stock, image_url)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 
