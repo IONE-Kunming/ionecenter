@@ -22,7 +22,7 @@ const teamMembers = [
   { name: "Khalil Shwaiki", roleKey: "ceoAndFounder", image: "/team/Khalil Shwaiki.png", contain: true },
   { name: "Ye Chenwang", roleKey: "cofounder", image: "/team/Ye Chenwang.png", contain: false },
   { name: "Abed Shwaiki", roleKey: "generalManager", image: "/team/Abed Shwaiki.png", contain: false },
-  { name: "Ihab Ghanemat", roleKey: "boardOfDirectorsMember", image: "/team/Ihab Ghanemat.png", contain: false },
+  { name: "Ihab Ghanemat", roleKey: "executiveVicePresidentAndHeadOfLegalities", image: "/team/Ihab Ghanemat.png", contain: false },
   { name: "Mohamed Zurob", roleKey: "middleEastSalesDirector", image: "/team/Mohamed Zurob.png", contain: false },
   { name: "Mohamed Radwan", roleKey: "svpAndHeadOfCX", image: "/team/Mohamed Radwan.jpg", contain: false },
   { name: "Moxi", roleKey: "chiefOfSecretary", image: "/team/Moxi.png", contain: true },
