@@ -149,23 +149,27 @@ export async function bulkImportProducts(
 }
 
 export async function uploadProductImage(formData: FormData): Promise<{ url?: string; error?: string }> {
-  const user = await getCurrentUser()
-  if (!user) return { error: "Not authenticated" }
+  try {
+    const user = await getCurrentUser()
+    if (!user) return { error: "Not authenticated" }
 
-  const file = formData.get("file") as File
-  if (!file) return { error: "No file provided" }
+    const file = formData.get("file") as File
+    if (!file) return { error: "No file provided" }
 
-  const supabase = createAdminClient()
-  const path = `products/${user.id}/${Date.now()}-${file.name}`
-  const { data, error } = await supabase.storage
-    .from("product-images")
-    .upload(path, file)
+    const supabase = createAdminClient()
+    const path = `products/${user.id}/${Date.now()}-${file.name}`
+    const { data, error } = await supabase.storage
+      .from("product-images")
+      .upload(path, file, { contentType: file.type })
 
-  if (error) return { error: error.message }
+    if (error) return { error: error.message }
 
-  const { data: urlData } = supabase.storage
-    .from("product-images")
-    .getPublicUrl(data.path)
+    const { data: urlData } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(data.path)
 
-  return { url: urlData.publicUrl }
+    return { url: urlData.publicUrl }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Upload failed" }
+  }
 }

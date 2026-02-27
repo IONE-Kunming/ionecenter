@@ -380,17 +380,25 @@ export function BulkEditTable({
     try {
       // Upload images first
       const finalRows = [...rows]
+      let uploadFailures = 0
       for (let i = 0; i < finalRows.length; i++) {
         const file = imageFiles[i]
         if (file) {
-          const formData = new FormData()
-          formData.append("file", file)
-          const result = await uploadProductImage(formData)
-          if (result.url) {
-            finalRows[i] = { ...finalRows[i], image_url: result.url }
-          } else {
-            // Upload failed — clear local path so it doesn't get saved
+          try {
+            const formData = new FormData()
+            formData.append("file", file)
+            const result = await uploadProductImage(formData)
+            if (result.url) {
+              finalRows[i] = { ...finalRows[i], image_url: result.url }
+            } else {
+              // Upload returned error — clear so it doesn't get saved
+              finalRows[i] = { ...finalRows[i], image_url: undefined }
+              uploadFailures++
+            }
+          } catch {
+            // Individual image upload failed — continue with other images
             finalRows[i] = { ...finalRows[i], image_url: undefined }
+            uploadFailures++
           }
         } else if (finalRows[i].image_url && !finalRows[i].image_url!.startsWith("http")) {
           // Clear local file paths that aren't valid server URLs
@@ -402,7 +410,10 @@ export function BulkEditTable({
       if (result.error) {
         showToast(`Import error: ${result.error}`, "error")
       } else {
-        showToast(`✓ ${result.count} products imported`)
+        const msg = uploadFailures > 0
+          ? `✓ ${result.count} products imported (${uploadFailures} image(s) failed to upload)`
+          : `✓ ${result.count} products imported`
+        showToast(msg, uploadFailures > 0 ? "error" : undefined)
         setShowPreview(false)
         setPreviewRows([])
         setImportFile(null)

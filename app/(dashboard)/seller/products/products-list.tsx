@@ -318,17 +318,25 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
     setImporting(true)
     try {
       const finalRows = [...rows]
+      let uploadFailures = 0
       for (let i = 0; i < finalRows.length; i++) {
         const file = imageFiles[i]
         if (file) {
-          const formData = new FormData()
-          formData.append("file", file)
-          const result = await uploadProductImage(formData)
-          if (result.url) {
-            finalRows[i] = { ...finalRows[i], image_url: result.url }
-          } else {
-            // Upload failed — clear local path so it doesn't get saved
+          try {
+            const formData = new FormData()
+            formData.append("file", file)
+            const result = await uploadProductImage(formData)
+            if (result.url) {
+              finalRows[i] = { ...finalRows[i], image_url: result.url }
+            } else {
+              // Upload returned error — clear so it doesn't get saved
+              finalRows[i] = { ...finalRows[i], image_url: undefined }
+              uploadFailures++
+            }
+          } catch {
+            // Individual image upload failed — continue with other images
             finalRows[i] = { ...finalRows[i], image_url: undefined }
+            uploadFailures++
           }
         } else if (finalRows[i].image_url && !finalRows[i].image_url!.startsWith("http")) {
           // Clear local file paths that aren't valid server URLs
@@ -339,6 +347,9 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
       if (result.error) {
         setImporting(false)
         return
+      }
+      if (uploadFailures > 0) {
+        console.warn(`${uploadFailures} image(s) failed to upload during bulk import`)
       }
       setShowPreview(false)
       setPreviewRows([])

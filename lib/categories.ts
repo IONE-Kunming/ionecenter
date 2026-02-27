@@ -9,6 +9,8 @@ export interface CategoryData {
   mainCategories: string[]
   /** Map of main_category_name → subcategory names[] */
   categoryMap: Record<string, string[]>
+  /** Map of category/subcategory name → image URL (from Supabase) */
+  categoryImageMap: Record<string, string | null>
 }
 
 /**
@@ -20,17 +22,23 @@ export function buildCategoryData(siteCategories: SiteCategory[]): CategoryData 
     .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
 
   const categoryMap: Record<string, string[]> = {}
+  const categoryImageMap: Record<string, string | null> = {}
+
   for (const main of mainCats) {
+    categoryImageMap[main.name] = main.image_url
     const subs = siteCategories
       .filter((c) => c.parent_id === main.id)
       .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
-      .map((c) => c.name)
-    categoryMap[main.name] = subs
+    categoryMap[main.name] = subs.map((c) => c.name)
+    for (const sub of subs) {
+      categoryImageMap[sub.name] = sub.image_url
+    }
   }
 
   return {
     mainCategories: mainCats.map((c) => c.name),
     categoryMap,
+    categoryImageMap,
   }
 }
 
