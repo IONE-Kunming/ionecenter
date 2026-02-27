@@ -291,6 +291,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                             <button
                               onClick={() => handleTranslateMessage(msg.id, msg.text!)}
                               disabled={translatingId === msg.id}
+                              aria-label={t("translate")}
                               className="flex items-center gap-1 mt-1 text-xs opacity-70 hover:opacity-100 transition-opacity"
                             >
                               {translatingId === msg.id ? (
@@ -308,6 +309,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                                 delete next[msg.id]
                                 return next
                               })}
+                              aria-label={t("showOriginal")}
                               className="flex items-center gap-1 mt-1 text-xs opacity-70 hover:opacity-100 transition-opacity"
                             >
                               <Globe className="h-3 w-3" />
