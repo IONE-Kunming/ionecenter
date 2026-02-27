@@ -161,13 +161,17 @@ export async function reorderSiteCategories(
   if (!user || user.role !== "admin") return { error: "Not authorized" }
 
   const supabase = createAdminClient()
-  for (const item of items) {
-    const { error } = await supabase
-      .from("site_categories")
-      .update({ sort_order: item.sort_order, updated_at: new Date().toISOString() })
-      .eq("id", item.id)
-    if (error) return { error: error.message }
-  }
+  const now = new Date().toISOString()
+  const results = await Promise.all(
+    items.map((item) =>
+      supabase
+        .from("site_categories")
+        .update({ sort_order: item.sort_order, updated_at: now })
+        .eq("id", item.id)
+    )
+  )
+  const failed = results.find((r) => r.error)
+  if (failed?.error) return { error: failed.error.message }
   return { success: true }
 }
 
