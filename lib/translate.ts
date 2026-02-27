@@ -1,5 +1,3 @@
-import { createClient } from "@/lib/supabase/client"
-
 interface TranslateOptions {
   text: string
   targetLanguage: string    // "en" | "ar" | "zh" | "ur"
@@ -14,14 +12,16 @@ interface TranslateResult {
 }
 
 export async function translate(options: TranslateOptions): Promise<TranslateResult> {
-  const supabase = createClient()
-  const { data, error } = await supabase.functions.invoke("translate", {
-    body: options,
+  const res = await fetch("/api/translate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(options),
   })
 
-  if (error) {
-    return { translated: "", source: options.text, targetLanguage: options.targetLanguage, error: error.message }
+  if (!res.ok) {
+    const err = await res.json()
+    return { translated: "", source: options.text, targetLanguage: options.targetLanguage, error: err.error }
   }
 
-  return data as TranslateResult
+  return res.json()
 }
