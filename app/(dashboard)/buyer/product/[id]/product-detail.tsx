@@ -67,6 +67,7 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 50vw"
+              priority
             />
           ) : (
             <Package className="h-24 w-24 text-muted-foreground/20" />
