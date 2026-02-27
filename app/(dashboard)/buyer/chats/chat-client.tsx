@@ -84,7 +84,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
     } catch {
       // Translation failed silently — original text remains
     }
-    setTranslatingId(null)
+    setTranslatingId((prev) => (prev === msgId ? null : prev))
   }, [translations, userLang])
 
   useEffect(() => {
