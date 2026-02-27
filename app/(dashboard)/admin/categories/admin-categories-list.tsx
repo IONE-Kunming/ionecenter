@@ -4,7 +4,7 @@ import { useState, useRef } from "react"
 import NextImage from "next/image"
 import {
   FolderTree, Plus, Pencil, Trash2, GripVertical,
-  Upload, X, Image as ImageIcon, ChevronDown, ChevronRight, Video,
+  Upload, X, Image as ImageIcon, ChevronDown, ChevronRight,
 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -19,18 +19,14 @@ import {
   reorderSiteCategories,
   uploadCategoryImage,
   removeCategoryImage,
-  uploadSiteVideo,
-  removeSiteVideo,
 } from "@/lib/actions/site-settings"
 
 interface Props {
   categories: SiteCategory[]
-  videoUrl: string
 }
 
-export function AdminCategoriesList({ categories: initialCategories, videoUrl: initialVideoUrl }: Props) {
+export function AdminCategoriesList({ categories: initialCategories }: Props) {
   const [categories, setCategories] = useState(initialCategories)
-  const [videoUrl, setVideoUrl] = useState(initialVideoUrl)
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null)
 
@@ -38,11 +34,12 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [videoDialogOpen, setVideoDialogOpen] = useState(false)
 
   // Form states
   const [formName, setFormName] = useState("")
   const [formParentId, setFormParentId] = useState<string | null>(null)
+  const [formIoneSku, setFormIoneSku] = useState("")
+  const [formFactorySku, setFormFactorySku] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<SiteCategory | null>(null)
 
   // Expanded main categories
@@ -50,7 +47,6 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
 
   // File refs
   const imageInputRef = useRef<HTMLInputElement>(null)
-  const videoInputRef = useRef<HTMLInputElement>(null)
   const [imageTarget, setImageTarget] = useState<string | null>(null)
 
   const mainCategories = categories.filter((c) => !c.parent_id).sort((a, b) => a.sort_order - b.sort_order)
@@ -80,7 +76,13 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
       ? getSubcategories(formParentId)
       : mainCategories
     const sortOrder = siblings.length > 0 ? Math.max(...siblings.map((c) => c.sort_order)) + 1 : 0
-    const res = await createSiteCategory(formName.trim(), formParentId, sortOrder)
+    const res = await createSiteCategory(
+      formName.trim(),
+      formParentId,
+      sortOrder,
+      formIoneSku.trim() || null,
+      formFactorySku.trim() || null
+    )
     if (res.error) {
       showToast("error", res.error)
     } else if (res.category) {
@@ -88,6 +90,8 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
       showToast("success", `Created "${formName.trim()}"`)
       setAddOpen(false)
       setFormName("")
+      setFormIoneSku("")
+      setFormFactorySku("")
       setFormParentId(null)
     }
     setLoading(false)
@@ -96,12 +100,20 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
   async function handleEdit() {
     if (!selectedCategory || !formName.trim()) return
     setLoading(true)
-    const res = await updateSiteCategory(selectedCategory.id, { name: formName.trim() })
+    const res = await updateSiteCategory(selectedCategory.id, {
+      name: formName.trim(),
+      ione_sku: formIoneSku.trim() || null,
+      factory_sku: formFactorySku.trim() || null,
+    })
     if (res.error) {
       showToast("error", res.error)
     } else {
       setCategories((prev) =>
-        prev.map((c) => (c.id === selectedCategory.id ? { ...c, name: formName.trim() } : c))
+        prev.map((c) =>
+          c.id === selectedCategory.id
+            ? { ...c, name: formName.trim(), ione_sku: formIoneSku.trim() || null, factory_sku: formFactorySku.trim() || null }
+            : c
+        )
       )
       showToast("success", `Updated to "${formName.trim()}"`)
       setEditOpen(false)
@@ -184,37 +196,6 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
     setLoading(false)
   }
 
-  // ─── Video handlers ────────────────────────────────────
-
-  async function handleVideoUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    if (!e.target.files?.[0]) return
-    setLoading(true)
-    const formData = new FormData()
-    formData.append("file", e.target.files[0])
-    const res = await uploadSiteVideo(formData)
-    if (res.error) {
-      showToast("error", res.error)
-    } else if (res.url) {
-      setVideoUrl(res.url)
-      showToast("success", "Video uploaded to Supabase")
-    }
-    setLoading(false)
-    if (videoInputRef.current) videoInputRef.current.value = ""
-  }
-
-  async function handleRemoveVideo() {
-    setLoading(true)
-    const res = await removeSiteVideo()
-    if (res.error) {
-      showToast("error", res.error)
-    } else {
-      setVideoUrl("")
-      showToast("success", "Video removed — will use local fallback")
-    }
-    setVideoDialogOpen(false)
-    setLoading(false)
-  }
-
   // ─── Category Row ──────────────────────────────────────
 
   function CategoryRow({ cat, isMain }: { cat: SiteCategory; isMain: boolean }) {
@@ -266,6 +247,18 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
           <span className={`flex-1 text-sm ${isMain ? "font-medium" : "text-muted-foreground"}`}>
             {cat.name}
           </span>
+
+          {/* SKU codes */}
+          {cat.ione_sku && (
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded" title="IONE SKU">
+              IONE: {cat.ione_sku}
+            </span>
+          )}
+          {cat.factory_sku && (
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded" title="Factory SKU">
+              Factory: {cat.factory_sku}
+            </span>
+          )}
 
           {/* Sub count */}
           {isMain && subs.length > 0 && (
@@ -333,6 +326,8 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
               onClick={() => {
                 setSelectedCategory(cat)
                 setFormName(cat.name)
+                setFormIoneSku(cat.ione_sku || "")
+                setFormFactorySku(cat.factory_sku || "")
                 setEditOpen(true)
               }}
               title="Edit"
@@ -363,6 +358,8 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
                 onClick={() => {
                   setFormParentId(cat.id)
                   setFormName("")
+                  setFormIoneSku("")
+                  setFormFactorySku("")
                   setAddOpen(true)
                 }}
                 title="Add subcategory"
@@ -406,61 +403,6 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
         className="hidden"
         onChange={handleImageUpload}
       />
-      <input
-        ref={videoInputRef}
-        type="file"
-        accept="video/*"
-        className="hidden"
-        onChange={handleVideoUpload}
-      />
-
-      {/* ─── Homepage Video Section ───────────────────── */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Video className="h-5 w-5" />
-            <h2 className="text-lg font-semibold">Homepage Video</h2>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              onClick={() => videoInputRef.current?.click()}
-              disabled={loading}
-            >
-              <Upload className="h-4 w-4 mr-1" />
-              {videoUrl ? "Replace Video" : "Upload Video"}
-            </Button>
-            {videoUrl && (
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => setVideoDialogOpen(true)}
-                disabled={loading}
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Remove
-              </Button>
-            )}
-          </div>
-        </div>
-        <p className="text-sm text-muted-foreground mb-3">
-          Upload a video to Supabase storage for the &quot;Ready to Start Trading?&quot; section. Videos served from Supabase CDN load faster globally.
-        </p>
-        {videoUrl ? (
-          <div className="rounded-lg overflow-hidden border border-border max-w-xl">
-            <video className="w-full" controls preload="metadata">
-              <source src={videoUrl} type="video/mp4" />
-            </video>
-            <p className="text-xs text-muted-foreground px-3 py-2 bg-muted truncate">
-              {videoUrl}
-            </p>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground italic">
-            No Supabase video set — using local fallback (/Our Factory.mp4)
-          </p>
-        )}
-      </Card>
 
       {/* ─── Categories Management ────────────────────── */}
       <Card className="p-6">
@@ -474,6 +416,8 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
             onClick={() => {
               setFormParentId(null)
               setFormName("")
+              setFormIoneSku("")
+              setFormFactorySku("")
               setAddOpen(true)
             }}
           >
@@ -508,17 +452,36 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
               {formParentId ? "Add Subcategory" : "Add Category"}
             </DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <label className="text-sm font-medium">Name</label>
-            <Input
-              value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              placeholder="Enter category name"
-              className="mt-1"
-              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            />
+          <div className="py-4 space-y-4">
+            <div>
+              <label className="text-sm font-medium">Name</label>
+              <Input
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                placeholder="Enter category name"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">IONE SKU Code</label>
+              <Input
+                value={formIoneSku}
+                onChange={(e) => setFormIoneSku(e.target.value)}
+                placeholder="e.g. IONE-001"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Factory SKU Code</label>
+              <Input
+                value={formFactorySku}
+                onChange={(e) => setFormFactorySku(e.target.value)}
+                placeholder="e.g. FAC-001"
+                className="mt-1"
+              />
+            </div>
             {formParentId && (
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-xs text-muted-foreground">
                 Adding under: {categories.find((c) => c.id === formParentId)?.name}
               </p>
             )}
@@ -540,15 +503,34 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <label className="text-sm font-medium">Name</label>
-            <Input
-              value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              placeholder="Enter category name"
-              className="mt-1"
-              onKeyDown={(e) => e.key === "Enter" && handleEdit()}
-            />
+          <div className="py-4 space-y-4">
+            <div>
+              <label className="text-sm font-medium">Name</label>
+              <Input
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                placeholder="Enter category name"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">IONE SKU Code</label>
+              <Input
+                value={formIoneSku}
+                onChange={(e) => setFormIoneSku(e.target.value)}
+                placeholder="e.g. IONE-001"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Factory SKU Code</label>
+              <Input
+                value={formFactorySku}
+                onChange={(e) => setFormFactorySku(e.target.value)}
+                placeholder="e.g. FAC-001"
+                className="mt-1"
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>
@@ -577,26 +559,6 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={loading}>
               {loading ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ─── Remove Video Dialog ──────────────────────── */}
-      <Dialog open={videoDialogOpen} onOpenChange={setVideoDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Remove Homepage Video</DialogTitle>
-          </DialogHeader>
-          <p className="py-4 text-sm text-muted-foreground">
-            Are you sure? The homepage will revert to using the local video file.
-          </p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setVideoDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleRemoveVideo} disabled={loading}>
-              {loading ? "Removing..." : "Remove"}
             </Button>
           </DialogFooter>
         </DialogContent>
