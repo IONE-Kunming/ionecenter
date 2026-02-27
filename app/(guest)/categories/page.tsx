@@ -1,48 +1,20 @@
 import Link from "@/components/ui/link"
 import Image from "next/image"
-import {
-  Building2, Shirt, Car, Briefcase, FlaskConical, Monitor, Smartphone, Zap,
-  Cpu, Sun, Leaf, UtensilsCrossed, Armchair, Gamepad2, Wrench, Heart,
-  TreePine, Refrigerator, Crosshair, Lightbulb, Luggage, Factory, Ruler,
-  Gem, Printer, Shield, Footprints, Scissors, Truck, Package,
-} from "lucide-react"
+import { Package } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { CATEGORIES, MAIN_CATEGORIES } from "@/types/categories"
-import { getCategoryImage } from "@/lib/constants/category-images"
+import { getSiteCategories } from "@/lib/actions/site-settings"
+import { buildCategoryData } from "@/lib/categories"
 
-const categoryIcons: Record<string, React.ElementType> = {
-  "Construction": Building2,
-  "Apparel & Accessories": Shirt,
-  "Automobiles & Motorcycles": Car,
-  "Business Services": Briefcase,
-  "Chemicals": FlaskConical,
-  "Computer Products & Office Electronics": Monitor,
-  "Consumer Electronics": Smartphone,
-  "Electrical Equipment & Supplies": Zap,
-  "Electronics Components & Supplies": Cpu,
-  "Energy": Sun,
-  "Environment": Leaf,
-  "Food & Beverage": UtensilsCrossed,
-  "Furniture": Armchair,
-  "Gifts, Sports & Toys": Gamepad2,
-  "Hardware": Wrench,
-  "Health & Beauty": Heart,
-  "Home & Garden": TreePine,
-  "Home Appliances": Refrigerator,
-  "Industry Laser Equipment": Crosshair,
-  "Lights & Lighting": Lightbulb,
-  "Luggage, Bags & Cases": Luggage,
-  "Machinery": Factory,
-  "Measurement & Analysis Instruments": Ruler,
-  "Metallurgy, Mineral & Energy": Gem,
-  "Packaging & Printing": Printer,
-  "Security & Protection": Shield,
-  "Shoes & Accessories": Footprints,
-  "Textiles & Leather Products": Scissors,
-  "Transportation": Truck,
-}
+export default async function GuestCategoriesPage() {
+  const siteCategories = await getSiteCategories()
+  const categoryData = buildCategoryData(siteCategories)
 
-export default function GuestCategoriesPage() {
+  // Build a lookup for image_url from site_categories
+  const catImageMap: Record<string, string | null> = {}
+  for (const sc of siteCategories) {
+    catImageMap[sc.name] = sc.image_url
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -53,10 +25,9 @@ export default function GuestCategoriesPage() {
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {MAIN_CATEGORIES.map((categoryName) => {
-          const category = CATEGORIES[categoryName]
-          const Icon = categoryIcons[categoryName] || Package
-          const imageUrl = getCategoryImage(categoryName)
+        {categoryData.mainCategories.map((categoryName) => {
+          const subcategories = categoryData.categoryMap[categoryName] ?? []
+          const imageUrl = catImageMap[categoryName] ?? null
           return (
             <Link
               key={categoryName}
@@ -80,14 +51,14 @@ export default function GuestCategoriesPage() {
                 ) : (
                   <div className="p-6 pb-0">
                     <div className="rounded-full bg-primary/10 p-3 w-fit group-hover:bg-primary/20 transition-colors">
-                      <Icon className="h-6 w-6 text-primary" />
+                      <Package className="h-6 w-6 text-primary" />
                     </div>
                     <h3 className="mt-4 font-semibold">{categoryName}</h3>
                   </div>
                 )}
                 <CardContent className="p-6 pt-3">
                   <ul className="space-y-1">
-                    {category.subcategories.map((sub) => (
+                    {subcategories.map((sub) => (
                       <li key={sub} className="text-sm text-muted-foreground">
                         • {sub}
                       </li>

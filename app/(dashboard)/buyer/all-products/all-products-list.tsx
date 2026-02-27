@@ -13,10 +13,10 @@ import { Select } from "@/components/ui/select"
 import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency } from "@/lib/utils"
-import { MAIN_CATEGORIES } from "@/types/categories"
+import type { CategoryData } from "@/lib/categories"
 import type { Product } from "@/types/database"
 
-export function AllProductsList({ products, initialSearch = "" }: { products: Product[]; initialSearch?: string }) {
+export function AllProductsList({ products, initialSearch = "", categoryData }: { products: Product[]; initialSearch?: string; categoryData: CategoryData }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
@@ -43,7 +43,7 @@ export function AllProductsList({ products, initialSearch = "" }: { products: Pr
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }} placeholder={tCommon("searchProducts")} className="pl-9" />
         </div>
-        <Select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1) }} options={MAIN_CATEGORIES.map((c) => ({ value: c, label: c }))} placeholder={tCommon("allCategories")} className="w-full sm:w-56" />
+        <Select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1) }} options={categoryData.mainCategories.map((c) => ({ value: c, label: c }))} placeholder={tCommon("allCategories")} className="w-full sm:w-56" />
       </div>
 
       {paginated.length > 0 ? (
