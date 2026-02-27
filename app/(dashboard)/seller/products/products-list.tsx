@@ -20,6 +20,7 @@ import { ImportPreview } from "@/components/bulk-edit/import-preview"
 import type { ImportRow } from "@/components/bulk-edit/bulk-edit-table"
 import type { CategoryData } from "@/lib/categories"
 import { getSubcategoriesFromData, isMainCategoryInData, getMainCategoryForSubcategoryInData } from "@/lib/categories"
+import { getCategoryIndex, getSubcategoryIndex } from "@/lib/sku"
 import type { Product } from "@/types/database"
 
 function normalizeHeader(h: string): string {
@@ -435,7 +436,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
               <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm">
                 <span className="text-muted-foreground">{t("skuPreview")}: </span>
                 <span className="font-mono font-medium text-primary">
-                  IONE-{categoryData.mainCategories.indexOf(newProduct.main_category) + 1}-{(getSubcategoriesFromData(categoryData, newProduct.main_category).indexOf(newProduct.category)) + 1}-XXXX
+                  IONE-{getCategoryIndex(categoryData, newProduct.main_category)}-{getSubcategoryIndex(categoryData, newProduct.main_category, newProduct.category)}-XXXX
                 </span>
               </div>
             )}
@@ -537,7 +538,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
               <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm">
                 <span className="text-muted-foreground">{t("skuPreview")}: </span>
                 <span className="font-mono font-medium text-primary">
-                  IONE-{categoryData.mainCategories.indexOf(editForm.main_category) + 1}-{(getSubcategoriesFromData(categoryData, editForm.main_category).indexOf(editForm.category)) + 1}-XXXX
+                  IONE-{getCategoryIndex(categoryData, editForm.main_category)}-{getSubcategoryIndex(categoryData, editForm.main_category, editForm.category)}-XXXX
                 </span>
               </div>
             )}
