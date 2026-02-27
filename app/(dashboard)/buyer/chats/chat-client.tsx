@@ -96,16 +96,11 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
             results[msg.id] = translated
           } catch {
             results[msg.id] = t("translationFailed")
-          } finally {
-            setTranslatingIds((prev) => {
-              const next = new Set(prev)
-              next.delete(msg.id)
-              return next
-            })
           }
         })
       )
 
+      setTranslatingIds(new Set())
       setTranslations((prev) => ({ ...prev, ...results }))
     },
     [t]
