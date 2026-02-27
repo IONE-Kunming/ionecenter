@@ -141,7 +141,8 @@
     "darkMode": "الوضع الداكن",
     "language": "اللغة",
     "signOut": "تسجيل الخروج",
-    "viewAsBuyer": "عرض كمشتري"
+    "viewAsBuyer": "عرض كمشتري",
+    "categories": "التصنيفات"
   },
   "common": {
     "search": "بحث...",

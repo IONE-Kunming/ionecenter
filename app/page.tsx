@@ -7,6 +7,7 @@ import {
 import { getTranslations } from "next-intl/server"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { getSiteSetting } from "@/lib/actions/site-settings"
 
 const serviceKeys = [
   { num: "01", title: "secureTrading", desc: "secureTradingDesc" },
@@ -53,6 +54,15 @@ export default async function LandingPage() {
   const ctaT = await getTranslations("cta")
   const footerT = await getTranslations("footer")
   const teamT = await getTranslations("team")
+
+  // Fetch video URL from Supabase site settings, fall back to local file
+  let videoSrc = "/Our%20Factory.mp4"
+  try {
+    const supabaseVideoUrl = await getSiteSetting("homepage_video_url")
+    if (supabaseVideoUrl) videoSrc = supabaseVideoUrl
+  } catch {
+    // Fallback to local video if site_settings table doesn't exist yet
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -291,7 +301,7 @@ export default async function LandingPage() {
                 preload="metadata"
                 poster=""
               >
-                <source src="/Our%20Factory.mp4" type="video/mp4" />
+                <source src={videoSrc} type="video/mp4" />
               </video>
             </div>
           </div>

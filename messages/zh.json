@@ -141,7 +141,8 @@
     "darkMode": "深色模式",
     "language": "语言",
     "signOut": "退出登录",
-    "viewAsBuyer": "以买家身份预览"
+    "viewAsBuyer": "以买家身份预览",
+    "categories": "分类管理"
   },
   "common": {
     "search": "搜索...",
