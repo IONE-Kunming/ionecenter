@@ -1,8 +1,11 @@
 import { getProducts } from "@/lib/actions/products"
+import { getSiteCategories } from "@/lib/actions/site-settings"
+import { buildCategoryData } from "@/lib/category-data"
 import { BuyerCatalogBrowser } from "./catalog-browser"
 
 export default async function BuyerCatalogPage() {
-  const products = await getProducts()
+  const [products, allCategories] = await Promise.all([getProducts(), getSiteCategories()])
+  const categoryData = buildCategoryData(allCategories)
 
   const mapped = products.map((p) => ({
     id: p.id,
@@ -16,5 +19,5 @@ export default async function BuyerCatalogPage() {
     image_url: p.image_url ?? null,
   }))
 
-  return <BuyerCatalogBrowser products={mapped} />
+  return <BuyerCatalogBrowser products={mapped} categoryData={categoryData} />
 }

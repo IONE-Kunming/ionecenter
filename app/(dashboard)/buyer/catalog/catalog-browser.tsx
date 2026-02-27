@@ -12,8 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency } from "@/lib/utils"
-import { CATEGORIES, MAIN_CATEGORIES } from "@/types/categories"
-import { getCategoryImage, getSubcategoryImage } from "@/lib/constants/category-images"
+import type { CategoryData } from "@/lib/category-data"
 
 type BrowseLevel = "categories" | "subcategories" | "products"
 
@@ -35,7 +34,7 @@ const CATEGORY_BADGE_BASE = "rounded-full bg-primary text-primary-foreground fle
 const CATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE}`
 const SUBCATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE} text-[10px]`
 
-export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }) {
+export function BuyerCatalogBrowser({ products, categoryData }: { products: CatalogProduct[]; categoryData: CategoryData }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
@@ -85,8 +84,8 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
       {/* Category Grid */}
       {level === "categories" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {MAIN_CATEGORIES.map((cat, catIdx) => {
-            const imageUrl = getCategoryImage(cat)
+          {categoryData.mainCategories.map((cat, catIdx) => {
+            const imageUrl = null
             const categoryCode = String(catIdx + 1).padStart(2, '0')
             return (
             <Card
@@ -111,7 +110,7 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
                     <div className="absolute bottom-4 left-5 right-5 text-center">
                       <h3 className="font-semibold text-base text-white">{cat}</h3>
                       <p className="text-sm text-white/80 mt-1">
-                        {CATEGORIES[cat]?.subcategories.length || 0} {t("subcategories")}
+                        {(categoryData.subcategoryMap[cat] || []).length} {t("subcategories")}
                       </p>
                     </div>
                   </div>
@@ -123,7 +122,7 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
                     <Package className="h-10 w-10 mx-auto text-primary" />
                     <h3 className="mt-4 font-semibold text-base">{cat}</h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {CATEGORIES[cat]?.subcategories.length || 0} {t("subcategories")}
+                      {(categoryData.subcategoryMap[cat] || []).length} {t("subcategories")}
                     </p>
                   </div>
                 )}
@@ -141,9 +140,9 @@ export function BuyerCatalogBrowser({ products }: { products: CatalogProduct[] }
             <ArrowLeft className="h-4 w-4 mr-2" /> {tCommon("back")}
           </Button>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {CATEGORIES[selectedCategory]?.subcategories.map((sub, subIdx) => {
-              const subImageUrl = getSubcategoryImage(sub)
-              const parentIdx = MAIN_CATEGORIES.indexOf(selectedCategory) + 1
+            {(categoryData.subcategoryMap[selectedCategory] || []).map((sub, subIdx) => {
+              const subImageUrl = null
+              const parentIdx = categoryData.mainCategories.indexOf(selectedCategory) + 1
               const subcategoryCode = `${parentIdx}:${subIdx + 1}`
               return (
               <Card
