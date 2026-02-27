@@ -315,7 +315,9 @@
     "attachFile": "附加文件",
     "selectConversation": "选择对话",
     "selectConversationDesc": "从侧边栏选择一个对话。",
-    "failedUpload": "文件上传失败"
+    "failedUpload": "文件上传失败",
+    "translate": "翻译",
+    "showOriginal": "显示原文"
   },
   "profile": {
     "personalInfo": "个人信息",

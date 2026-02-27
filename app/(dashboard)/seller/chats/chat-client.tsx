@@ -1,13 +1,15 @@
 "use client"
 
-import { useState, useTransition, useRef, useEffect } from "react"
+import { useState, useTransition, useRef, useEffect, useCallback } from "react"
 import { useTranslations } from "next-intl"
-import { MessageSquare, Send, Paperclip, FileText, Loader2 } from "lucide-react"
+import { useLocale } from "next-intl"
+import { MessageSquare, Send, Paperclip, FileText, Loader2, Globe } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/ui/avatar"
 import { EmptyState } from "@/components/ui/empty-state"
 import { cn } from "@/lib/utils"
+import { translate } from "@/lib/translate"
 import { getMessages, sendMessage, sendAttachment } from "@/lib/actions/chat"
 import { createClient } from "@/lib/supabase/client"
 import { format } from "date-fns"
@@ -51,6 +53,7 @@ function formatMessageTime(dateStr: string | null) {
 
 export default function ChatClient({ conversations, currentUserId, userRole, initialConversationId }: ChatClientProps) {
   const t = useTranslations("chat")
+  const locale = useLocale()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [message, setMessage] = useState("")
@@ -59,8 +62,30 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
   const [sending, startSend] = useTransition()
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [userLang, setUserLang] = useState(locale)
+  const [translations, setTranslations] = useState<Record<string, string>>({})
+  const [translatingId, setTranslatingId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Sync userLang with locale changes
+  useEffect(() => {
+    setUserLang(locale)
+  }, [locale])
+
+  const handleTranslateMessage = useCallback(async (msgId: string, text: string) => {
+    if (translations[msgId] || !text) return
+    setTranslatingId(msgId)
+    try {
+      const result = await translate({ text, targetLanguage: userLang })
+      if (result.translated) {
+        setTranslations((prev) => ({ ...prev, [msgId]: result.translated }))
+      }
+    } catch {
+      // Translation failed silently — original text remains
+    }
+    setTranslatingId((prev) => (prev === msgId ? null : prev))
+  }, [translations, userLang])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -246,6 +271,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
               )}
               {messages.map((msg) => {
                 const isMe = msg.sender_id === currentUserId
+                const translatedText = translations[msg.id]
                 return (
                   <div key={msg.id} className={cn("flex", isMe ? "justify-end" : "justify-start")}>
                     <div className={cn("max-w-[70%] rounded-lg px-4 py-2 text-sm", isMe ? "bg-primary text-primary-foreground" : "bg-muted")}>
@@ -259,7 +285,38 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                           <span className="truncate">{msg.file_name ?? t("document")}</span>
                         </a>
                       ) : (
-                        <p>{msg.text}</p>
+                        <>
+                          <p>{translatedText ?? msg.text}</p>
+                          {msg.text && !isMe && !translatedText && (
+                            <button
+                              onClick={() => handleTranslateMessage(msg.id, msg.text!)}
+                              disabled={translatingId === msg.id}
+                              aria-label={t("translate")}
+                              className="flex items-center gap-1 mt-1 text-xs opacity-70 hover:opacity-100 transition-opacity"
+                            >
+                              {translatingId === msg.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Globe className="h-3 w-3" />
+                              )}
+                              {t("translate")}
+                            </button>
+                          )}
+                          {translatedText && (
+                            <button
+                              onClick={() => setTranslations((prev) => {
+                                const next = { ...prev }
+                                delete next[msg.id]
+                                return next
+                              })}
+                              aria-label={t("showOriginal")}
+                              className="flex items-center gap-1 mt-1 text-xs opacity-70 hover:opacity-100 transition-opacity"
+                            >
+                              <Globe className="h-3 w-3" />
+                              {t("showOriginal")}
+                            </button>
+                          )}
+                        </>
                       )}
                       <p className={cn("text-xs mt-1", isMe ? "text-primary-foreground/70" : "text-muted-foreground")}>
                         {formatMessageTime(msg.created_at)}
