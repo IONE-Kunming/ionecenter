@@ -315,7 +315,9 @@
     "attachFile": "إرفاق ملف",
     "selectConversation": "اختر محادثة",
     "selectConversationDesc": "اختر محادثة من الشريط الجانبي.",
-    "failedUpload": "فشل رفع الملف"
+    "failedUpload": "فشل رفع الملف",
+    "translate": "ترجمة",
+    "showOriginal": "عرض الأصل"
   },
   "profile": {
     "personalInfo": "المعلومات الشخصية",

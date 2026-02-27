@@ -315,7 +315,9 @@
     "attachFile": "Attach file",
     "selectConversation": "Select a conversation",
     "selectConversationDesc": "Choose a conversation from the sidebar.",
-    "failedUpload": "Failed to upload file"
+    "failedUpload": "Failed to upload file",
+    "translate": "Translate",
+    "showOriginal": "Show original"
   },
   "profile": {
     "personalInfo": "Personal Information",

@@ -315,7 +315,9 @@
     "attachFile": "فائل منسلک کریں",
     "selectConversation": "گفتگو منتخب کریں",
     "selectConversationDesc": "سائیڈبار سے گفتگو منتخب کریں۔",
-    "failedUpload": "فائل اپ لوڈ ناکام"
+    "failedUpload": "فائل اپ لوڈ ناکام",
+    "translate": "ترجمہ",
+    "showOriginal": "اصل دکھائیں"
   },
   "profile": {
     "personalInfo": "ذاتی معلومات",
