@@ -166,8 +166,7 @@ export default function CartClient({ items: initialItems, sellerMap }: { items: 
             </div>
             <p className="text-xs text-muted-foreground">
               {Object.keys(groupedBySeller).length > 1 
-                ? `${Object.keys(groupedBySeller).length} separate orders will be created (one per seller)`
-                : ""}
+                && `${Object.keys(groupedBySeller).length} separate orders will be created (one per seller)`}
             </p>
             <Link href="/buyer/checkout" className="block">
               <Button className="w-full mt-4">{t("proceedCheckout")}</Button>
