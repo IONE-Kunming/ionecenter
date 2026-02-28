@@ -999,5 +999,14 @@
     "title": "我的收藏",
     "emptyTitle": "没有保存的产品",
     "emptyDescription": "您喜欢的产品将显示在这里"
+  },
+  "orderConfirmation": {
+    "title": "订单已成功提交！",
+    "description": "您的订单已提交并正在处理中。卖家审核后您将收到更新通知。",
+    "orderIds": "您的订单编号：",
+    "multipleOrders": "已创建 {count} 个单独订单（每个卖家一个）。",
+    "mockPaymentNote": "付款已记录。您可以在订单页面跟踪订单状态。",
+    "viewOrders": "查看我的订单",
+    "continueShopping": "继续购物"
   }
 }
