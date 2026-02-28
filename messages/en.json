@@ -383,7 +383,9 @@
     "unitsAvailable": "units available",
     "productDescription": "Product Description",
     "pricePerMeter": "Price per Meter",
-    "sellerCartBlocked": "You cannot add products to cart while viewing as a seller. This feature is only available for buyers."
+    "sellerCartBlocked": "You cannot add products to cart while viewing as a seller. This feature is only available for buyers.",
+    "sellerCartBlockedTitle": "Action Not Allowed",
+    "sellerCartBlockedButton": "Got it"
   },
   "support": {
     "title": "Support",

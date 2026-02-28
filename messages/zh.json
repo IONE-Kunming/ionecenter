@@ -383,7 +383,9 @@
     "unitsAvailable": "件可用",
     "productDescription": "产品描述",
     "pricePerMeter": "每米价格",
-    "sellerCartBlocked": "作为卖家浏览时无法将产品添加到购物车。此功能仅对买家开放。"
+    "sellerCartBlocked": "作为卖家浏览时无法将产品添加到购物车。此功能仅对买家开放。",
+    "sellerCartBlockedTitle": "操作不允许",
+    "sellerCartBlockedButton": "知道了"
   },
   "support": {
     "title": "支持",

@@ -3,10 +3,11 @@
 import { useState, useTransition } from "react"
 import { useTranslations } from "next-intl"
 import Image from "next/image"
-import { ArrowLeft, Package, ShoppingCart, MessageSquare } from "lucide-react"
+import { ArrowLeft, Package, ShoppingCart, MessageSquare, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/toaster"
 import { formatCurrency, getStockStatus } from "@/lib/utils"
 import { getOrCreateConversation } from "@/lib/actions/chat"
@@ -26,6 +27,7 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
   const [chatPending, startChat] = useTransition()
   const [cartPending, startCart] = useTransition()
   const [quantity, setQuantity] = useState(1)
+  const [showSellerModal, setShowSellerModal] = useState(false)
   const stockStatus = getStockStatus(product.stock)
 
   function handleChatWithSeller() {
@@ -39,7 +41,7 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
 
   function handleAddToCart() {
     if (userRole === "seller") {
-      addToast("error", t("sellerCartBlocked"))
+      setShowSellerModal(true)
       return
     }
     startCart(async () => {
@@ -169,6 +171,26 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
           </div>
         </CardContent>
       </Card>
+
+      {/* Seller Cart Blocked Modal */}
+      <Dialog open={showSellerModal} onOpenChange={setShowSellerModal}>
+        <DialogContent className="text-center">
+          <DialogHeader className="items-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+              <ShieldAlert className="h-6 w-6 text-destructive" />
+            </div>
+            <DialogTitle className="text-center">{t("sellerCartBlockedTitle")}</DialogTitle>
+            <DialogDescription className="text-center">
+              {t("sellerCartBlocked")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center">
+            <Button onClick={() => setShowSellerModal(false)}>
+              {t("sellerCartBlockedButton")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
