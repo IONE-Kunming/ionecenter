@@ -6,7 +6,8 @@ ALTER TABLE orders ADD CONSTRAINT orders_status_check
 -- Update any existing 'draft' or 'processing' or 'cancelled' orders to valid statuses
 UPDATE orders SET status = 'pending' WHERE status = 'draft';
 UPDATE orders SET status = 'confirmed' WHERE status = 'processing';
-UPDATE orders SET status = 'pending' WHERE status = 'cancelled';
+-- Map cancelled orders to delivered since they are in a terminal state
+UPDATE orders SET status = 'delivered' WHERE status = 'cancelled';
 
 -- Set default to 'pending'
 ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'pending';
