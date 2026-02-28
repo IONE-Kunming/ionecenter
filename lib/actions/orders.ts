@@ -106,7 +106,7 @@ export async function getBuyerDashboardStats() {
       .from("orders")
       .select("id", { count: "exact", head: true })
       .eq("buyer_id", user.id)
-      .in("status", ["pending", "processing"]),
+      .in("status", ["pending", "under_review", "confirmed", "in_production"]),
   ])
 
   const totalSpending = (spendingResult.data ?? []).reduce(
@@ -136,7 +136,7 @@ export async function getSellerDashboardStats() {
       .from("orders")
       .select("id", { count: "exact", head: true })
       .eq("seller_id", user.id)
-      .in("status", ["pending", "processing", "shipped"]),
+      .in("status", ["pending", "under_review", "confirmed", "in_production", "out_of_production", "shipped"]),
     supabase
       .from("orders")
       .select("total")
