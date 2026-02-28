@@ -46,7 +46,8 @@ export default function CheckoutClient({ cartItems, subtotal, enrichedItems }: C
       setError(result.error)
       setProcessing(false)
     } else {
-      window.location.href = "/buyer/orders"
+      const ids = result.orderIds?.join(",") ?? ""
+      window.location.href = `/buyer/orders/confirmation?ids=${encodeURIComponent(ids)}`
     }
   }
 

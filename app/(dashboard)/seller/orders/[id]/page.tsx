@@ -71,8 +71,8 @@ export default async function SellerOrderDetailPage({ params }: { params: Promis
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.model_number ?? "—"}</TableCell>
                   <TableCell className="text-right">{item.quantity}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(item.price_per_meter ?? 0)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(item.price)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.price * item.quantity)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

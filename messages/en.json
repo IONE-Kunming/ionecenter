@@ -994,5 +994,14 @@
     "title": "My List",
     "emptyTitle": "No saved products",
     "emptyDescription": "Products you like will appear here"
+  },
+  "orderConfirmation": {
+    "title": "Order Placed Successfully!",
+    "description": "Your order has been placed and is being processed. You will receive updates as the seller reviews your order.",
+    "orderIds": "Your Order IDs:",
+    "multipleOrders": "{count} separate orders were created (one per seller).",
+    "mockPaymentNote": "Payment has been recorded. You can track your order status from the orders page.",
+    "viewOrders": "View My Orders",
+    "continueShopping": "Continue Shopping"
   }
 }
