@@ -32,6 +32,10 @@ export async function createSupportTicket(data: {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
 
+  const recipientEmail = user.role === "seller" 
+    ? "business@ionecenter.com" 
+    : "contactus@ionecenter.com"
+
   const supabase = await createClient()
 
   const { error } = await supabase
@@ -45,7 +49,7 @@ export async function createSupportTicket(data: {
     })
 
   if (error) return { error: error.message }
-  return { success: true }
+  return { success: true, recipientEmail }
 }
 
 const VALID_TICKET_STATUSES = ["open", "in_progress", "resolved", "closed"] as const

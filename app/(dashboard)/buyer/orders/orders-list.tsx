@@ -43,8 +43,9 @@ export function BuyerOrdersList({ orders }: { orders: OrderRow[] }) {
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchOrders")} className="pl-9" />
         </div>
         <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} placeholder={tCommon("allStatuses")} options={[
-          { value: "draft", label: tCommon("draft") }, { value: "pending", label: tCommon("pending") }, { value: "processing", label: tCommon("processing") },
-          { value: "shipped", label: tCommon("shipped") }, { value: "delivered", label: tCommon("delivered") }, { value: "cancelled", label: tCommon("cancelled") },
+          { value: "pending", label: "Pending" }, { value: "under_review", label: "Under Review" }, { value: "confirmed", label: "Confirmed" },
+          { value: "in_production", label: "In Production" }, { value: "out_of_production", label: "Out of Production" },
+          { value: "shipped", label: "Shipped" }, { value: "arrived_at_port", label: "Arrived at Port" }, { value: "delivered", label: "Delivered" },
         ]} className="w-full sm:w-48" />
       </div>
 

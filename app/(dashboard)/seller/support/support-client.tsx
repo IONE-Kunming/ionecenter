@@ -45,6 +45,12 @@ export default function SupportClient({ tickets: initialTickets }: SupportClient
     startTransition(async () => {
       const result = await createSupportTicket(data)
       if (result.success) {
+        // Open mailto with ticket details
+        const mailtoEmail = "business@ionecenter.com"
+        const mailtoSubject = encodeURIComponent(data.subject)
+        const mailtoBody = encodeURIComponent(`Issue Type: ${data.type ?? "General"}\n\n${data.message}`)
+        window.open(`mailto:${mailtoEmail}?subject=${mailtoSubject}&body=${mailtoBody}`, "_blank")
+        
         const newTicket: SupportTicket = {
           id: `temp-${Date.now()}`,
           user_id: "",
@@ -78,6 +84,9 @@ export default function SupportClient({ tickets: initialTickets }: SupportClient
             <CardDescription>{t("createTicketDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Your ticket will be sent to <a href="mailto:business@ionecenter.com" className="text-primary underline">business@ionecenter.com</a>
+            </p>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="type">{t("issueType")}</Label>

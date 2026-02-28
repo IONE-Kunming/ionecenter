@@ -7,9 +7,12 @@ import { updateOrderStatus } from "@/lib/actions/orders"
 import type { OrderStatus } from "@/types/database"
 
 const statusOptions: { value: OrderStatus; label: string }[] = [
-  { value: "pending", label: "Under Review" },
-  { value: "processing", label: "Confirmed" },
+  { value: "under_review", label: "Under Review" },
+  { value: "confirmed", label: "Confirmed" },
+  { value: "in_production", label: "In Production" },
+  { value: "out_of_production", label: "Out of Production" },
   { value: "shipped", label: "Shipped" },
+  { value: "arrived_at_port", label: "Arrived at Port" },
   { value: "delivered", label: "Delivered" },
 ]
 

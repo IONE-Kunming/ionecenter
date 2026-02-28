@@ -67,7 +67,7 @@ export async function getOrder(id: string): Promise<(Order & { items: OrderItem[
   }
 }
 
-const VALID_ORDER_STATUSES = ["draft", "pending", "processing", "shipped", "delivered", "cancelled"] as const
+const VALID_ORDER_STATUSES = ["pending", "under_review", "confirmed", "in_production", "out_of_production", "shipped", "arrived_at_port", "delivered"] as const
 
 export async function updateOrderStatus(id: string, status: string) {
   const user = await getCurrentUser()
@@ -106,7 +106,7 @@ export async function getBuyerDashboardStats() {
       .from("orders")
       .select("id", { count: "exact", head: true })
       .eq("buyer_id", user.id)
-      .in("status", ["pending", "processing"]),
+      .in("status", ["pending", "under_review", "confirmed", "in_production"]),
   ])
 
   const totalSpending = (spendingResult.data ?? []).reduce(
@@ -136,7 +136,7 @@ export async function getSellerDashboardStats() {
       .from("orders")
       .select("id", { count: "exact", head: true })
       .eq("seller_id", user.id)
-      .in("status", ["pending", "processing", "shipped"]),
+      .in("status", ["pending", "under_review", "confirmed", "in_production", "out_of_production", "shipped"]),
     supabase
       .from("orders")
       .select("total")

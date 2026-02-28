@@ -73,6 +73,9 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Right-click context menu state
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; messageId: string } | null>(null)
+
   // Translation state
   const [translateLang, setTranslateLang] = useState<string | null>(null)
   const [translations, setTranslations] = useState<Record<string, string>>({})
@@ -146,6 +149,36 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
       setTranslateLang(langValue)
     }
   }
+
+  function handleContextMenuTranslate(messageId: string, langValue: string) {
+    const msg = messages.find((m) => m.id === messageId)
+    if (!msg || msg.type !== "text" || !msg.text) return
+    setContextMenu(null)
+    const targetLang = langValue === "default" ? preferredLanguage : langValue
+    if (!targetLang) return
+    setTranslatingIds((prev) => new Set(prev).add(messageId))
+    translateText(msg.text, targetLang)
+      .then((translated) => {
+        setTranslations((prev) => ({ ...prev, [messageId]: translated }))
+      })
+      .catch(() => {
+        setTranslations((prev) => ({ ...prev, [messageId]: t("translationFailed") }))
+      })
+      .finally(() => {
+        setTranslatingIds((prev) => {
+          const next = new Set(prev)
+          next.delete(messageId)
+          return next
+        })
+      })
+  }
+
+  useEffect(() => {
+    if (!contextMenu) return
+    const handler = () => setContextMenu(null)
+    window.addEventListener("click", handler)
+    return () => window.removeEventListener("click", handler)
+  }, [contextMenu])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -377,7 +410,14 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                 const hasTranslation = translations[msg.id] !== undefined
                 const isTranslating = translatingIds.has(msg.id)
                 return (
-                  <div key={msg.id} className={cn("flex flex-col", isMe ? "items-end" : "items-start")}>
+                  <div key={msg.id} className={cn("flex flex-col", isMe ? "items-end" : "items-start")}
+                    onContextMenu={(e) => {
+                      if (msg.type === "text" && msg.text) {
+                        e.preventDefault()
+                        setContextMenu({ x: e.clientX, y: e.clientY, messageId: msg.id })
+                      }
+                    }}
+                  >
                     <div className={cn("max-w-[70%] rounded-lg px-4 py-2 text-sm", isMe ? "bg-primary text-primary-foreground" : "bg-muted")}>
                       {msg.type === "image" && msg.file_url ? (
                         <a href={msg.file_url} target="_blank" rel="noopener noreferrer">
@@ -412,6 +452,24 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                 )
               })}
               <div ref={messagesEndRef} />
+              {/* Right-click context menu */}
+              {contextMenu && (
+                <div
+                  className="fixed z-50 min-w-[160px] rounded-md border bg-popover p-1 shadow-md"
+                  style={{ top: contextMenu.y, left: contextMenu.x }}
+                >
+                  <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{t("translateTo")}</p>
+                  {TRANSLATE_LANGUAGES.map((lang) => (
+                    <button
+                      key={lang.value}
+                      className="w-full text-left px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                      onClick={() => handleContextMenuTranslate(contextMenu.messageId, lang.value)}
+                    >
+                      {t(lang.labelKey)}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             {uploadError && (
               <div className="px-4 py-2 text-xs text-destructive bg-destructive/10">{uploadError}</div>

@@ -30,8 +30,9 @@ export function SellerOrdersList({ orders }: { orders: SellerOrderRow[] }) {
   const [statusFilter, setStatusFilter] = useState("")
 
   const SELLER_STATUSES = [
-    { value: "pending", label: t("underReview") }, { value: "processing", label: t("confirmed") },
-    { value: "shipped", label: tCommon("shipped") }, { value: "delivered", label: tCommon("delivered") }, { value: "cancelled", label: tCommon("cancelled") },
+    { value: "pending", label: "Pending" }, { value: "under_review", label: "Under Review" }, { value: "confirmed", label: "Confirmed" },
+    { value: "in_production", label: "In Production" }, { value: "out_of_production", label: "Out of Production" },
+    { value: "shipped", label: "Shipped" }, { value: "arrived_at_port", label: "Arrived at Port" }, { value: "delivered", label: "Delivered" },
   ]
 
   const filtered = orders.filter((o) => {
