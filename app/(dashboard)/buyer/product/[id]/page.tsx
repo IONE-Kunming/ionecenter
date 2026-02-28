@@ -1,13 +1,14 @@
 import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/actions/users"
 import { getProduct } from "@/lib/actions/products"
+import { getUserRole } from "@/lib/actions/roles"
 import { ProductDetail } from "./product-detail"
 
 export default async function BuyerProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser()
   if (!user) redirect("/sign-in")
 
-  const { id } = await params
+  const [{ id }, userRole] = await Promise.all([params, getUserRole()])
   const product = await getProduct(id)
 
   if (!product) {
@@ -19,5 +20,5 @@ export default async function BuyerProductDetailPage({ params }: { params: Promi
     )
   }
 
-  return <ProductDetail product={product} currentUserId={user.id} />
+  return <ProductDetail product={product} currentUserId={user.id} userRole={userRole} />
 }

@@ -11,14 +11,15 @@ import { useToast } from "@/components/ui/toaster"
 import { formatCurrency, getStockStatus } from "@/lib/utils"
 import { getOrCreateConversation } from "@/lib/actions/chat"
 import { addToCart } from "@/lib/actions/cart"
-import type { Product } from "@/types/database"
+import type { Product, UserRole } from "@/types/database"
 
 interface ProductDetailProps {
   product: Product
   currentUserId: string
+  userRole?: UserRole | null
 }
 
-export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
+export function ProductDetail({ product, currentUserId, userRole }: ProductDetailProps) {
   const t = useTranslations("productDetail")
   const tCommon = useTranslations("common")
   const { addToast } = useToast()
@@ -37,6 +38,10 @@ export function ProductDetail({ product, currentUserId }: ProductDetailProps) {
   }
 
   function handleAddToCart() {
+    if (userRole === "seller") {
+      addToast("error", t("sellerCartBlocked"))
+      return
+    }
     startCart(async () => {
       const result = await addToCart(product.id, quantity)
       if (result.error) {
