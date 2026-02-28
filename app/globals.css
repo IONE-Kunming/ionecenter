@@ -562,25 +562,29 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Horizontal scroll container */
 .horizontal-scroll {
-  display: flex;
-  gap: 24px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding-bottom: 16px;
-  /* Ensure content stretches beyond viewport */
+  overflow: hidden;
   margin-left: -24px;
   margin-right: -24px;
   padding-left: 24px;
   padding-right: 24px;
 }
 
-.horizontal-scroll::-webkit-scrollbar {
-  display: none;
+.horizontal-scroll-track {
+  display: flex;
+  gap: 24px;
+  width: max-content;
+  animation: scroll-left 30s linear infinite;
 }
 
-.horizontal-scroll > * {
-  scroll-snap-align: start;
-  flex: 0 0 auto;
+.horizontal-scroll:hover .horizontal-scroll-track {
+  animation-play-state: paused;
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }

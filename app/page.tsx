@@ -320,21 +320,23 @@ export default async function LandingPage() {
             </h2>
           </div>
           <div className="horizontal-scroll">
-            {testimonials.map((t, i) => (
-              <div key={i} className="testimonial-card min-w-[320px] md:min-w-[420px] max-w-[480px]">
-                <div className="text-primary text-4xl mb-4">&ldquo;</div>
-                <p className="leading-relaxed text-lg mb-8">{t.quote}</p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
-                    {t.author.split(" ").filter(n => n.length > 0).map(n => n[0]).join("")}
-                  </div>
-                  <div>
-                    <p className="font-medium">{t.author}</p>
-                    <p className="text-muted-foreground text-sm">{t.company}</p>
+            <div className="horizontal-scroll-track">
+              {[...testimonials, ...testimonials].map((t, i) => (
+                <div key={`testimonial-${i}`} className="testimonial-card min-w-[320px] md:min-w-[420px] max-w-[480px]">
+                  <div className="text-primary text-4xl mb-4">&ldquo;</div>
+                  <p className="leading-relaxed text-lg mb-8">{t.quote}</p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+                      {t.author.split(" ").filter(n => n.length > 0).map(n => n[0]).join("")}
+                    </div>
+                    <div>
+                      <p className="font-medium">{t.author}</p>
+                      <p className="text-muted-foreground text-sm">{t.company}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
