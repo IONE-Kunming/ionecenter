@@ -383,7 +383,9 @@
     "unitsAvailable": "یونٹ دستیاب",
     "productDescription": "پروڈکٹ کی تفصیل",
     "pricePerMeter": "فی میٹر قیمت",
-    "sellerCartBlocked": "بائع کے طور پر دیکھتے ہوئے آپ کارٹ میں مصنوعات شامل نہیں کر سکتے۔ یہ خصوصیت صرف خریداروں کے لیے دستیاب ہے۔"
+    "sellerCartBlocked": "بائع کے طور پر دیکھتے ہوئے آپ کارٹ میں مصنوعات شامل نہیں کر سکتے۔ یہ خصوصیت صرف خریداروں کے لیے دستیاب ہے۔",
+    "sellerCartBlockedTitle": "عمل کی اجازت نہیں",
+    "sellerCartBlockedButton": "سمجھ گیا"
   },
   "support": {
     "title": "سپورٹ",
