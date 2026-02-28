@@ -54,6 +54,18 @@ export default function CartClient({ items: initialItems, sellerMap }: { items: 
     persistCart(updated)
   }
 
+  const setQuantity = (id: string, value: string) => {
+    const parsed = parseInt(value, 10)
+    if (isNaN(parsed) || parsed < 1) return
+    const updated = items.map((item) =>
+      item.id === id
+        ? { ...item, quantity: Math.min(item.stock, parsed) }
+        : item
+    )
+    setItems(updated)
+    persistCart(updated)
+  }
+
   const removeItem = (id: string) => {
     const updated = items.filter((item) => item.id !== id)
     setItems(updated)
@@ -132,7 +144,25 @@ export default function CartClient({ items: initialItems, sellerMap }: { items: 
                           <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, -1)} disabled={isPending}>
                             <Minus className="h-3 w-3" />
                           </Button>
-                          <span className="w-12 text-center font-medium">{item.quantity}</span>
+                          <input
+                            type="number"
+                            min={1}
+                            max={item.stock}
+                            value={item.quantity}
+                            disabled={isPending}
+                            className="w-12 text-center font-medium border rounded h-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            onChange={(e) => setQuantity(item.id, e.target.value)}
+                            onBlur={(e) => {
+                              if (!e.target.value || parseInt(e.target.value, 10) < 1) {
+                                setQuantity(item.id, "1")
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "." || e.key === "-" || e.key === "e" || e.key === "+") {
+                                e.preventDefault()
+                              }
+                            }}
+                          />
                           <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, 1)} disabled={isPending}>
                             <Plus className="h-3 w-3" />
                           </Button>
