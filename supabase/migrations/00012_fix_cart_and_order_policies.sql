@@ -50,4 +50,9 @@ CREATE POLICY "Order participants can update invoices" ON invoices
     buyer_id IN (SELECT id FROM users WHERE clerk_id = auth.uid()::text) OR
     seller_id IN (SELECT id FROM users WHERE clerk_id = auth.uid()::text) OR
     EXISTS (SELECT 1 FROM users WHERE clerk_id = auth.uid()::text AND role = 'admin')
+  )
+  WITH CHECK (
+    buyer_id IN (SELECT id FROM users WHERE clerk_id = auth.uid()::text) OR
+    seller_id IN (SELECT id FROM users WHERE clerk_id = auth.uid()::text) OR
+    EXISTS (SELECT 1 FROM users WHERE clerk_id = auth.uid()::text AND role = 'admin')
   );
