@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useTranslations } from "next-intl"
-import { CreditCard, Building, Smartphone, Wallet } from "lucide-react"
+import { CreditCard, Building } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { cn, formatCurrency, calculateOrderTotals, DEPOSIT_OPTIONS } from "@/lib/utils"
@@ -10,8 +10,6 @@ import { createOrdersFromCart } from "@/lib/actions/orders"
 import type { CartItem, PaymentMethod } from "@/types/database"
 
 const paymentMethodKeys = [
-  { id: "alipay" as const, key: "alipay", icon: Smartphone },
-  { id: "wechat" as const, key: "wechat", icon: Wallet },
   { id: "bank_transfer" as const, key: "bankTransfer", icon: Building },
   { id: "card" as const, key: "card", icon: CreditCard },
 ] as const

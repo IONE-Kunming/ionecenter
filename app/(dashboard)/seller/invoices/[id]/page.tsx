@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import Link from "@/components/ui/link"
+import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -23,6 +24,11 @@ export default async function SellerInvoiceDetailPage({ params }: { params: Prom
       <Link href="/seller/invoices" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-4 w-4" /> {t("backToInvoices")}
       </Link>
+
+      {/* Company Logo */}
+      <div className="flex items-center gap-3">
+        <Image src="/logo.svg" alt="IONE Center" width={120} height={40} />
+      </div>
 
       <div className="flex items-center justify-between">
         <div>

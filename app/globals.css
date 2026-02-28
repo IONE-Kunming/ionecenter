@@ -150,6 +150,11 @@
   background: rgba(196, 239, 23, 0.15);
 }
 
+/* Dark mode: text turns black on hover for interactive elements */
+.dark button:hover {
+  color: #000000;
+}
+
 /* Light mode stat/service card overrides */
 :root .stat-card {
   background: #FFFFFF;

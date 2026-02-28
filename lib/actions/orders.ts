@@ -67,7 +67,7 @@ export async function getOrder(id: string): Promise<(Order & { items: OrderItem[
   }
 }
 
-const VALID_ORDER_STATUSES = ["draft", "pending", "processing", "shipped", "delivered", "cancelled"] as const
+const VALID_ORDER_STATUSES = ["pending", "under_review", "confirmed", "in_production", "out_of_production", "shipped", "arrived_at_port", "delivered"] as const
 
 export async function updateOrderStatus(id: string, status: string) {
   const user = await getCurrentUser()

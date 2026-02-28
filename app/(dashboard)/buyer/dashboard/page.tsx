@@ -43,8 +43,7 @@ export default async function BuyerDashboardPage() {
                   <span className="font-medium">{formatCurrency(order.total)}</span>
                   <Badge variant={
                     order.status === "delivered" ? "success" :
-                    order.status === "pending" ? "warning" :
-                    order.status === "cancelled" ? "destructive" : "default"
+                    order.status === "pending" ? "warning" : "default"
                   }>
                     {order.status}
                   </Badge>

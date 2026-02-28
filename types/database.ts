@@ -1,10 +1,10 @@
 export type UserRole = "admin" | "seller" | "buyer"
 
-export type OrderStatus = "draft" | "pending" | "processing" | "shipped" | "delivered" | "cancelled"
+export type OrderStatus = "pending" | "under_review" | "confirmed" | "in_production" | "out_of_production" | "shipped" | "arrived_at_port" | "delivered"
 
 export type PaymentStatus = "pending" | "deposit_paid" | "paid"
 
-export type PaymentMethod = "alipay" | "wechat" | "bank_transfer" | "card"
+export type PaymentMethod = "bank_transfer" | "card"
 
 export type InvoiceStatus = "issued" | "paid" | "overdue" | "cancelled"
 
