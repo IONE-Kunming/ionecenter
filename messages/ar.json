@@ -382,7 +382,8 @@
     "chatWithSeller": "محادثة مع البائع",
     "unitsAvailable": "وحدة متاحة",
     "productDescription": "وصف المنتج",
-    "pricePerMeter": "السعر لكل متر"
+    "pricePerMeter": "السعر لكل متر",
+    "sellerCartBlocked": "لا يمكنك إضافة منتجات إلى السلة أثناء العرض كبائع. هذه الميزة متاحة فقط للمشترين."
   },
   "support": {
     "title": "الدعم",

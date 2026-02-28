@@ -382,7 +382,8 @@
     "chatWithSeller": "فروخت کنندہ سے چیٹ",
     "unitsAvailable": "یونٹ دستیاب",
     "productDescription": "پروڈکٹ کی تفصیل",
-    "pricePerMeter": "فی میٹر قیمت"
+    "pricePerMeter": "فی میٹر قیمت",
+    "sellerCartBlocked": "بائع کے طور پر دیکھتے ہوئے آپ کارٹ میں مصنوعات شامل نہیں کر سکتے۔ یہ خصوصیت صرف خریداروں کے لیے دستیاب ہے۔"
   },
   "support": {
     "title": "سپورٹ",

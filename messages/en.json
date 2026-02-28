@@ -382,7 +382,8 @@
     "chatWithSeller": "Chat with Seller",
     "unitsAvailable": "units available",
     "productDescription": "Product Description",
-    "pricePerMeter": "Price per Meter"
+    "pricePerMeter": "Price per Meter",
+    "sellerCartBlocked": "You cannot add products to cart while viewing as a seller. This feature is only available for buyers."
   },
   "support": {
     "title": "Support",
