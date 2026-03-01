@@ -13,7 +13,7 @@ export default async function SellerInvoicesPage() {
     status: inv.status,
     due_date: inv.due_date ?? "",
     created_at: inv.created_at,
-    buyer_name: inv.buyer?.display_name ?? "Unknown",
+    buyer_name: inv.buyer?.display_name ?? inv.buyer_name ?? "Unknown",
   }))
 
   return <SellerInvoicesList invoices={mapped} />

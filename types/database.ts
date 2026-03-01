@@ -102,7 +102,7 @@ export interface Invoice {
   id: string
   invoice_number: string
   order_id: string | null
-  buyer_id: string
+  buyer_id: string | null
   seller_id: string
   subtotal: number
   tax: number
@@ -116,6 +116,11 @@ export interface Invoice {
   due_date: string | null
   paid_at: string | null
   notes: string | null
+  buyer_name: string | null
+  buyer_email: string | null
+  discount: number
+  amount_paid: number
+  is_offline: boolean
   created_at: string
   updated_at: string
   // Joined data
@@ -129,6 +134,7 @@ export interface InvoiceItem {
   id: string
   invoice_id: string
   name: string
+  description: string | null
   quantity: number
   unit: string | null
   price: number
