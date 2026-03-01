@@ -217,20 +217,25 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <label className="status-toggle-container" title={(() => { const active = statusOverrides[user.id] ?? user.is_active; return active ? "Active – click to deactivate" : "Inactive – click to activate" })()}>
-                        <input
-                          type="checkbox"
-                          checked={statusOverrides[user.id] ?? user.is_active}
-                          onChange={() => handleInlineToggle(user)}
-                          disabled={togglingUsers[user.id]}
-                        />
-                        <div className="status-toggle-checkmark" />
-                      </label>
+                      {(() => {
+                        const active = statusOverrides[user.id] ?? user.is_active
+                        return (
+                          <label className="status-toggle-container" title={active ? "Active – click to deactivate" : "Inactive – click to activate"}>
+                            <input
+                              type="checkbox"
+                              checked={active}
+                              onChange={() => handleInlineToggle(user)}
+                              disabled={togglingUsers[user.id]}
+                            />
+                            <div className="status-toggle-checkmark" />
+                          </label>
+                        )
+                      })()}
                       {!(statusOverrides[user.id] ?? user.is_active) && (
                         <X className="h-4 w-4 text-red-500" />
                       )}
                       {toggleErrors[user.id] && (
-                        <span className="text-xs text-destructive max-w-[120px]">{toggleErrors[user.id]}</span>
+                        <span className="text-xs text-destructive max-w-[120px]" role="alert">{toggleErrors[user.id]}</span>
                       )}
                     </div>
                   </TableCell>
