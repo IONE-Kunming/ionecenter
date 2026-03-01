@@ -125,6 +125,14 @@ export interface Invoice {
   discount: number
   amount_paid: number
   is_offline: boolean
+  buyer_bank_account_name: string | null
+  buyer_bank_account_number: string | null
+  buyer_bank_swift_code: string | null
+  buyer_bank_name: string | null
+  buyer_bank_region: string | null
+  buyer_bank_code: string | null
+  buyer_bank_branch_code: string | null
+  buyer_bank_address: string | null
   created_at: string
   updated_at: string
   // Joined data

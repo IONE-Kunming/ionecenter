@@ -271,6 +271,7 @@
     "qty": "数量",
     "unitPrice": "单价",
     "bankInformation": "银行信息",
+    "buyerBankInformation": "买家银行信息 (TT)",
     "accountHolder": "账户持有人",
     "accountNumber": "账号",
     "swiftBicCode": "SWIFT/BIC 代码",

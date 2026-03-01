@@ -271,6 +271,7 @@
     "qty": "مقدار",
     "unitPrice": "فی اکائی قیمت",
     "bankInformation": "بینک کی معلومات",
+    "buyerBankInformation": "خریدار کی بینک معلومات (TT)",
     "accountHolder": "اکاؤنٹ ہولڈر",
     "accountNumber": "اکاؤنٹ نمبر",
     "swiftBicCode": "SWIFT/BIC کوڈ",

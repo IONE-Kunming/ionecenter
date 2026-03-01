@@ -271,6 +271,7 @@
     "qty": "Qty",
     "unitPrice": "Unit Price",
     "bankInformation": "Bank Information",
+    "buyerBankInformation": "Buyer Bank Information (TT)",
     "accountHolder": "Account Holder",
     "accountNumber": "Account Number",
     "swiftBicCode": "SWIFT/BIC Code",
