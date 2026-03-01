@@ -566,7 +566,7 @@
     "priceUsdColHint": "اگر قیمت USD میں ہے تو یہ بھریں، CNY استعمال ہو تو خالی چھوڑیں",
     "priceCnyCol": "قیمت (CNY ¥)",
     "priceCnyColHint": "اگر قیمت CNY میں ہے تو یہ بھریں، USD استعمال ہو تو خالی چھوڑیں",
-    "fillOnlyOnePrice": "ہر مصنوعات کے لیے صرف ایک قیمت فیلڈ بھریں — price_usd یا price_cny یا price_per_meter",
+    "fillOnlyOnePrice": "ہر مصنوعات کے لیے صرف ایک قیمت فیلڈ بھریں — price_usd یا price_cny",
     "stockCol": "اسٹاک",
     "imagePathCol": "تصویر کا راستہ",
     "analyzePreview": "تجزیہ اور پیش نظارہ",

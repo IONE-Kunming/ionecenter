@@ -566,7 +566,7 @@
     "priceUsdColHint": "fill this if the price is in USD, leave empty if using CNY",
     "priceCnyCol": "Price (CNY ¥)",
     "priceCnyColHint": "fill this if the price is in CNY, leave empty if using USD",
-    "fillOnlyOnePrice": "Fill only ONE price field per product — either price_usd OR price_cny OR price_per_meter",
+    "fillOnlyOnePrice": "Fill only ONE price field per product — either price_usd OR price_cny",
     "stockCol": "Stock",
     "imagePathCol": "Image Path",
     "analyzePreview": "Analyze & Preview",

@@ -23,7 +23,7 @@ export interface BulkEditProduct {
   id: string
   name: string
   model_number: string
-  price_per_meter: number
+  price_usd: number
   stock: number
   is_active: boolean
   image_url?: string | null
@@ -246,7 +246,7 @@ export function BulkEditTable({
       const changed =
         orig.name !== updatedProduct.name ||
         orig.model_number !== updatedProduct.model_number ||
-        orig.price_per_meter !== updatedProduct.price_per_meter ||
+        orig.price_usd !== updatedProduct.price_usd ||
         orig.stock !== updatedProduct.stock ||
         orig.is_active !== updatedProduct.is_active
 
@@ -959,8 +959,8 @@ export function BulkEditTable({
                               type="number"
                               min="0"
                               step="0.01"
-                              value={product.price_per_meter}
-                              onChange={(e) => updateField(product.id, "price_per_meter", Number(e.target.value))}
+                              value={product.price_usd}
+                              onChange={(e) => updateField(product.id, "price_usd", Number(e.target.value))}
                               className="w-full max-w-[180px] bg-transparent border border-transparent rounded pl-5 pr-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
                             />
                           </div>

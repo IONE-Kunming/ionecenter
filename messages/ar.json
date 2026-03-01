@@ -566,7 +566,7 @@
     "priceUsdColHint": "املأ هذا إذا كان السعر بالدولار، اتركه فارغًا إذا كنت تستخدم اليوان",
     "priceCnyCol": "السعر (CNY ¥)",
     "priceCnyColHint": "املأ هذا إذا كان السعر باليوان، اتركه فارغًا إذا كنت تستخدم الدولار",
-    "fillOnlyOnePrice": "املأ حقل سعر واحد فقط لكل منتج — إما price_usd أو price_cny أو price_per_meter",
+    "fillOnlyOnePrice": "املأ حقل سعر واحد فقط لكل منتج — إما price_usd أو price_cny",
     "stockCol": "المخزون",
     "imagePathCol": "مسار الصورة",
     "analyzePreview": "تحليل ومعاينة",
