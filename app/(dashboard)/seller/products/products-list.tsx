@@ -440,7 +440,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
       <Dialog open={showAddModal} onOpenChange={(v) => { setShowAddModal(v); if (!v) resetAddForm() }}>
         <DialogContent>
           <DialogHeader><DialogTitle>{t("addProduct")}</DialogTitle></DialogHeader>
-          <div className="space-y-4 mt-4">
+          <div className="space-y-4 mt-4 overflow-y-auto min-h-0 flex-1">
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2"><Label>{t("productName")}</Label><Input placeholder={t("productNamePlaceholder")} value={newProduct.name} onChange={(e) => setNewProduct((p) => ({ ...p, name: e.target.value }))} /></div>
               <div className="space-y-2"><Label>{t("modelNumber")}</Label><Input placeholder={t("modelNumberPlaceholder")} value={newProduct.model_number} onChange={(e) => setNewProduct((p) => ({ ...p, model_number: e.target.value }))} /></div>
