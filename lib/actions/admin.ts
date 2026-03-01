@@ -1,6 +1,7 @@
 "use server"
 
 import { createAdminClient } from "@/lib/supabase/admin"
+import { clerkClient } from "@clerk/nextjs/server"
 import { getCurrentUser } from "./users"
 import { generateSKU } from "@/lib/sku"
 import { getSiteCategories } from "./site-settings"
@@ -278,12 +279,84 @@ export async function adminDeactivateUser(userId: string) {
   if (!user || user.role !== "admin") return { error: "Not authorized" }
 
   const supabase = createAdminClient()
+
+  // Look up the target user's clerk_id
+  const { data: targetUser } = await supabase
+    .from("users")
+    .select("clerk_id")
+    .eq("id", userId)
+    .single()
+
+  if (!targetUser) return { error: "User not found" }
+
+  // Ban the user in Clerk to prevent login and sign-up with the same account
+  try {
+    const clerk = await clerkClient()
+    await clerk.users.banUser(targetUser.clerk_id)
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to ban user in Clerk" }
+  }
+
+  // Mark the user as inactive in our database
   const { error } = await supabase
     .from("users")
-    .update({ role: "deactivated" as string })
+    .update({ is_active: false })
     .eq("id", userId)
 
-  if (error) return { error: error.message }
+  if (error) {
+    // Attempt to rollback the Clerk ban if the DB update fails
+    try {
+      const clerk = await clerkClient()
+      await clerk.users.unbanUser(targetUser.clerk_id)
+    } catch {
+      // best-effort rollback
+    }
+    return { error: error.message }
+  }
+
+  return { success: true }
+}
+
+export async function adminActivateUser(userId: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+  const supabase = createAdminClient()
+
+  // Look up the target user's clerk_id
+  const { data: targetUser } = await supabase
+    .from("users")
+    .select("clerk_id")
+    .eq("id", userId)
+    .single()
+
+  if (!targetUser) return { error: "User not found" }
+
+  // Unban the user in Clerk to restore login access
+  try {
+    const clerk = await clerkClient()
+    await clerk.users.unbanUser(targetUser.clerk_id)
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to unban user in Clerk" }
+  }
+
+  // Mark the user as active in our database
+  const { error } = await supabase
+    .from("users")
+    .update({ is_active: true })
+    .eq("id", userId)
+
+  if (error) {
+    // Attempt to rollback the Clerk unban if the DB update fails
+    try {
+      const clerk = await clerkClient()
+      await clerk.users.banUser(targetUser.clerk_id)
+    } catch {
+      // best-effort rollback
+    }
+    return { error: error.message }
+  }
+
   return { success: true }
 }
 

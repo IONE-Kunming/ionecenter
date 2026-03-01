@@ -21,6 +21,12 @@ export default async function DashboardLayout({
 
   // Read role from Supabase (source of truth, editable by admin)
   const dbUser = await getCurrentUser()
+
+  // Block deactivated users from accessing the dashboard
+  if (dbUser && dbUser.is_active === false) {
+    redirect("/sign-in")
+  }
+
   const role = (dbUser?.role as UserRole) || "buyer"
 
   return (

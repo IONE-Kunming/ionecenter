@@ -18,6 +18,7 @@ export interface User {
   email: string
   display_name: string
   role: UserRole
+  is_active: boolean
   company: string | null
   phone_number: string | null
   preferred_language: string

@@ -108,6 +108,7 @@ export async function getSellers(): Promise<User[]> {
     .from("users")
     .select("*")
     .eq("role", "seller")
+    .eq("is_active", true)
     .order("display_name")
 
   return data ?? []
