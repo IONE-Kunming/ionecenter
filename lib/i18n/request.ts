@@ -27,8 +27,8 @@ export default getRequestConfig(async () => {
         messages: deepMerge(staticMessages, cachedMessages),
       }
     }
-  } catch {
-    // Silently fall back to static messages on error
+  } catch (error) {
+    console.error("Failed to load cached translations:", error)
   }
 
   return { locale, messages: staticMessages }

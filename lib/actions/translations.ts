@@ -3,6 +3,8 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import type { TranslationCacheEntry } from "@/types/database"
 
+const TRANSLATION_BATCH_SIZE = 10
+
 // ---------------------------------------------------------------------------
 // Helpers – flatten / unflatten nested message objects
 // ---------------------------------------------------------------------------
@@ -149,7 +151,8 @@ async function translateViaApi(
 
     const data = await response.json()
     return data.response?.trim() || text
-  } catch {
+  } catch (error) {
+    console.error("Translation API error:", error)
     return text
   }
 }
@@ -179,8 +182,7 @@ export async function translateAndCacheContent(
   const supabase = createAdminClient()
   let translated = 0
 
-  // Translate in batches of 10 to avoid overwhelming the API
-  const batchSize = 10
+  const batchSize = TRANSLATION_BATCH_SIZE
   for (let i = 0; i < missing.length; i += batchSize) {
     const batch = missing.slice(i, i + batchSize)
     const results = await Promise.all(
