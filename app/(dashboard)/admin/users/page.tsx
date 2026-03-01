@@ -11,7 +11,6 @@ export default async function AdminUsersPage() {
     role: u.role,
     company: u.company,
     user_code: u.user_code,
-    is_active: u.is_active,
     created_at: u.created_at,
   }))
 

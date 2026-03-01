@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Users, Search, Pencil, Trash2, UserX, UserCheck, Check, X } from "lucide-react"
+import { Users, Search, Pencil, Trash2, Check, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,9 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatDate } from "@/lib/utils"
-import { adminUpdateUser, adminDeleteUser, adminDeactivateUser, adminActivateUser, adminUpdateUserCode } from "@/lib/actions/admin"
+import { adminUpdateUser, adminDeleteUser, adminUpdateUserCode } from "@/lib/actions/admin"
 import type { UserRole } from "@/types/database"
-import "./status-toggle.css"
 
 interface UserRow {
   id: string
@@ -24,7 +23,6 @@ interface UserRow {
   role: UserRole
   company: string | null
   user_code: string | null
-  is_active: boolean
   created_at: string
 }
 
@@ -50,16 +48,6 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
   // Delete modal state
   const [deleteUser, setDeleteUser] = useState<UserRow | null>(null)
   const [deleting, setDeleting] = useState(false)
-
-  // Deactivate/Activate modal state
-  const [toggleUser, setToggleUser] = useState<UserRow | null>(null)
-  const [toggling, setToggling] = useState(false)
-  const [toggleError, setToggleError] = useState<string | null>(null)
-
-  // Inline status toggle state
-  const [statusOverrides, setStatusOverrides] = useState<Record<string, boolean>>({})
-  const [togglingUsers, setTogglingUsers] = useState<Record<string, boolean>>({})
-  const [toggleErrors, setToggleErrors] = useState<Record<string, string>>({})
 
   // User code editing state
   const [editingCodeUserId, setEditingCodeUserId] = useState<string | null>(null)
@@ -104,48 +92,6 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
     if (!result.error) {
       setDeleteUser(null)
       window.location.reload()
-    }
-  }
-
-  const handleToggleActive = async () => {
-    if (!toggleUser) return
-    setToggling(true)
-    setToggleError(null)
-    const result = toggleUser.is_active
-      ? await adminDeactivateUser(toggleUser.id)
-      : await adminActivateUser(toggleUser.id)
-    setToggling(false)
-    if (result.error) {
-      setToggleError(result.error)
-    } else {
-      setToggleUser(null)
-      window.location.reload()
-    }
-  }
-
-  const handleInlineToggle = async (user: UserRow) => {
-    const currentActive = statusOverrides[user.id] ?? user.is_active
-    const newActive = !currentActive
-
-    // Optimistically update UI
-    setStatusOverrides((prev) => ({ ...prev, [user.id]: newActive }))
-    setTogglingUsers((prev) => ({ ...prev, [user.id]: true }))
-    setToggleErrors((prev) => {
-      const next = { ...prev }
-      delete next[user.id]
-      return next
-    })
-
-    const result = currentActive
-      ? await adminDeactivateUser(user.id)
-      : await adminActivateUser(user.id)
-
-    setTogglingUsers((prev) => ({ ...prev, [user.id]: false }))
-
-    if (result.error) {
-      // Revert on failure
-      setStatusOverrides((prev) => ({ ...prev, [user.id]: currentActive }))
-      setToggleErrors((prev) => ({ ...prev, [user.id]: result.error! }))
     }
   }
 
@@ -197,7 +143,6 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
                 <TableHead>{tCommon("name")}</TableHead>
                 <TableHead>{tCommon("email")}</TableHead>
                 <TableHead>{t("role")}</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>User Code</TableHead>
                 <TableHead>{tCommon("company")}</TableHead>
                 <TableHead>{t("joined")}</TableHead>
@@ -206,7 +151,7 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
             </TableHeader>
             <TableBody>
               {filtered.map((user, index) => (
-                <TableRow key={user.id} className={!(statusOverrides[user.id] ?? user.is_active) ? "opacity-60" : undefined}>
+                <TableRow key={user.id}>
                   <TableCell className="text-muted-foreground">{index + 1}</TableCell>
                   <TableCell className="font-medium">{user.display_name}</TableCell>
                   <TableCell>{user.email}</TableCell>
@@ -214,30 +159,6 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
                     <Badge variant={roleBadgeVariant(user.role)}>
                       {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                     </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {(() => {
-                        const active = statusOverrides[user.id] ?? user.is_active
-                        return (
-                          <label className="status-toggle-container" title={active ? "Active – click to deactivate" : "Inactive – click to activate"}>
-                            <input
-                              type="checkbox"
-                              checked={active}
-                              onChange={() => handleInlineToggle(user)}
-                              disabled={togglingUsers[user.id]}
-                            />
-                            <div className="status-toggle-checkmark" />
-                          </label>
-                        )
-                      })()}
-                      {!(statusOverrides[user.id] ?? user.is_active) && (
-                        <X className="h-4 w-4 text-red-500" />
-                      )}
-                      {toggleErrors[user.id] && (
-                        <span className="text-xs text-destructive max-w-[120px]" role="alert">{toggleErrors[user.id]}</span>
-                      )}
-                    </div>
                   </TableCell>
                   <TableCell>
                     {editingCodeUserId === user.id ? (
@@ -282,27 +203,6 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(user)} title="Edit">
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
-                      {user.is_active ? (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-yellow-600 hover:text-yellow-700"
-                          onClick={() => { setToggleUser(user); setToggleError(null) }}
-                          title="Deactivate"
-                        >
-                          <UserX className="h-3.5 w-3.5" />
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-green-600 hover:text-green-700"
-                          onClick={() => { setToggleUser(user); setToggleError(null) }}
-                          title="Activate"
-                        >
-                          <UserCheck className="h-3.5 w-3.5" />
-                        </Button>
-                      )}
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteUser(user)} title="Delete">
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -370,46 +270,6 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
             <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
               {deleting ? "Deleting..." : "Delete User"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Deactivate / Activate User Confirmation */}
-      <Dialog open={!!toggleUser} onOpenChange={(v) => { if (!v) { setToggleUser(null); setToggleError(null) } }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{toggleUser?.is_active ? "Deactivate User" : "Activate User"}</DialogTitle>
-          </DialogHeader>
-          <div className="mt-4 space-y-3">
-            {toggleUser?.is_active ? (
-              <p className="text-sm text-muted-foreground">
-                Are you sure you want to deactivate <strong>{toggleUser?.display_name}</strong>?
-                Their account and all their products will be hidden from the website.
-                They will not be able to log in or sign up with the same email.
-                All data is preserved and can be restored by activating the account again.
-              </p>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Are you sure you want to activate <strong>{toggleUser?.display_name}</strong>?
-                Their account and all their products will become visible again,
-                and they will be able to log in as normal.
-              </p>
-            )}
-            {toggleError && (
-              <p className="text-sm text-destructive">{toggleError}</p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setToggleUser(null); setToggleError(null) }}>Cancel</Button>
-            {toggleUser?.is_active ? (
-              <Button className="bg-yellow-600 text-white hover:bg-yellow-700" onClick={handleToggleActive} disabled={toggling}>
-                {toggling ? "Deactivating..." : "Deactivate User"}
-              </Button>
-            ) : (
-              <Button className="bg-green-600 text-white hover:bg-green-700" onClick={handleToggleActive} disabled={toggling}>
-                {toggling ? "Activating..." : "Activate User"}
-              </Button>
-            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
