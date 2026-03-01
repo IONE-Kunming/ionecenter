@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
 import { formatDualPrice } from "@/lib/utils"
 import type { CategoryData } from "@/lib/categories"
+import { toCategoryKey } from "@/lib/categories"
 import type { PricingType } from "@/types/database"
 
 type BrowseLevel = "categories" | "subcategories" | "products"
@@ -42,6 +43,14 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
+  const tCatNames = useTranslations("categoryNames")
+
+  const translateCat = (name: string): string => {
+    const key = toCategoryKey(name)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const translated = (tCatNames as any)(key)
+    return typeof translated === "string" && translated !== key ? translated : name
+  }
   const [level, setLevel] = useState<BrowseLevel>("categories")
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedSubcategory, setSelectedSubcategory] = useState("")
@@ -51,13 +60,13 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
   const breadcrumb = useMemo(() => {
     const items = [{ label: t("categoriesLabel"), onClick: () => { setLevel("categories"); setSelectedCategory(""); setSelectedSubcategory("") } }]
     if (selectedCategory) {
-      items.push({ label: selectedCategory, onClick: () => { setLevel("subcategories"); setSelectedSubcategory("") } })
+      items.push({ label: translateCat(selectedCategory), onClick: () => { setLevel("subcategories"); setSelectedSubcategory("") } })
     }
     if (selectedSubcategory) {
-      items.push({ label: selectedSubcategory, onClick: () => {} })
+      items.push({ label: translateCat(selectedSubcategory), onClick: () => {} })
     }
     return items
-  }, [selectedCategory, selectedSubcategory])
+  }, [selectedCategory, selectedSubcategory, t, translateCat])
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -113,7 +122,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                     <div className="absolute bottom-3 left-4 right-4">
-                      <h3 className="font-semibold text-white">{cat}</h3>
+                      <h3 className="font-semibold text-white">{translateCat(cat)}</h3>
                       <p className="text-sm text-white/80">
                         {subcategories.length} {t("subcategories")}
                       </p>
@@ -125,7 +134,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                       {categoryCode}
                     </div>
                     <Package className="h-10 w-10 mx-auto text-primary" />
-                    <h3 className="mt-4 font-semibold text-base">{cat}</h3>
+                    <h3 className="mt-4 font-semibold text-base">{translateCat(cat)}</h3>
                     <p className="text-sm text-muted-foreground mt-1">
                       {subcategories.length} {t("subcategories")}
                     </p>
@@ -170,7 +179,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                       <div className="absolute bottom-2 left-3 right-3">
-                        <h3 className="font-semibold text-sm text-white">{sub}</h3>
+                        <h3 className="font-semibold text-sm text-white">{translateCat(sub)}</h3>
                       </div>
                     </div>
                   ) : (
@@ -179,7 +188,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                         {subcategoryCode}
                       </div>
                       <Package className="h-8 w-8 mx-auto text-primary" />
-                      <h3 className="mt-2 font-semibold text-sm">{sub}</h3>
+                      <h3 className="mt-2 font-semibold text-sm">{translateCat(sub)}</h3>
                     </div>
                   )}
                 </CardContent>

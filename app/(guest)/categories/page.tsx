@@ -3,11 +3,22 @@ import Image from "next/image"
 import { Package } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { getSiteCategories } from "@/lib/actions/site-settings"
-import { buildCategoryData } from "@/lib/categories"
+import { buildCategoryData, toCategoryKey } from "@/lib/categories"
+import { getTranslations } from "next-intl/server"
 
 export default async function GuestCategoriesPage() {
-  const siteCategories = await getSiteCategories()
+  const [siteCategories, tCatNames] = await Promise.all([
+    getSiteCategories(),
+    getTranslations("categoryNames"),
+  ])
   const categoryData = buildCategoryData(siteCategories)
+
+  function translateCat(name: string): string {
+    const key = toCategoryKey(name)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const translated = (tCatNames as any)(key)
+    return typeof translated === "string" && translated !== key ? translated : name
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -22,6 +33,7 @@ export default async function GuestCategoriesPage() {
         {categoryData.mainCategories.map((categoryName) => {
           const subcategories = categoryData.categoryMap[categoryName] ?? []
           const imageUrl = categoryData.categoryImageMap[categoryName] ?? null
+          const displayName = translateCat(categoryName)
           return (
             <Link
               key={categoryName}
@@ -32,14 +44,14 @@ export default async function GuestCategoriesPage() {
                   <div className="relative h-[200px]">
                     <Image
                       src={imageUrl}
-                      alt={categoryName}
+                      alt={displayName}
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                     <div className="absolute bottom-3 left-4 right-4">
-                      <h3 className="font-semibold text-white">{categoryName}</h3>
+                      <h3 className="font-semibold text-white">{displayName}</h3>
                     </div>
                   </div>
                 ) : (
@@ -47,14 +59,14 @@ export default async function GuestCategoriesPage() {
                     <div className="rounded-full bg-primary/10 p-3 w-fit group-hover:bg-primary/20 transition-colors">
                       <Package className="h-6 w-6 text-primary" />
                     </div>
-                    <h3 className="mt-4 font-semibold">{categoryName}</h3>
+                    <h3 className="mt-4 font-semibold">{displayName}</h3>
                   </div>
                 )}
                 <CardContent className="p-6 pt-3">
                   <ul className="space-y-1">
                     {subcategories.map((sub) => (
                       <li key={sub} className="text-sm text-muted-foreground">
-                        • {sub}
+                        • {translateCat(sub)}
                       </li>
                     ))}
                   </ul>

@@ -42,6 +42,37 @@ export function buildCategoryData(siteCategories: SiteCategory[]): CategoryData 
   }
 }
 
+// ─── Translation helpers ─────────────────────────────────────────────────────
+
+/**
+ * Convert an English category name to a camelCase translation key matching the
+ * `categoryNames` namespace in the messages JSON files.
+ *
+ * Examples:
+ *   "Construction"              → "construction"
+ *   "Exterior Gates"            → "exteriorGates"
+ *   "Apparel & Accessories"     → "apparelAccessories"
+ *   "Men's Clothing"            → "mensClothing"
+ *   "Eco-friendly Products"     → "ecofriendlyProducts"
+ *   "Gifts, Sports & Toys"      → "giftsSportsToys"
+ */
+export function toCategoryKey(name: string): string {
+  const normalized = name
+    .replace(/['\-]/g, "")   // remove apostrophes and hyphens (no word break)
+    .replace(/[&,]/g, " ")    // treat & and , as word separators
+    .replace(/\s+/g, " ")     // normalize whitespace
+    .trim()
+
+  const words = normalized.split(" ").filter(Boolean)
+  return words
+    .map((word, i) =>
+      i === 0
+        ? word.toLowerCase()
+        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    )
+    .join("")
+}
+
 // ─── Helper functions that operate on CategoryData ──────────────────────────
 
 export function getSubcategoriesFromData(data: CategoryData, mainCategory: string): string[] {
