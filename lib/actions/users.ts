@@ -21,8 +21,8 @@ export async function generateUniqueBuyerCode(supabase: SupabaseClient): Promise
       .maybeSingle()
     if (!existing) return code
   }
-  // Fallback: use timestamp-based code
-  const fallback = `B${Date.now() % 1000}`
+  // Fallback: use timestamp-based 3-digit code
+  const fallback = `B${(Date.now() % 900) + 100}`
   return fallback
 }
 

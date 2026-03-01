@@ -20,9 +20,13 @@ export default function BuyerProfileForm({ user }: { user: User }) {
 
   const handleCopyCode = async () => {
     if (!user.user_code) return
-    await navigator.clipboard.writeText(user.user_code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    try {
+      await navigator.clipboard.writeText(user.user_code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Fallback: ignore if clipboard access is unavailable
+    }
   }
 
   const [displayName, setDisplayName] = useState(user.display_name)
