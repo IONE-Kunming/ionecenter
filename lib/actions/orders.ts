@@ -195,7 +195,7 @@ export async function createOrdersFromCart(
   const productIds = cartItems.map((item) => item.product_id)
   const { data: products, error: productsError } = await supabase
     .from("products")
-    .select("id, seller_id, name, model_number, category, price_per_meter, image_url")
+    .select("id, seller_id, name, model_number, category, price_per_meter, price_usd, image_url")
     .in("id", productIds)
 
   if (productsError || !products) return { error: "Failed to fetch product details" }
