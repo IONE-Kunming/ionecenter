@@ -26,12 +26,19 @@ export function WishlistButton({ productId, initialLiked, size = "sm" }: Wishlis
     setTimeout(() => setAnimate(false), 300)
 
     startTransition(async () => {
-      const result = await toggleWishlist(productId)
-      if (result.error) {
-        // Revert on error
+      try {
+        const result = await toggleWishlist(productId)
+        if (result.error) {
+          console.error("Wishlist toggle error:", result.error)
+          // Revert on error
+          setLiked(!newLiked)
+        } else {
+          setLiked(result.liked)
+        }
+      } catch (err) {
+        console.error("Wishlist toggle unexpected error:", err)
+        // Revert on unexpected error
         setLiked(!newLiked)
-      } else {
-        setLiked(result.liked)
       }
     })
   }
