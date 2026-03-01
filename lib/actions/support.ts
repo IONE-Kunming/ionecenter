@@ -33,7 +33,7 @@ export async function createSupportTicket(data: {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
 
-  const recipientEmail = "business@ionecenter.com"
+  const recipientEmail = "contactus@ionecenter.com"
 
   const supabase = createAdminClient()
 
