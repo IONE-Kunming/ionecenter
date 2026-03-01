@@ -269,7 +269,16 @@
     "paidLabel": "Paid:",
     "item": "Item",
     "qty": "Qty",
-    "unitPrice": "Unit Price"
+    "unitPrice": "Unit Price",
+    "bankInformation": "Bank Information",
+    "accountHolder": "Account Holder",
+    "accountNumber": "Account Number",
+    "swiftBicCode": "SWIFT/BIC Code",
+    "bankName": "Bank Name",
+    "bankRegion": "Bank Region",
+    "bankCode": "Bank Code",
+    "branchCode": "Branch Code",
+    "bankAddress": "Bank Address"
   },
   "notifications": {
     "unread": "{count} unread",
@@ -347,6 +356,10 @@
     "accountNumber": "Account Number",
     "swiftCode": "SWIFT Code",
     "bankBranch": "Bank Branch",
+    "bankRegion": "Bank Region",
+    "bankCode": "Bank Code",
+    "branchCode": "Branch Code",
+    "bankAddress": "Bank Address",
     "currency": "Currency",
     "paymentNotes": "Payment Notes",
     "saveChanges": "Save Changes",

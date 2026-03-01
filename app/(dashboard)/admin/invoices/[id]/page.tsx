@@ -25,6 +25,23 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
         <Image src="/logo.svg" alt="IONE Center" width={120} height={40} />
       </div>
 
+      {/* Seller Bank Information */}
+      {invoice.seller && (invoice.seller.account_name || invoice.seller.account_number || invoice.seller.bank_name) && (
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Bank Information</CardTitle></CardHeader>
+          <CardContent className="text-sm space-y-1">
+            {invoice.seller.account_name && <p><strong>Account Holder:</strong> {invoice.seller.account_name}</p>}
+            {invoice.seller.account_number && <p><strong>Account Number:</strong> {invoice.seller.account_number}</p>}
+            {invoice.seller.swift_code && <p><strong>SWIFT/BIC Code:</strong> {invoice.seller.swift_code}</p>}
+            {invoice.seller.bank_name && <p><strong>Bank Name:</strong> {invoice.seller.bank_name}</p>}
+            {invoice.seller.bank_region && <p><strong>Bank Region:</strong> {invoice.seller.bank_region}</p>}
+            {invoice.seller.bank_code && <p><strong>Bank Code:</strong> {invoice.seller.bank_code}</p>}
+            {invoice.seller.branch_code && <p><strong>Branch Code:</strong> {invoice.seller.branch_code}</p>}
+            {invoice.seller.bank_address && <p><strong>Bank Address:</strong> {invoice.seller.bank_address}</p>}
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold">Invoice {invoice.invoice_number}</h2>

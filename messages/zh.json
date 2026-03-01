@@ -269,7 +269,16 @@
     "paidLabel": "已付：",
     "item": "项目",
     "qty": "数量",
-    "unitPrice": "单价"
+    "unitPrice": "单价",
+    "bankInformation": "Bank Information",
+    "accountHolder": "Account Holder",
+    "accountNumber": "Account Number",
+    "swiftBicCode": "SWIFT/BIC Code",
+    "bankName": "Bank Name",
+    "bankRegion": "Bank Region",
+    "bankCode": "Bank Code",
+    "branchCode": "Branch Code",
+    "bankAddress": "Bank Address"
   },
   "notifications": {
     "unread": "{count} 条未读",
@@ -347,6 +356,10 @@
     "accountNumber": "账号",
     "swiftCode": "SWIFT代码",
     "bankBranch": "银行分行",
+    "bankRegion": "Bank Region",
+    "bankCode": "Bank Code",
+    "branchCode": "Branch Code",
+    "bankAddress": "Bank Address",
     "currency": "货币",
     "paymentNotes": "付款备注",
     "saveChanges": "保存更改",

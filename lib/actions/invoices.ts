@@ -150,6 +150,22 @@ export async function searchSellerProducts(query: string) {
   return data ?? []
 }
 
+export async function getSellerBankInfo() {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return null
+
+  return {
+    account_name: user.account_name,
+    account_number: user.account_number,
+    swift_code: user.swift_code,
+    bank_name: user.bank_name,
+    bank_region: user.bank_region,
+    bank_code: user.bank_code,
+    branch_code: user.branch_code,
+    bank_address: user.bank_address,
+  }
+}
+
 export interface OfflineInvoiceInput {
   buyer_name: string
   buyer_email: string

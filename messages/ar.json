@@ -269,7 +269,16 @@
     "paidLabel": "مدفوع:",
     "item": "العنصر",
     "qty": "الكمية",
-    "unitPrice": "سعر الوحدة"
+    "unitPrice": "سعر الوحدة",
+    "bankInformation": "Bank Information",
+    "accountHolder": "Account Holder",
+    "accountNumber": "Account Number",
+    "swiftBicCode": "SWIFT/BIC Code",
+    "bankName": "Bank Name",
+    "bankRegion": "Bank Region",
+    "bankCode": "Bank Code",
+    "branchCode": "Branch Code",
+    "bankAddress": "Bank Address"
   },
   "notifications": {
     "unread": "{count} غير مقروءة",
@@ -347,6 +356,10 @@
     "accountNumber": "رقم الحساب",
     "swiftCode": "رمز SWIFT",
     "bankBranch": "فرع البنك",
+    "bankRegion": "Bank Region",
+    "bankCode": "Bank Code",
+    "branchCode": "Branch Code",
+    "bankAddress": "Bank Address",
     "currency": "العملة",
     "paymentNotes": "ملاحظات الدفع",
     "saveChanges": "حفظ التغييرات",
