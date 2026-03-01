@@ -7,15 +7,28 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/select"
+import { Copy, Check } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { updateUserProfile } from "@/lib/actions/users"
 import type { User } from "@/types/database"
 
-export default function SellerProfileForm({ user }: { user: User }) {
+export default function SellerProfileForm({ user, sellerCode }: { user: User; sellerCode: string | null }) {
   const t = useTranslations("profile")
   const tCommon = useTranslations("common")
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopyCode = async () => {
+    if (!sellerCode) return
+    try {
+      await navigator.clipboard.writeText(sellerCode)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Fallback: ignore if clipboard access is unavailable
+    }
+  }
 
   const [displayName, setDisplayName] = useState(user.display_name)
   const [company, setCompany] = useState(user.company ?? "")
@@ -64,6 +77,22 @@ export default function SellerProfileForm({ user }: { user: User }) {
 
   return (
     <div className="max-w-2xl space-y-6">
+      {sellerCode && (
+        <Card>
+          <CardHeader><CardTitle>{t("yourSellerCode")}</CardTitle></CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center rounded-md bg-primary/10 px-4 py-2 text-2xl font-bold font-mono tracking-widest text-primary">
+                {sellerCode}
+              </span>
+              <Button variant="outline" size="icon" onClick={handleCopyCode} title={t("copyCode")}>
+                {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader><CardTitle>{t("personalInfo")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">

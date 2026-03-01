@@ -7,6 +7,26 @@ import type { User } from "@/types/database"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 /**
+ * Generate a unique seller code in the format S### (e.g. S101, S204).
+ * Retries until a unique code is found.
+ */
+export async function generateUniqueSellerCode(supabase: SupabaseClient): Promise<string> {
+  for (let attempt = 0; attempt < 50; attempt++) {
+    const num = Math.floor(100 + Math.random() * 900) // 100–999
+    const code = `S${num}`
+    const { data: existing } = await supabase
+      .from("users")
+      .select("id")
+      .eq("user_code", code)
+      .maybeSingle()
+    if (!existing) return code
+  }
+  // Fallback: use timestamp-based 3-digit code
+  const fallback = `S${(Date.now() % 900) + 100}`
+  return fallback
+}
+
+/**
  * Generate a unique buyer code in the format B### (e.g. B250, B103).
  * Retries until a unique code is found.
  */
@@ -112,4 +132,26 @@ export async function getSellers(): Promise<User[]> {
     .order("display_name")
 
   return data ?? []
+}
+
+/**
+ * Ensure the current seller has a unique user_code.
+ * If the seller has no code yet, generate one in the format S### and persist it.
+ * Returns the (possibly freshly-generated) user_code.
+ */
+export async function ensureSellerCode(user: User): Promise<string | null> {
+  if (user.user_code) return user.user_code
+
+  const supabase = createAdminClient()
+  const code = await generateUniqueSellerCode(supabase)
+  const { error } = await supabase
+    .from("users")
+    .update({ user_code: code })
+    .eq("id", user.id)
+
+  if (error) {
+    console.error("Failed to generate seller code:", error)
+    return null
+  }
+  return code
 }
