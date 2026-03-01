@@ -70,6 +70,10 @@ function generateItemKey(index: number): string {
   return `RX${String(index + 1).padStart(3, "0")}`
 }
 
+function formatLocation(city?: string | null, state?: string | null, country?: string | null): string {
+  return [city, state, country].filter(Boolean).join(", ")
+}
+
 function hasBankInfo(info: BankInfo | null): boolean {
   if (!info) return false
   return !!(info.account_name || info.account_number || info.bank_name)
@@ -448,7 +452,7 @@ export function CreateOfflineInvoiceForm() {
             <div className="invoice-company-details">
               {bankInfo?.bank_address && <span>{bankInfo.bank_address}</span>}
               {bankInfo?.phone_number && <span> | {bankInfo.phone_number}</span>}
-              {bankInfo?.city && <span> | {bankInfo.city}{bankInfo?.state ? `, ${bankInfo.state}` : ""}{bankInfo?.country ? `, ${bankInfo.country}` : ""}</span>}
+              {bankInfo?.city && <span> | {formatLocation(bankInfo.city, bankInfo.state, bankInfo.country)}</span>}
             </div>
           </div>
         </div>
@@ -463,7 +467,7 @@ export function CreateOfflineInvoiceForm() {
             <p><strong>Supplier</strong></p>
             {bankInfo?.display_name && <p>{bankInfo.display_name}</p>}
             {bankInfo?.street && <p>{bankInfo.street}</p>}
-            {bankInfo?.city && <p>{bankInfo.city}{bankInfo?.state ? `, ${bankInfo.state}` : ""}</p>}
+            {bankInfo?.city && <p>{formatLocation(bankInfo.city, bankInfo.state)}</p>}
           </div>
         </div>
 
@@ -752,6 +756,7 @@ export function CreateOfflineInvoiceForm() {
                 onChange={(e) => setDiscount(Number(e.target.value))}
                 className="w-28 text-right print:hidden"
               />
+              {/* Print shows discount in parentheses per accounting convention */}
               <span className="hidden print:inline">({formatCurrency(discount)})</span>
             </div>
             <div className="border-t pt-2 flex justify-between font-semibold">
