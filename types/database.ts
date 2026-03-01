@@ -56,6 +56,7 @@ export interface Product {
   subcategory: string | null
   price_per_meter: number
   pricing_type: PricingType
+  price_usd: number | null
   price_cny: number | null
   description: string | null
   stock: number

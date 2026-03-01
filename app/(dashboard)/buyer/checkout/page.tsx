@@ -11,7 +11,7 @@ export default async function CheckoutPage() {
   const productIds = cart.items.map((item) => item.product_id)
   const { data: products } = await supabase
     .from("products")
-    .select("id, name, model_number, price_per_meter")
+    .select("id, name, model_number, price_per_meter, price_usd")
     .in("id", productIds)
 
   const enrichedItems = cart.items.map((item) => {

@@ -227,6 +227,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
         subcategory: newProduct.category || null,
         price_per_meter: newProduct.price_per_meter,
         pricing_type: newProduct.pricing_type,
+        price_usd: null,
         price_cny: newProduct.price_cny || null,
         stock: newProduct.stock,
         description: newProduct.description || null,

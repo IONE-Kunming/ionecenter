@@ -141,7 +141,7 @@ export async function searchSellerProducts(query: string) {
   const supabase = await createClient()
   const { data } = await supabase
     .from("products")
-    .select("id, name, model_number, description, price_per_meter")
+    .select("id, name, model_number, description, price_per_meter, price_usd")
     .eq("seller_id", user.id)
     .eq("is_active", true)
     .or(`model_number.ilike.%${query}%,name.ilike.%${query}%`)
