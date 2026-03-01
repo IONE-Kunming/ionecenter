@@ -424,7 +424,9 @@
     "other": "其他",
     "selectIssueType": "选择问题类型",
     "subjectPlaceholder": "简要描述您的问题",
-    "messagePlaceholder": "详细描述您的问题..."
+    "messagePlaceholder": "详细描述您的问题...",
+    "ticketSubmitted": "您的工单已提交，我们将尽快与您联系！",
+    "submitError": "提交工单失败，请重试。"
   },
   "finance": {
     "dashboard": "财务仪表盘",

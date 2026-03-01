@@ -424,7 +424,9 @@
     "other": "أخرى",
     "selectIssueType": "اختر نوع المشكلة",
     "subjectPlaceholder": "وصف موجز لمشكلتك",
-    "messagePlaceholder": "صف مشكلتك بالتفصيل..."
+    "messagePlaceholder": "صف مشكلتك بالتفصيل...",
+    "ticketSubmitted": "تم تقديم تذكرتك. سنعود إليك قريبًا!",
+    "submitError": "فشل تقديم التذكرة. يرجى المحاولة مرة أخرى."
   },
   "finance": {
     "dashboard": "لوحة التحكم المالية",

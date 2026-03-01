@@ -424,7 +424,9 @@
     "other": "دیگر",
     "selectIssueType": "مسئلے کی قسم منتخب کریں",
     "subjectPlaceholder": "اپنے مسئلے کی مختصر وضاحت",
-    "messagePlaceholder": "اپنے مسئلے کی تفصیل بیان کریں..."
+    "messagePlaceholder": "اپنے مسئلے کی تفصیل بیان کریں...",
+    "ticketSubmitted": "آپ کی ٹکٹ جمع کر دی گئی ہے۔ ہم جلد آپ سے رابطہ کریں گے!",
+    "submitError": "ٹکٹ جمع کرنے میں ناکامی۔ براہ کرم دوبارہ کوشش کریں۔"
   },
   "finance": {
     "dashboard": "مالیاتی ڈیش بورڈ",

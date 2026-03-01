@@ -424,7 +424,9 @@
     "other": "Other",
     "selectIssueType": "Select issue type",
     "subjectPlaceholder": "Brief description of your issue",
-    "messagePlaceholder": "Describe your issue in detail..."
+    "messagePlaceholder": "Describe your issue in detail...",
+    "ticketSubmitted": "Your ticket has been submitted. We'll get back to you soon!",
+    "submitError": "Failed to submit ticket. Please try again."
   },
   "finance": {
     "dashboard": "Financial Dashboard",
