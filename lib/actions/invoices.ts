@@ -218,8 +218,6 @@ export async function getNextSellerInvoiceNumber(): Promise<string> {
     .select("invoice_number")
     .eq("seller_id", user.id)
     .like("invoice_number", "INV-%")
-    .order("created_at", { ascending: false })
-    .limit(100)
 
   let maxNum = 0
   if (data) {
@@ -260,7 +258,21 @@ export async function createOfflineInvoice(input: OfflineInvoiceInput) {
   let invoiceNumber: string
 
   if (input.invoice_number) {
-    invoiceNumber = input.invoice_number
+    // Validate the provided number doesn't already exist for this seller
+    const { data: existing } = await adminSupabase
+      .from("invoices")
+      .select("id")
+      .eq("seller_id", user.id)
+      .eq("invoice_number", input.invoice_number)
+      .limit(1)
+
+    if (existing && existing.length > 0) {
+      // Number already taken — generate a fresh one
+      const freshNumber = await getNextSellerInvoiceNumber()
+      invoiceNumber = freshNumber
+    } else {
+      invoiceNumber = input.invoice_number
+    }
   } else {
     // Fallback: generate invoice number via RPC
     const { data: invoiceNum, error: numError } = await adminSupabase
