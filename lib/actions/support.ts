@@ -1,7 +1,7 @@
 "use server"
 
 import { Resend } from "resend"
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import type { SupportTicket } from "@/types/database"
 
@@ -9,7 +9,7 @@ export async function getSupportTickets(): Promise<SupportTicket[]> {
   const user = await getCurrentUser()
   if (!user) return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Admin sees all tickets, regular users see only their own
   let query = supabase
@@ -37,7 +37,7 @@ export async function createSupportTicket(data: {
     ? "business@ionecenter.com" 
     : "contactus@ionecenter.com"
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { error } = await supabase
     .from("support_tickets")
@@ -116,7 +116,7 @@ export async function updateTicketStatus(id: string, status: string) {
     return { error: "Invalid ticket status" }
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { error } = await supabase
     .from("support_tickets")
