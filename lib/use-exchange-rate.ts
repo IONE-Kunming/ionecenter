@@ -51,7 +51,7 @@ export function useExchangeRate(): ExchangeRateResult {
       setRate(cached.rate)
       setIsLive(true)
       setLoading(false)
-      return
+      return () => { cancelled = true }
     }
 
     async function fetchRate() {
