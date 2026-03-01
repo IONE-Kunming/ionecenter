@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import type { PricingType } from "@/types/database"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -10,6 +11,20 @@ export function formatCurrency(amount: number, currency = "USD"): string {
     style: "currency",
     currency,
   }).format(amount)
+}
+
+export function formatDualPrice(
+  priceUsd: number,
+  priceCny: number | null,
+  pricingType: PricingType = "standard"
+): string {
+  const usd = formatCurrency(priceUsd, "USD")
+  const cny = priceCny != null ? formatCurrency(priceCny, "CNY") : null
+  const suffix = pricingType === "customized" ? "/m" : ""
+  if (cny != null) {
+    return `${usd}${suffix} | ${cny}${suffix}`
+  }
+  return `${usd}${suffix}`
 }
 
 export function formatDate(date: Date | string): string {

@@ -12,7 +12,7 @@ import { Select } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { EmptyState } from "@/components/ui/empty-state"
-import { formatCurrency } from "@/lib/utils"
+import { formatDualPrice } from "@/lib/utils"
 import type { CategoryData } from "@/lib/categories"
 import { isMainCategoryInData, getMainCategoryForSubcategoryInData, getSubcategoriesFromData } from "@/lib/categories"
 import { adminBulkImportProducts, adminDeleteProduct } from "@/lib/actions/admin"
@@ -215,7 +215,7 @@ export function AdminProductsList({ products, initialSearch = "", categoryData }
                   <TableCell className="text-muted-foreground">{product.model_number}</TableCell>
                   <TableCell><Badge variant="secondary">{product.category}</Badge></TableCell>
                   <TableCell>{product.seller_name ?? "—"}</TableCell>
-                  <TableCell>{formatCurrency(product.price_per_meter)}/m</TableCell>
+                  <TableCell>{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type)}</TableCell>
                   <TableCell>{product.stock}</TableCell>
                   <TableCell>
                     <Badge variant={product.is_active ? "success" : "destructive"}>

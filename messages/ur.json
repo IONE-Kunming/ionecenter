@@ -385,7 +385,8 @@
     "pricePerMeter": "فی میٹر قیمت",
     "sellerCartBlocked": "بائع کے طور پر دیکھتے ہوئے آپ کارٹ میں مصنوعات شامل نہیں کر سکتے۔ یہ خصوصیت صرف خریداروں کے لیے دستیاب ہے۔",
     "sellerCartBlockedTitle": "عمل کی اجازت نہیں",
-    "sellerCartBlockedButton": "سمجھ گیا"
+    "sellerCartBlockedButton": "سمجھ گیا",
+    "price": "قیمت"
   },
   "support": {
     "title": "سپورٹ",
@@ -552,7 +553,15 @@
     "deleting": "حذف ہو رہا ہے...",
     "skuPreview": "SKU کوڈ پریویو",
     "skuPreviewHint": "خودکار SKU: {sku}",
-    "buyerPreviewBanner": "آپ اسٹور کو خریدار کی نظر سے دیکھ رہے ہیں۔ یہ صرف پڑھنے کی پریویو ہے۔"
+    "buyerPreviewBanner": "آپ اسٹور کو خریدار کی نظر سے دیکھ رہے ہیں۔ یہ صرف پڑھنے کی پریویو ہے۔",
+    "pricingType": "قیمت کی قسم",
+    "pricingStandard": "معیاری",
+    "pricingCustomized": "حسب ضرورت",
+    "priceUsd": "قیمت (USD $)",
+    "priceCny": "قیمت (CNY ¥)",
+    "liveRate": "لائیو ریٹ",
+    "fallbackRate": "فال بیک ریٹ",
+    "price": "قیمت"
   },
   "branches": {
     "title": "شاخیں",

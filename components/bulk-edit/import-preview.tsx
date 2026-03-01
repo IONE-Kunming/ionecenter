@@ -176,6 +176,8 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
       main_category: r.main_category,
       category: r.category,
       price_per_meter: r.price_per_meter,
+      pricing_type: r.pricing_type,
+      price_cny: r.price_cny,
       stock: r.stock,
       description: r.description,
       image_url: r.image_url,

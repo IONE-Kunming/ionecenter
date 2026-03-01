@@ -13,7 +13,7 @@ import { Select } from "@/components/ui/select"
 import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
-import { formatCurrency } from "@/lib/utils"
+import { formatDualPrice } from "@/lib/utils"
 import type { CategoryData } from "@/lib/categories"
 import type { Product } from "@/types/database"
 
@@ -75,7 +75,7 @@ export function AllProductsList({ products, initialSearch = "", categoryData, wi
                     </Link>
                     <p className="text-xs text-muted-foreground mt-1">{product.model_number}</p>
                     <div className="flex items-center justify-between mt-3">
-                      <span className="font-bold text-primary">{formatCurrency(product.price_per_meter)}/m</span>
+                      <span className="font-bold text-primary">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type)}</span>
                       <div className="flex gap-1 items-center">
                         <WishlistButton productId={product.id} initialLiked={wishlistedIds.includes(product.id)} />
                         <Link href={`/buyer/product/${product.id}`}>

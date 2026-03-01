@@ -385,7 +385,8 @@
     "pricePerMeter": "Price per Meter",
     "sellerCartBlocked": "You cannot add products to cart while viewing as a seller. This feature is only available for buyers.",
     "sellerCartBlockedTitle": "Action Not Allowed",
-    "sellerCartBlockedButton": "Got it"
+    "sellerCartBlockedButton": "Got it",
+    "price": "Price"
   },
   "support": {
     "title": "Support",
@@ -552,7 +553,15 @@
     "deleting": "Deleting...",
     "skuPreview": "SKU Code Preview",
     "skuPreviewHint": "Auto-generated SKU: {sku}",
-    "buyerPreviewBanner": "You are viewing the store as a buyer would see it. This is a read-only preview."
+    "buyerPreviewBanner": "You are viewing the store as a buyer would see it. This is a read-only preview.",
+    "pricingType": "Pricing Type",
+    "pricingStandard": "Standard",
+    "pricingCustomized": "Customized",
+    "priceUsd": "Price (USD $)",
+    "priceCny": "Price (CNY ¥)",
+    "liveRate": "live rate",
+    "fallbackRate": "fallback rate",
+    "price": "Price"
   },
   "branches": {
     "title": "Branches",

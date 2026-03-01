@@ -45,6 +45,8 @@ export interface ImportRow {
   main_category: string
   category: string
   price_per_meter: number
+  pricing_type?: string
+  price_cny?: number | null
   stock: number
   description?: string
   image_url?: string

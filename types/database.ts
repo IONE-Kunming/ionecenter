@@ -38,6 +38,8 @@ export interface User {
   updated_at: string
 }
 
+export type PricingType = "standard" | "customized"
+
 export interface Product {
   id: string
   seller_id: string
@@ -48,6 +50,8 @@ export interface Product {
   category: string
   subcategory: string | null
   price_per_meter: number
+  pricing_type: PricingType
+  price_cny: number | null
   description: string | null
   stock: number
   stock_status: string

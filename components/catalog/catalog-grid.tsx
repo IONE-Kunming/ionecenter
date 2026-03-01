@@ -13,8 +13,9 @@ import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
 import { Select } from "@/components/ui/select"
 import { EmptyState } from "@/components/ui/empty-state"
-import { formatCurrency } from "@/lib/utils"
+import { formatDualPrice } from "@/lib/utils"
 import type { CategoryData } from "@/lib/categories"
+import type { PricingType } from "@/types/database"
 
 interface CatalogProduct {
   id: string
@@ -23,6 +24,8 @@ interface CatalogProduct {
   main_category: string
   category: string
   price_per_meter: number
+  pricing_type?: PricingType
+  price_cny?: number | null
   stock: number
   image_url: string | null
 }
@@ -117,7 +120,7 @@ export function CatalogGrid({
                       <p className="text-xs text-muted-foreground mt-1">{product.model_number}</p>
                       <div className="flex items-center justify-between mt-3">
                         <span className="font-bold text-primary">
-                          {formatCurrency(product.price_per_meter)}/m
+                          {formatDualPrice(product.price_per_meter, product.price_cny ?? null, product.pricing_type ?? "standard")}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {t("stockLabel")} {product.stock}

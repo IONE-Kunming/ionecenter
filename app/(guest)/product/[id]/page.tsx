@@ -3,7 +3,7 @@ import { ArrowLeft, Package, ShoppingCart, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { formatCurrency, getStockStatus } from "@/lib/utils"
+import { formatCurrency, formatDualPrice, getStockStatus } from "@/lib/utils"
 
 // Demo product data
 const products: Record<string, { name: string; model_number: string; category: string; main_category: string; price_per_meter: number; stock: number; description: string; seller: string }> = {
@@ -56,7 +56,6 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
             <span className="text-3xl font-bold text-primary">
               {formatCurrency(product.price_per_meter)}
             </span>
-            <span className="text-muted-foreground">/meter</span>
           </div>
 
           <div className="mt-4 flex items-center gap-4">
@@ -116,7 +115,7 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
               <span className="font-medium">{product.model_number}</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span className="text-muted-foreground">Price per Meter</span>
+              <span className="text-muted-foreground">Price</span>
               <span className="font-medium">{formatCurrency(product.price_per_meter)}</span>
             </div>
           </div>

@@ -385,7 +385,8 @@
     "pricePerMeter": "السعر لكل متر",
     "sellerCartBlocked": "لا يمكنك إضافة منتجات إلى السلة أثناء العرض كبائع. هذه الميزة متاحة فقط للمشترين.",
     "sellerCartBlockedTitle": "الإجراء غير مسموح",
-    "sellerCartBlockedButton": "فهمت"
+    "sellerCartBlockedButton": "فهمت",
+    "price": "السعر"
   },
   "support": {
     "title": "الدعم",
@@ -552,7 +553,15 @@
     "deleting": "جارٍ الحذف...",
     "skuPreview": "معاينة رمز SKU",
     "skuPreviewHint": "رمز SKU التلقائي: {sku}",
-    "buyerPreviewBanner": "أنت تعرض المتجر كما يراه المشتري. هذا معاينة للقراءة فقط."
+    "buyerPreviewBanner": "أنت تعرض المتجر كما يراه المشتري. هذا معاينة للقراءة فقط.",
+    "pricingType": "نوع التسعير",
+    "pricingStandard": "قياسي",
+    "pricingCustomized": "مخصص",
+    "priceUsd": "السعر (USD $)",
+    "priceCny": "السعر (CNY ¥)",
+    "liveRate": "سعر مباشر",
+    "fallbackRate": "سعر احتياطي",
+    "price": "السعر"
   },
   "branches": {
     "title": "الفروع",

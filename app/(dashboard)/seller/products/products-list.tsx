@@ -15,7 +15,7 @@ import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
-import { formatCurrency, getStockStatus } from "@/lib/utils"
+import { formatDualPrice, getStockStatus } from "@/lib/utils"
 import { createProduct, updateProduct, deleteProduct, bulkImportProducts, uploadProductImage } from "@/lib/actions/products"
 import { ImportPreview } from "@/components/bulk-edit/import-preview"
 import type { ImportRow } from "@/components/bulk-edit/bulk-edit-table"
@@ -23,6 +23,8 @@ import type { CategoryData } from "@/lib/categories"
 import { getSubcategoriesFromData, isMainCategoryInData, getMainCategoryForSubcategoryInData } from "@/lib/categories"
 import { getCategoryIndex, getSubcategoryIndex } from "@/lib/sku"
 import type { Product } from "@/types/database"
+import type { PricingType } from "@/types/database"
+import { useExchangeRate, usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
 
 function normalizeHeader(h: string): string {
   return h.trim().toLowerCase().replace(/[\s-]+/g, "_")
@@ -86,6 +88,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   const t = useTranslations("sellerProducts")
   const tCommon = useTranslations("common")
   const tBulk = useTranslations("bulkEdit")
+  const { rate: exchangeRate, isLive: isLiveRate } = useExchangeRate()
   const [products, setProducts] = useState(initialProducts)
   const [search, setSearch] = useState(initialSearch)
   const [categoryFilter] = useState("")
@@ -105,6 +108,8 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
     main_category: "",
     category: "",
     price_per_meter: 0,
+    pricing_type: "standard" as PricingType,
+    price_cny: 0,
     stock: 0,
     description: "",
   })
@@ -113,7 +118,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
 
   // Edit modal state
   const [editProduct, setEditProduct] = useState<Product | null>(null)
-  const [editForm, setEditForm] = useState({ name: "", model_number: "", main_category: "", category: "", price_per_meter: 0, stock: 0, description: "" })
+  const [editForm, setEditForm] = useState({ name: "", model_number: "", main_category: "", category: "", price_per_meter: 0, pricing_type: "standard" as PricingType, price_cny: 0, stock: 0, description: "" })
   const [editImage, setEditImage] = useState<File | null>(null)
   const [editSaving, setEditSaving] = useState(false)
   const [editCategory, setEditCategory] = useState("")
@@ -130,6 +135,8 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
       main_category: product.main_category,
       category: product.category,
       price_per_meter: product.price_per_meter,
+      pricing_type: product.pricing_type || "standard",
+      price_cny: product.price_cny || 0,
       stock: product.stock,
       description: product.description || "",
     })
@@ -155,6 +162,8 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
         category: editForm.category,
         subcategory: editForm.category || null,
         price_per_meter: editForm.price_per_meter,
+        pricing_type: editForm.pricing_type,
+        price_cny: editForm.price_cny || null,
         stock: editForm.stock,
         description: editForm.description || null,
       }
@@ -187,7 +196,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   }
 
   const resetAddForm = () => {
-    setNewProduct({ name: "", model_number: "", main_category: "", category: "", price_per_meter: 0, stock: 0, description: "" })
+    setNewProduct({ name: "", model_number: "", main_category: "", category: "", price_per_meter: 0, pricing_type: "standard", price_cny: 0, stock: 0, description: "" })
     setNewProductImage(null)
     setSelectedCategory("")
   }
@@ -210,6 +219,8 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
         category: newProduct.category,
         subcategory: newProduct.category || null,
         price_per_meter: newProduct.price_per_meter,
+        pricing_type: newProduct.pricing_type,
+        price_cny: newProduct.price_cny || null,
         stock: newProduct.stock,
         description: newProduct.description || null,
         image_url: imageUrl,
@@ -405,7 +416,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                     <h3 className="font-semibold text-sm">{product.name}</h3>
                     <p className="text-xs text-muted-foreground">{product.model_number}</p>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="font-bold text-primary text-sm">{formatCurrency(product.price_per_meter)}/m</span>
+                      <span className="font-bold text-primary text-sm">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type)}</span>
                       <Badge variant={stockInfo.color === "green" ? "success" : stockInfo.color === "yellow" ? "warning" : "destructive"} className="text-xs">
                         {stockInfo.label} ({product.stock})
                       </Badge>
@@ -452,8 +463,32 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                 </span>
               </div>
             )}
+            <div className="space-y-2">
+              <Label>{t("pricingType")}</Label>
+              <Select
+                options={[{ value: "standard", label: t("pricingStandard") }, { value: "customized", label: t("pricingCustomized") }]}
+                value={newProduct.pricing_type}
+                onChange={(e) => setNewProduct((p) => ({ ...p, pricing_type: e.target.value as PricingType }))}
+              />
+            </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>{t("pricePerMeter")}</Label><Input type="number" step="0.01" placeholder="0.00" value={newProduct.price_per_meter || ""} onChange={(e) => setNewProduct((p) => ({ ...p, price_per_meter: Number(e.target.value) }))} /></div>
+              <div className="space-y-2">
+                <Label>{t("priceUsd")}</Label>
+                <Input type="number" step="0.01" placeholder="0.00" value={newProduct.price_per_meter || ""} onChange={(e) => {
+                  const usd = Number(e.target.value)
+                  setNewProduct((p) => ({ ...p, price_per_meter: usd, price_cny: usdToCny(usd, exchangeRate) }))
+                }} />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("priceCny")}</Label>
+                <Input type="number" step="0.01" placeholder="0.00" value={newProduct.price_cny || ""} onChange={(e) => {
+                  const cny = Number(e.target.value)
+                  setNewProduct((p) => ({ ...p, price_cny: cny, price_per_meter: cnyToUsd(cny, exchangeRate) }))
+                }} />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">1 USD = {exchangeRate.toFixed(2)} CNY ({isLiveRate ? t("liveRate") : t("fallbackRate")})</p>
+            <div className="grid sm:grid-cols-1 gap-4">
               <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" placeholder="0" value={newProduct.stock || ""} onChange={(e) => setNewProduct((p) => ({ ...p, stock: Number(e.target.value) }))} /></div>
             </div>
             <div className="space-y-2"><Label>{t("description")}</Label><Textarea placeholder={t("descriptionPlaceholder")} rows={3} value={newProduct.description} onChange={(e) => setNewProduct((p) => ({ ...p, description: e.target.value }))} /></div>
@@ -554,8 +589,32 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                 </span>
               </div>
             )}
+            <div className="space-y-2">
+              <Label>{t("pricingType")}</Label>
+              <Select
+                options={[{ value: "standard", label: t("pricingStandard") }, { value: "customized", label: t("pricingCustomized") }]}
+                value={editForm.pricing_type}
+                onChange={(e) => setEditForm((f) => ({ ...f, pricing_type: e.target.value as PricingType }))}
+              />
+            </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>{t("pricePerMeter")}</Label><Input type="number" step="0.01" value={editForm.price_per_meter || ""} onChange={(e) => setEditForm((f) => ({ ...f, price_per_meter: Number(e.target.value) }))} /></div>
+              <div className="space-y-2">
+                <Label>{t("priceUsd")}</Label>
+                <Input type="number" step="0.01" value={editForm.price_per_meter || ""} onChange={(e) => {
+                  const usd = Number(e.target.value)
+                  setEditForm((f) => ({ ...f, price_per_meter: usd, price_cny: usdToCny(usd, exchangeRate) }))
+                }} />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("priceCny")}</Label>
+                <Input type="number" step="0.01" value={editForm.price_cny || ""} onChange={(e) => {
+                  const cny = Number(e.target.value)
+                  setEditForm((f) => ({ ...f, price_cny: cny, price_per_meter: cnyToUsd(cny, exchangeRate) }))
+                }} />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">1 USD = {exchangeRate.toFixed(2)} CNY ({isLiveRate ? t("liveRate") : t("fallbackRate")})</p>
+            <div className="grid sm:grid-cols-1 gap-4">
               <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" value={editForm.stock || ""} onChange={(e) => setEditForm((f) => ({ ...f, stock: Number(e.target.value) }))} /></div>
             </div>
             <div className="space-y-2"><Label>{t("description")}</Label><Textarea rows={3} value={editForm.description} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} /></div>
