@@ -316,12 +316,39 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
           if (parent) mainCat = parent
         }
 
+        // Determine pricing: price_per_meter → measurement-based, price_usd/price_cny → standard
+        const rawPricePerMeter = Number(r.price_per_meter) || 0
+        const rawPriceUsd = Number(r.price_usd) || 0
+        const rawPriceCny = Number(r.price_cny) || 0
+
+        let pricingType: "standard" | "customized" = "standard"
+        let pricePerMeter = 0
+        let priceUsd: number | null = null
+        let priceCny: number | null = null
+
+        if (rawPricePerMeter > 0) {
+          pricingType = "customized"
+          pricePerMeter = rawPricePerMeter
+          priceUsd = rawPricePerMeter
+        } else if (rawPriceUsd > 0) {
+          pricePerMeter = rawPriceUsd
+          priceUsd = rawPriceUsd
+        } else if (rawPriceCny > 0) {
+          priceCny = rawPriceCny
+        } else {
+          pricePerMeter = Number(r.price) || 0
+          priceUsd = pricePerMeter > 0 ? pricePerMeter : null
+        }
+
         return {
           name: r.name || r.product_name || "Unnamed Product",
           model_number: r.model_number || "",
           main_category: mainCat,
           category: subCat,
-          price_per_meter: Number(r.price_per_meter || r.price) || 0,
+          price_per_meter: pricePerMeter,
+          pricing_type: pricingType,
+          price_usd: priceUsd,
+          price_cny: priceCny,
           stock: Number(r.stock || r.quantity) || 0,
           description: r.description || undefined,
           image_url: undefined,

@@ -46,6 +46,7 @@ export interface ImportRow {
   category: string
   price_per_meter: number
   pricing_type?: string
+  price_usd?: number | null
   price_cny?: number | null
   stock: number
   description?: string
@@ -368,19 +369,23 @@ export function BulkEditTable({
 
         let pricingType: "standard" | "customized" = "standard"
         let pricePerMeter = 0
+        let priceUsd: number | null = null
         let priceCny: number | null = null
 
         if (rawPricePerMeter > 0) {
           pricingType = "customized"
           pricePerMeter = rawPricePerMeter
+          priceUsd = rawPricePerMeter
         } else if (rawPriceUsd > 0) {
           pricePerMeter = rawPriceUsd
+          priceUsd = rawPriceUsd
           // CNY will be auto-calculated in preview
         } else if (rawPriceCny > 0) {
           priceCny = rawPriceCny
           // USD will be auto-calculated in preview
         } else {
           pricePerMeter = Number(r.price) || 0
+          priceUsd = pricePerMeter > 0 ? pricePerMeter : null
         }
 
         return {
@@ -390,6 +395,7 @@ export function BulkEditTable({
           category: subCat,
           price_per_meter: pricePerMeter,
           pricing_type: pricingType,
+          price_usd: priceUsd,
           price_cny: priceCny,
           stock: Number(r.stock || r.quantity) || 0,
           description: r.description || undefined,
