@@ -95,21 +95,40 @@ export async function getWishlistProducts(): Promise<WishlistProductItem[]> {
   if (!user) return []
 
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+
+  // Step 1: Get wishlist entries for the user
+  const { data: wishlistRows, error: wishlistError } = await supabase
     .from("wishlists")
-    .select("id, product_id, created_at, product:products!product_id(id, name, model_number, category, price_per_meter, pricing_type, price_usd, price_cny, stock, image_url)")
+    .select("id, product_id, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 
-  if (error) {
-    console.error("getWishlistProducts error:", error.message)
+  if (wishlistError) {
+    console.error("getWishlistProducts wishlist error:", wishlistError.message)
     return []
   }
 
-  return (data ?? [])
-    .filter((row) => row.product !== null)
+  if (!wishlistRows || wishlistRows.length === 0) return []
+
+  // Step 2: Get product details for those product IDs
+  const productIds = wishlistRows.map((row) => row.product_id)
+  const { data: products, error: productsError } = await supabase
+    .from("products")
+    .select("id, name, model_number, category, price_per_meter, pricing_type, price_usd, price_cny, stock, image_url")
+    .in("id", productIds)
+
+  if (productsError) {
+    console.error("getWishlistProducts products error:", productsError.message)
+    return []
+  }
+
+  // Step 3: Combine wishlist entries with product details
+  const productMap = new Map((products ?? []).map((p) => [p.id, p]))
+
+  return wishlistRows
     .map((row) => {
-      const product = row.product as unknown as Record<string, unknown>
+      const product = productMap.get(row.product_id)
+      if (!product) return null
       return {
         wishlist_id: row.id as string,
         created_at: row.created_at as string,
@@ -125,4 +144,5 @@ export async function getWishlistProducts(): Promise<WishlistProductItem[]> {
         image_url: product.image_url as string | null,
       }
     })
+    .filter((item): item is WishlistProductItem => item !== null)
 }
