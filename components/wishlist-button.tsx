@@ -9,9 +9,10 @@ interface WishlistButtonProps {
   productId: string
   initialLiked: boolean
   size?: "sm" | "md"
+  onToggle?: (liked: boolean) => void
 }
 
-export function WishlistButton({ productId, initialLiked, size = "sm" }: WishlistButtonProps) {
+export function WishlistButton({ productId, initialLiked, size = "sm", onToggle }: WishlistButtonProps) {
   const [liked, setLiked] = useState(initialLiked)
   const [animate, setAnimate] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -34,6 +35,7 @@ export function WishlistButton({ productId, initialLiked, size = "sm" }: Wishlis
           setLiked(!newLiked)
         } else {
           setLiked(result.liked)
+          onToggle?.(result.liked)
         }
       } catch (err) {
         console.error("Wishlist toggle unexpected error:", err)
