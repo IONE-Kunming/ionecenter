@@ -12,7 +12,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
 import { formatCurrency } from "@/lib/utils"
-import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo } from "@/lib/actions/invoices"
+import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers } from "@/lib/actions/invoices"
+import jsPDF from "jspdf"
+import html2canvas from "html2canvas"
 
 interface ProductResult {
   id: string
@@ -31,6 +33,12 @@ interface BankInfo {
   bank_code: string | null
   branch_code: string | null
   bank_address: string | null
+}
+
+interface BuyerResult {
+  id: string
+  display_name: string
+  email: string
 }
 
 interface InvoiceRow {
@@ -60,6 +68,8 @@ export function CreateOfflineInvoiceForm() {
 
   const [buyerName, setBuyerName] = useState("")
   const [buyerEmail, setBuyerEmail] = useState("")
+  const [buyerSuggestions, setBuyerSuggestions] = useState<BuyerResult[]>([])
+  const [showBuyerSuggestions, setShowBuyerSuggestions] = useState(false)
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split("T")[0])
   const [discount, setDiscount] = useState(0)
   const [amountPaid, setAmountPaid] = useState(0)
@@ -85,11 +95,15 @@ export function CreateOfflineInvoiceForm() {
 
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const buyerSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const buyerBlurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     return () => {
       if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
       if (blurTimerRef.current) clearTimeout(blurTimerRef.current)
+      if (buyerSearchTimerRef.current) clearTimeout(buyerSearchTimerRef.current)
+      if (buyerBlurTimerRef.current) clearTimeout(buyerBlurTimerRef.current)
     }
   }, [])
 
@@ -98,6 +112,32 @@ export function CreateOfflineInvoiceForm() {
       setBankInfo(info)
       setBankInfoLoaded(true)
     })
+  }, [])
+
+  const handleBuyerSearch = useCallback(async (query: string) => {
+    setBuyerName(query)
+    setShowBuyerSuggestions(true)
+
+    if (buyerSearchTimerRef.current) clearTimeout(buyerSearchTimerRef.current)
+
+    if (query.length < 2) {
+      setBuyerSuggestions([])
+      setShowBuyerSuggestions(false)
+      return
+    }
+
+    buyerSearchTimerRef.current = setTimeout(async () => {
+      const results = await searchBuyers(query)
+      setBuyerSuggestions(results)
+      setShowBuyerSuggestions(true)
+    }, 300)
+  }, [])
+
+  const selectBuyer = useCallback((buyer: BuyerResult) => {
+    setBuyerName(buyer.display_name)
+    setBuyerEmail(buyer.email)
+    setBuyerSuggestions([])
+    setShowBuyerSuggestions(false)
   }, [])
 
   const handleProductSearch = useCallback(
@@ -288,6 +328,31 @@ export function CreateOfflineInvoiceForm() {
     window.print()
   }
 
+  const handleWhatsApp = async () => {
+    if (!savedInvoiceNumber) {
+      addToast("error", "Please save the invoice first")
+      return
+    }
+
+    try {
+      const element = printRef.current
+      if (!element) return
+
+      const canvas = await html2canvas(element, { scale: 2 })
+      const imgData = canvas.toDataURL("image/png")
+      const pdf = new jsPDF("p", "mm", "a4")
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight)
+      pdf.save(`Invoice-${savedInvoiceNumber}.pdf`)
+
+      const message = encodeURIComponent(`Invoice ${savedInvoiceNumber} attached`)
+      window.open(`https://wa.me/?text=${message}`, "_blank")
+    } catch {
+      addToast("error", "Failed to generate PDF")
+    }
+  }
+
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="print:hidden">
@@ -358,13 +423,38 @@ export function CreateOfflineInvoiceForm() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="buyerName">Buyer Name</Label>
-                <Input
-                  id="buyerName"
-                  value={buyerName}
-                  onChange={(e) => setBuyerName(e.target.value)}
-                  placeholder="Enter buyer name"
-                  className="print:border-none print:p-0 print:shadow-none"
-                />
+                <div className="relative">
+                  <Input
+                    id="buyerName"
+                    value={buyerName}
+                    onChange={(e) => handleBuyerSearch(e.target.value)}
+                    onBlur={() => {
+                      if (buyerBlurTimerRef.current) clearTimeout(buyerBlurTimerRef.current)
+                      buyerBlurTimerRef.current = setTimeout(() => {
+                        setShowBuyerSuggestions(false)
+                      }, 200)
+                    }}
+                    placeholder="Enter buyer name"
+                    className="print:border-none print:p-0 print:shadow-none"
+                    autoComplete="off"
+                  />
+                  {showBuyerSuggestions && buyerSuggestions.length > 0 && (
+                    <div className="absolute z-10 mt-1 w-full bg-background border rounded-md shadow-lg max-h-40 overflow-y-auto print:hidden">
+                      {buyerSuggestions.map((buyer) => (
+                        <button
+                          key={buyer.id}
+                          type="button"
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-accent cursor-pointer"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => selectBuyer(buyer)}
+                        >
+                          <span className="font-medium">{buyer.display_name}</span>
+                          <span className="text-muted-foreground ml-2">— {buyer.email}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="buyerEmail">Buyer Email</Label>
@@ -572,6 +662,25 @@ export function CreateOfflineInvoiceForm() {
           )}
           Send Invoice
         </Button>
+        <button
+          type="button"
+          className="whatsapp-btn"
+          onClick={handleWhatsApp}
+          disabled={!savedInvoiceId}
+          title="Send via WhatsApp"
+        >
+          <span className="whatsapp-svgContainer">
+            <svg
+              viewBox="0 0 448 512"
+              height="1.6em"
+              fill="white"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7 .9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5.1-3.9-10.6-6.6z" />
+            </svg>
+          </span>
+          <span className="whatsapp-BG" />
+        </button>
         <Button variant="outline" onClick={handlePrint}>
           <Printer className="h-4 w-4 mr-2" /> Print Invoice
         </Button>

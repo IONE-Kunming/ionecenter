@@ -166,6 +166,21 @@ export async function getSellerBankInfo() {
   }
 }
 
+export async function searchBuyers(query: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return []
+
+  const adminSupabase = createAdminClient()
+  const { data } = await adminSupabase
+    .from("users")
+    .select("id, display_name, email")
+    .eq("role", "buyer")
+    .or(`display_name.ilike.%${query}%,email.ilike.%${query}%`)
+    .limit(10)
+
+  return data ?? []
+}
+
 export interface OfflineInvoiceInput {
   buyer_name: string
   buyer_email: string
