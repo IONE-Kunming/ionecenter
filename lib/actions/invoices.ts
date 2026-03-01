@@ -163,6 +163,13 @@ export async function getSellerBankInfo() {
     bank_code: user.bank_code,
     branch_code: user.branch_code,
     bank_address: user.bank_address,
+    company: user.company,
+    display_name: user.display_name,
+    phone_number: user.phone_number,
+    street: user.street,
+    city: user.city,
+    state: user.state,
+    country: user.country,
   }
 }
 

@@ -33,6 +33,13 @@ interface BankInfo {
   bank_code: string | null
   branch_code: string | null
   bank_address: string | null
+  company: string | null
+  display_name: string
+  phone_number: string | null
+  street: string | null
+  city: string | null
+  state: string | null
+  country: string | null
 }
 
 interface BuyerResult {
@@ -413,14 +420,14 @@ export function CreateOfflineInvoiceForm() {
       </div>
 
       <div ref={printRef} className="space-y-6 invoice-print-area">
-        {/* Invoice Header */}
-        <div className="flex items-start justify-between">
+        {/* Screen Invoice Header */}
+        <div className="flex items-start justify-between print:hidden">
           <Image src="/logo.svg" alt="IONE Center" width={120} height={40} />
           <div className="text-right">
             <h2 className="text-xl font-bold">
               {savedInvoiceNumber ? `Invoice ${savedInvoiceNumber}` : "New Invoice"}
             </h2>
-            <div className="mt-1 print:hidden">
+            <div className="mt-1">
               <Input
                 type="date"
                 value={invoiceDate}
@@ -428,24 +435,50 @@ export function CreateOfflineInvoiceForm() {
                 className="w-40 ml-auto text-right"
               />
             </div>
-            <p className="hidden print:block text-sm text-muted-foreground">
-              Date: {new Date(invoiceDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-            </p>
+          </div>
+        </div>
+
+        {/* Print-only Professional Header */}
+        <div className="hidden print:block invoice-print-header">
+          <div style={{ textAlign: "center" }}>
+            <Image src="/logo.svg" alt="IONE Center" width={140} height={46} style={{ margin: "0 auto" }} />
+            {bankInfo?.company && (
+              <h1 className="invoice-company-name">{bankInfo.company}</h1>
+            )}
+            <div className="invoice-company-details">
+              {bankInfo?.bank_address && <span>{bankInfo.bank_address}</span>}
+              {bankInfo?.phone_number && <span> | {bankInfo.phone_number}</span>}
+              {bankInfo?.city && <span> | {bankInfo.city}{bankInfo?.state ? `, ${bankInfo.state}` : ""}{bankInfo?.country ? `, ${bankInfo.country}` : ""}</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Print-only Invoice Info Row */}
+        <div className="hidden print:block invoice-info-row">
+          <div className="invoice-info-left">
+            <p><strong>Invoice Number:</strong> {savedInvoiceNumber || "—"}</p>
+            <p><strong>Date:</strong> {new Date(invoiceDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</p>
+          </div>
+          <div className="invoice-info-right">
+            <p><strong>Supplier</strong></p>
+            {bankInfo?.display_name && <p>{bankInfo.display_name}</p>}
+            {bankInfo?.street && <p>{bankInfo.street}</p>}
+            {bankInfo?.city && <p>{bankInfo.city}{bankInfo?.state ? `, ${bankInfo.state}` : ""}</p>}
           </div>
         </div>
 
         {/* Bank Information (dynamic from seller settings) */}
         {bankInfoLoaded && !hasBankInfo(bankInfo) && (
-          <div className="flex items-center gap-2 rounded-md border border-yellow-300 bg-yellow-50 p-4 text-sm text-yellow-800 dark:border-yellow-700 dark:bg-yellow-950 dark:text-yellow-200">
+          <div className="flex items-center gap-2 rounded-md border border-yellow-300 bg-yellow-50 p-4 text-sm text-yellow-800 dark:border-yellow-700 dark:bg-yellow-950 dark:text-yellow-200 print:hidden">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <p>Please add your bank information in settings before creating an invoice.</p>
-            <Link href="/seller/profile" className="ml-auto underline whitespace-nowrap print:hidden">
+            <Link href="/seller/profile" className="ml-auto underline whitespace-nowrap">
               Go to Settings
             </Link>
           </div>
         )}
         {hasBankInfo(bankInfo) && (
-          <Card>
+          <Card className="print:hidden">
             <CardHeader>
               <CardTitle className="text-sm">Bank Information</CardTitle>
             </CardHeader>
@@ -475,7 +508,7 @@ export function CreateOfflineInvoiceForm() {
               <div className="rounded-md border p-4 space-y-2">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 text-sm">
-                    <div className="border-b pb-2 mb-2">
+                    <div className="border-b pb-2 mb-2 print:hidden">
                       <span className="text-muted-foreground">Code:</span>{" "}
                       <span className="font-medium">{foundBuyer.user_code}</span>
                     </div>
@@ -501,7 +534,7 @@ export function CreateOfflineInvoiceForm() {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="space-y-2">
+                <div className="space-y-2 print:hidden">
                   <Label htmlFor="buyerCode">Buyer Code</Label>
                   <div className="relative">
                     <Input
@@ -700,8 +733,8 @@ export function CreateOfflineInvoiceForm() {
         </Card>
 
         {/* Invoice Summary */}
-        <Card>
-          <CardHeader>
+        <Card className="invoice-summary-card">
+          <CardHeader className="print:hidden">
             <CardTitle>Invoice Summary</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm max-w-xs ml-auto">
@@ -717,8 +750,9 @@ export function CreateOfflineInvoiceForm() {
                 step={0.01}
                 value={discount || ""}
                 onChange={(e) => setDiscount(Number(e.target.value))}
-                className="w-28 text-right print:border-none print:p-0 print:shadow-none"
+                className="w-28 text-right print:hidden"
               />
+              <span className="hidden print:inline">({formatCurrency(discount)})</span>
             </div>
             <div className="border-t pt-2 flex justify-between font-semibold">
               <span>Total</span>
@@ -732,10 +766,11 @@ export function CreateOfflineInvoiceForm() {
                 step={0.01}
                 value={amountPaid || ""}
                 onChange={(e) => setAmountPaid(Number(e.target.value))}
-                className="w-28 text-right text-green-600 print:border-none print:p-0 print:shadow-none"
+                className="w-28 text-right text-green-600 print:hidden"
               />
+              <span className="hidden print:inline">{formatCurrency(amountPaid)}</span>
             </div>
-            <div className="border-t pt-2 flex justify-between font-semibold text-lg">
+            <div className="border-t pt-2 flex justify-between font-semibold text-lg invoice-amount-due">
               <span>Amount Due</span>
               <span>{formatCurrency(amountDue)}</span>
             </div>
