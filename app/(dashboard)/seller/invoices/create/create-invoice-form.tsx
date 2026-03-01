@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
 import { formatCurrency } from "@/lib/utils"
-import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers, searchBuyerByCode } from "@/lib/actions/invoices"
+import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers, searchBuyerByCode, getNextSellerInvoiceNumber } from "@/lib/actions/invoices"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 
@@ -98,6 +98,7 @@ export function CreateOfflineInvoiceForm() {
   const [saving, setSaving] = useState(false)
   const [sending, setSending] = useState(false)
   const [savedInvoiceNumber, setSavedInvoiceNumber] = useState<string | null>(null)
+  const [autoInvoiceNumber, setAutoInvoiceNumber] = useState<string | null>(null)
   const [savedInvoiceId, setSavedInvoiceId] = useState<string | null>(null)
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null)
   const [bankInfoLoaded, setBankInfoLoaded] = useState(false)
@@ -135,6 +136,12 @@ export function CreateOfflineInvoiceForm() {
     getSellerBankInfo().then((info) => {
       setBankInfo(info)
       setBankInfoLoaded(true)
+    })
+  }, [])
+
+  useEffect(() => {
+    getNextSellerInvoiceNumber().then((num) => {
+      setAutoInvoiceNumber(num)
     })
   }, [])
 
@@ -288,6 +295,9 @@ export function CreateOfflineInvoiceForm() {
   const total = Math.max(subtotal - discount, 0)
   const amountDue = Math.max(total - amountPaid, 0)
 
+  // The invoice number to display - use saved number after save, otherwise the auto-generated one
+  const displayInvoiceNumber = savedInvoiceNumber || autoInvoiceNumber
+
   const handleSave = async () => {
     if (!buyerName.trim()) {
       addToast("error", "Buyer name is required")
@@ -307,6 +317,7 @@ export function CreateOfflineInvoiceForm() {
       const result = await createOfflineInvoice({
         buyer_name: buyerName.trim(),
         buyer_email: buyerEmail.trim(),
+        invoice_number: autoInvoiceNumber || undefined,
         items: rows
           .filter((r) => r.productName.trim())
           .map((r) => ({
@@ -429,7 +440,7 @@ export function CreateOfflineInvoiceForm() {
           <Image src="/logo.svg" alt="IONE Center" width={120} height={40} />
           <div className="text-right">
             <h2 className="text-xl font-bold">
-              {savedInvoiceNumber ? `Invoice ${savedInvoiceNumber}` : "New Invoice"}
+              {displayInvoiceNumber ? `Invoice ${displayInvoiceNumber}` : "New Invoice"}
             </h2>
             <div className="mt-1">
               <Input
@@ -460,7 +471,7 @@ export function CreateOfflineInvoiceForm() {
         {/* Print-only Invoice Info Row */}
         <div className="hidden print:block invoice-info-row">
           <div className="invoice-info-left">
-            <p><strong>Invoice Number:</strong> {savedInvoiceNumber || "—"}</p>
+            <p><strong>Invoice Number:</strong> {displayInvoiceNumber || "—"}</p>
             <p><strong>Date:</strong> {new Date(invoiceDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</p>
           </div>
           <div className="invoice-info-right">
