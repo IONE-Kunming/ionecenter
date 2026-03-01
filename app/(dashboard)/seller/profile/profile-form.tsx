@@ -82,7 +82,7 @@ export default function SellerProfileForm({ user, sellerCode }: { user: User; se
           <CardHeader><CardTitle>{t("yourSellerCode")}</CardTitle></CardHeader>
           <CardContent>
             <div className="flex items-center gap-3">
-              <span className="inline-flex items-center rounded-md bg-primary/10 px-4 py-2 text-2xl font-bold font-mono tracking-widest text-primary">
+              <span className="inline-flex items-center rounded-md bg-primary/10 px-4 py-2 text-2xl font-bold font-mono tracking-widest text-primary" aria-label={`${t("yourSellerCode")}: ${sellerCode}`}>
                 {sellerCode}
               </span>
               <Button variant="outline" size="icon" onClick={handleCopyCode} title={t("copyCode")}>
