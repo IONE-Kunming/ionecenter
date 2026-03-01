@@ -121,7 +121,7 @@ function isExcelFile(file: File): boolean {
 }
 
 function downloadTemplate() {
-  const csv = "name,model_number,description,main_category,category,price_per_meter,stock\nExample Product,EX-001,Sample description,Construction,Exterior Gates,10.00,100"
+  const csv = "name,model_number,description,main_category,category,price_usd,price_cny,stock\nExample Product,EX-001,Sample description,Construction,Exterior Gates,10.00,,100"
   const blob = new Blob([csv], { type: "text/csv" })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
@@ -362,7 +362,8 @@ export function BulkEditTable({
           model_number: r.model_number || "",
           main_category: mainCat,
           category: subCat,
-          price_per_meter: Number(r.price_per_meter || r.price) || 0,
+          price_per_meter: Number(r.price_usd || r.price_per_meter || r.price) || 0,
+          price_cny: r.price_cny ? Number(r.price_cny) : null,
           stock: Number(r.stock || r.quantity) || 0,
           description: r.description || undefined,
           image_url: undefined,

@@ -9,6 +9,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import type { CategoryData } from "@/lib/categories"
 import { getSubcategoriesFromData } from "@/lib/categories"
+import { useExchangeRate, usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
 import type { ImportRow } from "./bulk-edit-table"
 
 interface PreviewRow extends ImportRow {
@@ -25,7 +26,7 @@ interface ImportPreviewProps {
   categoryData: CategoryData
 }
 
-type ColumnKey = "name" | "model_number" | "main_category" | "category" | "price_per_meter" | "stock" | "description" | "image"
+type ColumnKey = "name" | "model_number" | "main_category" | "category" | "price_usd" | "price_cny" | "stock" | "description" | "image"
 
 interface ColumnDef {
   key: ColumnKey
@@ -38,7 +39,8 @@ const DEFAULT_COLUMNS: ColumnDef[] = [
   { key: "model_number", label: "Model #", minWidth: "min-w-[120px]" },
   { key: "main_category", label: "Category", minWidth: "min-w-[180px]" },
   { key: "category", label: "Subcategory", minWidth: "min-w-[180px]" },
-  { key: "price_per_meter", label: "Price", minWidth: "min-w-[100px]" },
+  { key: "price_usd", label: "Price (USD $)", minWidth: "min-w-[120px]" },
+  { key: "price_cny", label: "Price (CNY ¥)", minWidth: "min-w-[120px]" },
   { key: "stock", label: "Stock", minWidth: "min-w-[80px]" },
   { key: "description", label: "Description", minWidth: "min-w-[200px]" },
   { key: "image", label: "Image", minWidth: "min-w-[100px]" },
@@ -52,14 +54,27 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
   const [draggedRow, setDraggedRow] = useState<number | null>(null)
   const [dragOverRow, setDragOverRow] = useState<number | null>(null)
   const fileRefs = useRef<(HTMLInputElement | null)[]>([])
+  const { rate, isLive, loading: rateLoading } = useExchangeRate()
 
   // Re-initialize rows when initialRows change (e.g., new CSV parsed)
+  // Auto-calculate missing USD/CNY prices using exchange rate
   useEffect(() => {
     if (initialRows.length > 0) {
-      setRows(initialRows.map((r) => ({ ...r, imageFile: null, imagePreview: null })))
+      setRows(initialRows.map((r) => {
+        let finalUsd = r.price_per_meter || 0
+        let finalCny = r.price_cny ?? null
+
+        if (finalUsd > 0 && (!finalCny || finalCny === 0)) {
+          finalCny = usdToCny(finalUsd, rate)
+        } else if (finalCny && finalCny > 0 && finalUsd === 0) {
+          finalUsd = cnyToUsd(finalCny, rate)
+        }
+
+        return { ...r, price_per_meter: finalUsd, price_cny: finalCny, imageFile: null, imagePreview: null }
+      }))
       setColumns(DEFAULT_COLUMNS)
     }
-  }, [initialRows])
+  }, [initialRows, rate])
 
   const updateRow = useCallback((index: number, field: keyof ImportRow, value: string | number) => {
     setRows((prev) => prev.map((r, i) => i === index ? { ...r, [field]: value } : r))
@@ -227,7 +242,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
             className="h-8 text-xs"
           />
         )
-      case "price_per_meter":
+      case "price_usd":
         return (
           <div className="relative">
             <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
@@ -237,6 +252,20 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
               step="0.01"
               value={row.price_per_meter}
               onChange={(e) => updateRow(idx, "price_per_meter", Number(e.target.value))}
+              className="h-8 text-xs pl-5"
+            />
+          </div>
+        )
+      case "price_cny":
+        return (
+          <div className="relative">
+            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">¥</span>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={row.price_cny ?? 0}
+              onChange={(e) => updateRow(idx, "price_cny", Number(e.target.value))}
               className="h-8 text-xs pl-5"
             />
           </div>
@@ -313,7 +342,13 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
             <FileSpreadsheet className="h-5 w-5 text-primary" />
             <div>
               <h2 className="text-lg font-semibold">Import Preview</h2>
-              <p className="text-xs text-muted-foreground">{rows.length} products ready to import — Drag column headers to reorder</p>
+              <p className="text-xs text-muted-foreground">
+                {rows.length} products ready to import — Drag column headers to reorder
+                {" · "}
+                <span className={isLive ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"}>
+                  Rate: $1 = ¥{rate.toFixed(2)} {isLive ? "(live)" : rateLoading ? "(loading…)" : "(fallback)"}
+                </span>
+              </p>
             </div>
           </div>
         </div>
