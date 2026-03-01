@@ -443,9 +443,9 @@ export function CreateOfflineInvoiceForm() {
                   <div className="text-sm space-y-1">
                     <p className="font-semibold">Buyer Information</p>
                     <div className="border-t pt-1 space-y-0.5 text-muted-foreground">
-                      <p><span className="font-medium text-foreground">Code:</span>   {buyerCode}</p>
-                      <p><span className="font-medium text-foreground">Name:</span>   {buyerName}</p>
-                      <p><span className="font-medium text-foreground">Email:</span>  {buyerEmail}</p>
+                      <p><span className="inline-block w-12 font-medium text-foreground">Code:</span> {buyerCode}</p>
+                      <p><span className="inline-block w-12 font-medium text-foreground">Name:</span> {buyerName}</p>
+                      <p><span className="inline-block w-12 font-medium text-foreground">Email:</span> {buyerEmail}</p>
                     </div>
                   </div>
                 </div>
