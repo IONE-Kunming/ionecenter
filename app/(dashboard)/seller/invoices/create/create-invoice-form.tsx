@@ -185,6 +185,7 @@ export function CreateOfflineInvoiceForm() {
     setBuyerName("")
     setBuyerEmail("")
     setBuyerCodeError(null)
+    setBuyerCodeSearching(false)
   }, [])
 
   const handleProductSearch = useCallback(
