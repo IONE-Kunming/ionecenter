@@ -321,13 +321,13 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
         const rawPriceUsd = Number(r.price_usd) || 0
         const rawPriceCny = Number(r.price_cny) || 0
 
-        let pricingType: "standard" | "customized" = "standard"
+        const rawPricingType = (r.pricing_type || "").trim().toLowerCase()
+        let pricingType: "standard" | "customized" = rawPricingType === "customized" ? "customized" : "standard"
         let pricePerMeter = 0
         let priceUsd: number | null = null
         let priceCny: number | null = null
 
         if (rawPricePerMeter > 0) {
-          pricingType = "customized"
           pricePerMeter = rawPricePerMeter
           priceUsd = rawPricePerMeter
         } else if (rawPriceUsd > 0) {
@@ -563,6 +563,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                 <span className="text-muted-foreground">{t("priceUsdCol")}</span><span className="font-mono text-xs">price_usd <span className="text-[0.65rem] text-muted-foreground font-sans">— {t("priceUsdColHint")}</span></span>
                 <span className="text-muted-foreground">{t("priceCnyCol")}</span><span className="font-mono text-xs">price_cny <span className="text-[0.65rem] text-muted-foreground font-sans">— {t("priceCnyColHint")}</span></span>
                 <span className="text-muted-foreground">{t("stockCol")}</span><span className="font-mono text-xs">stock</span>
+                <span className="text-muted-foreground">{t("pricingType")}</span><span className="font-mono text-xs">pricing_type <span className="text-[0.65rem] text-muted-foreground font-sans">— accepted values: Standard or Customized</span></span>
               </div>
               <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 font-medium">{t("fillOnlyOnePrice")}</p>
             </div>
