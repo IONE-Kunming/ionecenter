@@ -15,6 +15,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { formatDate } from "@/lib/utils"
 import { adminUpdateUser, adminDeleteUser, adminDeactivateUser, adminActivateUser, adminUpdateUserCode } from "@/lib/actions/admin"
 import type { UserRole } from "@/types/database"
+import "./status-toggle.css"
 
 interface UserRow {
   id: string
@@ -54,6 +55,11 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
   const [toggleUser, setToggleUser] = useState<UserRow | null>(null)
   const [toggling, setToggling] = useState(false)
   const [toggleError, setToggleError] = useState<string | null>(null)
+
+  // Inline status toggle state
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, boolean>>({})
+  const [togglingUsers, setTogglingUsers] = useState<Record<string, boolean>>({})
+  const [toggleErrors, setToggleErrors] = useState<Record<string, string>>({})
 
   // User code editing state
   const [editingCodeUserId, setEditingCodeUserId] = useState<string | null>(null)
@@ -117,6 +123,32 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
     }
   }
 
+  const handleInlineToggle = async (user: UserRow) => {
+    const currentActive = statusOverrides[user.id] ?? user.is_active
+    const newActive = !currentActive
+
+    // Optimistically update UI
+    setStatusOverrides((prev) => ({ ...prev, [user.id]: newActive }))
+    setTogglingUsers((prev) => ({ ...prev, [user.id]: true }))
+    setToggleErrors((prev) => {
+      const next = { ...prev }
+      delete next[user.id]
+      return next
+    })
+
+    const result = currentActive
+      ? await adminDeactivateUser(user.id)
+      : await adminActivateUser(user.id)
+
+    setTogglingUsers((prev) => ({ ...prev, [user.id]: false }))
+
+    if (result.error) {
+      // Revert on failure
+      setStatusOverrides((prev) => ({ ...prev, [user.id]: currentActive }))
+      setToggleErrors((prev) => ({ ...prev, [user.id]: result.error! }))
+    }
+  }
+
   const startEditCode = (user: UserRow) => {
     setEditingCodeUserId(user.id)
     setEditingCodeValue(user.user_code ?? (user.role === "buyer" ? "B" : user.role === "seller" ? "S" : ""))
@@ -174,7 +206,7 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
             </TableHeader>
             <TableBody>
               {filtered.map((user, index) => (
-                <TableRow key={user.id} className={!user.is_active ? "opacity-60" : undefined}>
+                <TableRow key={user.id} className={!(statusOverrides[user.id] ?? user.is_active) ? "opacity-60" : undefined}>
                   <TableCell className="text-muted-foreground">{index + 1}</TableCell>
                   <TableCell className="font-medium">{user.display_name}</TableCell>
                   <TableCell>{user.email}</TableCell>
@@ -184,11 +216,28 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {user.is_active ? (
-                      <Badge variant="success">Active</Badge>
-                    ) : (
-                      <Badge variant="destructive">Inactive</Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const active = statusOverrides[user.id] ?? user.is_active
+                        return (
+                          <label className="status-toggle-container" title={active ? "Active – click to deactivate" : "Inactive – click to activate"}>
+                            <input
+                              type="checkbox"
+                              checked={active}
+                              onChange={() => handleInlineToggle(user)}
+                              disabled={togglingUsers[user.id]}
+                            />
+                            <div className="status-toggle-checkmark" />
+                          </label>
+                        )
+                      })()}
+                      {!(statusOverrides[user.id] ?? user.is_active) && (
+                        <X className="h-4 w-4 text-red-500" />
+                      )}
+                      {toggleErrors[user.id] && (
+                        <span className="text-xs text-destructive max-w-[120px]" role="alert">{toggleErrors[user.id]}</span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     {editingCodeUserId === user.id ? (
