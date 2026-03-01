@@ -2,16 +2,18 @@ import { Package, FileText, DollarSign, TrendingUp } from "lucide-react"
 import { StatCard } from "@/components/ui/stat-card"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency, formatDualPrice } from "@/lib/utils"
+import { getExchangeRate } from "@/lib/exchange-rate"
 import { getSellerDashboardStats } from "@/lib/actions/orders"
 import { getSellerProducts } from "@/lib/actions/products"
 import { getTranslations } from "next-intl/server"
 
 export default async function SellerDashboardPage() {
-  const [stats, products, t, tCommon] = await Promise.all([
+  const [stats, products, t, tCommon, liveRate] = await Promise.all([
     getSellerDashboardStats(),
     getSellerProducts(),
     getTranslations("sellerDashboard"),
     getTranslations("common"),
+    getExchangeRate(),
   ])
 
   const topProducts = products.slice(0, 5)
@@ -35,7 +37,7 @@ export default async function SellerDashboardPage() {
                   <p className="text-sm text-muted-foreground">{p.model_number}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium">{formatDualPrice(p.price_per_meter, p.price_cny, p.pricing_type)}</p>
+                  <p className="font-medium">{formatDualPrice(p.price_per_meter, p.price_cny, p.pricing_type, liveRate)}</p>
                   <p className="text-xs text-muted-foreground">{t("stock")}: {p.stock}</p>
                 </div>
               </div>

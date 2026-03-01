@@ -9,10 +9,12 @@ import { Badge } from "@/components/ui/badge"
 import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
 import { formatDualPrice } from "@/lib/utils"
+import { useExchangeRate } from "@/lib/use-exchange-rate"
 import type { WishlistProductItem } from "@/lib/actions/wishlist"
 
 export function MyListContent({ products, basePath }: { products: WishlistProductItem[]; basePath: string }) {
   const t = useTranslations("wishlist")
+  const { rate } = useExchangeRate()
 
   return (
     <div className="space-y-6">
@@ -45,7 +47,7 @@ export function MyListContent({ products, basePath }: { products: WishlistProduc
                   </Link>
                   <p className="text-xs text-muted-foreground mt-1">{product.model_number}</p>
                   <div className="flex items-center justify-between mt-3">
-                    <span className="font-bold text-primary">{formatDualPrice(product.price_per_meter, product.price_cny ?? null, (product.pricing_type || "standard") as "standard" | "customized")}</span>
+                    <span className="font-bold text-primary">{formatDualPrice(product.price_per_meter, product.price_cny ?? null, (product.pricing_type || "standard") as "standard" | "customized", rate)}</span>
                     <WishlistButton productId={product.id} initialLiked={true} />
                   </div>
                 </div>

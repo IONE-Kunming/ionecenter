@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatDualPrice } from "@/lib/utils"
+import { useExchangeRate } from "@/lib/use-exchange-rate"
 import type { CategoryData } from "@/lib/categories"
 import { isMainCategoryInData, getMainCategoryForSubcategoryInData, getSubcategoriesFromData } from "@/lib/categories"
 import { adminBulkImportProducts, adminDeleteProduct } from "@/lib/actions/admin"
@@ -54,6 +55,7 @@ export function AdminProductsList({ products, initialSearch = "", categoryData }
   const t = useTranslations("adminProducts")
   const tBulk = useTranslations("bulkEdit")
   const tCommon = useTranslations("common")
+  const { rate } = useExchangeRate()
 
   const [search, setSearch] = useState(initialSearch)
   const [categoryFilter, setCategoryFilter] = useState("")
@@ -215,7 +217,7 @@ export function AdminProductsList({ products, initialSearch = "", categoryData }
                   <TableCell className="text-muted-foreground">{product.model_number}</TableCell>
                   <TableCell><Badge variant="secondary">{product.category}</Badge></TableCell>
                   <TableCell>{product.seller_name ?? "—"}</TableCell>
-                  <TableCell>{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type)}</TableCell>
+                  <TableCell>{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, rate)}</TableCell>
                   <TableCell>{product.stock}</TableCell>
                   <TableCell>
                     <Badge variant={product.is_active ? "success" : "destructive"}>

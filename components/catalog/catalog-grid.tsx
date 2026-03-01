@@ -14,6 +14,7 @@ import { Pagination } from "@/components/ui/pagination"
 import { Select } from "@/components/ui/select"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatDualPrice } from "@/lib/utils"
+import { useExchangeRate } from "@/lib/use-exchange-rate"
 import type { CategoryData } from "@/lib/categories"
 import { toCategoryKey } from "@/lib/categories"
 import type { PricingType } from "@/types/database"
@@ -48,6 +49,7 @@ export function CatalogGrid({
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tCatNames = useTranslations("categoryNames")
+  const { rate } = useExchangeRate()
 
   const translateCat = (name: string): string => {
     const key = toCategoryKey(name)
@@ -129,7 +131,7 @@ export function CatalogGrid({
                       <p className="text-xs text-muted-foreground mt-1">{product.model_number}</p>
                       <div className="flex items-center justify-between mt-3">
                         <span className="font-bold text-primary">
-                          {formatDualPrice(product.price_per_meter, product.price_cny ?? null, product.pricing_type ?? "standard")}
+                          {formatDualPrice(product.price_per_meter, product.price_cny ?? null, product.pricing_type ?? "standard", rate)}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {t("stockLabel")} {product.stock}

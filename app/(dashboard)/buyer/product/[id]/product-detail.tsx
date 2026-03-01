@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/toaster"
 import { formatCurrency, formatDualPrice, getStockStatus } from "@/lib/utils"
+import { useExchangeRate } from "@/lib/use-exchange-rate"
 import { getOrCreateConversation } from "@/lib/actions/chat"
 import { addToCart } from "@/lib/actions/cart"
 import type { Product, UserRole } from "@/types/database"
@@ -24,6 +25,7 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
   const t = useTranslations("productDetail")
   const tCommon = useTranslations("common")
   const { addToast } = useToast()
+  const { rate } = useExchangeRate()
   const [chatPending, startChat] = useTransition()
   const [cartPending, startCart] = useTransition()
   const [quantity, setQuantity] = useState(1)
@@ -89,7 +91,7 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
 
           <div className="mt-6">
             <span className="text-3xl font-bold text-primary">
-              {formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type)}
+              {formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, rate)}
             </span>
           </div>
 
@@ -165,7 +167,7 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
             </div>
             <div className="flex justify-between py-2 border-b">
               <span className="text-muted-foreground">{t("price")}</span>
-              <span className="font-medium">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type)}</span>
+              <span className="font-medium">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, rate)}</span>
             </div>
           </div>
         </CardContent>
