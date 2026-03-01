@@ -11,6 +11,8 @@ export interface WishlistProductItem {
   model_number: string
   category: string
   price_per_meter: number
+  pricing_type: string
+  price_cny: number | null
   stock: number
   image_url: string | null
   [key: string]: unknown
@@ -70,7 +72,7 @@ export async function getWishlistProducts(): Promise<WishlistProductItem[]> {
   const supabase = createAdminClient()
   const { data } = await supabase
     .from("wishlists")
-    .select("id, product_id, created_at, product:products!product_id(id, name, model_number, category, price_per_meter, stock, image_url)")
+    .select("id, product_id, created_at, product:products!product_id(id, name, model_number, category, price_per_meter, pricing_type, price_cny, stock, image_url)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 
@@ -86,6 +88,8 @@ export async function getWishlistProducts(): Promise<WishlistProductItem[]> {
         model_number: product.model_number as string,
         category: product.category as string,
         price_per_meter: product.price_per_meter as number,
+        pricing_type: (product.pricing_type as string) || "standard",
+        price_cny: product.price_cny as number | null,
         stock: product.stock as number,
         image_url: product.image_url as string | null,
       }

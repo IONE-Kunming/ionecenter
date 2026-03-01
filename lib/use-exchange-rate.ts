@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 
 const FALLBACK_RATE = 7.25
 const API_URL = "https://open.er-api.com/v6/latest/USD"

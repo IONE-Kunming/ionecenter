@@ -45,7 +45,7 @@ export function MyListContent({ products, basePath }: { products: WishlistProduc
                   </Link>
                   <p className="text-xs text-muted-foreground mt-1">{product.model_number}</p>
                   <div className="flex items-center justify-between mt-3">
-                    <span className="font-bold text-primary">{formatDualPrice(product.price_per_meter, null, "standard")}</span>
+                    <span className="font-bold text-primary">{formatDualPrice(product.price_per_meter, product.price_cny ?? null, (product.pricing_type || "standard") as "standard" | "customized")}</span>
                     <WishlistButton productId={product.id} initialLiked={true} />
                   </div>
                 </div>
