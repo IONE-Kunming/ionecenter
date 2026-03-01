@@ -370,7 +370,9 @@
     "english": "English",
     "chinese": "Chinese",
     "arabic": "Arabic",
-    "urdu": "Urdu"
+    "urdu": "Urdu",
+    "yourBuyerCode": "Your Buyer Code",
+    "copyCode": "Copy code"
   },
   "sellerDirectory": {
     "searchSellers": "Search sellers...",

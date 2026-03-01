@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useTranslations } from "next-intl"
+import { Copy, Check } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,6 +16,14 @@ export default function BuyerProfileForm({ user }: { user: User }) {
   const tCommon = useTranslations("common")
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopyCode = async () => {
+    if (!user.user_code) return
+    await navigator.clipboard.writeText(user.user_code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   const [displayName, setDisplayName] = useState(user.display_name)
   const [company, setCompany] = useState(user.company ?? "")
@@ -50,6 +59,22 @@ export default function BuyerProfileForm({ user }: { user: User }) {
 
   return (
     <div className="max-w-2xl space-y-6">
+      {user.user_code && (
+        <Card>
+          <CardHeader><CardTitle>{t("yourBuyerCode")}</CardTitle></CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center rounded-md bg-primary/10 px-4 py-2 text-2xl font-bold font-mono tracking-widest text-primary">
+                {user.user_code}
+              </span>
+              <Button variant="outline" size="icon" onClick={handleCopyCode} title={t("copyCode")}>
+                {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader><CardTitle>{t("personalInfo")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">

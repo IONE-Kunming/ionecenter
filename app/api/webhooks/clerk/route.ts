@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { generateUniqueBuyerCode } from "@/lib/actions/users"
 import crypto from "crypto"
 
 interface ClerkWebhookEvent {
@@ -80,17 +81,21 @@ export async function POST(req: NextRequest) {
       const VALID_ROLES = ["admin", "seller", "buyer"]
       const safeRole = VALID_ROLES.includes(role) ? role : "buyer"
 
+      const upsertData: Record<string, unknown> = {
+        clerk_id: id,
+        email,
+        display_name: displayName,
+        role: safeRole,
+      }
+
+      // Auto-generate buyer code for new buyers
+      if (event.type === "user.created" && safeRole === "buyer") {
+        upsertData.user_code = await generateUniqueBuyerCode(supabase)
+      }
+
       await supabase
         .from("users")
-        .upsert(
-          {
-            clerk_id: id,
-            email,
-            display_name: displayName,
-            role: safeRole,
-          },
-          { onConflict: "clerk_id" }
-        )
+        .upsert(upsertData, { onConflict: "clerk_id" })
     }
 
     return NextResponse.json({ success: true })

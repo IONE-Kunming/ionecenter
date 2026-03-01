@@ -4,6 +4,27 @@ import { auth, currentUser } from "@clerk/nextjs/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import type { User } from "@/types/database"
+import type { SupabaseClient } from "@supabase/supabase-js"
+
+/**
+ * Generate a unique buyer code in the format B### (e.g. B250, B103).
+ * Retries until a unique code is found.
+ */
+export async function generateUniqueBuyerCode(supabase: SupabaseClient): Promise<string> {
+  for (let attempt = 0; attempt < 50; attempt++) {
+    const num = Math.floor(100 + Math.random() * 900) // 100–999
+    const code = `B${num}`
+    const { data: existing } = await supabase
+      .from("users")
+      .select("id")
+      .eq("user_code", code)
+      .maybeSingle()
+    if (!existing) return code
+  }
+  // Fallback: use timestamp-based code
+  const fallback = `B${Date.now() % 1000}`
+  return fallback
+}
 
 export async function getCurrentUser(): Promise<User | null> {
   const { userId } = await auth()
@@ -40,17 +61,20 @@ export async function ensureUserInSupabase(): Promise<User | null> {
     [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || email
   const role = (clerkUser.publicMetadata?.role as string) || "buyer"
 
+  const insertData: Record<string, unknown> = {
+    clerk_id: userId,
+    email,
+    display_name: displayName,
+    role,
+  }
+
+  if (role === "buyer") {
+    insertData.user_code = await generateUniqueBuyerCode(supabase)
+  }
+
   const { data, error } = await supabase
     .from("users")
-    .upsert(
-      {
-        clerk_id: userId,
-        email,
-        display_name: displayName,
-        role,
-      },
-      { onConflict: "clerk_id" }
-    )
+    .upsert(insertData, { onConflict: "clerk_id" })
     .select()
     .single()
 

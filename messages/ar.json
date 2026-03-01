@@ -370,7 +370,9 @@
     "english": "الإنجليزية",
     "chinese": "الصينية",
     "arabic": "العربية",
-    "urdu": "الأردية"
+    "urdu": "الأردية",
+    "yourBuyerCode": "رمز المشتري الخاص بك",
+    "copyCode": "نسخ الرمز"
   },
   "sellerDirectory": {
     "searchSellers": "البحث عن البائعين...",
