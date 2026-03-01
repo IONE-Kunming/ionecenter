@@ -197,7 +197,7 @@ export async function createOrdersFromCart(
 
     const paymentStatus = depositPercentage >= 100 ? "paid" : "deposit_paid"
 
-    const { data: order, error: orderError } = await supabase
+    const { data: order, error: orderError } = await adminSupabase
       .from("orders")
       .insert({
         buyer_id: user.id,
@@ -230,7 +230,7 @@ export async function createOrdersFromCart(
       image_url: item.product.image_url,
     }))
 
-    const { error: itemsError } = await supabase
+    const { error: itemsError } = await adminSupabase
       .from("order_items")
       .insert(orderItems)
 
