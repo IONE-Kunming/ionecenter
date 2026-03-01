@@ -366,7 +366,7 @@ export function BulkEditTable({
         const rawPriceUsd = Number(r.price_usd) || 0
         const rawPriceCny = Number(r.price_cny) || 0
 
-        let pricingType: string = "standard"
+        let pricingType: "standard" | "customized" = "standard"
         let pricePerMeter = 0
         let priceCny: number | null = null
 
