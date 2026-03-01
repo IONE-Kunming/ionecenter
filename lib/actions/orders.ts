@@ -11,7 +11,7 @@ export async function getBuyerOrders(): Promise<Order[]> {
   const user = await getCurrentUser()
   if (!user) return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("orders")
     .select("*, seller:users!seller_id(display_name, company)")
@@ -28,7 +28,7 @@ export async function getSellerOrders(): Promise<Order[]> {
   const user = await getCurrentUser()
   if (!user) return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("orders")
     .select("*, buyer:users!buyer_id(display_name, company)")
@@ -45,7 +45,7 @@ export async function getOrder(id: string): Promise<(Order & { items: OrderItem[
   const user = await getCurrentUser()
   if (!user) return null
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: order } = await supabase
     .from("orders")
     .select("*, buyer:users!buyer_id(*), seller:users!seller_id(*)")
@@ -53,6 +53,13 @@ export async function getOrder(id: string): Promise<(Order & { items: OrderItem[
     .single()
 
   if (!order) return null
+
+  // Ensure the current user is the buyer, seller, or admin
+  const isParticipant =
+    order.buyer_id === user.id ||
+    order.seller_id === user.id ||
+    user.role === "admin"
+  if (!isParticipant) return null
 
   const { data: items } = await supabase
     .from("order_items")
@@ -77,7 +84,23 @@ export async function updateOrderStatus(id: string, status: string) {
     return { error: "Invalid order status" }
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
+
+  // Verify the user has permission to update this order
+  const { data: order } = await supabase
+    .from("orders")
+    .select("buyer_id, seller_id")
+    .eq("id", id)
+    .single()
+
+  if (!order) return { error: "Order not found" }
+
+  const isParticipant =
+    order.buyer_id === user.id ||
+    order.seller_id === user.id ||
+    user.role === "admin"
+  if (!isParticipant) return { error: "Not authorized" }
+
   const { error } = await supabase
     .from("orders")
     .update({ status })
@@ -91,7 +114,7 @@ export async function getBuyerDashboardStats() {
   const user = await getCurrentUser()
   if (!user) return null
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const [ordersResult, spendingResult, pendingResult] = await Promise.all([
     supabase
@@ -125,7 +148,7 @@ export async function getSellerDashboardStats() {
   const user = await getCurrentUser()
   if (!user) return null
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const [productsResult, ordersResult, revenueResult] = await Promise.all([
     supabase
@@ -255,7 +278,7 @@ export async function processRemainingPayment(orderId: string) {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { error: orderError } = await supabase
     .from("orders")
