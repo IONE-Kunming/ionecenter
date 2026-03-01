@@ -14,6 +14,7 @@ import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
 import { formatDualPrice } from "@/lib/utils"
+import { useExchangeRate } from "@/lib/use-exchange-rate"
 import type { CategoryData } from "@/lib/categories"
 import { toCategoryKey } from "@/lib/categories"
 import type { Product } from "@/types/database"
@@ -23,6 +24,7 @@ export function AllProductsList({ products, initialSearch = "", categoryData, wi
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
   const tCatNames = useTranslations("categoryNames")
+  const { rate } = useExchangeRate()
 
   const translateCat = (name: string): string => {
     const key = toCategoryKey(name)
@@ -84,7 +86,7 @@ export function AllProductsList({ products, initialSearch = "", categoryData, wi
                     </Link>
                     <p className="text-xs text-muted-foreground mt-1">{product.model_number}</p>
                     <div className="flex items-center justify-between mt-3">
-                      <span className="font-bold text-primary">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type)}</span>
+                      <span className="font-bold text-primary">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, rate)}</span>
                       <div className="flex gap-1 items-center">
                         <WishlistButton productId={product.id} initialLiked={wishlistedIds.includes(product.id)} />
                         <Link href={`/buyer/product/${product.id}`}>

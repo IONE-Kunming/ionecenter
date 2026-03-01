@@ -426,7 +426,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                     <h3 className="font-semibold text-sm">{product.name}</h3>
                     <p className="text-xs text-muted-foreground">{product.model_number}</p>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="font-bold text-primary text-sm">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type)}</span>
+                      <span className="font-bold text-primary text-sm">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, exchangeRate)}</span>
                       <Badge variant={stockInfo.color === "green" ? "success" : stockInfo.color === "yellow" ? "warning" : "destructive"} className="text-xs">
                         {stockInfo.label} ({product.stock})
                       </Badge>
