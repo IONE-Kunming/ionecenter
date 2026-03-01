@@ -26,7 +26,7 @@ interface ImportPreviewProps {
   categoryData: CategoryData
 }
 
-type ColumnKey = "name" | "model_number" | "main_category" | "category" | "price_usd" | "price_cny" | "stock" | "description" | "image"
+type ColumnKey = "name" | "model_number" | "main_category" | "category" | "price_per_meter" | "price_usd" | "price_cny" | "stock" | "description" | "image"
 
 interface ColumnDef {
   key: ColumnKey
@@ -39,6 +39,7 @@ const DEFAULT_COLUMNS: ColumnDef[] = [
   { key: "model_number", label: "Model #", minWidth: "min-w-[120px]" },
   { key: "main_category", label: "Category", minWidth: "min-w-[180px]" },
   { key: "category", label: "Subcategory", minWidth: "min-w-[180px]" },
+  { key: "price_per_meter", label: "Price/Meter", minWidth: "min-w-[120px]" },
   { key: "price_usd", label: "Price (USD $)", minWidth: "min-w-[120px]" },
   { key: "price_cny", label: "Price (CNY ¥)", minWidth: "min-w-[120px]" },
   { key: "stock", label: "Stock", minWidth: "min-w-[80px]" },
@@ -57,17 +58,20 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
   const { rate, isLive, loading: rateLoading } = useExchangeRate()
 
   // Re-initialize rows when initialRows change (e.g., new CSV parsed)
-  // Auto-calculate missing USD/CNY prices using exchange rate
+  // Auto-calculate missing USD/CNY prices using exchange rate (skip measurement-based products)
   useEffect(() => {
     if (initialRows.length > 0 && !rateLoading) {
       setRows(initialRows.map((r) => {
+        const isMeasurementBased = r.pricing_type === "customized"
         let finalUsd = r.price_per_meter || 0
         let finalCny = r.price_cny ?? null
 
-        if (finalUsd > 0 && (!finalCny || finalCny === 0)) {
-          finalCny = usdToCny(finalUsd, rate)
-        } else if (finalCny && finalCny > 0 && finalUsd === 0) {
-          finalUsd = cnyToUsd(finalCny, rate)
+        if (!isMeasurementBased) {
+          if (finalUsd > 0 && (!finalCny || finalCny === 0)) {
+            finalCny = usdToCny(finalUsd, rate)
+          } else if (finalCny && finalCny > 0 && finalUsd === 0) {
+            finalUsd = cnyToUsd(finalCny, rate)
+          }
         }
 
         return { ...r, price_per_meter: finalUsd, price_cny: finalCny, imageFile: null, imagePreview: null }
@@ -242,6 +246,26 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
             className="h-8 text-xs"
           />
         )
+      case "price_per_meter":
+        return (
+          <div className="relative">
+            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={row.pricing_type === "customized" ? row.price_per_meter : ""}
+              onChange={(e) => {
+                const val = Number(e.target.value)
+                setRows((prev) => prev.map((r, i) =>
+                  i === idx ? { ...r, price_per_meter: val, pricing_type: "customized", price_cny: null } : r
+                ))
+              }}
+              className="h-8 text-xs pl-5"
+              placeholder={row.pricing_type !== "customized" ? "—" : "0.00"}
+            />
+          </div>
+        )
       case "price_usd":
         return (
           <div className="relative">
@@ -250,14 +274,15 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
               type="number"
               min="0"
               step="0.01"
-              value={row.price_per_meter}
+              value={row.pricing_type !== "customized" ? row.price_per_meter : ""}
               onChange={(e) => {
                 const usd = Number(e.target.value)
                 setRows((prev) => prev.map((r, i) =>
-                  i === idx ? { ...r, price_per_meter: usd, price_cny: usdToCny(usd, rate) } : r
+                  i === idx ? { ...r, price_per_meter: usd, price_cny: usdToCny(usd, rate), pricing_type: "standard" } : r
                 ))
               }}
               className="h-8 text-xs pl-5"
+              placeholder={row.pricing_type === "customized" ? "—" : "0.00"}
             />
           </div>
         )
@@ -269,14 +294,15 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
               type="number"
               min="0"
               step="0.01"
-              value={row.price_cny ?? 0}
+              value={row.pricing_type !== "customized" ? (row.price_cny ?? 0) : ""}
               onChange={(e) => {
                 const cny = Number(e.target.value)
                 setRows((prev) => prev.map((r, i) =>
-                  i === idx ? { ...r, price_cny: cny, price_per_meter: cnyToUsd(cny, rate) } : r
+                  i === idx ? { ...r, price_cny: cny, price_per_meter: cnyToUsd(cny, rate), pricing_type: "standard" } : r
                 ))
               }}
               className="h-8 text-xs pl-5"
+              placeholder={row.pricing_type === "customized" ? "—" : "0.00"}
             />
           </div>
         )
