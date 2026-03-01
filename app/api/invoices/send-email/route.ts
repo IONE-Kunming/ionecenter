@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const resend = new Resend(apiKey)
-    const fromEmail = process.env.RESEND_FROM_EMAIL || "IONE Center <contactus@ionecenter.com>"
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "IONE Center <business@ionecenter.com>"
     const { error } = await resend.emails.send({
       from: fromEmail,
       to: [buyerEmail],

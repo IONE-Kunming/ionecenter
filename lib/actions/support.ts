@@ -53,7 +53,13 @@ export async function createSupportTicket(data: {
   const apiKey = process.env.RESEND_API_KEY
   if (apiKey) {
     const resend = new Resend(apiKey)
-    const fromEmail = process.env.RESEND_FROM_EMAIL || "IONE Center <business@ionecenter.com>"
+    // Ensure the FROM address is never the same as the recipient to avoid silent drops.
+    // Extract bare email from "Name <email>" format for a reliable comparison.
+    const configuredFrom = process.env.RESEND_FROM_EMAIL || "IONE Center <business@ionecenter.com>"
+    const extractEmail = (addr: string) => (addr.match(/<([^>]+)>/) ?? [])[1] ?? addr.trim()
+    const fromEmail = extractEmail(configuredFrom) === recipientEmail
+      ? "IONE Center <business@ionecenter.com>"
+      : configuredFrom
     const issueType = data.type
       ? data.type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
       : "General"
@@ -61,7 +67,7 @@ export async function createSupportTicket(data: {
 
     // Notify admin team
     try {
-      await resend.emails.send({
+      const { error: sendError } = await resend.emails.send({
         from: fromEmail,
         to: [recipientEmail],
         replyTo: safeReplyTo,
@@ -86,6 +92,9 @@ export async function createSupportTicket(data: {
           </div>
         `,
       })
+      if (sendError) {
+        console.error("[support] Failed to send admin ticket notification:", sendError)
+      }
     } catch (err) {
       // Email failure should not block ticket creation
       console.error("[support] Failed to send admin ticket notification:", err)
@@ -94,7 +103,7 @@ export async function createSupportTicket(data: {
     // Send confirmation email to the user who submitted the ticket
     if (safeReplyTo) {
       try {
-        await resend.emails.send({
+        const { error: sendError } = await resend.emails.send({
           from: fromEmail,
           to: [safeReplyTo],
           subject: `[Support] We received your ticket: ${data.subject}`,
@@ -119,6 +128,9 @@ export async function createSupportTicket(data: {
             </div>
           `,
         })
+        if (sendError) {
+          console.error("[support] Failed to send user ticket confirmation:", sendError)
+        }
       } catch (err) {
         // Email failure should not block ticket creation
         console.error("[support] Failed to send user ticket confirmation:", err)
