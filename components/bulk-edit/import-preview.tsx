@@ -59,7 +59,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
   // Re-initialize rows when initialRows change (e.g., new CSV parsed)
   // Auto-calculate missing USD/CNY prices using exchange rate
   useEffect(() => {
-    if (initialRows.length > 0) {
+    if (initialRows.length > 0 && !rateLoading) {
       setRows(initialRows.map((r) => {
         let finalUsd = r.price_per_meter || 0
         let finalCny = r.price_cny ?? null
@@ -74,7 +74,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
       }))
       setColumns(DEFAULT_COLUMNS)
     }
-  }, [initialRows, rate])
+  }, [initialRows, rate, rateLoading])
 
   const updateRow = useCallback((index: number, field: keyof ImportRow, value: string | number) => {
     setRows((prev) => prev.map((r, i) => i === index ? { ...r, [field]: value } : r))
@@ -251,7 +251,12 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
               min="0"
               step="0.01"
               value={row.price_per_meter}
-              onChange={(e) => updateRow(idx, "price_per_meter", Number(e.target.value))}
+              onChange={(e) => {
+                const usd = Number(e.target.value)
+                setRows((prev) => prev.map((r, i) =>
+                  i === idx ? { ...r, price_per_meter: usd, price_cny: usdToCny(usd, rate) } : r
+                ))
+              }}
               className="h-8 text-xs pl-5"
             />
           </div>
@@ -265,7 +270,12 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
               min="0"
               step="0.01"
               value={row.price_cny ?? 0}
-              onChange={(e) => updateRow(idx, "price_cny", Number(e.target.value))}
+              onChange={(e) => {
+                const cny = Number(e.target.value)
+                setRows((prev) => prev.map((r, i) =>
+                  i === idx ? { ...r, price_cny: cny, price_per_meter: cnyToUsd(cny, rate) } : r
+                ))
+              }}
               className="h-8 text-xs pl-5"
             />
           </div>
