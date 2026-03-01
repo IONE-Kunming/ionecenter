@@ -26,7 +26,7 @@ interface ImportPreviewProps {
   categoryData: CategoryData
 }
 
-type ColumnKey = "name" | "model_number" | "main_category" | "category" | "price_per_meter" | "price_usd" | "price_cny" | "stock" | "description" | "pricing_type" | "image"
+type ColumnKey = "name" | "model_number" | "main_category" | "category" | "price_usd" | "price_cny" | "stock" | "description" | "pricing_type" | "image"
 
 interface ColumnDef {
   key: ColumnKey
@@ -39,7 +39,6 @@ const DEFAULT_COLUMNS: ColumnDef[] = [
   { key: "model_number", label: "Model #", minWidth: "min-w-[120px]" },
   { key: "main_category", label: "Category", minWidth: "min-w-[180px]" },
   { key: "category", label: "Subcategory", minWidth: "min-w-[180px]" },
-  { key: "price_per_meter", label: "Price/Meter", minWidth: "min-w-[120px]" },
   { key: "price_usd", label: "Price (USD $)", minWidth: "min-w-[120px]" },
   { key: "price_cny", label: "Price (CNY ¥)", minWidth: "min-w-[120px]" },
   { key: "stock", label: "Stock", minWidth: "min-w-[80px]" },
@@ -65,16 +64,14 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
       setRows(initialRows.map((r) => {
         let finalUsd = r.price_usd ?? (r.price_per_meter || 0)
         let finalCny = r.price_cny ?? null
-        let finalPricePerMeter = r.price_per_meter || 0
 
         if (finalUsd > 0 && (!finalCny || finalCny === 0)) {
           finalCny = usdToCny(finalUsd, rate)
         } else if (finalCny && finalCny > 0 && finalUsd === 0) {
           finalUsd = cnyToUsd(finalCny, rate)
-          finalPricePerMeter = finalUsd
         }
 
-        return { ...r, price_per_meter: finalPricePerMeter, price_usd: finalUsd, price_cny: finalCny, imageFile: null, imagePreview: null }
+        return { ...r, price_per_meter: finalUsd, price_usd: finalUsd, price_cny: finalCny, imageFile: null, imagePreview: null }
       }))
       setColumns(DEFAULT_COLUMNS)
     }
@@ -247,26 +244,6 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
             className="h-8 text-xs"
           />
         )
-      case "price_per_meter":
-        return (
-          <div className="relative">
-            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={row.pricing_type === "customized" ? row.price_per_meter : ""}
-              onChange={(e) => {
-                const val = Number(e.target.value)
-                setRows((prev) => prev.map((r, i) =>
-                  i === idx ? { ...r, price_per_meter: val, price_usd: val, price_cny: val > 0 ? usdToCny(val, rate) : null, pricing_type: "customized" } : r
-                ))
-              }}
-              className="h-8 text-xs pl-5"
-              placeholder={row.pricing_type !== "customized" ? "—" : "0.00"}
-            />
-          </div>
-        )
       case "price_usd":
         return (
           <div className="relative">
@@ -279,7 +256,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
               onChange={(e) => {
                 const usd = Number(e.target.value)
                 setRows((prev) => prev.map((r, i) =>
-                  i === idx ? { ...r, price_usd: usd, price_per_meter: usd, price_cny: usdToCny(usd, rate), pricing_type: "standard" } : r
+                  i === idx ? { ...r, price_usd: usd, price_per_meter: usd, price_cny: usdToCny(usd, rate) } : r
                 ))
               }}
               className="h-8 text-xs pl-5"
@@ -300,7 +277,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
                 const cny = Number(e.target.value)
                 const usd = cnyToUsd(cny, rate)
                 setRows((prev) => prev.map((r, i) =>
-                  i === idx ? { ...r, price_cny: cny, price_usd: usd, price_per_meter: usd, pricing_type: "standard" } : r
+                  i === idx ? { ...r, price_cny: cny, price_usd: usd, price_per_meter: usd } : r
                 ))
               }}
               className="h-8 text-xs pl-5"

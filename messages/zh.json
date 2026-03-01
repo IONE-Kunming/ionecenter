@@ -566,7 +566,7 @@
     "priceUsdColHint": "如果价格为美元请填写此项，使用人民币则留空",
     "priceCnyCol": "价格 (CNY ¥)",
     "priceCnyColHint": "如果价格为人民币请填写此项，使用美元则留空",
-    "fillOnlyOnePrice": "每个产品只填写一个价格字段 - price_usd 或 price_cny 或 price_per_meter",
+    "fillOnlyOnePrice": "每个产品只填写一个价格字段 - price_usd 或 price_cny",
     "stockCol": "库存",
     "imagePathCol": "图片路径",
     "analyzePreview": "分析并预览",

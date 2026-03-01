@@ -12,7 +12,8 @@ export function SellerBulkEditList({ initialProducts, categoryData }: { initialP
       const result = await updateProduct(product.id, {
         name: product.name,
         model_number: product.model_number,
-        price_per_meter: product.price_per_meter,
+        price_usd: product.price_usd,
+        price_per_meter: product.price_usd,
         stock: product.stock,
       })
       if (result?.error) return { error: result.error }

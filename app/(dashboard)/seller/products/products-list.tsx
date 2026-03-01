@@ -74,10 +74,10 @@ function isExcelFile(file: File): boolean {
 }
 
 function downloadTemplate() {
-  const header = "name,model_number,description,main_category,category,price_per_meter,price_usd,price_cny,stock"
-  const row1 = "Steel Pipe A,SP-001,Measurement-based product,Construction,Exterior Gates,25.50,,,200"
-  const row2 = "LED Panel B,LP-002,Standard USD product,Electrical,Lighting,,10.00,,100"
-  const row3 = "Ceramic Tile C,CT-003,Standard CNY product,Construction,Tiles,,,68.00,150"
+  const header = "name,model_number,description,main_category,category,price_usd,price_cny,stock,pricing_type"
+  const row1 = "Steel Pipe A,SP-001,Measurement-based product,Construction,Exterior Gates,25.50,,200,Customized"
+  const row2 = "LED Panel B,LP-002,Standard USD product,Electrical,Lighting,10.00,,100,Standard"
+  const row3 = "Ceramic Tile C,CT-003,Standard CNY product,Construction,Tiles,,68.00,150,Standard"
   const csv = [header, row1, row2, row3].join("\n")
   const blob = new Blob([csv], { type: "text/csv" })
   const url = URL.createObjectURL(blob)
@@ -510,14 +510,14 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t("priceUsd")}</Label>
+                <Label>{t("priceUsd")}{newProduct.pricing_type === "customized" ? "/m" : ""}</Label>
                 <Input type="number" step="0.01" placeholder="0.00" value={newProduct.price_per_meter || ""} onChange={(e) => {
                   const usd = Number(e.target.value)
                   setNewProduct((p) => ({ ...p, price_per_meter: usd, price_cny: usdToCny(usd, exchangeRate) }))
                 }} />
               </div>
               <div className="space-y-2">
-                <Label>{t("priceCny")}</Label>
+                <Label>{t("priceCny")}{newProduct.pricing_type === "customized" ? "/m" : ""}</Label>
                 <Input type="number" step="0.01" placeholder="0.00" value={newProduct.price_cny || ""} onChange={(e) => {
                   const cny = Number(e.target.value)
                   setNewProduct((p) => ({ ...p, price_cny: cny, price_per_meter: cnyToUsd(cny, exchangeRate) }))
@@ -560,7 +560,6 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                 <span className="text-muted-foreground">{t("descriptionCol")}</span><span className="font-mono text-xs">description</span>
                 <span className="text-muted-foreground">{t("categoryCol")}</span><span className="font-mono text-xs">main_category</span>
                 <span className="text-muted-foreground">{t("subCategoryCol")}</span><span className="font-mono text-xs">category</span>
-                <span className="text-muted-foreground">{t("pricePerMeterCol")}</span><span className="font-mono text-xs">price_per_meter <span className="text-[0.65rem] text-muted-foreground font-sans">— {t("pricePerMeterColHint")}</span></span>
                 <span className="text-muted-foreground">{t("priceUsdCol")}</span><span className="font-mono text-xs">price_usd <span className="text-[0.65rem] text-muted-foreground font-sans">— {t("priceUsdColHint")}</span></span>
                 <span className="text-muted-foreground">{t("priceCnyCol")}</span><span className="font-mono text-xs">price_cny <span className="text-[0.65rem] text-muted-foreground font-sans">— {t("priceCnyColHint")}</span></span>
                 <span className="text-muted-foreground">{t("stockCol")}</span><span className="font-mono text-xs">stock</span>
@@ -642,14 +641,14 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t("priceUsd")}</Label>
+                <Label>{t("priceUsd")}{editForm.pricing_type === "customized" ? "/m" : ""}</Label>
                 <Input type="number" step="0.01" value={editForm.price_per_meter || ""} onChange={(e) => {
                   const usd = Number(e.target.value)
                   setEditForm((f) => ({ ...f, price_per_meter: usd, price_cny: usdToCny(usd, exchangeRate) }))
                 }} />
               </div>
               <div className="space-y-2">
-                <Label>{t("priceCny")}</Label>
+                <Label>{t("priceCny")}{editForm.pricing_type === "customized" ? "/m" : ""}</Label>
                 <Input type="number" step="0.01" value={editForm.price_cny || ""} onChange={(e) => {
                   const cny = Number(e.target.value)
                   setEditForm((f) => ({ ...f, price_cny: cny, price_per_meter: cnyToUsd(cny, exchangeRate) }))

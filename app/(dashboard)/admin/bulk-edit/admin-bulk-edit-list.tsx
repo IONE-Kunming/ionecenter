@@ -38,7 +38,7 @@ export function AdminBulkEditList({
         id: p.id,
         name: p.name,
         model_number: p.model_number,
-        price_per_meter: p.price_per_meter,
+        price_per_meter: p.price_usd,
         stock: p.stock,
         is_active: p.is_active,
       }))
