@@ -1025,7 +1025,7 @@ export function BulkEditTable({
           <DialogHeader><DialogTitle>{t("importTitle")}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
             <p className="text-sm text-muted-foreground">{t("importDescription")}</p>
-            <div className="rounded-lg border p-4 bg-muted/50">
+            <div className="rounded-lg border p-4 bg-muted/50 max-h-[200px] overflow-y-auto">
               <div className="flex items-center gap-2 mb-3">
                 <FileSpreadsheet className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">{t("requiredColumns")}</span>
