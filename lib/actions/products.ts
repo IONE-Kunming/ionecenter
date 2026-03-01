@@ -1,6 +1,5 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import { generateSKU } from "@/lib/sku"
@@ -13,7 +12,7 @@ export async function getProducts(filters?: {
   search?: string
   sellerId?: string
 }): Promise<Product[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   let query = supabase
     .from("products")
     .select("*, seller:users!seller_id(display_name, is_active)")
@@ -46,7 +45,7 @@ export async function getProducts(filters?: {
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("products")
     .select("*, seller:users!seller_id(display_name, company, city, country, is_active)")
@@ -69,7 +68,7 @@ export async function getSellerProducts(): Promise<Product[]> {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("products")
     .select("*")
