@@ -26,7 +26,7 @@ interface ImportPreviewProps {
   categoryData: CategoryData
 }
 
-type ColumnKey = "name" | "model_number" | "main_category" | "category" | "price_per_meter" | "price_usd" | "price_cny" | "stock" | "description" | "image"
+type ColumnKey = "name" | "model_number" | "main_category" | "category" | "price_per_meter" | "price_usd" | "price_cny" | "stock" | "description" | "pricing_type" | "image"
 
 interface ColumnDef {
   key: ColumnKey
@@ -43,6 +43,7 @@ const DEFAULT_COLUMNS: ColumnDef[] = [
   { key: "price_usd", label: "Price (USD $)", minWidth: "min-w-[120px]" },
   { key: "price_cny", label: "Price (CNY ¥)", minWidth: "min-w-[120px]" },
   { key: "stock", label: "Stock", minWidth: "min-w-[80px]" },
+  { key: "pricing_type", label: "Pricing Type", minWidth: "min-w-[140px]" },
   { key: "description", label: "Description", minWidth: "min-w-[200px]" },
   { key: "image", label: "Image", minWidth: "min-w-[100px]" },
 ]
@@ -314,6 +315,18 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
             min="0"
             value={row.stock}
             onChange={(e) => updateRow(idx, "stock", Number(e.target.value))}
+            className="h-8 text-xs"
+          />
+        )
+      case "pricing_type":
+        return (
+          <Select
+            value={row.pricing_type || "standard"}
+            onChange={(e) => updateRow(idx, "pricing_type", e.target.value)}
+            options={[
+              { value: "standard", label: "Standard" },
+              { value: "customized", label: "Customized" },
+            ]}
             className="h-8 text-xs"
           />
         )

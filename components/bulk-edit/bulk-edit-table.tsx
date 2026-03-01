@@ -122,10 +122,10 @@ function isExcelFile(file: File): boolean {
 }
 
 function downloadTemplate() {
-  const header = "name,model_number,description,main_category,category,price_per_meter,price_usd,price_cny,stock"
-  const row1 = "Steel Pipe A,SP-001,Measurement-based product,Construction,Exterior Gates,25.50,,,200"
-  const row2 = "LED Panel B,LP-002,Standard USD product,Electrical,Lighting,,10.00,,100"
-  const row3 = "Ceramic Tile C,CT-003,Standard CNY product,Construction,Tiles,,,68.00,150"
+  const header = "name,model_number,description,main_category,category,price_per_meter,price_usd,price_cny,stock,pricing_type"
+  const row1 = "Steel Pipe A,SP-001,Measurement-based product,Construction,Exterior Gates,25.5,,,200,Customized"
+  const row2 = "LED Panel B,LP-002,Standard USD product,Electrical,Lighting,,10,,100,Standard"
+  const row3 = "Ceramic Tile C,CT-003,Standard CNY product,Construction,Tiles,,,68,150,Standard"
   const csv = [header, row1, row2, row3].join("\n")
   const blob = new Blob([csv], { type: "text/csv" })
   const url = URL.createObjectURL(blob)
@@ -367,13 +367,13 @@ export function BulkEditTable({
         const rawPriceUsd = Number(r.price_usd) || 0
         const rawPriceCny = Number(r.price_cny) || 0
 
-        let pricingType: "standard" | "customized" = "standard"
+        const rawPricingType = (r.pricing_type || "").trim().toLowerCase()
+        let pricingType: "standard" | "customized" = rawPricingType === "customized" ? "customized" : "standard"
         let pricePerMeter = 0
         let priceUsd: number | null = null
         let priceCny: number | null = null
 
         if (rawPricePerMeter > 0) {
-          pricingType = "customized"
           pricePerMeter = rawPricePerMeter
           priceUsd = rawPricePerMeter
         } else if (rawPriceUsd > 0) {
@@ -1046,6 +1046,7 @@ export function BulkEditTable({
                 <span className="text-muted-foreground">Price (USD $)</span><span className="font-mono text-xs">price_usd <span className="text-[0.65rem] text-muted-foreground font-sans">— fill if price is in USD, leave empty if using CNY</span></span>
                 <span className="text-muted-foreground">Price (CNY ¥)</span><span className="font-mono text-xs">price_cny <span className="text-[0.65rem] text-muted-foreground font-sans">— fill if price is in CNY, leave empty if using USD</span></span>
                 <span className="text-muted-foreground">Stock</span><span className="font-mono text-xs">stock</span>
+                <span className="text-muted-foreground">Pricing Type</span><span className="font-mono text-xs">pricing_type <span className="text-[0.65rem] text-muted-foreground font-sans">— accepted values: Standard or Customized</span></span>
               </div>
             </div>
             <div className="space-y-2">
