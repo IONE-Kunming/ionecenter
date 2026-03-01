@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2, AlertTriangle } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2, AlertTriangle, Pencil, User } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
 import { formatCurrency } from "@/lib/utils"
-import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo } from "@/lib/actions/invoices"
+import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyerByCode } from "@/lib/actions/invoices"
 
 interface ProductResult {
   id: string
@@ -70,6 +70,11 @@ export function CreateOfflineInvoiceForm() {
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null)
   const [bankInfoLoaded, setBankInfoLoaded] = useState(false)
 
+  const [buyerCode, setBuyerCode] = useState("")
+  const [buyerCodeError, setBuyerCodeError] = useState("")
+  const [buyerCodeLoading, setBuyerCodeLoading] = useState(false)
+  const [buyerFound, setBuyerFound] = useState(false)
+
   const [rows, setRows] = useState<InvoiceRow[]>([
     {
       key: generateItemKey(0),
@@ -85,11 +90,13 @@ export function CreateOfflineInvoiceForm() {
 
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const buyerCodeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     return () => {
       if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
       if (blurTimerRef.current) clearTimeout(blurTimerRef.current)
+      if (buyerCodeTimerRef.current) clearTimeout(buyerCodeTimerRef.current)
     }
   }, [])
 
@@ -98,6 +105,36 @@ export function CreateOfflineInvoiceForm() {
       setBankInfo(info)
       setBankInfoLoaded(true)
     })
+  }, [])
+
+  const handleBuyerCodeSearch = useCallback((code: string) => {
+    setBuyerCode(code)
+    setBuyerCodeError("")
+    if (buyerCodeTimerRef.current) clearTimeout(buyerCodeTimerRef.current)
+
+    if (code.trim().length < 2) return
+
+    setBuyerCodeLoading(true)
+    buyerCodeTimerRef.current = setTimeout(async () => {
+      const result = await searchBuyerByCode(code)
+      if (result.error) {
+        setBuyerCodeError(result.error)
+        setBuyerCodeLoading(false)
+      } else if (result.buyer) {
+        setBuyerName(result.buyer.name)
+        setBuyerEmail(result.buyer.email)
+        setBuyerFound(true)
+        setBuyerCodeLoading(false)
+      }
+    }, 500)
+  }, [])
+
+  const clearBuyerCode = useCallback(() => {
+    setBuyerCode("")
+    setBuyerName("")
+    setBuyerEmail("")
+    setBuyerFound(false)
+    setBuyerCodeError("")
   }, [])
 
   const handleProductSearch = useCallback(
@@ -355,29 +392,73 @@ export function CreateOfflineInvoiceForm() {
             <CardTitle className="text-sm">Buyer Information</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="buyerName">Buyer Name</Label>
-                <Input
-                  id="buyerName"
-                  value={buyerName}
-                  onChange={(e) => setBuyerName(e.target.value)}
-                  placeholder="Enter buyer name"
-                  className="print:border-none print:p-0 print:shadow-none"
-                />
+            {!buyerFound ? (
+              <div className="space-y-4">
+                <div className="space-y-2 print:hidden">
+                  <Label htmlFor="buyerCode">Buyer Code</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="buyerCode"
+                      value={buyerCode}
+                      onChange={(e) => handleBuyerCodeSearch(e.target.value)}
+                      placeholder="Enter buyer code (e.g. B250)"
+                      className="max-w-xs"
+                    />
+                    {buyerCodeLoading && (
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    )}
+                  </div>
+                  {buyerCodeError && (
+                    <p className="text-sm text-destructive">{buyerCodeError}</p>
+                  )}
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="buyerName">Buyer Name</Label>
+                    <Input
+                      id="buyerName"
+                      value={buyerName}
+                      onChange={(e) => setBuyerName(e.target.value)}
+                      placeholder="Enter buyer name"
+                      className="print:border-none print:p-0 print:shadow-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="buyerEmail">Buyer Email</Label>
+                    <Input
+                      id="buyerEmail"
+                      type="email"
+                      value={buyerEmail}
+                      onChange={(e) => setBuyerEmail(e.target.value)}
+                      placeholder="Enter buyer email"
+                      className="print:border-none print:p-0 print:shadow-none"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="buyerEmail">Buyer Email</Label>
-                <Input
-                  id="buyerEmail"
-                  type="email"
-                  value={buyerEmail}
-                  onChange={(e) => setBuyerEmail(e.target.value)}
-                  placeholder="Enter buyer email"
-                  className="print:border-none print:p-0 print:shadow-none"
-                />
+            ) : (
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <User className="h-5 w-5 mt-0.5 text-muted-foreground" />
+                  <div className="text-sm space-y-1">
+                    <p className="font-semibold">Buyer Information</p>
+                    <div className="border-t pt-1 space-y-0.5 text-muted-foreground">
+                      <p><span className="font-medium text-foreground">Code:</span>   {buyerCode}</p>
+                      <p><span className="font-medium text-foreground">Name:</span>   {buyerName}</p>
+                      <p><span className="font-medium text-foreground">Email:</span>  {buyerEmail}</p>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearBuyerCode}
+                  className="print:hidden shrink-0"
+                >
+                  <Pencil className="h-4 w-4 mr-1" /> Change
+                </Button>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -412,7 +493,7 @@ export function CreateOfflineInvoiceForm() {
                     <TableCell>
                       <div className="relative">
                         <span className="text-xs text-muted-foreground font-mono">
-                          {row.key}
+                          {row.key}{row.productName && ` ${row.productName}`}
                         </span>
                         <Input
                           value={row.searchQuery}
@@ -450,11 +531,6 @@ export function CreateOfflineInvoiceForm() {
                               </button>
                             ))}
                           </div>
-                        )}
-                        {row.productName && (
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {row.productName}
-                          </p>
                         )}
                       </div>
                     </TableCell>

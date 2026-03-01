@@ -166,6 +166,31 @@ export async function getSellerBankInfo() {
   }
 }
 
+export async function searchBuyerByCode(code: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return { error: "Not authorized" }
+
+  if (!code.trim()) return { error: "Buyer code is required" }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("users")
+    .select("user_code, display_name, email")
+    .eq("user_code", code.trim().toUpperCase())
+    .eq("role", "buyer")
+    .single()
+
+  if (error || !data) return { error: "Buyer code not found. Please check and try again." }
+
+  return {
+    buyer: {
+      code: data.user_code,
+      name: data.display_name,
+      email: data.email,
+    },
+  }
+}
+
 export interface OfflineInvoiceInput {
   buyer_name: string
   buyer_email: string
