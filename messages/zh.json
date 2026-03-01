@@ -370,7 +370,9 @@
     "english": "英语",
     "chinese": "中文",
     "arabic": "阿拉伯语",
-    "urdu": "乌尔都语"
+    "urdu": "乌尔都语",
+    "yourBuyerCode": "您的买家代码",
+    "copyCode": "复制代码"
   },
   "sellerDirectory": {
     "searchSellers": "搜索卖家...",

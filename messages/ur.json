@@ -370,7 +370,9 @@
     "english": "انگریزی",
     "chinese": "چینی",
     "arabic": "عربی",
-    "urdu": "اردو"
+    "urdu": "اردو",
+    "yourBuyerCode": "آپ کا خریدار کوڈ",
+    "copyCode": "کوڈ کاپی کریں"
   },
   "sellerDirectory": {
     "searchSellers": "فروخت کنندگان تلاش کریں...",
