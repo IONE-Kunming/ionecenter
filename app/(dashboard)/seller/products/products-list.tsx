@@ -74,7 +74,11 @@ function isExcelFile(file: File): boolean {
 }
 
 function downloadTemplate() {
-  const csv = "name,model_number,description,main_category,category,price_per_meter,stock\nExample Product,EX-001,Sample description,Construction,Exterior Gates,10.00,100"
+  const header = "name,model_number,description,main_category,category,price_per_meter,price_usd,price_cny,stock"
+  const row1 = "Steel Pipe A,SP-001,Measurement-based product,Construction,Exterior Gates,25.50,,,200"
+  const row2 = "LED Panel B,LP-002,Standard USD product,Electrical,Lighting,,10.00,,100"
+  const row3 = "Ceramic Tile C,CT-003,Standard CNY product,Construction,Tiles,,,68.00,150"
+  const csv = [header, row1, row2, row3].join("\n")
   const blob = new Blob([csv], { type: "text/csv" })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
@@ -520,9 +524,12 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                 <span className="text-muted-foreground">{t("descriptionCol")}</span><span className="font-mono text-xs">description</span>
                 <span className="text-muted-foreground">{t("categoryCol")}</span><span className="font-mono text-xs">main_category</span>
                 <span className="text-muted-foreground">{t("subCategoryCol")}</span><span className="font-mono text-xs">category</span>
-                <span className="text-muted-foreground">{t("priceCol")}</span><span className="font-mono text-xs">price_per_meter</span>
+                <span className="text-muted-foreground">{t("pricePerMeterCol")}</span><span className="font-mono text-xs">price_per_meter <span className="text-[0.65rem] text-muted-foreground font-sans">— {t("pricePerMeterColHint")}</span></span>
+                <span className="text-muted-foreground">{t("priceUsdCol")}</span><span className="font-mono text-xs">price_usd <span className="text-[0.65rem] text-muted-foreground font-sans">— {t("priceUsdColHint")}</span></span>
+                <span className="text-muted-foreground">{t("priceCnyCol")}</span><span className="font-mono text-xs">price_cny <span className="text-[0.65rem] text-muted-foreground font-sans">— {t("priceCnyColHint")}</span></span>
                 <span className="text-muted-foreground">{t("stockCol")}</span><span className="font-mono text-xs">stock</span>
               </div>
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 font-medium">{t("fillOnlyOnePrice")}</p>
             </div>
 
             <div className="space-y-2">
