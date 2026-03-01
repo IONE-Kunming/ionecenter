@@ -53,7 +53,7 @@ export async function createSupportTicket(data: {
   const apiKey = process.env.RESEND_API_KEY
   if (apiKey) {
     const resend = new Resend(apiKey)
-    const fromEmail = process.env.RESEND_FROM_EMAIL || "IONE Center <contactus@ionecenter.com>"
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "IONE Center <business@ionecenter.com>"
     const issueType = data.type
       ? data.type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
       : "General"
