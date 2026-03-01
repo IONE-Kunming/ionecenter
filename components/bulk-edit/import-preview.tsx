@@ -58,23 +58,22 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
   const { rate, isLive, loading: rateLoading } = useExchangeRate()
 
   // Re-initialize rows when initialRows change (e.g., new CSV parsed)
-  // Auto-calculate missing USD/CNY prices using exchange rate (skip measurement-based products)
+  // Auto-calculate missing USD/CNY prices using exchange rate
   useEffect(() => {
     if (initialRows.length > 0 && !rateLoading) {
       setRows(initialRows.map((r) => {
-        const isMeasurementBased = r.pricing_type === "customized"
-        let finalUsd = r.price_per_meter || 0
+        let finalUsd = r.price_usd ?? (r.price_per_meter || 0)
         let finalCny = r.price_cny ?? null
+        let finalPricePerMeter = r.price_per_meter || 0
 
-        if (!isMeasurementBased) {
-          if (finalUsd > 0 && (!finalCny || finalCny === 0)) {
-            finalCny = usdToCny(finalUsd, rate)
-          } else if (finalCny && finalCny > 0 && finalUsd === 0) {
-            finalUsd = cnyToUsd(finalCny, rate)
-          }
+        if (finalUsd > 0 && (!finalCny || finalCny === 0)) {
+          finalCny = usdToCny(finalUsd, rate)
+        } else if (finalCny && finalCny > 0 && finalUsd === 0) {
+          finalUsd = cnyToUsd(finalCny, rate)
+          finalPricePerMeter = finalUsd
         }
 
-        return { ...r, price_per_meter: finalUsd, price_cny: finalCny, imageFile: null, imagePreview: null }
+        return { ...r, price_per_meter: finalPricePerMeter, price_usd: finalUsd, price_cny: finalCny, imageFile: null, imagePreview: null }
       }))
       setColumns(DEFAULT_COLUMNS)
     }
@@ -196,6 +195,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
       category: r.category,
       price_per_meter: r.price_per_meter,
       pricing_type: r.pricing_type,
+      price_usd: r.price_usd,
       price_cny: r.price_cny,
       stock: r.stock,
       description: r.description,
@@ -258,7 +258,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
               onChange={(e) => {
                 const val = Number(e.target.value)
                 setRows((prev) => prev.map((r, i) =>
-                  i === idx ? { ...r, price_per_meter: val, pricing_type: "customized", price_cny: null } : r
+                  i === idx ? { ...r, price_per_meter: val, price_usd: val, price_cny: val > 0 ? usdToCny(val, rate) : null, pricing_type: "customized" } : r
                 ))
               }}
               className="h-8 text-xs pl-5"
@@ -274,15 +274,15 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
               type="number"
               min="0"
               step="0.01"
-              value={row.pricing_type !== "customized" ? row.price_per_meter : ""}
+              value={row.price_usd ?? 0}
               onChange={(e) => {
                 const usd = Number(e.target.value)
                 setRows((prev) => prev.map((r, i) =>
-                  i === idx ? { ...r, price_per_meter: usd, price_cny: usdToCny(usd, rate), pricing_type: "standard" } : r
+                  i === idx ? { ...r, price_usd: usd, price_per_meter: usd, price_cny: usdToCny(usd, rate), pricing_type: "standard" } : r
                 ))
               }}
               className="h-8 text-xs pl-5"
-              placeholder={row.pricing_type === "customized" ? "—" : "0.00"}
+              placeholder="0.00"
             />
           </div>
         )
@@ -294,15 +294,16 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
               type="number"
               min="0"
               step="0.01"
-              value={row.pricing_type !== "customized" ? (row.price_cny ?? 0) : ""}
+              value={row.price_cny ?? 0}
               onChange={(e) => {
                 const cny = Number(e.target.value)
+                const usd = cnyToUsd(cny, rate)
                 setRows((prev) => prev.map((r, i) =>
-                  i === idx ? { ...r, price_cny: cny, price_per_meter: cnyToUsd(cny, rate), pricing_type: "standard" } : r
+                  i === idx ? { ...r, price_cny: cny, price_usd: usd, price_per_meter: usd, pricing_type: "standard" } : r
                 ))
               }}
               className="h-8 text-xs pl-5"
-              placeholder={row.pricing_type === "customized" ? "—" : "0.00"}
+              placeholder="0.00"
             />
           </div>
         )
