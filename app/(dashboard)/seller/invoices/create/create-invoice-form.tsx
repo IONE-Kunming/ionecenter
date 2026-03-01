@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2 } from "lucide-react"
@@ -77,6 +77,14 @@ export function CreateOfflineInvoiceForm() {
   ])
 
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+      if (blurTimerRef.current) clearTimeout(blurTimerRef.current)
+    }
+  }, [])
 
   const handleProductSearch = useCallback(
     async (rowIndex: number, query: string) => {
@@ -368,7 +376,8 @@ export function CreateOfflineInvoiceForm() {
                           value={row.searchQuery}
                           onChange={(e) => handleProductSearch(i, e.target.value)}
                           onBlur={() => {
-                            setTimeout(() => {
+                            if (blurTimerRef.current) clearTimeout(blurTimerRef.current)
+                            blurTimerRef.current = setTimeout(() => {
                               setRows((prev) =>
                                 prev.map((r, idx) =>
                                   idx === i ? { ...r, showSuggestions: false } : r
@@ -425,7 +434,7 @@ export function CreateOfflineInvoiceForm() {
                         min={1}
                         value={row.quantity}
                         onChange={(e) =>
-                          updateRow(i, "quantity", Math.max(1, parseInt(e.target.value) || 1))
+                          updateRow(i, "quantity", Math.max(1, parseInt(e.target.value, 10) || 1))
                         }
                         className="w-20 ml-auto text-right print:border-none print:p-0 print:shadow-none"
                       />

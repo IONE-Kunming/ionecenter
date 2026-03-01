@@ -183,9 +183,9 @@ export async function createOfflineInvoice(input: OfflineInvoiceInput) {
     (sum, item) => sum + item.unit_price * item.quantity,
     0
   )
-  const discount = input.discount ?? 0
+  const discount = input.discount
   const total = Math.max(subtotal - discount, 0)
-  const amountPaid = input.amount_paid ?? 0
+  const amountPaid = input.amount_paid
   const remainingBalance = Math.max(total - amountPaid, 0)
 
   const { data: invoice, error: invoiceError } = await adminSupabase
