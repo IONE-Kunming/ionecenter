@@ -12,8 +12,9 @@ import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
-import { formatCurrency } from "@/lib/utils"
+import { formatDualPrice } from "@/lib/utils"
 import type { CategoryData } from "@/lib/categories"
+import type { PricingType } from "@/types/database"
 
 type BrowseLevel = "categories" | "subcategories" | "products"
 
@@ -24,6 +25,8 @@ interface CatalogProduct {
   main_category: string
   category: string
   price_per_meter: number
+  pricing_type?: PricingType
+  price_cny?: number | null
   stock: number
   seller_name: string
   image_url: string | null
@@ -226,7 +229,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                         <p className="text-xs text-muted-foreground mt-1">{product.model_number}</p>
                         <p className="text-xs text-muted-foreground">{product.seller_name}</p>
                         <div className="flex items-center justify-between mt-3">
-                          <span className="font-bold text-primary">{formatCurrency(product.price_per_meter)}/m</span>
+                          <span className="font-bold text-primary">{formatDualPrice(product.price_per_meter, product.price_cny ?? null, product.pricing_type ?? "standard")}</span>
                           <div className="flex gap-1 items-center">
                             <WishlistButton productId={product.id} initialLiked={wishlistedIds.includes(product.id)} />
                             <Link href={`/buyer/product/${product.id}`}>

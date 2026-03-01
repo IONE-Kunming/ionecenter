@@ -385,7 +385,8 @@
     "pricePerMeter": "每米价格",
     "sellerCartBlocked": "作为卖家浏览时无法将产品添加到购物车。此功能仅对买家开放。",
     "sellerCartBlockedTitle": "操作不允许",
-    "sellerCartBlockedButton": "知道了"
+    "sellerCartBlockedButton": "知道了",
+    "price": "价格"
   },
   "support": {
     "title": "支持",
@@ -552,7 +553,15 @@
     "deleting": "删除中...",
     "skuPreview": "SKU码预览",
     "skuPreviewHint": "自动生成SKU：{sku}",
-    "buyerPreviewBanner": "您正在以买家视角浏览商店。这是只读预览。"
+    "buyerPreviewBanner": "您正在以买家视角浏览商店。这是只读预览。",
+    "pricingType": "定价类型",
+    "pricingStandard": "标准",
+    "pricingCustomized": "定制",
+    "priceUsd": "价格 (USD $)",
+    "priceCny": "价格 (CNY ¥)",
+    "liveRate": "实时汇率",
+    "fallbackRate": "备用汇率",
+    "price": "价格"
   },
   "branches": {
     "title": "分支机构",

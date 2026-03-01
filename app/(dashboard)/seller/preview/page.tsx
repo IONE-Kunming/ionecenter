@@ -18,6 +18,8 @@ export default async function SellerPreviewPage() {
     main_category: p.main_category,
     category: p.category,
     price_per_meter: p.price_per_meter,
+    pricing_type: p.pricing_type,
+    price_cny: p.price_cny,
     stock: p.stock,
     seller_name: p.seller_name ?? "",
     image_url: p.image_url ?? null,

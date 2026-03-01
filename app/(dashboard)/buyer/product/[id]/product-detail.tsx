@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/toaster"
-import { formatCurrency, getStockStatus } from "@/lib/utils"
+import { formatCurrency, formatDualPrice, getStockStatus } from "@/lib/utils"
 import { getOrCreateConversation } from "@/lib/actions/chat"
 import { addToCart } from "@/lib/actions/cart"
 import type { Product, UserRole } from "@/types/database"
@@ -89,9 +89,8 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
 
           <div className="mt-6">
             <span className="text-3xl font-bold text-primary">
-              {formatCurrency(product.price_per_meter)}
+              {formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type)}
             </span>
-            <span className="text-muted-foreground">{t("perMeter")}</span>
           </div>
 
           <div className="mt-4 flex items-center gap-4">
@@ -165,8 +164,8 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
               <span className="font-medium">{product.model_number}</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span className="text-muted-foreground">{t("pricePerMeter")}</span>
-              <span className="font-medium">{formatCurrency(product.price_per_meter)}</span>
+              <span className="text-muted-foreground">{t("price")}</span>
+              <span className="font-medium">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type)}</span>
             </div>
           </div>
         </CardContent>

@@ -119,7 +119,7 @@ export async function deleteProduct(id: string) {
 }
 
 export async function bulkImportProducts(
-  rows: { name: string; model_number: string; main_category: string; category: string; price_per_meter: number; stock: number; description?: string; image_url?: string }[]
+  rows: { name: string; model_number: string; main_category: string; category: string; price_per_meter: number; stock: number; description?: string; image_url?: string; pricing_type?: string; price_cny?: number | null }[]
 ) {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return { error: "Not authorized" }
@@ -136,6 +136,8 @@ export async function bulkImportProducts(
     main_category: row.main_category,
     category: row.category,
     price_per_meter: row.price_per_meter,
+    pricing_type: row.pricing_type || "standard",
+    price_cny: row.price_cny ?? null,
     stock: row.stock,
     description: row.description ?? null,
     image_url: row.image_url && row.image_url.startsWith("http") ? row.image_url : null,
