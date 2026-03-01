@@ -16,7 +16,7 @@ export async function getProducts(filters?: {
   const supabase = await createClient()
   let query = supabase
     .from("products")
-    .select("*, seller:users!seller_id(display_name)")
+    .select("*, seller:users!seller_id(display_name, is_active)")
     .eq("is_active", true)
     .order("created_at", { ascending: false })
 
@@ -33,24 +33,35 @@ export async function getProducts(filters?: {
   }
 
   const { data } = await query
-  return (data ?? []).map((p) => ({
-    ...p,
-    seller_name: (p.seller as unknown as { display_name: string })?.display_name,
-  }))
+  return (data ?? [])
+    .filter((p) => {
+      const seller = p.seller as { display_name: string; is_active: boolean | null } | null
+      // Only show products from active sellers (treat missing/null is_active as active for safety)
+      return seller === null || seller.is_active !== false
+    })
+    .map((p) => ({
+      ...p,
+      seller_name: (p.seller as unknown as { display_name: string })?.display_name,
+    }))
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
   const supabase = await createClient()
   const { data } = await supabase
     .from("products")
-    .select("*, seller:users!seller_id(display_name, company, city, country)")
+    .select("*, seller:users!seller_id(display_name, company, city, country, is_active)")
     .eq("id", id)
     .single()
 
   if (!data) return null
+
+  // Hide products from deactivated sellers
+  const seller = data.seller as { display_name: string; company: string | null; city: string | null; country: string | null; is_active: boolean | null } | null
+  if (seller && seller.is_active === false) return null
+
   return {
     ...data,
-    seller_name: (data.seller as unknown as { display_name: string })?.display_name,
+    seller_name: seller?.display_name,
   }
 }
 
@@ -75,9 +86,18 @@ export async function createProduct(
   if (!user || user.role !== "seller") return { error: "Not authorized" }
 
   const supabase = createAdminClient()
+
+  // Auto-generate model number if not provided
+  let modelNumber = product.model_number
+  if (!modelNumber || !modelNumber.trim()) {
+    const siteCategories = await getSiteCategories()
+    const categoryData = buildCategoryData(siteCategories)
+    modelNumber = `IONE-${generateSKU(categoryData, product.main_category, product.category, Date.now() % 10000)}`
+  }
+
   const { data, error } = await supabase
     .from("products")
-    .insert({ ...product, seller_id: user.id })
+    .insert({ ...product, model_number: modelNumber, seller_id: user.id })
     .select()
     .single()
 

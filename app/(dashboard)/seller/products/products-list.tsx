@@ -106,6 +106,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   const [showPreview, setShowPreview] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState("")
   const [addingProduct, setAddingProduct] = useState(false)
+  const [addProductError, setAddProductError] = useState<string | null>(null)
   const [newProduct, setNewProduct] = useState({
     name: "",
     model_number: "",
@@ -203,11 +204,13 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
     setNewProduct({ name: "", model_number: "", main_category: "", category: "", price_per_meter: 0, pricing_type: "standard", price_cny: 0, stock: 0, description: "" })
     setNewProductImage(null)
     setSelectedCategory("")
+    setAddProductError(null)
   }
 
   const handleAddProduct = async () => {
     if (!newProduct.name) return
     setAddingProduct(true)
+    setAddProductError(null)
     try {
       let imageUrl: string | null = null
       if (newProductImage) {
@@ -236,9 +239,11 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
         setShowAddModal(false)
         resetAddForm()
         window.location.reload()
+      } else if (result.error) {
+        setAddProductError(result.error)
       }
-    } catch {
-      // error handled
+    } catch (e) {
+      setAddProductError(e instanceof Error ? e.message : "Failed to create product")
     }
     setAddingProduct(false)
   }
@@ -499,6 +504,9 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
             <div className="space-y-2"><Label>{t("productImage")}</Label><Input type="file" accept="image/*" onChange={(e) => setNewProductImage(e.target.files?.[0] || null)} /></div>
           </div>
           <DialogFooter>
+            {addProductError && (
+              <p className="text-sm text-destructive w-full text-left">{addProductError}</p>
+            )}
             <Button variant="outline" onClick={() => { setShowAddModal(false); resetAddForm() }}>{tCommon("cancel")}</Button>
             <Button onClick={handleAddProduct} disabled={addingProduct || !newProduct.name}>{addingProduct ? tCommon("saving") : t("addProduct")}</Button>
           </DialogFooter>
