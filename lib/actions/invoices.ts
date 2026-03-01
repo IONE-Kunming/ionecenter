@@ -207,9 +207,37 @@ export async function searchBuyerByCode(code: string) {
   return { buyer: data }
 }
 
+export async function getNextSellerInvoiceNumber(): Promise<string> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return "INV-0001"
+
+  const adminSupabase = createAdminClient()
+
+  const { data } = await adminSupabase
+    .from("invoices")
+    .select("invoice_number")
+    .eq("seller_id", user.id)
+    .like("invoice_number", "INV-%")
+
+  let maxNum = 0
+  if (data) {
+    for (const row of data) {
+      const match = row.invoice_number?.match(/^INV-(\d+)$/)
+      if (match) {
+        const num = parseInt(match[1], 10)
+        if (num > maxNum) maxNum = num
+      }
+    }
+  }
+
+  const next = maxNum + 1
+  return `INV-${String(next).padStart(4, "0")}`
+}
+
 export interface OfflineInvoiceInput {
   buyer_name: string
   buyer_email: string
+  invoice_number?: string
   items: {
     name: string
     description: string
@@ -227,13 +255,33 @@ export async function createOfflineInvoice(input: OfflineInvoiceInput) {
 
   const adminSupabase = createAdminClient()
 
-  // Generate invoice number
-  const { data: invoiceNum, error: numError } = await adminSupabase
-    .rpc("generate_invoice_number")
+  let invoiceNumber: string
 
-  if (numError) return { error: numError.message }
+  if (input.invoice_number) {
+    // Validate the provided number doesn't already exist for this seller
+    const { data: existing } = await adminSupabase
+      .from("invoices")
+      .select("id")
+      .eq("seller_id", user.id)
+      .eq("invoice_number", input.invoice_number)
+      .limit(1)
 
-  const invoiceNumber = invoiceNum as string
+    if (existing && existing.length > 0) {
+      // Number already taken — generate a fresh one
+      const freshNumber = await getNextSellerInvoiceNumber()
+      invoiceNumber = freshNumber
+    } else {
+      invoiceNumber = input.invoice_number
+    }
+  } else {
+    // Fallback: generate invoice number via RPC
+    const { data: invoiceNum, error: numError } = await adminSupabase
+      .rpc("generate_invoice_number")
+
+    if (numError) return { error: numError.message }
+
+    invoiceNumber = invoiceNum as string
+  }
 
   // Calculate totals
   const subtotal = input.items.reduce(
