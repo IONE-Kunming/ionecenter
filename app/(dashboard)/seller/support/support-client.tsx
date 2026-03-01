@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { HelpCircle, Plus, Ticket } from "lucide-react"
 import { createSupportTicket } from "@/lib/actions/support"
 import { formatDate } from "@/lib/utils"
+import { useToast } from "@/components/ui/toaster"
 import type { SupportTicket } from "@/types/database"
 
 const statusVariant: Record<string, "default" | "success" | "warning" | "secondary"> = {
@@ -32,6 +33,7 @@ export default function SupportClient({ tickets: initialTickets }: SupportClient
   const [pending, startTransition] = useTransition()
   const t = useTranslations("support")
   const tCommon = useTranslations("common")
+  const { addToast } = useToast()
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -45,12 +47,6 @@ export default function SupportClient({ tickets: initialTickets }: SupportClient
     startTransition(async () => {
       const result = await createSupportTicket(data)
       if (result.success) {
-        // Open mailto with ticket details
-        const mailtoEmail = "business@ionecenter.com"
-        const mailtoSubject = encodeURIComponent(data.subject)
-        const mailtoBody = encodeURIComponent(`Issue Type: ${data.type ?? "General"}\n\n${data.message}`)
-        window.open(`mailto:${mailtoEmail}?subject=${mailtoSubject}&body=${mailtoBody}`, "_blank")
-        
         const newTicket: SupportTicket = {
           id: `temp-${Date.now()}`,
           user_id: "",
@@ -64,6 +60,9 @@ export default function SupportClient({ tickets: initialTickets }: SupportClient
         setTickets((prev) => [newTicket, ...prev])
         setShowForm(false)
         form.reset()
+        addToast("success", t("ticketSubmitted"))
+      } else {
+        addToast("error", result.error ?? t("submitError"))
       }
     })
   }
@@ -84,9 +83,6 @@ export default function SupportClient({ tickets: initialTickets }: SupportClient
             <CardDescription>{t("createTicketDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Your ticket will be sent to <a href="mailto:business@ionecenter.com" className="text-primary underline">business@ionecenter.com</a>
-            </p>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="type">{t("issueType")}</Label>
