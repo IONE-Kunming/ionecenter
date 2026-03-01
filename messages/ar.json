@@ -271,6 +271,7 @@
     "qty": "الكمية",
     "unitPrice": "سعر الوحدة",
     "bankInformation": "معلومات البنك",
+    "buyerBankInformation": "معلومات بنك المشتري (TT)",
     "accountHolder": "صاحب الحساب",
     "accountNumber": "رقم الحساب",
     "swiftBicCode": "رمز SWIFT/BIC",

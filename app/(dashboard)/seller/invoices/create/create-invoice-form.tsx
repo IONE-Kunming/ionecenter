@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2, AlertTriangle, User, Pencil } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2, AlertTriangle, User, Pencil, ChevronDown, ChevronUp } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -53,6 +53,25 @@ interface FoundBuyer {
   display_name: string
   email: string
   user_code: string | null
+  account_name: string | null
+  account_number: string | null
+  swift_code: string | null
+  bank_name: string | null
+  bank_region: string | null
+  bank_code: string | null
+  branch_code: string | null
+  bank_address: string | null
+}
+
+interface BuyerBankInfo {
+  account_name: string
+  account_number: string
+  swift_code: string
+  bank_name: string
+  bank_region: string
+  bank_code: string
+  branch_code: string
+  bank_address: string
 }
 
 interface InvoiceRow {
@@ -79,6 +98,21 @@ function hasBankInfo(info: BankInfo | null): boolean {
   return !!(info.account_name || info.account_number || info.bank_name)
 }
 
+function hasBuyerBankInfo(info: BuyerBankInfo): boolean {
+  return !!(info.account_name || info.account_number || info.bank_name)
+}
+
+const emptyBuyerBankInfo: BuyerBankInfo = {
+  account_name: "",
+  account_number: "",
+  swift_code: "",
+  bank_name: "",
+  bank_region: "",
+  bank_code: "",
+  branch_code: "",
+  bank_address: "",
+}
+
 export function CreateOfflineInvoiceForm() {
   const router = useRouter()
   const { addToast } = useToast()
@@ -102,6 +136,8 @@ export function CreateOfflineInvoiceForm() {
   const [savedInvoiceId, setSavedInvoiceId] = useState<string | null>(null)
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null)
   const [bankInfoLoaded, setBankInfoLoaded] = useState(false)
+  const [buyerBankInfo, setBuyerBankInfo] = useState<BuyerBankInfo>({ ...emptyBuyerBankInfo })
+  const [showBuyerBankSection, setShowBuyerBankSection] = useState(false)
 
   const [rows, setRows] = useState<InvoiceRow[]>([
     {
@@ -193,6 +229,21 @@ export function CreateOfflineInvoiceForm() {
         setBuyerName(result.buyer.display_name)
         setBuyerEmail(result.buyer.email)
         setBuyerCodeSearching(false)
+        // Auto-fill buyer bank info if available
+        const hasBuyerBank = !!(result.buyer.account_name || result.buyer.account_number || result.buyer.bank_name)
+        if (hasBuyerBank) {
+          setBuyerBankInfo({
+            account_name: result.buyer.account_name ?? "",
+            account_number: result.buyer.account_number ?? "",
+            swift_code: result.buyer.swift_code ?? "",
+            bank_name: result.buyer.bank_name ?? "",
+            bank_region: result.buyer.bank_region ?? "",
+            bank_code: result.buyer.bank_code ?? "",
+            branch_code: result.buyer.branch_code ?? "",
+            bank_address: result.buyer.bank_address ?? "",
+          })
+          setShowBuyerBankSection(true)
+        }
       }
     }, 500)
   }, [])
@@ -204,6 +255,8 @@ export function CreateOfflineInvoiceForm() {
     setBuyerEmail("")
     setBuyerCodeError(null)
     setBuyerCodeSearching(false)
+    setBuyerBankInfo({ ...emptyBuyerBankInfo })
+    setShowBuyerBankSection(false)
   }, [])
 
   const handleProductSearch = useCallback(
@@ -328,6 +381,16 @@ export function CreateOfflineInvoiceForm() {
           })),
         discount,
         amount_paid: amountPaid,
+        ...(hasBuyerBankInfo(buyerBankInfo) ? {
+          buyer_bank_account_name: buyerBankInfo.account_name || undefined,
+          buyer_bank_account_number: buyerBankInfo.account_number || undefined,
+          buyer_bank_swift_code: buyerBankInfo.swift_code || undefined,
+          buyer_bank_name: buyerBankInfo.bank_name || undefined,
+          buyer_bank_region: buyerBankInfo.bank_region || undefined,
+          buyer_bank_code: buyerBankInfo.bank_code || undefined,
+          buyer_bank_branch_code: buyerBankInfo.branch_code || undefined,
+          buyer_bank_address: buyerBankInfo.bank_address || undefined,
+        } : {}),
       })
 
       if (result.error) {
@@ -622,6 +685,118 @@ export function CreateOfflineInvoiceForm() {
             )}
           </CardContent>
         </Card>
+
+        {/* Buyer Bank Information (Optional) - Collapsible */}
+        <Card className={`print:hidden ${!showBuyerBankSection ? "border-dashed" : ""}`}>
+          <CardHeader
+            className="cursor-pointer select-none"
+            onClick={() => setShowBuyerBankSection(!showBuyerBankSection)}
+          >
+            <CardTitle className="text-sm flex items-center justify-between">
+              <span>Buyer Bank Information (Optional)</span>
+              {showBuyerBankSection ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              )}
+            </CardTitle>
+          </CardHeader>
+          {showBuyerBankSection && (
+            <CardContent className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="buyerBankAccountName">Account Holder Name</Label>
+                  <Input
+                    id="buyerBankAccountName"
+                    value={buyerBankInfo.account_name}
+                    onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, account_name: e.target.value }))}
+                    placeholder="Account holder name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="buyerBankAccountNumber">Account Number</Label>
+                  <Input
+                    id="buyerBankAccountNumber"
+                    value={buyerBankInfo.account_number}
+                    onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, account_number: e.target.value }))}
+                    placeholder="Account number"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="buyerBankSwiftCode">SWIFT/BIC Code</Label>
+                  <Input
+                    id="buyerBankSwiftCode"
+                    value={buyerBankInfo.swift_code}
+                    onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, swift_code: e.target.value }))}
+                    placeholder="SWIFT/BIC code"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="buyerBankName">Bank Name</Label>
+                  <Input
+                    id="buyerBankName"
+                    value={buyerBankInfo.bank_name}
+                    onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, bank_name: e.target.value }))}
+                    placeholder="Bank name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="buyerBankRegion">Bank Region</Label>
+                  <Input
+                    id="buyerBankRegion"
+                    value={buyerBankInfo.bank_region}
+                    onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, bank_region: e.target.value }))}
+                    placeholder="Bank region"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="buyerBankCode">Bank Code</Label>
+                  <Input
+                    id="buyerBankCode"
+                    value={buyerBankInfo.bank_code}
+                    onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, bank_code: e.target.value }))}
+                    placeholder="Bank code"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="buyerBankBranchCode">Branch Code</Label>
+                  <Input
+                    id="buyerBankBranchCode"
+                    value={buyerBankInfo.branch_code}
+                    onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, branch_code: e.target.value }))}
+                    placeholder="Branch code"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="buyerBankAddress">Bank Address</Label>
+                  <Input
+                    id="buyerBankAddress"
+                    value={buyerBankInfo.bank_address}
+                    onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, bank_address: e.target.value }))}
+                    placeholder="Bank address"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          )}
+        </Card>
+
+        {/* Print-only: Buyer Bank Information (TT) - only if fields filled */}
+        {hasBuyerBankInfo(buyerBankInfo) && (
+          <div className="hidden print:block" style={{ marginTop: "16px" }}>
+            <h3 style={{ fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>Buyer Bank Information (TT)</h3>
+            <div style={{ fontSize: "12px", lineHeight: "1.6" }}>
+              {buyerBankInfo.account_name && <p><strong>Account Holder:</strong> {buyerBankInfo.account_name}</p>}
+              {buyerBankInfo.account_number && <p><strong>Account Number:</strong> {buyerBankInfo.account_number}</p>}
+              {buyerBankInfo.swift_code && <p><strong>SWIFT/BIC Code:</strong> {buyerBankInfo.swift_code}</p>}
+              {buyerBankInfo.bank_name && <p><strong>Bank Name:</strong> {buyerBankInfo.bank_name}</p>}
+              {buyerBankInfo.bank_region && <p><strong>Bank Region:</strong> {buyerBankInfo.bank_region}</p>}
+              {buyerBankInfo.bank_code && <p><strong>Bank Code:</strong> {buyerBankInfo.bank_code}</p>}
+              {buyerBankInfo.branch_code && <p><strong>Branch Code:</strong> {buyerBankInfo.branch_code}</p>}
+              {buyerBankInfo.bank_address && <p><strong>Bank Address:</strong> {buyerBankInfo.bank_address}</p>}
+            </div>
+          </div>
+        )}
 
         {/* Product Items */}
         <Card>

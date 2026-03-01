@@ -119,6 +119,23 @@ export default async function SellerInvoiceDetailPage({ params }: { params: Prom
           <CardContent><p className="text-sm text-muted-foreground">{invoice.notes}</p></CardContent>
         </Card>
       )}
+
+      {/* Buyer Bank Information (TT) */}
+      {(invoice.buyer_bank_account_name || invoice.buyer_bank_account_number || invoice.buyer_bank_name) && (
+        <Card>
+          <CardHeader><CardTitle className="text-sm">{t("buyerBankInformation")}</CardTitle></CardHeader>
+          <CardContent className="text-sm space-y-1">
+            {invoice.buyer_bank_account_name && <p><strong>{t("accountHolder")}:</strong> {invoice.buyer_bank_account_name}</p>}
+            {invoice.buyer_bank_account_number && <p><strong>{t("accountNumber")}:</strong> {invoice.buyer_bank_account_number}</p>}
+            {invoice.buyer_bank_swift_code && <p><strong>{t("swiftBicCode")}:</strong> {invoice.buyer_bank_swift_code}</p>}
+            {invoice.buyer_bank_name && <p><strong>{t("bankName")}:</strong> {invoice.buyer_bank_name}</p>}
+            {invoice.buyer_bank_region && <p><strong>{t("bankRegion")}:</strong> {invoice.buyer_bank_region}</p>}
+            {invoice.buyer_bank_code && <p><strong>{t("bankCode")}:</strong> {invoice.buyer_bank_code}</p>}
+            {invoice.buyer_bank_branch_code && <p><strong>{t("branchCode")}:</strong> {invoice.buyer_bank_branch_code}</p>}
+            {invoice.buyer_bank_address && <p><strong>{t("bankAddress")}:</strong> {invoice.buyer_bank_address}</p>}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

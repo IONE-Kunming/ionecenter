@@ -197,7 +197,7 @@ export async function searchBuyerByCode(code: string) {
   const adminSupabase = createAdminClient()
   const { data, error } = await adminSupabase
     .from("users")
-    .select("id, display_name, email, user_code")
+    .select("id, display_name, email, user_code, account_name, account_number, swift_code, bank_name, bank_region, bank_code, branch_code, bank_address")
     .eq("role", "buyer")
     .eq("user_code", code.trim())
     .single()
@@ -247,6 +247,14 @@ export interface OfflineInvoiceInput {
   discount: number
   amount_paid: number
   notes?: string
+  buyer_bank_account_name?: string
+  buyer_bank_account_number?: string
+  buyer_bank_swift_code?: string
+  buyer_bank_name?: string
+  buyer_bank_region?: string
+  buyer_bank_code?: string
+  buyer_bank_branch_code?: string
+  buyer_bank_address?: string
 }
 
 export async function createOfflineInvoice(input: OfflineInvoiceInput) {
@@ -313,6 +321,14 @@ export async function createOfflineInvoice(input: OfflineInvoiceInput) {
       amount_paid: amountPaid,
       is_offline: true,
       notes: input.notes ?? null,
+      buyer_bank_account_name: input.buyer_bank_account_name ?? null,
+      buyer_bank_account_number: input.buyer_bank_account_number ?? null,
+      buyer_bank_swift_code: input.buyer_bank_swift_code ?? null,
+      buyer_bank_name: input.buyer_bank_name ?? null,
+      buyer_bank_region: input.buyer_bank_region ?? null,
+      buyer_bank_code: input.buyer_bank_code ?? null,
+      buyer_bank_branch_code: input.buyer_bank_branch_code ?? null,
+      buyer_bank_address: input.buyer_bank_address ?? null,
     })
     .select()
     .single()
