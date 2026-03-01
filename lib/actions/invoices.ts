@@ -181,6 +181,25 @@ export async function searchBuyers(query: string) {
   return data ?? []
 }
 
+export async function searchBuyerByCode(code: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return { error: "Not authorized" }
+
+  if (!code.trim()) return { error: "Buyer code is required" }
+
+  const adminSupabase = createAdminClient()
+  const { data, error } = await adminSupabase
+    .from("users")
+    .select("id, display_name, email, user_code")
+    .eq("role", "buyer")
+    .eq("user_code", code.trim())
+    .single()
+
+  if (error || !data) return { error: "Buyer code not found. Please check and try again." }
+
+  return { buyer: data }
+}
+
 export interface OfflineInvoiceInput {
   buyer_name: string
   buyer_email: string
