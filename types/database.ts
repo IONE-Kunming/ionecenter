@@ -31,6 +31,10 @@ export interface User {
   account_number: string | null
   swift_code: string | null
   bank_branch: string | null
+  bank_region: string | null
+  bank_code: string | null
+  branch_code: string | null
+  bank_address: string | null
   currency: string
   payment_notes: string | null
   user_code: string | null

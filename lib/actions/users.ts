@@ -63,7 +63,7 @@ export async function ensureUserInSupabase(): Promise<User | null> {
 }
 
 export async function updateUserProfile(
-  updates: Partial<Pick<User, "display_name" | "company" | "phone_number" | "preferred_language" | "street" | "city" | "state" | "zip" | "country" | "bank_name" | "account_name" | "account_number" | "swift_code" | "bank_branch" | "currency" | "payment_notes">>
+  updates: Partial<Pick<User, "display_name" | "company" | "phone_number" | "preferred_language" | "street" | "city" | "state" | "zip" | "country" | "bank_name" | "account_name" | "account_number" | "swift_code" | "bank_branch" | "bank_region" | "bank_code" | "branch_code" | "bank_address" | "currency" | "payment_notes">>
 ) {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }

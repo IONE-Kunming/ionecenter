@@ -30,6 +30,23 @@ export default async function BuyerInvoiceDetailPage({ params }: { params: Promi
         <Image src="/logo.svg" alt="IONE Center" width={120} height={40} />
       </div>
 
+      {/* Seller Bank Information */}
+      {invoice.seller && (invoice.seller.account_name || invoice.seller.account_number || invoice.seller.bank_name) && (
+        <Card>
+          <CardHeader><CardTitle className="text-sm">{t("bankInformation")}</CardTitle></CardHeader>
+          <CardContent className="text-sm space-y-1">
+            {invoice.seller.account_name && <p><strong>{t("accountHolder")}:</strong> {invoice.seller.account_name}</p>}
+            {invoice.seller.account_number && <p><strong>{t("accountNumber")}:</strong> {invoice.seller.account_number}</p>}
+            {invoice.seller.swift_code && <p><strong>{t("swiftBicCode")}:</strong> {invoice.seller.swift_code}</p>}
+            {invoice.seller.bank_name && <p><strong>{t("bankName")}:</strong> {invoice.seller.bank_name}</p>}
+            {invoice.seller.bank_region && <p><strong>{t("bankRegion")}:</strong> {invoice.seller.bank_region}</p>}
+            {invoice.seller.bank_code && <p><strong>{t("bankCode")}:</strong> {invoice.seller.bank_code}</p>}
+            {invoice.seller.branch_code && <p><strong>{t("branchCode")}:</strong> {invoice.seller.branch_code}</p>}
+            {invoice.seller.bank_address && <p><strong>{t("bankAddress")}:</strong> {invoice.seller.bank_address}</p>}
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold">{t("invoice")} {invoice.invoice_number}</h2>

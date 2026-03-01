@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2 } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2, AlertTriangle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
 import { formatCurrency } from "@/lib/utils"
-import { createOfflineInvoice, searchSellerProducts } from "@/lib/actions/invoices"
+import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo } from "@/lib/actions/invoices"
 
 interface ProductResult {
   id: string
@@ -20,6 +20,17 @@ interface ProductResult {
   model_number: string
   description: string | null
   price_per_meter: number
+}
+
+interface BankInfo {
+  account_name: string | null
+  account_number: string | null
+  swift_code: string | null
+  bank_name: string | null
+  bank_region: string | null
+  bank_code: string | null
+  branch_code: string | null
+  bank_address: string | null
 }
 
 interface InvoiceRow {
@@ -33,19 +44,13 @@ interface InvoiceRow {
   showSuggestions: boolean
 }
 
-const BANK_INFO = {
-  accountHolder: "HK KANDIVAN INTERNATIONAL TRADING COMPANY LIMITED",
-  accountNumber: "342801259",
-  swiftCode: "CITIHKHX",
-  bankName: "CITIBANK N.A. HONG KONG BRANCH",
-  bankRegion: "HK",
-  bankCode: "006",
-  branchCode: "391",
-  bankAddress: "Champion Tower, THREE Garden Road, Central, Hong Kong 🇭🇰",
-}
-
 function generateItemKey(index: number): string {
   return `RX${String(index + 1).padStart(3, "0")}`
+}
+
+function hasBankInfo(info: BankInfo | null): boolean {
+  if (!info) return false
+  return !!(info.account_name || info.account_number || info.bank_name)
 }
 
 export function CreateOfflineInvoiceForm() {
@@ -62,6 +67,8 @@ export function CreateOfflineInvoiceForm() {
   const [sending, setSending] = useState(false)
   const [savedInvoiceNumber, setSavedInvoiceNumber] = useState<string | null>(null)
   const [savedInvoiceId, setSavedInvoiceId] = useState<string | null>(null)
+  const [bankInfo, setBankInfo] = useState<BankInfo | null>(null)
+  const [bankInfoLoaded, setBankInfoLoaded] = useState(false)
 
   const [rows, setRows] = useState<InvoiceRow[]>([
     {
@@ -84,6 +91,13 @@ export function CreateOfflineInvoiceForm() {
       if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
       if (blurTimerRef.current) clearTimeout(blurTimerRef.current)
     }
+  }, [])
+
+  useEffect(() => {
+    getSellerBankInfo().then((info) => {
+      setBankInfo(info)
+      setBankInfoLoaded(true)
+    })
   }, [])
 
   const handleProductSearch = useCallback(
@@ -307,6 +321,34 @@ export function CreateOfflineInvoiceForm() {
           </div>
         </div>
 
+        {/* Bank Information (dynamic from seller settings) */}
+        {bankInfoLoaded && !hasBankInfo(bankInfo) && (
+          <div className="flex items-center gap-2 rounded-md border border-yellow-300 bg-yellow-50 p-4 text-sm text-yellow-800 dark:border-yellow-700 dark:bg-yellow-950 dark:text-yellow-200">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <p>Please add your bank information in settings before creating an invoice.</p>
+            <Link href="/seller/profile" className="ml-auto underline whitespace-nowrap print:hidden">
+              Go to Settings
+            </Link>
+          </div>
+        )}
+        {hasBankInfo(bankInfo) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Bank Information</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm space-y-1">
+              {bankInfo!.account_name && <p><strong>Account Holder:</strong> {bankInfo!.account_name}</p>}
+              {bankInfo!.account_number && <p><strong>Account Number:</strong> {bankInfo!.account_number}</p>}
+              {bankInfo!.swift_code && <p><strong>SWIFT/BIC Code:</strong> {bankInfo!.swift_code}</p>}
+              {bankInfo!.bank_name && <p><strong>Bank Name:</strong> {bankInfo!.bank_name}</p>}
+              {bankInfo!.bank_region && <p><strong>Bank Region:</strong> {bankInfo!.bank_region}</p>}
+              {bankInfo!.bank_code && <p><strong>Bank Code:</strong> {bankInfo!.bank_code}</p>}
+              {bankInfo!.branch_code && <p><strong>Branch Code:</strong> {bankInfo!.branch_code}</p>}
+              {bankInfo!.bank_address && <p><strong>Bank Address:</strong> {bankInfo!.bank_address}</p>}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Buyer Information */}
         <Card>
           <CardHeader>
@@ -401,6 +443,9 @@ export function CreateOfflineInvoiceForm() {
                                 <span className="font-medium">{product.model_number}</span>
                                 <span className="text-muted-foreground ml-2">
                                   — {product.name}
+                                </span>
+                                <span className="text-muted-foreground ml-2">
+                                  ({formatCurrency(product.price_per_meter)})
                                 </span>
                               </button>
                             ))}
@@ -501,39 +546,6 @@ export function CreateOfflineInvoiceForm() {
               <span>Amount Due</span>
               <span>{formatCurrency(amountDue)}</span>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Bank Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Bank Information</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm space-y-1">
-            <p>
-              <strong>Account Holder:</strong> {BANK_INFO.accountHolder}
-            </p>
-            <p>
-              <strong>Account Number:</strong> {BANK_INFO.accountNumber}
-            </p>
-            <p>
-              <strong>SWIFT/BIC Code:</strong> {BANK_INFO.swiftCode}
-            </p>
-            <p>
-              <strong>Bank Name:</strong> {BANK_INFO.bankName}
-            </p>
-            <p>
-              <strong>Bank Region:</strong> {BANK_INFO.bankRegion}
-            </p>
-            <p>
-              <strong>Bank Code:</strong> {BANK_INFO.bankCode}
-            </p>
-            <p>
-              <strong>Branch Code:</strong> {BANK_INFO.branchCode}
-            </p>
-            <p>
-              <strong>Bank Address:</strong> {BANK_INFO.bankAddress}
-            </p>
           </CardContent>
         </Card>
       </div>

@@ -27,6 +27,10 @@ export default function SellerProfileForm({ user }: { user: User }) {
   const [accountNumber, setAccountNumber] = useState(user.account_number ?? "")
   const [swiftCode, setSwiftCode] = useState(user.swift_code ?? "")
   const [bankBranch, setBankBranch] = useState(user.bank_branch ?? "")
+  const [bankRegion, setBankRegion] = useState(user.bank_region ?? "")
+  const [bankCode, setBankCode] = useState(user.bank_code ?? "")
+  const [branchCode, setBranchCode] = useState(user.branch_code ?? "")
+  const [bankAddress, setBankAddress] = useState(user.bank_address ?? "")
   const [currency, setCurrency] = useState(user.currency)
   const [paymentNotes, setPaymentNotes] = useState(user.payment_notes ?? "")
 
@@ -43,6 +47,10 @@ export default function SellerProfileForm({ user }: { user: User }) {
       account_number: accountNumber || null,
       swift_code: swiftCode || null,
       bank_branch: bankBranch || null,
+      bank_region: bankRegion || null,
+      bank_code: bankCode || null,
+      branch_code: branchCode || null,
+      bank_address: bankAddress || null,
       currency,
       payment_notes: paymentNotes || null,
     })
@@ -75,15 +83,23 @@ export default function SellerProfileForm({ user }: { user: User }) {
         <CardHeader><CardTitle>{t("paymentBankDetails")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>{t("bankName")}</Label><Input value={bankName} onChange={(e) => setBankName(e.target.value)} /></div>
             <div className="space-y-2"><Label>{t("accountName")}</Label><Input value={accountName} onChange={(e) => setAccountName(e.target.value)} /></div>
+            <div className="space-y-2"><Label>{t("accountNumber")}</Label><Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} /></div>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>{t("ibanNumber")}</Label><Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} /></div>
             <div className="space-y-2"><Label>{t("swiftCode")}</Label><Input value={swiftCode} onChange={(e) => setSwiftCode(e.target.value)} /></div>
+            <div className="space-y-2"><Label>{t("bankName")}</Label><Input value={bankName} onChange={(e) => setBankName(e.target.value)} /></div>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2"><Label>{t("bankRegion")}</Label><Input value={bankRegion} onChange={(e) => setBankRegion(e.target.value)} /></div>
+            <div className="space-y-2"><Label>{t("bankCode")}</Label><Input value={bankCode} onChange={(e) => setBankCode(e.target.value)} /></div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2"><Label>{t("branchCode")}</Label><Input value={branchCode} onChange={(e) => setBranchCode(e.target.value)} /></div>
             <div className="space-y-2"><Label>{t("bankBranch")}</Label><Input value={bankBranch} onChange={(e) => setBankBranch(e.target.value)} /></div>
+          </div>
+          <div className="space-y-2"><Label>{t("bankAddress")}</Label><Input value={bankAddress} onChange={(e) => setBankAddress(e.target.value)} /></div>
+          <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2"><Label>{t("currency")}</Label><Select value={currency} onChange={(e) => setCurrency(e.target.value)} options={[{ value: "USD", label: "USD" }, { value: "CNY", label: "CNY" }, { value: "EUR", label: "EUR" }, { value: "GBP", label: "GBP" }, { value: "AED", label: "AED" }, { value: "SAR", label: "SAR" }, { value: "PKR", label: "PKR" }]} /></div>
           </div>
           <div className="space-y-2"><Label>{t("paymentNotes")}</Label><Textarea value={paymentNotes} onChange={(e) => setPaymentNotes(e.target.value)} placeholder={t("paymentNotesPlaceholder")} rows={3} /></div>

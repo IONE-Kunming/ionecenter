@@ -269,7 +269,16 @@
     "paidLabel": "ادا شدہ:",
     "item": "آئٹم",
     "qty": "مقدار",
-    "unitPrice": "فی اکائی قیمت"
+    "unitPrice": "فی اکائی قیمت",
+    "bankInformation": "بینک کی معلومات",
+    "accountHolder": "اکاؤنٹ ہولڈر",
+    "accountNumber": "اکاؤنٹ نمبر",
+    "swiftBicCode": "SWIFT/BIC کوڈ",
+    "bankName": "بینک کا نام",
+    "bankRegion": "بینک کا علاقہ",
+    "bankCode": "بینک کوڈ",
+    "branchCode": "برانچ کوڈ",
+    "bankAddress": "بینک کا پتہ"
   },
   "notifications": {
     "unread": "{count} غیر پڑھی ہوئی",
@@ -347,6 +356,10 @@
     "accountNumber": "اکاؤنٹ نمبر",
     "swiftCode": "SWIFT کوڈ",
     "bankBranch": "بینک برانچ",
+    "bankRegion": "بینک کا علاقہ",
+    "bankCode": "بینک کوڈ",
+    "branchCode": "برانچ کوڈ",
+    "bankAddress": "بینک کا پتہ",
     "currency": "کرنسی",
     "paymentNotes": "ادائیگی کے نوٹس",
     "saveChanges": "تبدیلیاں محفوظ کریں",
