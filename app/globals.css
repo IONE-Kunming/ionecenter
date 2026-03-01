@@ -588,3 +588,39 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateX(-50%);
   }
 }
+
+/* Print styles for invoice */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  nav, header, aside, footer,
+  [data-sidebar], [data-topbar] {
+    display: none !important;
+  }
+  /* Hide sidebar and header in dashboard */
+  .fixed.start-0.top-0.w-64,
+  .fixed.top-4.start-4,
+  .sticky.top-0.border-b {
+    display: none !important;
+  }
+  .md\:ms-64 {
+    margin-inline-start: 0 !important;
+  }
+  .print\:border-none {
+    border: none !important;
+  }
+  .print\:p-0 {
+    padding: 0 !important;
+  }
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+  .print\:block {
+    display: block !important;
+  }
+}

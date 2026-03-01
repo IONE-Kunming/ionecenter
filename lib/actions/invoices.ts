@@ -133,3 +133,106 @@ export async function getInvoice(invoiceId: string): Promise<Invoice | null> {
     items: items ?? [],
   }
 }
+
+export async function searchSellerProducts(query: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return []
+
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("products")
+    .select("id, name, model_number, description, price_per_meter")
+    .eq("seller_id", user.id)
+    .eq("is_active", true)
+    .or(`model_number.ilike.%${query}%,name.ilike.%${query}%`)
+    .limit(10)
+
+  return data ?? []
+}
+
+export interface OfflineInvoiceInput {
+  buyer_name: string
+  buyer_email: string
+  items: {
+    name: string
+    description: string
+    unit_price: number
+    quantity: number
+  }[]
+  discount: number
+  amount_paid: number
+  notes?: string
+}
+
+export async function createOfflineInvoice(input: OfflineInvoiceInput) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return { error: "Not authorized" }
+
+  const adminSupabase = createAdminClient()
+
+  // Generate invoice number
+  const { data: invoiceNum, error: numError } = await adminSupabase
+    .rpc("generate_invoice_number")
+
+  if (numError) return { error: numError.message }
+
+  const invoiceNumber = invoiceNum as string
+
+  // Calculate totals
+  const subtotal = input.items.reduce(
+    (sum, item) => sum + item.unit_price * item.quantity,
+    0
+  )
+  const discount = input.discount
+  const total = Math.max(subtotal - discount, 0)
+  const amountPaid = input.amount_paid
+  const remainingBalance = Math.max(total - amountPaid, 0)
+
+  const { data: invoice, error: invoiceError } = await adminSupabase
+    .from("invoices")
+    .insert({
+      invoice_number: invoiceNumber,
+      order_id: null,
+      buyer_id: null,
+      seller_id: user.id,
+      subtotal,
+      tax: 0,
+      total,
+      deposit_paid: amountPaid,
+      remaining_balance: remainingBalance,
+      status: remainingBalance <= 0 ? "paid" : "issued",
+      paid_at: remainingBalance <= 0 ? new Date().toISOString() : null,
+      buyer_name: input.buyer_name,
+      buyer_email: input.buyer_email,
+      discount,
+      amount_paid: amountPaid,
+      is_offline: true,
+      notes: input.notes ?? null,
+    })
+    .select()
+    .single()
+
+  if (invoiceError || !invoice)
+    return { error: invoiceError?.message ?? "Failed to create invoice" }
+
+  // Create invoice items
+  if (input.items.length > 0) {
+    const invoiceItems = input.items.map((item) => ({
+      invoice_id: invoice.id,
+      name: item.name,
+      description: item.description,
+      quantity: item.quantity,
+      unit: "m",
+      price: item.unit_price,
+      subtotal: Number((item.unit_price * item.quantity).toFixed(2)),
+    }))
+
+    const { error: itemsError } = await adminSupabase
+      .from("invoice_items")
+      .insert(invoiceItems)
+
+    if (itemsError) return { error: itemsError.message }
+  }
+
+  return { success: true, invoice }
+}

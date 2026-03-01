@@ -1,13 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { Receipt, Search } from "lucide-react"
+import { Receipt, Search, Plus } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { InvoiceStatusBadge } from "@/components/ui/status-badge"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import Link from "@/components/ui/link"
 import type { InvoiceStatus } from "@/types/database"
 
 interface SellerInvoiceRow {
@@ -28,9 +30,14 @@ export function SellerInvoicesList({ invoices }: { invoices: SellerInvoiceRow[] 
 
   return (
     <div className="space-y-6">
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search invoices..." className="pl-9" />
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search invoices..." className="pl-9" />
+        </div>
+        <Link href="/seller/invoices/create">
+          <Button><Plus className="h-4 w-4 mr-2" /> Create Invoice</Button>
+        </Link>
       </div>
       {filtered.length > 0 ? (
         <Card>
