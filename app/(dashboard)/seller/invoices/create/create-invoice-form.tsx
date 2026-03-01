@@ -503,6 +503,9 @@ export function CreateOfflineInvoiceForm() {
                       <div className="relative">
                         <span className="text-xs text-muted-foreground font-mono">
                           {row.key}
+                          {row.productName && (
+                            <span className="ml-1 font-sans">{row.productName}</span>
+                          )}
                         </span>
                         <Input
                           value={row.searchQuery}
@@ -541,11 +544,7 @@ export function CreateOfflineInvoiceForm() {
                             ))}
                           </div>
                         )}
-                        {row.productName && (
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {row.productName}
-                          </p>
-                        )}
+
                       </div>
                     </TableCell>
                     <TableCell>
