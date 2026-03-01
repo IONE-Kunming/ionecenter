@@ -15,7 +15,7 @@ type FlatMessages = Record<string, string>
  * Flatten a nested messages object into dot-notation keys.
  * e.g. { nav: { home: "Home" } } → { "nav.home": "Home" }
  */
-export function flattenMessages(
+function flattenMessages(
   obj: Record<string, unknown>,
   prefix = ""
 ): FlatMessages {
@@ -35,7 +35,7 @@ export function flattenMessages(
  * Reconstruct a nested object from dot-notation keys.
  * e.g. { "nav.home": "Home" } → { nav: { home: "Home" } }
  */
-export function unflattenMessages(flat: FlatMessages): Record<string, unknown> {
+function unflattenMessages(flat: FlatMessages): Record<string, unknown> {
   const result: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(flat)) {
     const parts = key.split(".")
