@@ -412,7 +412,7 @@ export function CreateOfflineInvoiceForm() {
         </Link>
       </div>
 
-      <div ref={printRef} className="space-y-6">
+      <div ref={printRef} className="space-y-6 invoice-print-area">
         {/* Invoice Header */}
         <div className="flex items-start justify-between">
           <Image src="/logo.svg" alt="IONE Center" width={120} height={40} />
