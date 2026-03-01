@@ -1,5 +1,6 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 
@@ -54,6 +55,8 @@ export async function toggleWishlist(productId: string): Promise<{ liked: boolea
       .eq("id", existing.id)
 
     if (error) return { liked: true, error: error.message }
+    revalidatePath("/buyer/my-list")
+    revalidatePath("/seller/my-list")
     return { liked: false }
   } else {
     // Add to wishlist
@@ -62,6 +65,8 @@ export async function toggleWishlist(productId: string): Promise<{ liked: boolea
       .insert({ user_id: user.id, product_id: productId })
 
     if (error) return { liked: false, error: error.message }
+    revalidatePath("/buyer/my-list")
+    revalidatePath("/seller/my-list")
     return { liked: true }
   }
 }
