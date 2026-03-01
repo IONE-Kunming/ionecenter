@@ -31,7 +31,16 @@ export async function getProducts(filters?: {
     query = query.eq("seller_id", filters.sellerId)
   }
 
-  const { data } = await query
+  const { data, error } = await query
+
+  // Debug: log raw Supabase response before any filtering
+  console.log("[getProducts] raw count:", data?.length ?? 0, "| error:", error?.message ?? "none")
+
+  if (error) {
+    console.error("[getProducts] Supabase query error:", error.message, error.details, error.hint)
+    return []
+  }
+
   return (data ?? [])
     .filter((p) => {
       const seller = p.seller as { display_name: string; is_active: boolean | null } | null
@@ -46,11 +55,16 @@ export async function getProducts(filters?: {
 
 export async function getProduct(id: string): Promise<Product | null> {
   const supabase = createAdminClient()
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("products")
     .select("*, seller:users!seller_id(display_name, company, city, country, is_active)")
     .eq("id", id)
     .single()
+
+  if (error) {
+    console.error("[getProduct] Supabase query error:", error.message, error.details, error.hint)
+    return null
+  }
 
   if (!data) return null
 
