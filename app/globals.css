@@ -591,9 +591,18 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Print styles for invoice */
 @media print {
+  /* Hide URL and page numbers by removing page margins (browser renders
+     headers/footers inside the @page margin area) */
+  @page {
+    size: auto;
+    margin: 0;
+  }
+
   body {
     background: white !important;
-    color: black !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 15mm !important;
   }
   .print\:hidden {
     display: none !important;
@@ -622,6 +631,176 @@ h1, h2, h3, h4, h5, h6 {
   }
   .print\:block {
     display: block !important;
+  }
+
+  /* ---- Invoice print area styles ---- */
+
+  /* All text dark black */
+  .invoice-print-area,
+  .invoice-print-area * {
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Invoice title — bold and large */
+  .invoice-print-area h2 {
+    font-size: 26px !important;
+    font-weight: 700 !important;
+  }
+
+  /* Date text */
+  .invoice-print-area h2 + p {
+    color: #000000 !important;
+    font-size: 13px !important;
+  }
+
+  /* Cards — remove shadow/bg, add bottom divider between sections */
+  .invoice-print-area > div {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #cccccc !important;
+  }
+
+  .invoice-print-area > div:last-child {
+    border-bottom: none !important;
+  }
+
+  /* Card header padding */
+  .invoice-print-area [class*="CardHeader"],
+  .invoice-print-area > div > div:first-child {
+    padding: 8px 0 !important;
+  }
+
+  /* Card content padding */
+  .invoice-print-area [class*="CardContent"],
+  .invoice-print-area > div > div:nth-child(2) {
+    padding: 0 !important;
+  }
+
+  /* Section headers (CardTitle) — bold, visible, uppercase */
+  .invoice-print-area h3,
+  .invoice-print-area [class*="tracking-tight"] {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    border-bottom: 2px solid #000000 !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 10px !important;
+    display: block !important;
+  }
+
+  /* Field labels bold */
+  .invoice-print-area label,
+  .invoice-print-area strong {
+    font-weight: 700 !important;
+  }
+
+  /* Field values regular weight */
+  .invoice-print-area span:not([class*="font-"]),
+  .invoice-print-area p:not(h2 + p) {
+    font-weight: 400 !important;
+  }
+
+  /* Bank info box */
+  .invoice-print-area > div:nth-child(2) {
+    border: 1px solid #999999 !important;
+    border-radius: 4px !important;
+    padding: 12px !important;
+    border-bottom: 1px solid #999999 !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* ---- Product Items Table ---- */
+
+  /* Table wrapper — prevent overflow clipping in print */
+  .invoice-print-area .relative.w-full.overflow-auto {
+    overflow: visible !important;
+  }
+
+  /* Table full width */
+  .invoice-print-area table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  /* Table column headers — bold uppercase */
+  .invoice-print-area thead th {
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    font-size: 12px !important;
+    letter-spacing: 0.05em !important;
+    border-bottom: 2px solid #000000 !important;
+    padding: 8px 10px !important;
+    background-color: #f2f2f2 !important;
+  }
+
+  /* Table cells with borders */
+  .invoice-print-area tbody td {
+    border-bottom: 1px solid #dddddd !important;
+    padding: 8px 10px !important;
+    font-size: 13px !important;
+  }
+
+  /* Alternating row backgrounds */
+  .invoice-print-area tbody tr:nth-child(even) {
+    background-color: #f9f9f9 !important;
+  }
+
+  .invoice-print-area tbody tr:nth-child(odd) {
+    background-color: #ffffff !important;
+  }
+
+  /* ---- Invoice Summary ---- */
+
+  /* Right-align amounts */
+  .invoice-print-area .ml-auto span {
+    text-align: right !important;
+  }
+
+  /* Total row — bold and larger with top border */
+  .invoice-print-area .border-t {
+    border-top: 2px solid #000000 !important;
+    padding-top: 8px !important;
+  }
+
+  .invoice-print-area .border-t span,
+  .invoice-print-area .font-semibold span,
+  .invoice-print-area .font-semibold {
+    font-weight: 700 !important;
+    color: #000000 !important;
+  }
+
+  /* Amount Due row — bold and larger */
+  .invoice-print-area .text-lg {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+  }
+
+  .invoice-print-area .text-lg span {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+  }
+
+  /* Inputs should show as plain text when printed */
+  .invoice-print-area input {
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    font-size: 13px !important;
+    color: #000000 !important;
+  }
+
+  /* Hide delete column and action buttons in table */
+  .invoice-print-area th:last-child.print\:hidden,
+  .invoice-print-area td:last-child.print\:hidden {
+    display: none !important;
   }
 }
 
