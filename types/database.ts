@@ -212,6 +212,16 @@ export interface WishlistItem {
   created_at: string
 }
 
+export interface TranslationCacheEntry {
+  id: string
+  locale: string
+  message_key: string
+  source_text: string
+  translated_text: string
+  created_at: string
+  updated_at: string
+}
+
 export interface DashboardStats {
   totalOrders: number
   totalRevenue: number

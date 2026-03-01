@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import type { Cart, CartItem } from "@/types/database"
 
@@ -8,7 +8,7 @@ export async function getCart(): Promise<Cart | null> {
   const user = await getCurrentUser()
   if (!user) return null
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("carts")
     .select("*")
@@ -22,7 +22,7 @@ export async function updateCart(items: CartItem[]) {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase
     .from("carts")
     .upsert({
@@ -38,7 +38,7 @@ export async function addToCart(productId: string, quantity: number) {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Get product price and stock
   const { data: product } = await supabase
