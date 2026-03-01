@@ -33,9 +33,7 @@ export async function createSupportTicket(data: {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
 
-  const recipientEmail = user.role === "seller" 
-    ? "business@ionecenter.com" 
-    : "contactus@ionecenter.com"
+  const recipientEmail = "business@ionecenter.com"
 
   const supabase = createAdminClient()
 
@@ -54,13 +52,15 @@ export async function createSupportTicket(data: {
   // Send email notification via Resend
   const apiKey = process.env.RESEND_API_KEY
   if (apiKey) {
+    const resend = new Resend(apiKey)
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "IONE Center <noreply@ionecenter.com>"
+    const issueType = data.type
+      ? data.type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+      : "General"
+    const safeReplyTo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email) ? user.email : undefined
+
+    // Notify admin team
     try {
-      const resend = new Resend(apiKey)
-      const fromEmail = process.env.RESEND_FROM_EMAIL || "IONE Center <noreply@ionecenter.com>"
-      const issueType = data.type
-        ? data.type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-        : "General"
-      const safeReplyTo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email) ? user.email : undefined
       await resend.emails.send({
         from: fromEmail,
         to: [recipientEmail],
@@ -88,7 +88,41 @@ export async function createSupportTicket(data: {
       })
     } catch (err) {
       // Email failure should not block ticket creation
-      console.error("[support] Failed to send ticket email:", err)
+      console.error("[support] Failed to send admin ticket notification:", err)
+    }
+
+    // Send confirmation email to the user who submitted the ticket
+    if (safeReplyTo) {
+      try {
+        await resend.emails.send({
+          from: fromEmail,
+          to: [safeReplyTo],
+          subject: `[Support] We received your ticket: ${data.subject}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333;">
+              <div style="text-align:center;padding:20px 0;border-bottom:2px solid #e11d48;">
+                <h1 style="color:#e11d48;margin:0;">IONE Center</h1>
+              </div>
+              <div style="padding:20px 0;">
+                <h2 style="margin:0 0 8px;">Your support ticket has been received</h2>
+                <p style="margin:0 0 8px;">Thank you for contacting us. We have received your support request and will get back to you as soon as possible.</p>
+                <p style="margin:0 0 4px;"><strong>Issue Type:</strong> ${escapeHtml(issueType)}</p>
+                <p style="margin:0 0 4px;"><strong>Subject:</strong> ${escapeHtml(data.subject)}</p>
+              </div>
+              <div style="background:#f9fafb;padding:16px;border-radius:8px;">
+                <p style="margin:0 0 8px;font-weight:bold;">Your message:</p>
+                <p style="margin:0;white-space:pre-wrap;">${escapeHtml(data.message)}</p>
+              </div>
+              <p style="color:#888;font-size:12px;margin-top:20px;">
+                Please do not reply to this email. Our support team will contact you directly.
+              </p>
+            </div>
+          `,
+        })
+      } catch (err) {
+        // Email failure should not block ticket creation
+        console.error("[support] Failed to send user ticket confirmation:", err)
+      }
     }
   }
 
