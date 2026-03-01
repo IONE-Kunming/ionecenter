@@ -15,12 +15,21 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
 import { formatDualPrice } from "@/lib/utils"
 import type { CategoryData } from "@/lib/categories"
+import { toCategoryKey } from "@/lib/categories"
 import type { Product } from "@/types/database"
 
 export function AllProductsList({ products, initialSearch = "", categoryData, wishlistedIds = [] }: { products: Product[]; initialSearch?: string; categoryData: CategoryData; wishlistedIds?: string[] }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
+  const tCatNames = useTranslations("categoryNames")
+
+  const translateCat = (name: string): string => {
+    const key = toCategoryKey(name)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const translated = (tCatNames as any)(key)
+    return typeof translated === "string" && translated !== key ? translated : name
+  }
   const [search, setSearch] = useState(initialSearch)
   const [categoryFilter, setCategoryFilter] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -44,7 +53,7 @@ export function AllProductsList({ products, initialSearch = "", categoryData, wi
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }} placeholder={tCommon("searchProducts")} className="pl-9" />
         </div>
-        <Select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1) }} options={categoryData.mainCategories.map((c) => ({ value: c, label: c }))} placeholder={tCommon("allCategories")} className="w-full sm:w-56" />
+        <Select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1) }} options={categoryData.mainCategories.map((c) => ({ value: c, label: translateCat(c) }))} placeholder={tCommon("allCategories")} className="w-full sm:w-56" />
       </div>
 
       {paginated.length > 0 ? (

@@ -15,6 +15,7 @@ import { Select } from "@/components/ui/select"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatDualPrice } from "@/lib/utils"
 import type { CategoryData } from "@/lib/categories"
+import { toCategoryKey } from "@/lib/categories"
 import type { PricingType } from "@/types/database"
 
 interface CatalogProduct {
@@ -46,6 +47,14 @@ export function CatalogGrid({
   const searchParams = useSearchParams()
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
+  const tCatNames = useTranslations("categoryNames")
+
+  const translateCat = (name: string): string => {
+    const key = toCategoryKey(name)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const translated = (tCatNames as any)(key)
+    return typeof translated === "string" && translated !== key ? translated : name
+  }
   const initialCategory = searchParams.get("category") || ""
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState(initialCategory)
@@ -83,7 +92,7 @@ export function CatalogGrid({
         <Select
           value={categoryFilter}
           onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1) }}
-          options={categoryData.mainCategories.map((c) => ({ value: c, label: c }))}
+          options={categoryData.mainCategories.map((c) => ({ value: c, label: translateCat(c) }))}
           placeholder={tCommon("allCategories")}
           className="w-full sm:w-56"
         />
