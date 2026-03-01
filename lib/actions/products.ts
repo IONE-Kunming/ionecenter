@@ -15,7 +15,7 @@ export async function getProducts(filters?: {
   const supabase = createAdminClient()
   let query = supabase
     .from("products")
-    .select("*, seller:users!seller_id(display_name, is_active)")
+    .select("*, seller:users!seller_id(display_name)")
     .eq("is_active", true)
     .order("created_at", { ascending: false })
 
@@ -42,11 +42,6 @@ export async function getProducts(filters?: {
   }
 
   return (data ?? [])
-    .filter((p) => {
-      const seller = p.seller as { display_name: string; is_active: boolean | null } | null
-      // Only show products from active sellers (treat missing/null is_active as active for safety)
-      return seller === null || seller.is_active !== false
-    })
     .map((p) => ({
       ...p,
       seller_name: (p.seller as unknown as { display_name: string })?.display_name,
