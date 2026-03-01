@@ -121,7 +121,11 @@ function isExcelFile(file: File): boolean {
 }
 
 function downloadTemplate() {
-  const csv = "name,model_number,description,main_category,category,price_usd,price_cny,stock\nExample Product,EX-001,Sample description,Construction,Exterior Gates,10.00,,100"
+  const header = "name,model_number,description,main_category,category,price_per_meter,price_usd,price_cny,stock"
+  const row1 = "Steel Pipe A,SP-001,Measurement-based product,Construction,Exterior Gates,25.50,,,200"
+  const row2 = "LED Panel B,LP-002,Standard USD product,Electrical,Lighting,,10.00,,100"
+  const row3 = "Ceramic Tile C,CT-003,Standard CNY product,Construction,Tiles,,,68.00,150"
+  const csv = [header, row1, row2, row3].join("\n")
   const blob = new Blob([csv], { type: "text/csv" })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
@@ -357,13 +361,36 @@ export function BulkEditTable({
           if (parent) mainCat = parent
         }
 
+        // Determine pricing: price_per_meter → measurement-based, price_usd/price_cny → standard
+        const rawPricePerMeter = Number(r.price_per_meter) || 0
+        const rawPriceUsd = Number(r.price_usd) || 0
+        const rawPriceCny = Number(r.price_cny) || 0
+
+        let pricingType: "standard" | "customized" = "standard"
+        let pricePerMeter = 0
+        let priceCny: number | null = null
+
+        if (rawPricePerMeter > 0) {
+          pricingType = "customized"
+          pricePerMeter = rawPricePerMeter
+        } else if (rawPriceUsd > 0) {
+          pricePerMeter = rawPriceUsd
+          // CNY will be auto-calculated in preview
+        } else if (rawPriceCny > 0) {
+          priceCny = rawPriceCny
+          // USD will be auto-calculated in preview
+        } else {
+          pricePerMeter = Number(r.price) || 0
+        }
+
         return {
           name: r.name || r.product_name || "Unnamed Product",
           model_number: r.model_number || "",
           main_category: mainCat,
           category: subCat,
-          price_per_meter: Number(r.price_usd || r.price_per_meter || r.price) || 0,
-          price_cny: r.price_cny ? Number(r.price_cny) : null,
+          price_per_meter: pricePerMeter,
+          pricing_type: pricingType,
+          price_cny: priceCny,
           stock: Number(r.stock || r.quantity) || 0,
           description: r.description || undefined,
           image_url: undefined,
@@ -1010,6 +1037,8 @@ export function BulkEditTable({
                 <span className="text-muted-foreground">Category</span><span className="font-mono text-xs">main_category</span>
                 <span className="text-muted-foreground">Sub Category</span><span className="font-mono text-xs">category</span>
                 <span className="text-muted-foreground">Price</span><span className="font-mono text-xs">price_per_meter</span>
+                <span className="text-muted-foreground">Price (USD $)</span><span className="font-mono text-xs">price_usd <span className="text-[0.65rem] text-muted-foreground font-sans">— fill if price is in USD, leave empty if using CNY</span></span>
+                <span className="text-muted-foreground">Price (CNY ¥)</span><span className="font-mono text-xs">price_cny <span className="text-[0.65rem] text-muted-foreground font-sans">— fill if price is in CNY, leave empty if using USD</span></span>
                 <span className="text-muted-foreground">Stock</span><span className="font-mono text-xs">stock</span>
               </div>
             </div>
