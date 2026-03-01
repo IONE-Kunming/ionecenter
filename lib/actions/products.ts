@@ -75,9 +75,18 @@ export async function createProduct(
   if (!user || user.role !== "seller") return { error: "Not authorized" }
 
   const supabase = createAdminClient()
+
+  // Auto-generate model number if not provided
+  let modelNumber = product.model_number
+  if (!modelNumber || !modelNumber.trim()) {
+    const siteCategories = await getSiteCategories()
+    const categoryData = buildCategoryData(siteCategories)
+    modelNumber = `IONE-${generateSKU(categoryData, product.main_category, product.category, Date.now() % 10000)}`
+  }
+
   const { data, error } = await supabase
     .from("products")
-    .insert({ ...product, seller_id: user.id })
+    .insert({ ...product, model_number: modelNumber, seller_id: user.id })
     .select()
     .single()
 

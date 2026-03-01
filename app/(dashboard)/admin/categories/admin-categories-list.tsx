@@ -19,9 +19,11 @@ import {
   reorderSiteCategories,
   uploadCategoryImage,
   removeCategoryImage,
-  uploadSiteVideo,
+  createVideoSignedUploadUrl,
+  finalizeVideoUpload,
   removeSiteVideo,
 } from "@/lib/actions/site-settings"
+import { createClient } from "@/lib/supabase/client"
 
 interface Props {
   categories: SiteCategory[]
@@ -200,18 +202,44 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
   async function handleVideoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files?.[0]) return
     setLoading(true)
+    const file = e.target.files[0]
     try {
-      const formData = new FormData()
-      formData.append("file", e.target.files[0])
-      const res = await uploadSiteVideo(formData)
-      if (res.error) {
-        showToast("error", res.error)
-      } else if (res.url) {
-        setVideoUrl(res.url)
+      const ext = file.name.split(".").pop() || "mp4"
+
+      // Get a signed upload URL from the server (avoids Next.js body size limits)
+      const signedResult = await createVideoSignedUploadUrl(ext)
+      if (signedResult.error) {
+        showToast("error", signedResult.error)
+        setLoading(false)
+        if (videoInputRef.current) videoInputRef.current.value = ""
+        return
+      }
+
+      // Upload the file directly to Supabase Storage using the signed URL
+      const supabase = createClient()
+      const { error: uploadError } = await supabase.storage
+        .from("site-assets")
+        .uploadToSignedUrl(signedResult.path!, signedResult.token!, file, {
+          contentType: file.type || "video/mp4",
+        })
+
+      if (uploadError) {
+        showToast("error", uploadError.message)
+        setLoading(false)
+        if (videoInputRef.current) videoInputRef.current.value = ""
+        return
+      }
+
+      // Save the public URL to site settings
+      const finalResult = await finalizeVideoUpload(signedResult.filePath!)
+      if (finalResult.error) {
+        showToast("error", finalResult.error)
+      } else if (finalResult.url) {
+        setVideoUrl(finalResult.url)
         showToast("success", "Video uploaded to Supabase")
       }
-    } catch {
-      showToast("error", "Failed to upload video. Please try again with a smaller file.")
+    } catch (e) {
+      showToast("error", e instanceof Error ? e.message : "Failed to upload video")
     }
     setLoading(false)
     if (videoInputRef.current) videoInputRef.current.value = ""

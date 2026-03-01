@@ -73,6 +73,56 @@ export async function uploadSiteVideo(formData: FormData) {
   }
 }
 
+export async function createVideoSignedUploadUrl(ext: string) {
+  try {
+    const user = await getCurrentUser()
+    if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+    const supabase = createAdminClient()
+    const filePath = `videos/homepage-video.${ext}`
+
+    // Remove all existing video files (may have different extension)
+    const { data: existingFiles } = await supabase.storage.from("site-assets").list("videos")
+    if (existingFiles && existingFiles.length > 0) {
+      const toRemove = existingFiles
+        .filter((f) => f.name.startsWith("homepage-video."))
+        .map((f) => `videos/${f.name}`)
+      if (toRemove.length > 0) {
+        await supabase.storage.from("site-assets").remove(toRemove)
+      }
+    }
+
+    const { data, error } = await supabase.storage
+      .from("site-assets")
+      .createSignedUploadUrl(filePath)
+
+    if (error) return { error: error.message }
+    return { signedUrl: data.signedUrl, token: data.token, path: data.path, filePath }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to create upload URL" }
+  }
+}
+
+export async function finalizeVideoUpload(filePath: string) {
+  try {
+    const user = await getCurrentUser()
+    if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+    const supabase = createAdminClient()
+    const { data: urlData } = supabase.storage
+      .from("site-assets")
+      .getPublicUrl(filePath)
+
+    await supabase
+      .from("site_settings")
+      .upsert({ key: "homepage_video_url", value: urlData.publicUrl, updated_at: new Date().toISOString() })
+
+    return { success: true, url: urlData.publicUrl }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to save video URL" }
+  }
+}
+
 export async function removeSiteVideo() {
   try {
     const user = await getCurrentUser()
