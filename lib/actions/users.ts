@@ -50,7 +50,7 @@ export async function getCurrentUser(): Promise<User | null> {
   const { userId } = await auth()
   if (!userId) return null
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("users")
     .select("*")
