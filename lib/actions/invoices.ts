@@ -198,9 +198,8 @@ export async function searchBuyerByCode(code: string) {
   const { data, error } = await adminSupabase
     .from("users")
     .select("id, display_name, email, user_code, account_name, account_number, swift_code, bank_name, bank_region, bank_code, branch_code, bank_address")
-    .eq("role", "buyer")
-    .eq("user_code", code.trim())
-    .single()
+    .ilike("user_code", code.trim())
+    .maybeSingle()
 
   if (error || !data) return { error: "Buyer code not found. Please check and try again." }
 

@@ -135,6 +135,28 @@ export async function getSellers(): Promise<User[]> {
 }
 
 /**
+ * Ensure the current buyer has a unique user_code.
+ * If the buyer has no code yet, generate one in the format B### and persist it.
+ * Returns the (possibly freshly-generated) user_code.
+ */
+export async function ensureBuyerCode(user: User): Promise<string | null> {
+  if (user.user_code) return user.user_code
+
+  const supabase = createAdminClient()
+  const code = await generateUniqueBuyerCode(supabase)
+  const { error } = await supabase
+    .from("users")
+    .update({ user_code: code })
+    .eq("id", user.id)
+
+  if (error) {
+    console.error("Failed to generate buyer code:", error)
+    return null
+  }
+  return code
+}
+
+/**
  * Ensure the current seller has a unique user_code.
  * If the seller has no code yet, generate one in the format S### and persist it.
  * Returns the (possibly freshly-generated) user_code.

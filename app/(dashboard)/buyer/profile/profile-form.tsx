@@ -11,7 +11,7 @@ import { Select } from "@/components/ui/select"
 import { updateUserProfile } from "@/lib/actions/users"
 import type { User } from "@/types/database"
 
-export default function BuyerProfileForm({ user }: { user: User }) {
+export default function BuyerProfileForm({ user, buyerCode }: { user: User; buyerCode: string | null }) {
   const t = useTranslations("profile")
   const tCommon = useTranslations("common")
   const [saving, setSaving] = useState(false)
@@ -19,9 +19,9 @@ export default function BuyerProfileForm({ user }: { user: User }) {
   const [copied, setCopied] = useState(false)
 
   const handleCopyCode = async () => {
-    if (!user.user_code) return
+    if (!buyerCode) return
     try {
-      await navigator.clipboard.writeText(user.user_code)
+      await navigator.clipboard.writeText(buyerCode)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
@@ -63,13 +63,13 @@ export default function BuyerProfileForm({ user }: { user: User }) {
 
   return (
     <div className="max-w-2xl space-y-6">
-      {user.user_code && (
+      {buyerCode && (
         <Card>
           <CardHeader><CardTitle>{t("yourBuyerCode")}</CardTitle></CardHeader>
           <CardContent>
             <div className="flex items-center gap-3">
               <span className="inline-flex items-center rounded-md bg-primary/10 px-4 py-2 text-2xl font-bold font-mono tracking-widest text-primary">
-                {user.user_code}
+                {buyerCode}
               </span>
               <Button variant="outline" size="icon" onClick={handleCopyCode} title={t("copyCode")}>
                 {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
