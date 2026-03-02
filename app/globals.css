@@ -638,6 +638,11 @@ h1, h2, h3, h4, h5, h6 {
 
   /* ---- Invoice print area styles ---- */
 
+  /* Hide screen-only invoice header (logo + invoice number) in print */
+  .invoice-screen-header {
+    display: none !important;
+  }
+
   /* All text dark black */
   .invoice-print-area,
   .invoice-print-area * {
