@@ -335,7 +335,7 @@ export async function createOfflineInvoice(input: OfflineInvoiceInput) {
   return { success: true, invoice }
 }
 
-export async function getOfflineInvoice(invoiceId: string): Promise<(OfflineInvoice & { items: OfflineInvoiceItem[]; seller: Record<string, string | null> | null }) | null> {
+export async function getOfflineInvoice(invoiceId: string): Promise<(OfflineInvoice & { items: OfflineInvoiceItem[]; seller: Record<string, string | null> | null; buyer_bank: Record<string, string | null> | null }) | null> {
   const user = await getCurrentUser()
   if (!user) return null
 
@@ -356,17 +356,34 @@ export async function getOfflineInvoice(invoiceId: string): Promise<(OfflineInvo
     .select("*")
     .eq("invoice_id", invoiceId)
 
-  // Fetch seller bank info
+  // Fetch seller bank info + user_code + email
   const { data: seller } = await supabase
     .from("users")
-    .select("display_name, company, account_name, account_number, swift_code, bank_name, bank_region, bank_code, branch_code, bank_address")
+    .select("display_name, email, user_code, company, account_name, account_number, swift_code, bank_name, bank_region, bank_code, branch_code, bank_address")
     .eq("id", invoice.seller_id)
     .single()
+
+  // Fetch buyer bank info by buyer_code (if available)
+  let buyerBank: Record<string, string | null> | null = null
+  if (invoice.buyer_code) {
+    const { data: buyerData } = await supabase
+      .from("users")
+      .select("account_name, account_number, swift_code, bank_name, bank_region, bank_code, branch_code, bank_address")
+      .ilike("user_code", invoice.buyer_code.trim().replace(/[%_]/g, ""))
+      .limit(1)
+    if (buyerData && buyerData.length > 0) {
+      const b = buyerData[0]
+      if (b.account_name || b.account_number || b.bank_name) {
+        buyerBank = b
+      }
+    }
+  }
 
   return {
     ...(invoice as OfflineInvoice),
     items: (items ?? []) as OfflineInvoiceItem[],
     seller: seller ?? null,
+    buyer_bank: buyerBank,
   }
 }
 

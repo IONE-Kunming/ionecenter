@@ -292,7 +292,15 @@
     "buyerEmail": "Buyer Email",
     "discount": "Discount",
     "amountPaid": "Amount Paid",
-    "amountDue": "Amount Due"
+    "amountDue": "Amount Due",
+    "buyerInformation": "Buyer Information",
+    "buyerCode": "Buyer Code",
+    "buyerName": "Buyer Name",
+    "sellerInformation": "Supplier Information",
+    "sellerCode": "Seller Code",
+    "sellerName": "Seller Name",
+    "sellerEmail": "Seller Email",
+    "supplier": "Supplier"
   },
   "notifications": {
     "unread": "{count} unread",

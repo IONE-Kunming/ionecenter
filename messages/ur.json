@@ -292,7 +292,15 @@
     "buyerEmail": "خریدار ای میل",
     "discount": "رعایت",
     "amountPaid": "ادا شدہ رقم",
-    "amountDue": "واجب الادا رقم"
+    "amountDue": "واجب الادا رقم",
+    "buyerInformation": "خریدار کی معلومات",
+    "buyerCode": "خریدار کوڈ",
+    "buyerName": "خریدار کا نام",
+    "sellerInformation": "فراہم کنندہ کی معلومات",
+    "sellerCode": "فروخت کنندہ کوڈ",
+    "sellerName": "فروخت کنندہ کا نام",
+    "sellerEmail": "فروخت کنندہ ای میل",
+    "supplier": "فراہم کنندہ"
   },
   "notifications": {
     "unread": "{count} غیر پڑھی ہوئی",
