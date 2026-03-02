@@ -200,11 +200,18 @@ export async function searchBuyerByCode(code: string) {
   const { data, error } = await supabase
     .from("users")
     .select("id, email, user_code, display_name, account_name, account_number, swift_code, bank_name, bank_region, bank_code, branch_code, bank_address")
+    .eq("role", "buyer")
     .ilike("user_code", buyerCode)
-    .single()
+    .maybeSingle()
+
+  console.log('search result:', data, error)
 
   if (error) {
     console.error("[searchBuyerByCode] Error searching for buyer code:", error)
+    return { error: "Buyer code not found. Please check and try again." }
+  }
+
+  if (!data) {
     return { error: "Buyer code not found. Please check and try again." }
   }
 
