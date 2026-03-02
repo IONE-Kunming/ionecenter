@@ -1073,6 +1073,23 @@ export function CreateOfflineInvoiceForm() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Print-only: Seller Bank Information - shown below Invoice Summary */}
+        {hasBankInfo(bankInfo) && (
+          <div className="hidden print:block" style={{ marginTop: "16px" }}>
+            <h3 style={{ fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>{lbl.bankInformation}</h3>
+            <div style={{ fontSize: "12px", lineHeight: "1.6" }}>
+              {bankInfo!.account_name && <p><strong>{lbl.accountHolder}:</strong> {bankInfo!.account_name}</p>}
+              {bankInfo!.account_number && <p><strong>{lbl.accountNumber}:</strong> {bankInfo!.account_number}</p>}
+              {bankInfo!.swift_code && <p><strong>{lbl.swiftBic}:</strong> {bankInfo!.swift_code}</p>}
+              {bankInfo!.bank_name && <p><strong>{lbl.bankName}:</strong> {bankInfo!.bank_name}</p>}
+              {bankInfo!.bank_region && <p><strong>{lbl.bankRegion}:</strong> {bankInfo!.bank_region}</p>}
+              {bankInfo!.bank_code && <p><strong>{lbl.bankCode}:</strong> {bankInfo!.bank_code}</p>}
+              {bankInfo!.branch_code && <p><strong>{lbl.branchCode}:</strong> {bankInfo!.branch_code}</p>}
+              {bankInfo!.bank_address && <p><strong>{lbl.bankAddress}:</strong> {bankInfo!.bank_address}</p>}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Action Buttons */}
