@@ -57,12 +57,19 @@ export default async function RootLayout({
 
   const content = (
     <html lang={locale} dir={isRtl ? "rtl" : "ltr"} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');var d=document.documentElement.classList;d.remove('light','dark');if(t==='light'){d.add('light')}else{d.add('dark')}}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className={`${outfit.variable} ${marcellus.variable} ${notoSansArabic.variable} ${isRtl ? "font-arabic" : "font-sans"} antialiased`}>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
             attribute="class"
-            defaultTheme="light"
-            enableSystem
+            defaultTheme="dark"
+            enableSystem={false}
             disableTransitionOnChange
           >
             <Toaster>

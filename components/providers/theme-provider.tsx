@@ -23,7 +23,7 @@ const ThemeProviderContext = React.createContext<ThemeProviderState | undefined>
 
 export function ThemeProvider({
   children,
-  defaultTheme = "light",
+  defaultTheme = "dark",
   enableSystem = true,
   disableTransitionOnChange = true,
   ...props
@@ -39,8 +39,10 @@ export function ThemeProvider({
         ? "dark"
         : "light"
       setTheme(systemTheme)
+    } else {
+      setTheme(defaultTheme)
     }
-  }, [enableSystem])
+  }, [enableSystem, defaultTheme])
 
   React.useEffect(() => {
     const root = window.document.documentElement
