@@ -192,13 +192,17 @@ export async function searchBuyerByCode(code: string) {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return { error: "Not authorized" }
 
-  if (!code.trim()) return { error: "Buyer code is required" }
+  const trimmed = code.trim()
+  if (!trimmed) return { error: "Buyer code is required" }
+
+  // Escape LIKE wildcards to prevent unintended pattern matching
+  const escaped = trimmed.replace(/[%_\\]/g, "\\$&")
 
   const adminSupabase = createAdminClient()
   const { data, error } = await adminSupabase
     .from("users")
     .select("id, display_name, email, user_code, account_name, account_number, swift_code, bank_name, bank_region, bank_code, branch_code, bank_address")
-    .ilike("user_code", code.trim())
+    .ilike("user_code", escaped)
     .maybeSingle()
 
   if (error || !data) return { error: "Buyer code not found. Please check and try again." }
