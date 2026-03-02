@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2, AlertTriangle, User, Pencil, ChevronDown, ChevronUp } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2, AlertTriangle, User, Pencil, ChevronDown, ChevronUp, Globe } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,89 @@ import { useFormatters } from "@/lib/use-formatters"
 import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers, getNextSellerInvoiceNumber, searchBuyerByCode } from "@/lib/actions/invoices"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
+
+type InvoiceLanguage = "en" | "ar" | "zh"
+
+const INVOICE_LABELS: Record<InvoiceLanguage, Record<string, string>> = {
+  en: {
+    invoice: "Invoice",
+    invoiceNumber: "Invoice Number",
+    date: "Date",
+    supplier: "Supplier",
+    buyer: "Buyer",
+    bankInformation: "Bank Information",
+    accountHolder: "Account Holder",
+    accountNumber: "Account Number",
+    swiftBic: "SWIFT/BIC Code",
+    bankName: "Bank Name",
+    bankRegion: "Bank Region",
+    bankCode: "Bank Code",
+    branchCode: "Branch Code",
+    bankAddress: "Bank Address",
+    buyerBankInformation: "Buyer Bank Information (TT)",
+    item: "Item",
+    description: "Description",
+    unitPrice: "Unit Price",
+    quantity: "Quantity",
+    total: "Total",
+    subtotal: "Subtotal",
+    discount: "Discount",
+    amountPaid: "Amount Paid",
+    amountDue: "Amount Due",
+  },
+  ar: {
+    invoice: "فاتورة",
+    invoiceNumber: "رقم الفاتورة",
+    date: "التاريخ",
+    supplier: "المورد",
+    buyer: "المشتري",
+    bankInformation: "المعلومات البنكية",
+    accountHolder: "صاحب الحساب",
+    accountNumber: "رقم الحساب",
+    swiftBic: "رمز SWIFT/BIC",
+    bankName: "اسم البنك",
+    bankRegion: "منطقة البنك",
+    bankCode: "رمز البنك",
+    branchCode: "رمز الفرع",
+    bankAddress: "عنوان البنك",
+    buyerBankInformation: "معلومات بنك المشتري (TT)",
+    item: "البند",
+    description: "الوصف",
+    unitPrice: "سعر الوحدة",
+    quantity: "الكمية",
+    total: "الإجمالي",
+    subtotal: "المجموع الفرعي",
+    discount: "الخصم",
+    amountPaid: "المبلغ المدفوع",
+    amountDue: "المبلغ المستحق",
+  },
+  zh: {
+    invoice: "发票",
+    invoiceNumber: "发票号码",
+    date: "日期",
+    supplier: "供应商",
+    buyer: "买方",
+    bankInformation: "银行信息",
+    accountHolder: "账户持有人",
+    accountNumber: "账号",
+    swiftBic: "SWIFT/BIC代码",
+    bankName: "银行名称",
+    bankRegion: "银行地区",
+    bankCode: "银行代码",
+    branchCode: "支行代码",
+    bankAddress: "银行地址",
+    buyerBankInformation: "买方银行信息 (TT)",
+    item: "项目",
+    description: "描述",
+    unitPrice: "单价",
+    quantity: "数量",
+    total: "总计",
+    subtotal: "小计",
+    discount: "折扣",
+    amountPaid: "已付金额",
+    amountDue: "应付金额",
+  },
+}
 
 interface ProductResult {
   id: string
@@ -119,6 +202,7 @@ export function CreateOfflineInvoiceForm() {
   const { formatCurrency } = useFormatters()
   const printRef = useRef<HTMLDivElement>(null)
 
+  const [invoiceLanguage, setInvoiceLanguage] = useState<InvoiceLanguage>("en")
   const [buyerName, setBuyerName] = useState("")
   const [buyerEmail, setBuyerEmail] = useState("")
   const [buyerSuggestions, setBuyerSuggestions] = useState<BuyerResult[]>([])
@@ -348,6 +432,10 @@ export function CreateOfflineInvoiceForm() {
   // The invoice number to display - use saved number after save, otherwise the auto-generated one
   const displayInvoiceNumber = savedInvoiceNumber || autoInvoiceNumber
 
+  // Invoice label shorthand for the current language
+  const lbl = INVOICE_LABELS[invoiceLanguage]
+  const isRtl = invoiceLanguage === "ar"
+
   const handleSave = async () => {
     if (!buyerName.trim()) {
       addToast("error", "Buyer name is required")
@@ -494,13 +582,13 @@ export function CreateOfflineInvoiceForm() {
         </Link>
       </div>
 
-      <div ref={printRef} className="space-y-6 invoice-print-area">
+      <div ref={printRef} className="space-y-6 invoice-print-area" dir={isRtl ? "rtl" : undefined}>
         {/* Screen Invoice Header */}
         <div className="flex items-start justify-between print:hidden">
           <Image src="/logo.svg" alt="IONE Center" width={120} height={40} />
           <div className="text-right">
             <h2 className="text-xl font-bold">
-              {displayInvoiceNumber ? `Invoice ${displayInvoiceNumber}` : "New Invoice"}
+              {displayInvoiceNumber ? `${lbl.invoice} ${displayInvoiceNumber}` : `${lbl.invoice}`}
             </h2>
             <div className="mt-1">
               <Input
@@ -531,11 +619,11 @@ export function CreateOfflineInvoiceForm() {
         {/* Print-only Invoice Info Row */}
         <div className="hidden print:block invoice-info-row">
           <div className="invoice-info-left">
-            <p><strong>Invoice Number:</strong> {displayInvoiceNumber || "—"}</p>
-            <p><strong>Date:</strong> {new Date(invoiceDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</p>
+            <p><strong>{lbl.invoiceNumber}:</strong> {displayInvoiceNumber || "—"}</p>
+            <p><strong>{lbl.date}:</strong> {new Date(invoiceDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</p>
           </div>
           <div className="invoice-info-right">
-            <p><strong>Supplier</strong></p>
+            <p><strong>{lbl.supplier}</strong></p>
             {bankInfo?.display_name && <p>{bankInfo.display_name}</p>}
             {bankInfo?.street && <p>{bankInfo.street}</p>}
             {bankInfo?.city && <p>{formatLocation(bankInfo.city, bankInfo.state)}</p>}
@@ -802,16 +890,16 @@ export function CreateOfflineInvoiceForm() {
         {/* Print-only: Buyer Bank Information (TT) - only if fields filled */}
         {hasBuyerBankInfo(buyerBankInfo) && (
           <div className="hidden print:block" style={{ marginTop: "16px" }}>
-            <h3 style={{ fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>Buyer Bank Information (TT)</h3>
+            <h3 style={{ fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>{lbl.buyerBankInformation}</h3>
             <div style={{ fontSize: "12px", lineHeight: "1.6" }}>
-              {buyerBankInfo.account_name && <p><strong>Account Holder:</strong> {buyerBankInfo.account_name}</p>}
-              {buyerBankInfo.account_number && <p><strong>Account Number:</strong> {buyerBankInfo.account_number}</p>}
-              {buyerBankInfo.swift_code && <p><strong>SWIFT/BIC Code:</strong> {buyerBankInfo.swift_code}</p>}
-              {buyerBankInfo.bank_name && <p><strong>Bank Name:</strong> {buyerBankInfo.bank_name}</p>}
-              {buyerBankInfo.bank_region && <p><strong>Bank Region:</strong> {buyerBankInfo.bank_region}</p>}
-              {buyerBankInfo.bank_code && <p><strong>Bank Code:</strong> {buyerBankInfo.bank_code}</p>}
-              {buyerBankInfo.branch_code && <p><strong>Branch Code:</strong> {buyerBankInfo.branch_code}</p>}
-              {buyerBankInfo.bank_address && <p><strong>Bank Address:</strong> {buyerBankInfo.bank_address}</p>}
+              {buyerBankInfo.account_name && <p><strong>{lbl.accountHolder}:</strong> {buyerBankInfo.account_name}</p>}
+              {buyerBankInfo.account_number && <p><strong>{lbl.accountNumber}:</strong> {buyerBankInfo.account_number}</p>}
+              {buyerBankInfo.swift_code && <p><strong>{lbl.swiftBic}:</strong> {buyerBankInfo.swift_code}</p>}
+              {buyerBankInfo.bank_name && <p><strong>{lbl.bankName}:</strong> {buyerBankInfo.bank_name}</p>}
+              {buyerBankInfo.bank_region && <p><strong>{lbl.bankRegion}:</strong> {buyerBankInfo.bank_region}</p>}
+              {buyerBankInfo.bank_code && <p><strong>{lbl.bankCode}:</strong> {buyerBankInfo.bank_code}</p>}
+              {buyerBankInfo.branch_code && <p><strong>{lbl.branchCode}:</strong> {buyerBankInfo.branch_code}</p>}
+              {buyerBankInfo.bank_address && <p><strong>{lbl.bankAddress}:</strong> {buyerBankInfo.bank_address}</p>}
             </div>
           </div>
         )}
@@ -833,11 +921,11 @@ export function CreateOfflineInvoiceForm() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[260px]">Item</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right w-[120px]">Unit Price</TableHead>
-                  <TableHead className="text-right w-[90px]">Quantity</TableHead>
-                  <TableHead className="text-right w-[120px]">Total</TableHead>
+                  <TableHead className="w-[260px]">{lbl.item}</TableHead>
+                  <TableHead>{lbl.description}</TableHead>
+                  <TableHead className="text-right w-[120px]">{lbl.unitPrice}</TableHead>
+                  <TableHead className="text-right w-[90px]">{lbl.quantity}</TableHead>
+                  <TableHead className="text-right w-[120px]">{lbl.total}</TableHead>
                   <TableHead className="w-[50px] print:hidden" />
                 </TableRow>
               </TableHeader>
@@ -947,11 +1035,11 @@ export function CreateOfflineInvoiceForm() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm max-w-xs ml-auto">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal</span>
+              <span className="text-muted-foreground">{lbl.subtotal}</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Discount</span>
+              <span className="text-muted-foreground">{lbl.discount}</span>
               <Input
                 type="number"
                 min={0}
@@ -964,11 +1052,11 @@ export function CreateOfflineInvoiceForm() {
               <span className="hidden print:inline">({formatCurrency(discount)})</span>
             </div>
             <div className="border-t pt-2 flex justify-between font-semibold">
-              <span>Total</span>
+              <span>{lbl.total}</span>
               <span>{formatCurrency(total)}</span>
             </div>
             <div className="flex justify-between items-center text-green-600">
-              <span>Amount Paid</span>
+              <span>{lbl.amountPaid}</span>
               <Input
                 type="number"
                 min={0}
@@ -980,7 +1068,7 @@ export function CreateOfflineInvoiceForm() {
               <span className="hidden print:inline">{formatCurrency(amountPaid)}</span>
             </div>
             <div className="border-t pt-2 flex justify-between font-semibold text-lg invoice-amount-due">
-              <span>Amount Due</span>
+              <span>{lbl.amountDue}</span>
               <span>{formatCurrency(amountDue)}</span>
             </div>
           </CardContent>
@@ -988,7 +1076,7 @@ export function CreateOfflineInvoiceForm() {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center gap-3 print:hidden">
+      <div className="flex flex-wrap items-center gap-3 print:hidden">
         <Button onClick={handleSave} disabled={saving || !!savedInvoiceId}>
           {saving ? (
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -1031,6 +1119,20 @@ export function CreateOfflineInvoiceForm() {
         <Button variant="outline" onClick={handlePrint}>
           <Printer className="h-4 w-4 mr-2" /> Print Invoice
         </Button>
+        {/* Invoice Language Selector */}
+        <div className="flex items-center gap-2 ml-auto">
+          <Globe className="h-4 w-4 text-muted-foreground" />
+          <select
+            value={invoiceLanguage}
+            onChange={(e) => setInvoiceLanguage(e.target.value as InvoiceLanguage)}
+            className="text-sm border rounded-md px-2 py-1.5 bg-background text-foreground"
+            title="Invoice language"
+          >
+            <option value="en">English</option>
+            <option value="ar">العربية (Arabic)</option>
+            <option value="zh">中文 (Chinese)</option>
+          </select>
+        </div>
         {savedInvoiceId && (
           <Button
             variant="secondary"

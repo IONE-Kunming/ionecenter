@@ -299,6 +299,7 @@ export default async function LandingPage() {
                 className="w-full"
                 controls
                 preload="metadata"
+                playsInline
                 poster=""
               >
                 <source src={videoSrc} type="video/mp4" />

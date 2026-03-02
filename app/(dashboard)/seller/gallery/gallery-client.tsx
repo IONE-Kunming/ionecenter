@@ -15,11 +15,14 @@ import { useFormatters } from "@/lib/use-formatters"
 import {
   listGallery,
   uploadGalleryFile,
+  createGallerySignedUploadUrl,
+  finalizeGalleryUpload,
   createGalleryFolder,
   deleteGalleryFile,
   deleteGalleryFolder,
 } from "@/lib/actions/gallery"
 import type { GalleryItem, GalleryFolder } from "@/lib/actions/gallery"
+import { createClient } from "@/lib/supabase/client"
 
 interface GalleryClientProps {
   initialFolders: GalleryFolder[]
@@ -85,18 +88,39 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
     if (selectedFiles.length === 0) return
     setError(null)
     setUploading(true)
+    const supabase = createClient()
     try {
       for (const file of selectedFiles) {
-        const formData = new FormData()
-        formData.append("file", file)
-        formData.append("folderPath", currentPath)
-        const result = await uploadGalleryFile(formData)
-        if (result.error) {
-          setError(result.error)
+        const isImage = file.type.startsWith("image/")
+        const isVideo = file.type.startsWith("video/")
+        if (!isImage && !isVideo) {
+          setError("Only images and videos are allowed")
           break
         }
-        if (result.item) {
-          setFiles((prev) => [...prev, result.item!])
+        const ext = file.name.split(".").pop() || (isVideo ? "mp4" : "jpg")
+        // Try direct-to-Supabase upload via signed URL (faster, bypasses Next.js server)
+        const signedResult = await createGallerySignedUploadUrl(ext, currentPath, file.name)
+        if (signedResult.error || !signedResult.storagePath || !signedResult.token || !signedResult.path) {
+          // Fall back to server-action upload
+          const formData = new FormData()
+          formData.append("file", file)
+          formData.append("folderPath", currentPath)
+          const result = await uploadGalleryFile(formData)
+          if (result.error) { setError(result.error); break }
+          if (result.item) setFiles((prev) => [...prev, result.item!])
+          continue
+        }
+        const { error: uploadError } = await supabase.storage
+          .from("product-images")
+          .uploadToSignedUrl(signedResult.path, signedResult.token, file, { contentType: file.type })
+        if (uploadError) {
+          setError(uploadError.message)
+          break
+        }
+        const finalResult = await finalizeGalleryUpload(signedResult.storagePath, file.size, currentPath)
+        if (finalResult.error) { setError(finalResult.error); break }
+        if (finalResult.item) {
+          setFiles((prev) => [...prev, finalResult.item!])
         }
       }
     } finally {

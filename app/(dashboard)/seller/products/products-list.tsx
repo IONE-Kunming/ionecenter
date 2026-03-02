@@ -16,7 +16,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
 import { formatDualPrice, getStockStatus } from "@/lib/utils"
-import { createProduct, updateProduct, deleteProduct, bulkImportProducts, uploadProductImage } from "@/lib/actions/products"
+import { createProduct, updateProduct, deleteProduct, bulkImportProducts, uploadProductImage, createProductImageSignedUploadUrl, getProductFilePublicUrl } from "@/lib/actions/products"
+import { createClient } from "@/lib/supabase/client"
 import { ImportPreview } from "@/components/bulk-edit/import-preview"
 import type { ImportRow } from "@/components/bulk-edit/bulk-edit-table"
 import type { CategoryData } from "@/lib/categories"
@@ -25,6 +26,31 @@ import { getCategoryIndex, getSubcategoryIndex } from "@/lib/sku"
 import type { Product } from "@/types/database"
 import type { PricingType } from "@/types/database"
 import { useExchangeRate, usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
+
+/** Upload a product image directly to Supabase Storage via signed URL (fast path). Falls back to server action. */
+async function uploadProductImageDirect(file: File): Promise<string | null> {
+  try {
+    const ext = file.name.split(".").pop() || "jpg"
+    const supabase = createClient()
+    const signedResult = await createProductImageSignedUploadUrl(ext)
+    if (signedResult.storagePath && signedResult.token && signedResult.path) {
+      const { error: uploadError } = await supabase.storage
+        .from("product-images")
+        .uploadToSignedUrl(signedResult.path, signedResult.token, file, { contentType: file.type })
+      if (!uploadError) {
+        const urlResult = await getProductFilePublicUrl(signedResult.storagePath)
+        if (urlResult.url) return urlResult.url
+      }
+    }
+  } catch {
+    // fall through to server-action fallback
+  }
+  // Fallback: server action upload
+  const formData = new FormData()
+  formData.append("file", file)
+  const result = await uploadProductImage(formData)
+  return result.url ?? null
+}
 
 function normalizeHeader(h: string): string {
   return h.trim().toLowerCase().replace(/[\s-]+/g, "_")
@@ -155,10 +181,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
     try {
       let imageUrl: string | undefined
       if (editImage) {
-        const formData = new FormData()
-        formData.append("file", editImage)
-        const uploadResult = await uploadProductImage(formData)
-        if (uploadResult.url) imageUrl = uploadResult.url
+        imageUrl = await uploadProductImageDirect(editImage) ?? undefined
       }
       const updates: Partial<Product> = {
         name: editForm.name,
@@ -214,10 +237,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
     try {
       let imageUrl: string | null = null
       if (newProductImage) {
-        const formData = new FormData()
-        formData.append("file", newProductImage)
-        const uploadResult = await uploadProductImage(formData)
-        if (uploadResult.url) imageUrl = uploadResult.url
+        imageUrl = await uploadProductImageDirect(newProductImage)
       }
       const result = await createProduct({
         name: newProduct.name,
@@ -322,7 +342,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
         const rawPriceCny = Number(r.price_cny) || 0
 
         const rawPricingType = (r.pricing_type || "").trim().toLowerCase()
-        let pricingType: "standard" | "customized" = rawPricingType === "customized" ? "customized" : "standard"
+        const pricingType: "standard" | "customized" = rawPricingType === "customized" ? "customized" : "standard"
         let pricePerMeter = 0
         let priceUsd: number | null = null
         let priceCny: number | null = null
@@ -372,11 +392,9 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
         const file = imageFiles[i]
         if (file) {
           try {
-            const formData = new FormData()
-            formData.append("file", file)
-            const result = await uploadProductImage(formData)
-            if (result.url) {
-              finalRows[i] = { ...finalRows[i], image_url: result.url }
+            const url = await uploadProductImageDirect(file)
+            if (url) {
+              finalRows[i] = { ...finalRows[i], image_url: url }
             } else {
               // Upload returned error — clear so it doesn't get saved
               finalRows[i] = { ...finalRows[i], image_url: undefined }
