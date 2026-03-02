@@ -39,13 +39,13 @@ function formatBytes(bytes: number, formatNumber?: (n: number) => string): strin
 export function GalleryClient({ initialFolders, initialFiles, currentPath: initPath }: GalleryClientProps) {
   const t = useTranslations("gallery")
   const { formatCurrency: _fc } = useFormatters()
-  // We only need formatBytes locale-aware for byte values — use a simple number formatter
-  const formatNum = (n: number) => n.toLocaleString()
+  const locale = typeof document !== "undefined" ? document.documentElement.lang : "en-US"
   const [folders, setFolders] = useState<GalleryFolder[]>(initialFolders)
   const [files, setFiles] = useState<GalleryItem[]>(initialFiles)
   const [currentPath, setCurrentPath] = useState(initPath)
   const [loading, startLoad] = useTransition()
   const [uploading, setUploading] = useState(false)
+  const formatNum = (n: number) => n.toLocaleString(locale === "ar" ? "ar-EG" : locale)
   const [showNewFolder, setShowNewFolder] = useState(false)
   const [folderName, setFolderName] = useState("")
   const [creating, setCreating] = useState(false)

@@ -169,6 +169,8 @@ export async function deleteGalleryFile(
 
 /**
  * Delete a folder and all its contents from the seller's gallery.
+ * Note: This handles up to 2 levels of nesting (folder → sub-folder → files).
+ * Folders with more than 1000 files will only have the first 1000 deleted.
  */
 export async function deleteGalleryFolder(
   folderPath: string
@@ -179,30 +181,34 @@ export async function deleteGalleryFolder(
   const supabase = createAdminClient()
   const prefix = `gallery/${user.id}/${folderPath}`
 
-  // List all files inside the folder (recursively up to 1000)
-  const { data, error: listError } = await supabase.storage
-    .from(GALLERY_BUCKET)
-    .list(prefix, { limit: 1000, offset: 0 })
+  // Recursively collect all storage paths under `prefix`
+  async function collectPaths(storagePrefix: string, depth = 0): Promise<string[]> {
+    if (depth > 5) return [] // guard against unexpectedly deep nesting
 
-  if (listError) return { error: listError.message }
+    const { data, error: listError } = await supabase.storage
+      .from(GALLERY_BUCKET)
+      .list(storagePrefix, { limit: 1000, offset: 0 })
 
-  const paths: string[] = []
+    if (listError) return []
 
-  for (const item of data ?? []) {
-    if (item.metadata === null) {
-      // Sub-folder placeholder — list its contents recursively
-      const sub = await supabase.storage
-        .from(GALLERY_BUCKET)
-        .list(`${prefix}/${item.name}`, { limit: 1000, offset: 0 })
-      for (const subItem of sub.data ?? []) {
-        paths.push(`${prefix}/${item.name}/${subItem.name}`)
+    const paths: string[] = []
+    for (const item of data ?? []) {
+      const itemPath = `${storagePrefix}/${item.name}`
+      if (item.metadata === null) {
+        // null metadata indicates a folder placeholder (Supabase Storage pseudo-directory)
+        const subPaths = await collectPaths(itemPath, depth + 1)
+        paths.push(...subPaths)
+        // Also add the .keep file that marks this sub-folder
+        paths.push(`${itemPath}/.keep`)
+      } else {
+        paths.push(itemPath)
       }
-    } else {
-      paths.push(`${prefix}/${item.name}`)
     }
+    return paths
   }
 
-  // Remove the .keep placeholder for the folder itself if present
+  const paths = await collectPaths(prefix)
+  // Include the .keep file for the top-level folder itself
   paths.push(`${prefix}/.keep`)
 
   if (paths.length > 0) {

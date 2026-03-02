@@ -96,7 +96,7 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
                 src={currentMedia.url}
                 controls
                 className="w-full h-full object-contain"
-                preload="metadata"
+                preload="none"
               />
             ) : (
               <Package className="h-24 w-24 text-muted-foreground/20" />
