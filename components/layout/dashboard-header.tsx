@@ -12,13 +12,19 @@ export function DashboardHeader() {
   const router = useRouter()
   const tCommon = useTranslations("common")
   const tProductDetail = useTranslations("productDetail")
+  const tInvoices = useTranslations("invoices")
   const parts = pathname.split("/").filter(Boolean)
 
   // Detect product detail page pattern: /buyer/product/[id] or /seller/product/[id]
   const isProductDetailPage = parts.length >= 3 && parts[1] === "product"
 
+  // Detect offline invoice detail page: /seller/invoices/offline/[id]
+  const isOfflineInvoiceDetailPage = parts.length >= 4 && parts[1] === "invoices" && parts[2] === "offline"
+
   const title = isProductDetailPage
     ? tProductDetail("title")
+    : isOfflineInvoiceDetailPage
+    ? tInvoices("invoiceDetails")
     : parts[parts.length - 1]
         ?.replace(/-/g, " ")
         .replace(/\b\w/g, (c) => c.toUpperCase()) || "Dashboard"

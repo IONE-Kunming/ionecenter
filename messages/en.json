@@ -300,7 +300,8 @@
     "sellerCode": "Seller Code",
     "sellerName": "Seller Name",
     "sellerEmail": "Seller Email",
-    "supplier": "Supplier"
+    "supplier": "Supplier",
+    "printInvoice": "Print Invoice"
   },
   "notifications": {
     "unread": "{count} unread",

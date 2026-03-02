@@ -300,7 +300,8 @@
     "sellerCode": "رمز البائع",
     "sellerName": "اسم البائع",
     "sellerEmail": "بريد البائع",
-    "supplier": "المورد"
+    "supplier": "المورد",
+    "printInvoice": "طباعة الفاتورة"
   },
   "notifications": {
     "unread": "{count} غير مقروءة",
