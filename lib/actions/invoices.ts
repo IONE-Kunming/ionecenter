@@ -195,15 +195,29 @@ export async function searchBuyerByCode(code: string) {
   const trimmed = code.trim()
   if (!trimmed) return { error: "Buyer code is required" }
 
-  // Escape LIKE wildcards to prevent unintended pattern matching
-  const escaped = trimmed.replace(/[%_\\]/g, "\\$&")
+  console.log("[searchBuyerByCode] Searching for buyer code:", JSON.stringify(trimmed))
 
   const adminSupabase = createAdminClient()
+
+  // First, search without any role filter to confirm the user exists
+  const { data: anyUser, error: anyUserError } = await adminSupabase
+    .from("users")
+    .select("id, display_name, email, user_code, role")
+    .ilike("user_code", trimmed)
+    .maybeSingle()
+
+  console.log("[searchBuyerByCode] Search without role filter - query: .ilike('user_code',", JSON.stringify(trimmed), ")")
+  console.log("[searchBuyerByCode] Search without role filter - result:", JSON.stringify({ data: anyUser, error: anyUserError }))
+
+  // Now perform the actual search with full fields
   const { data, error } = await adminSupabase
     .from("users")
     .select("id, display_name, email, user_code, account_name, account_number, swift_code, bank_name, bank_region, bank_code, branch_code, bank_address")
-    .ilike("user_code", escaped)
+    .ilike("user_code", trimmed)
     .maybeSingle()
+
+  console.log("[searchBuyerByCode] Full query - query: .ilike('user_code',", JSON.stringify(trimmed), ")")
+  console.log("[searchBuyerByCode] Full query - response:", JSON.stringify({ data, error }))
 
   if (error || !data) return { error: "Buyer code not found. Please check and try again." }
 
