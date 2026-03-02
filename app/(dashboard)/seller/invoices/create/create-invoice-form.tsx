@@ -584,7 +584,7 @@ export function CreateOfflineInvoiceForm() {
 
       <div ref={printRef} className="space-y-6 invoice-print-area" dir={isRtl ? "rtl" : undefined}>
         {/* Screen Invoice Header */}
-        <div className="flex items-start justify-between print:hidden">
+        <div className="flex items-start justify-between print:hidden invoice-screen-header">
           <Image src="/logo.svg" alt="IONE Center" width={120} height={40} />
           <div className="text-right">
             <h2 className="text-xl font-bold">
@@ -671,7 +671,7 @@ export function CreateOfflineInvoiceForm() {
               <div className="rounded-md border p-4 space-y-2">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 text-sm">
-                    <div className="border-b pb-2 mb-2 print:hidden">
+                    <div className="border-b pb-2 mb-2">
                       <span className="text-muted-foreground">Code:</span>{" "}
                       <span className="font-medium">{foundBuyer.user_code}</span>
                     </div>
