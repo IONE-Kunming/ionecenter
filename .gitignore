@@ -38,3 +38,4 @@ next-env.d.ts
 
 # turbopack
 .turbo
+node_modules

@@ -2,7 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
-import type { Invoice, OfflineInvoice } from "@/types/database"
+import type { Invoice, OfflineInvoice, OfflineInvoiceItem } from "@/types/database"
 
 export async function getBuyerInvoices(): Promise<Invoice[]> {
   const user = await getCurrentUser()
@@ -331,6 +331,41 @@ export async function createOfflineInvoice(input: OfflineInvoiceInput) {
   }
 
   return { success: true, invoice }
+}
+
+export async function getOfflineInvoice(invoiceId: string): Promise<(OfflineInvoice & { items: OfflineInvoiceItem[]; seller: Record<string, string | null> | null }) | null> {
+  const user = await getCurrentUser()
+  if (!user) return null
+
+  const supabase = createAdminClient()
+  const { data: invoice } = await supabase
+    .from("offline_invoices")
+    .select("*")
+    .eq("id", invoiceId)
+    .single()
+
+  if (!invoice) return null
+
+  // Verify the current user is the seller who owns this invoice
+  if (invoice.seller_id !== user.id) return null
+
+  const { data: items } = await supabase
+    .from("offline_invoice_items")
+    .select("*")
+    .eq("invoice_id", invoiceId)
+
+  // Fetch seller bank info
+  const { data: seller } = await supabase
+    .from("users")
+    .select("display_name, company, account_name, account_number, swift_code, bank_name, bank_region, bank_code, branch_code, bank_address")
+    .eq("id", invoice.seller_id)
+    .single()
+
+  return {
+    ...(invoice as OfflineInvoice),
+    items: (items ?? []) as OfflineInvoiceItem[],
+    seller: seller ?? null,
+  }
 }
 
 export async function getSellerOfflineInvoices(): Promise<OfflineInvoice[]> {
