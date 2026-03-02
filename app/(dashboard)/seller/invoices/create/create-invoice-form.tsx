@@ -119,7 +119,7 @@ async function searchBuyerByCode(buyerCode: string) {
   
   const { data, error } = await supabase
     .from('users')
-    .select('id, email, user_code, full_name')
+    .select('id, email, user_code, display_name')
     .ilike('user_code', buyerCode.trim())
     .limit(1)
   
@@ -241,7 +241,7 @@ export function CreateOfflineInvoiceForm() {
       } else {
         setFoundBuyer({
           id: result.id,
-          display_name: result.full_name ?? "",
+          display_name: result.display_name ?? "",
           email: result.email ?? "",
           user_code: result.user_code ?? null,
           account_name: null,
@@ -253,7 +253,7 @@ export function CreateOfflineInvoiceForm() {
           branch_code: null,
           bank_address: null,
         })
-        setBuyerName(result.full_name ?? "")
+        setBuyerName(result.display_name ?? "")
         setBuyerEmail(result.email ?? "")
       }
     } catch {
