@@ -166,13 +166,9 @@ export function SellerInvoicesList({
                         <Link href={`/seller/invoices/${inv.id}`}>
                           <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
                         </Link>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.print()}
-                        >
-                          <Printer className="h-4 w-4" />
-                        </Button>
+                        <Link href={`/seller/invoices/${inv.id}`}>
+                          <Button variant="ghost" size="sm"><Printer className="h-4 w-4" /></Button>
+                        </Link>
                         <Button
                           variant="ghost"
                           size="sm"
