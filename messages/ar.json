@@ -287,7 +287,10 @@
     "createInvoice": "إنشاء فاتورة",
     "orderInvoices": "فواتير الطلبات",
     "buyerInvoices": "فواتير المشترين",
-    "buyerEmail": "بريد المشتري"
+    "buyerEmail": "بريد المشتري",
+    "discount": "خصم",
+    "amountPaid": "المبلغ المدفوع",
+    "amountDue": "المبلغ المستحق"
   },
   "notifications": {
     "unread": "{count} غير مقروءة",

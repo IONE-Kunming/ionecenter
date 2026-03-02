@@ -287,7 +287,10 @@
     "createInvoice": "创建发票",
     "orderInvoices": "订单发票",
     "buyerInvoices": "买家发票",
-    "buyerEmail": "买家邮箱"
+    "buyerEmail": "买家邮箱",
+    "discount": "折扣",
+    "amountPaid": "已付金额",
+    "amountDue": "应付金额"
   },
   "notifications": {
     "unread": "{count} 条未读",
