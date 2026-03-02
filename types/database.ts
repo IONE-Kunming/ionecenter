@@ -243,6 +243,36 @@ export interface TranslationCacheEntry {
   updated_at: string
 }
 
+export type OfflineInvoiceStatus = "unpaid" | "paid"
+
+export interface OfflineInvoice {
+  id: string
+  invoice_number: string
+  seller_id: string
+  buyer_code: string | null
+  buyer_name: string | null
+  buyer_email: string | null
+  subtotal: number
+  discount: number
+  total: number
+  amount_paid: number
+  amount_due: number
+  status: OfflineInvoiceStatus
+  created_at: string
+}
+
+export interface OfflineInvoiceItem {
+  id: string
+  invoice_id: string
+  item_code: string | null
+  product_name: string | null
+  description: string | null
+  unit_price: number
+  quantity: number
+  total: number
+  created_at: string
+}
+
 export interface DashboardStats {
   totalOrders: number
   totalRevenue: number

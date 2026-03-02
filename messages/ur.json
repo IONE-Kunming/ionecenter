@@ -284,7 +284,10 @@
     "bankCode": "بینک کوڈ",
     "branchCode": "برانچ کوڈ",
     "bankAddress": "بینک کا پتہ",
-    "createInvoice": "انوائس بنائیں"
+    "createInvoice": "انوائس بنائیں",
+    "orderInvoices": "آرڈر انوائسز",
+    "buyerInvoices": "خریدار انوائسز",
+    "buyerEmail": "خریدار ای میل"
   },
   "notifications": {
     "unread": "{count} غیر پڑھی ہوئی",

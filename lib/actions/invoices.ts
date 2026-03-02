@@ -2,7 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
-import type { Invoice } from "@/types/database"
+import type { Invoice, OfflineInvoice } from "@/types/database"
 
 export async function getBuyerInvoices(): Promise<Invoice[]> {
   const user = await getCurrentUser()
@@ -211,20 +211,26 @@ export async function getNextSellerInvoiceNumber(): Promise<string> {
 
   const adminSupabase = createAdminClient()
 
-  const { data } = await adminSupabase
+  // Check both tables for existing invoice numbers
+  const { data: invoicesData } = await adminSupabase
     .from("invoices")
     .select("invoice_number")
     .eq("seller_id", user.id)
     .like("invoice_number", "INV-%")
 
+  const { data: offlineData } = await adminSupabase
+    .from("offline_invoices")
+    .select("invoice_number")
+    .eq("seller_id", user.id)
+    .like("invoice_number", "INV-%")
+
   let maxNum = 0
-  if (data) {
-    for (const row of data) {
-      const match = row.invoice_number?.match(/^INV-(\d+)$/)
-      if (match) {
-        const num = parseInt(match[1], 10)
-        if (num > maxNum) maxNum = num
-      }
+  const allRows = [...(invoicesData ?? []), ...(offlineData ?? [])]
+  for (const row of allRows) {
+    const match = row.invoice_number?.match(/^INV-(\d+)$/)
+    if (match) {
+      const num = parseInt(match[1], 10)
+      if (num > maxNum) maxNum = num
     }
   }
 
@@ -235,24 +241,17 @@ export async function getNextSellerInvoiceNumber(): Promise<string> {
 export interface OfflineInvoiceInput {
   buyer_name: string
   buyer_email: string
+  buyer_code?: string
   invoice_number?: string
   items: {
     name: string
     description: string
     unit_price: number
     quantity: number
+    item_code?: string
   }[]
   discount: number
   amount_paid: number
-  notes?: string
-  buyer_bank_account_name?: string
-  buyer_bank_account_number?: string
-  buyer_bank_swift_code?: string
-  buyer_bank_name?: string
-  buyer_bank_region?: string
-  buyer_bank_code?: string
-  buyer_bank_branch_code?: string
-  buyer_bank_address?: string
 }
 
 export async function createOfflineInvoice(input: OfflineInvoiceInput) {
@@ -264,29 +263,21 @@ export async function createOfflineInvoice(input: OfflineInvoiceInput) {
   let invoiceNumber: string
 
   if (input.invoice_number) {
-    // Validate the provided number doesn't already exist for this seller
+    // Validate the provided number doesn't already exist in offline_invoices
     const { data: existing } = await adminSupabase
-      .from("invoices")
+      .from("offline_invoices")
       .select("id")
-      .eq("seller_id", user.id)
       .eq("invoice_number", input.invoice_number)
       .limit(1)
 
     if (existing && existing.length > 0) {
-      // Number already taken — generate a fresh one
       const freshNumber = await getNextSellerInvoiceNumber()
       invoiceNumber = freshNumber
     } else {
       invoiceNumber = input.invoice_number
     }
   } else {
-    // Fallback: generate invoice number via RPC
-    const { data: invoiceNum, error: numError } = await adminSupabase
-      .rpc("generate_invoice_number")
-
-    if (numError) return { error: numError.message }
-
-    invoiceNumber = invoiceNum as string
+    invoiceNumber = await getNextSellerInvoiceNumber()
   }
 
   // Calculate totals
@@ -297,36 +288,22 @@ export async function createOfflineInvoice(input: OfflineInvoiceInput) {
   const discount = input.discount
   const total = Math.max(subtotal - discount, 0)
   const amountPaid = input.amount_paid
-  const remainingBalance = Math.max(total - amountPaid, 0)
+  const amountDue = Math.max(total - amountPaid, 0)
 
   const { data: invoice, error: invoiceError } = await adminSupabase
-    .from("invoices")
+    .from("offline_invoices")
     .insert({
       invoice_number: invoiceNumber,
-      order_id: null,
-      buyer_id: null,
       seller_id: user.id,
-      subtotal,
-      tax: 0,
-      total,
-      deposit_paid: amountPaid,
-      remaining_balance: remainingBalance,
-      status: remainingBalance <= 0 ? "paid" : "issued",
-      paid_at: remainingBalance <= 0 ? new Date().toISOString() : null,
+      buyer_code: input.buyer_code ?? null,
       buyer_name: input.buyer_name,
       buyer_email: input.buyer_email,
+      subtotal,
       discount,
+      total,
       amount_paid: amountPaid,
-      is_offline: true,
-      notes: input.notes ?? null,
-      buyer_bank_account_name: input.buyer_bank_account_name ?? null,
-      buyer_bank_account_number: input.buyer_bank_account_number ?? null,
-      buyer_bank_swift_code: input.buyer_bank_swift_code ?? null,
-      buyer_bank_name: input.buyer_bank_name ?? null,
-      buyer_bank_region: input.buyer_bank_region ?? null,
-      buyer_bank_code: input.buyer_bank_code ?? null,
-      buyer_bank_branch_code: input.buyer_bank_branch_code ?? null,
-      buyer_bank_address: input.buyer_bank_address ?? null,
+      amount_due: amountDue,
+      status: amountDue <= 0 ? "paid" : "unpaid",
     })
     .select()
     .single()
@@ -334,24 +311,65 @@ export async function createOfflineInvoice(input: OfflineInvoiceInput) {
   if (invoiceError || !invoice)
     return { error: invoiceError?.message ?? "Failed to create invoice" }
 
-  // Create invoice items
+  // Create offline invoice items
   if (input.items.length > 0) {
     const invoiceItems = input.items.map((item) => ({
       invoice_id: invoice.id,
-      name: item.name,
+      item_code: item.item_code ?? null,
+      product_name: item.name,
       description: item.description,
+      unit_price: item.unit_price,
       quantity: item.quantity,
-      unit: "m",
-      price: item.unit_price,
-      subtotal: Number((item.unit_price * item.quantity).toFixed(2)),
+      total: Number((item.unit_price * item.quantity).toFixed(2)),
     }))
 
     const { error: itemsError } = await adminSupabase
-      .from("invoice_items")
+      .from("offline_invoice_items")
       .insert(invoiceItems)
 
     if (itemsError) return { error: itemsError.message }
   }
 
   return { success: true, invoice }
+}
+
+export async function getSellerOfflineInvoices(): Promise<OfflineInvoice[]> {
+  const user = await getCurrentUser()
+  if (!user) return []
+
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from("offline_invoices")
+    .select("*")
+    .eq("seller_id", user.id)
+    .order("created_at", { ascending: false })
+
+  return (data ?? []) as OfflineInvoice[]
+}
+
+export async function deleteOfflineInvoice(invoiceId: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return { error: "Not authorized" }
+
+  const adminSupabase = createAdminClient()
+
+  // Verify ownership
+  const { data: invoice } = await adminSupabase
+    .from("offline_invoices")
+    .select("id, seller_id")
+    .eq("id", invoiceId)
+    .single()
+
+  if (!invoice || invoice.seller_id !== user.id) {
+    return { error: "Invoice not found or not authorized" }
+  }
+
+  const { error } = await adminSupabase
+    .from("offline_invoices")
+    .delete()
+    .eq("id", invoiceId)
+
+  if (error) return { error: error.message }
+
+  return { success: true }
 }

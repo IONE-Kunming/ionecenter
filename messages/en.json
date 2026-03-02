@@ -284,7 +284,10 @@
     "bankCode": "Bank Code",
     "branchCode": "Branch Code",
     "bankAddress": "Bank Address",
-    "createInvoice": "Create Invoice"
+    "createInvoice": "Create Invoice",
+    "orderInvoices": "Order Invoices",
+    "buyerInvoices": "Buyer Invoices",
+    "buyerEmail": "Buyer Email"
   },
   "notifications": {
     "unread": "{count} unread",
