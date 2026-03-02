@@ -635,14 +635,6 @@ export function CreateOfflineInvoiceForm() {
         <div className="hidden print:block invoice-print-header">
           <div style={{ textAlign: "center" }}>
             <Image src="/logo.svg" alt="IONE Center" width={140} height={46} style={{ margin: "0 auto" }} />
-            {bankInfo?.company && (
-              <h1 className="invoice-company-name">{bankInfo.company}</h1>
-            )}
-            <div className="invoice-company-details">
-              {bankInfo?.bank_address && <span>{bankInfo.bank_address}</span>}
-              {bankInfo?.phone_number && <span> | {bankInfo.phone_number}</span>}
-              {bankInfo?.city && <span> | {formatLocation(bankInfo.city, bankInfo.state, bankInfo.country)}</span>}
-            </div>
           </div>
         </div>
 
