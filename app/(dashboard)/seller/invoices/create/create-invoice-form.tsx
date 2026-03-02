@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2, AlertTriangle, User, Pencil, ChevronDown, ChevronUp } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2, AlertTriangle, User, Pencil, ChevronDown, ChevronUp, Search } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,9 +12,29 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
 import { formatCurrency } from "@/lib/utils"
-import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers, searchBuyerByCode, getNextSellerInvoiceNumber } from "@/lib/actions/invoices"
+import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers, getNextSellerInvoiceNumber } from "@/lib/actions/invoices"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
+
+async function searchBuyerByCode(buyerCode: string) {
+  const supabase = createClientComponentClient()
+
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, email, user_code, display_name')
+    .eq('role', 'buyer')
+    .ilike('user_code', buyerCode.trim())
+    .limit(1)
+
+  console.log('Buyer search result:', data, 'Error:', error)
+
+  if (error || !data || data.length === 0) {
+    return null
+  }
+
+  return data[0]
+}
 
 interface ProductResult {
   id: string
@@ -156,16 +176,12 @@ export function CreateOfflineInvoiceForm() {
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const buyerSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const buyerBlurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const buyerCodeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const buyerCodeSearchCounterRef = useRef(0)
-
   useEffect(() => {
     return () => {
       if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
       if (blurTimerRef.current) clearTimeout(blurTimerRef.current)
       if (buyerSearchTimerRef.current) clearTimeout(buyerSearchTimerRef.current)
       if (buyerBlurTimerRef.current) clearTimeout(buyerBlurTimerRef.current)
-      if (buyerCodeTimerRef.current) clearTimeout(buyerCodeTimerRef.current)
     }
   }, [])
 
@@ -208,55 +224,43 @@ export function CreateOfflineInvoiceForm() {
     setShowBuyerSuggestions(false)
   }, [])
 
-  const handleBuyerCodeSearch = useCallback((code: string) => {
-    setBuyerCode(code)
-    setBuyerCodeError(null)
-
-    if (buyerCodeTimerRef.current) clearTimeout(buyerCodeTimerRef.current)
-
-    if (code.trim().length < 2) {
-      setBuyerCodeSearching(false)
+  const handleBuyerCodeSearch = useCallback(async () => {
+    const code = buyerCode.trim()
+    if (!code) {
+      setBuyerCodeError("Please enter a buyer code.")
       return
     }
 
+    setBuyerCodeError(null)
     setBuyerCodeSearching(true)
-    const currentSearch = ++buyerCodeSearchCounterRef.current
-    buyerCodeTimerRef.current = setTimeout(async () => {
-      try {
-        const result = await searchBuyerByCode(code.trim())
-        if (currentSearch !== buyerCodeSearchCounterRef.current) return
-        if (result.error) {
-          setBuyerCodeError(result.error)
-        } else if (result.buyer) {
-          setFoundBuyer(result.buyer)
-          setBuyerName(result.buyer.display_name)
-          setBuyerEmail(result.buyer.email)
-          // Auto-fill buyer bank info if available
-          const hasBuyerBank = !!(result.buyer.account_name || result.buyer.account_number || result.buyer.bank_name)
-          if (hasBuyerBank) {
-            setBuyerBankInfo({
-              account_name: result.buyer.account_name ?? "",
-              account_number: result.buyer.account_number ?? "",
-              swift_code: result.buyer.swift_code ?? "",
-              bank_name: result.buyer.bank_name ?? "",
-              bank_region: result.buyer.bank_region ?? "",
-              bank_code: result.buyer.bank_code ?? "",
-              branch_code: result.buyer.branch_code ?? "",
-              bank_address: result.buyer.bank_address ?? "",
-            })
-            setShowBuyerBankSection(true)
-          }
-        }
-      } catch {
-        if (currentSearch !== buyerCodeSearchCounterRef.current) return
-        setBuyerCodeError("Search failed. Please try again.")
-      } finally {
-        if (currentSearch === buyerCodeSearchCounterRef.current) {
-          setBuyerCodeSearching(false)
-        }
+    try {
+      const result = await searchBuyerByCode(code)
+      if (!result) {
+        setBuyerCodeError("Buyer code not found. Please check and try again.")
+      } else {
+        setFoundBuyer({
+          id: result.id,
+          display_name: result.display_name ?? "",
+          email: result.email ?? "",
+          user_code: result.user_code ?? null,
+          account_name: null,
+          account_number: null,
+          swift_code: null,
+          bank_name: null,
+          bank_region: null,
+          bank_code: null,
+          branch_code: null,
+          bank_address: null,
+        })
+        setBuyerName(result.display_name ?? "")
+        setBuyerEmail(result.email ?? "")
       }
-    }, 500)
-  }, [])
+    } catch {
+      setBuyerCodeError("Search failed. Please try again.")
+    } finally {
+      setBuyerCodeSearching(false)
+    }
+  }, [buyerCode])
 
   const clearFoundBuyer = useCallback(() => {
     setFoundBuyer(null)
@@ -624,20 +628,41 @@ export function CreateOfflineInvoiceForm() {
               <div className="space-y-4">
                 <div className="space-y-2 print:hidden">
                   <Label htmlFor="buyerCode">Buyer Code</Label>
-                  <div className="relative">
-                    <Input
-                      id="buyerCode"
-                      value={buyerCode}
-                      onChange={(e) => handleBuyerCodeSearch(e.target.value)}
-                      placeholder="Enter buyer code (e.g. B250)"
-                      className="print:border-none print:p-0 print:shadow-none"
-                      autoComplete="off"
-                    />
-                    {buyerCodeSearching && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                      </div>
-                    )}
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        id="buyerCode"
+                        value={buyerCode}
+                        onChange={(e) => {
+                          setBuyerCode(e.target.value)
+                          setBuyerCodeError(null)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault()
+                            handleBuyerCodeSearch()
+                          }
+                        }}
+                        placeholder="Enter buyer code (e.g. B250)"
+                        className="print:border-none print:p-0 print:shadow-none"
+                        autoComplete="off"
+                      />
+                      {buyerCodeSearching && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={handleBuyerCodeSearch}
+                      disabled={buyerCodeSearching}
+                      className="print:hidden shrink-0"
+                    >
+                      <Search className="h-4 w-4" />
+                    </Button>
                   </div>
                   {buyerCodeError && (
                     <p className="text-sm text-destructive">{buyerCodeError}</p>
