@@ -226,12 +226,16 @@ export default async function OfflineInvoiceDetailPage({ params, searchParams }:
           <CardHeader className="print:hidden"><CardTitle>{tOrders("paymentSummary")}</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm max-w-xs ml-auto">
             <div className="flex justify-between"><span className="text-muted-foreground">{tOrders("subtotal")}</span><span>{formatCurrency(invoice.subtotal, "USD", intlLocale)}</span></div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">{t("discount")}</span>
-              <span>({formatCurrency(invoice.discount, "USD", intlLocale)})</span>
-            </div>
+            {invoice.discount > 0 && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t("discount")}</span>
+                <span>({formatCurrency(invoice.discount, "USD", intlLocale)})</span>
+              </div>
+            )}
             <div className="border-t pt-2 flex justify-between font-semibold"><span>{tCommon("total")}</span><span>{formatCurrency(invoice.total, "USD", intlLocale)}</span></div>
-            <div className="flex justify-between text-green-600"><span>{t("amountPaid")}</span><span>{formatCurrency(invoice.amount_paid, "USD", intlLocale)}</span></div>
+            {invoice.amount_paid > 0 && (
+              <div className="flex justify-between text-green-600"><span>{t("amountPaid")}</span><span>{formatCurrency(invoice.amount_paid, "USD", intlLocale)}</span></div>
+            )}
             <div className="border-t pt-2 flex justify-between font-semibold text-lg invoice-amount-due"><span>{t("amountDue")}</span><span>{formatCurrency(invoice.amount_due, "USD", intlLocale)}</span></div>
           </CardContent>
         </Card>
