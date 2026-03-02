@@ -284,7 +284,10 @@
     "bankCode": "رمز البنك",
     "branchCode": "رمز الفرع",
     "bankAddress": "عنوان البنك",
-    "createInvoice": "إنشاء فاتورة"
+    "createInvoice": "إنشاء فاتورة",
+    "orderInvoices": "فواتير الطلبات",
+    "buyerInvoices": "فواتير المشترين",
+    "buyerEmail": "بريد المشتري"
   },
   "notifications": {
     "unread": "{count} غير مقروءة",

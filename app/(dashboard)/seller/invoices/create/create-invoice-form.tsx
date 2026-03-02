@@ -216,9 +216,9 @@ export function CreateOfflineInvoiceForm() {
   const [amountPaid, setAmountPaid] = useState(0)
   const [saving, setSaving] = useState(false)
   const [sending, setSending] = useState(false)
-  const [savedInvoiceNumber, setSavedInvoiceNumber] = useState<string | null>(null)
+  const [savedInvoiceNumber, _setSavedInvoiceNumber] = useState<string | null>(null)
   const [autoInvoiceNumber, setAutoInvoiceNumber] = useState<string | null>(null)
-  const [savedInvoiceId, setSavedInvoiceId] = useState<string | null>(null)
+  const [savedInvoiceId, _setSavedInvoiceId] = useState<string | null>(null)
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null)
   const [bankInfoLoaded, setBankInfoLoaded] = useState(false)
   const [buyerBankInfo, setBuyerBankInfo] = useState<BuyerBankInfo>({ ...emptyBuyerBankInfo })
@@ -455,35 +455,26 @@ export function CreateOfflineInvoiceForm() {
       const result = await createOfflineInvoice({
         buyer_name: buyerName.trim(),
         buyer_email: buyerEmail.trim(),
+        buyer_code: buyerCode.trim() || undefined,
         invoice_number: autoInvoiceNumber || undefined,
         items: rows
           .filter((r) => r.productName.trim())
           .map((r) => ({
-            name: `${r.key} — ${r.productName}`,
+            name: r.productName,
+            item_code: r.key,
             description: r.description,
             unit_price: r.unitPrice,
             quantity: r.quantity,
           })),
         discount,
         amount_paid: amountPaid,
-        ...(hasBuyerBankInfo(buyerBankInfo) ? {
-          buyer_bank_account_name: buyerBankInfo.account_name || undefined,
-          buyer_bank_account_number: buyerBankInfo.account_number || undefined,
-          buyer_bank_swift_code: buyerBankInfo.swift_code || undefined,
-          buyer_bank_name: buyerBankInfo.bank_name || undefined,
-          buyer_bank_region: buyerBankInfo.bank_region || undefined,
-          buyer_bank_code: buyerBankInfo.bank_code || undefined,
-          buyer_bank_branch_code: buyerBankInfo.branch_code || undefined,
-          buyer_bank_address: buyerBankInfo.bank_address || undefined,
-        } : {}),
       })
 
       if (result.error) {
         addToast("error", result.error)
       } else if (result.invoice) {
-        setSavedInvoiceNumber(result.invoice.invoice_number)
-        setSavedInvoiceId(result.invoice.id)
-        addToast("success", `Invoice ${result.invoice.invoice_number} created successfully`)
+        addToast("success", "Invoice saved successfully")
+        router.push("/seller/invoices")
       }
     } catch {
       addToast("error", "Failed to save invoice")
