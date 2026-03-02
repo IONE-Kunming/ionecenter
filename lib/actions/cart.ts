@@ -1,5 +1,6 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import type { Cart, CartItem } from "@/types/database"
@@ -78,5 +79,6 @@ export async function addToCart(productId: string, quantity: number) {
     .upsert({ user_id: user.id, items })
 
   if (error) return { error: error.message }
+  revalidatePath("/buyer/cart")
   return { success: true }
 }
