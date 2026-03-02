@@ -157,6 +157,7 @@ export function CreateOfflineInvoiceForm() {
   const buyerSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const buyerBlurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const buyerCodeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const buyerCodeSearchCounterRef = useRef(0)
 
   useEffect(() => {
     return () => {
@@ -219,30 +220,39 @@ export function CreateOfflineInvoiceForm() {
     }
 
     setBuyerCodeSearching(true)
+    const currentSearch = ++buyerCodeSearchCounterRef.current
     buyerCodeTimerRef.current = setTimeout(async () => {
-      const result = await searchBuyerByCode(code.trim())
-      if (result.error) {
-        setBuyerCodeError(result.error)
-        setBuyerCodeSearching(false)
-      } else if (result.buyer) {
-        setFoundBuyer(result.buyer)
-        setBuyerName(result.buyer.display_name)
-        setBuyerEmail(result.buyer.email)
-        setBuyerCodeSearching(false)
-        // Auto-fill buyer bank info if available
-        const hasBuyerBank = !!(result.buyer.account_name || result.buyer.account_number || result.buyer.bank_name)
-        if (hasBuyerBank) {
-          setBuyerBankInfo({
-            account_name: result.buyer.account_name ?? "",
-            account_number: result.buyer.account_number ?? "",
-            swift_code: result.buyer.swift_code ?? "",
-            bank_name: result.buyer.bank_name ?? "",
-            bank_region: result.buyer.bank_region ?? "",
-            bank_code: result.buyer.bank_code ?? "",
-            branch_code: result.buyer.branch_code ?? "",
-            bank_address: result.buyer.bank_address ?? "",
-          })
-          setShowBuyerBankSection(true)
+      try {
+        const result = await searchBuyerByCode(code.trim())
+        if (currentSearch !== buyerCodeSearchCounterRef.current) return
+        if (result.error) {
+          setBuyerCodeError(result.error)
+        } else if (result.buyer) {
+          setFoundBuyer(result.buyer)
+          setBuyerName(result.buyer.display_name)
+          setBuyerEmail(result.buyer.email)
+          // Auto-fill buyer bank info if available
+          const hasBuyerBank = !!(result.buyer.account_name || result.buyer.account_number || result.buyer.bank_name)
+          if (hasBuyerBank) {
+            setBuyerBankInfo({
+              account_name: result.buyer.account_name ?? "",
+              account_number: result.buyer.account_number ?? "",
+              swift_code: result.buyer.swift_code ?? "",
+              bank_name: result.buyer.bank_name ?? "",
+              bank_region: result.buyer.bank_region ?? "",
+              bank_code: result.buyer.bank_code ?? "",
+              branch_code: result.buyer.branch_code ?? "",
+              bank_address: result.buyer.bank_address ?? "",
+            })
+            setShowBuyerBankSection(true)
+          }
+        }
+      } catch {
+        if (currentSearch !== buyerCodeSearchCounterRef.current) return
+        setBuyerCodeError("Search failed. Please try again.")
+      } finally {
+        if (currentSearch === buyerCodeSearchCounterRef.current) {
+          setBuyerCodeSearching(false)
         }
       }
     }, 500)
