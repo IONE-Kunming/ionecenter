@@ -8,7 +8,8 @@ import { ShoppingCart, Trash2, Minus, Plus, Package, Store } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
-import { formatCurrency, calculateOrderTotals } from "@/lib/utils"
+import { calculateOrderTotals } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 import { updateCart } from "@/lib/actions/cart"
 
 interface EnrichedCartItem {
@@ -29,6 +30,7 @@ interface SellerInfo {
 
 export default function CartClient({ items: initialItems, sellerMap }: { items: EnrichedCartItem[]; sellerMap: Record<string, SellerInfo> }) {
   const t = useTranslations("cart")
+  const { formatCurrency } = useFormatters()
   const [items, setItems] = useState<EnrichedCartItem[]>(initialItems)
   const [isPending, startTransition] = useTransition()
 

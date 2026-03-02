@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 import type { Transaction } from "@/lib/actions/finance"
 
 const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
@@ -56,6 +56,7 @@ function exportCSV(transactions: Transaction[]) {
 export function TransactionsList({ transactions }: { transactions: Transaction[] }) {
   const t = useTranslations("finance")
   const tCommon = useTranslations("common")
+  const { formatCurrency, formatDate } = useFormatters()
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState("")
   const [statusFilter, setStatusFilter] = useState("")

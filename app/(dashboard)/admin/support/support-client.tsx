@@ -8,7 +8,7 @@ import { Select } from "@/components/ui/select"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Ticket } from "lucide-react"
 import { updateTicketStatus } from "@/lib/actions/support"
-import { formatDate } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 import type { SupportTicket } from "@/types/database"
 
 const statusVariant: Record<string, "default" | "success" | "warning" | "secondary"> = {
@@ -35,6 +35,7 @@ export default function AdminSupportClient({ tickets: initialTickets }: AdminSup
   const [pending, startTransition] = useTransition()
   const t = useTranslations("support")
   const tCommon = useTranslations("common")
+  const { formatDate } = useFormatters()
 
   function handleStatusChange(ticketId: string, newStatus: string) {
     if (!newStatus) return
