@@ -198,7 +198,7 @@ export default function CartClient({ items: initialItems, sellerMap }: { items: 
             </div>
             {Object.keys(groupedBySeller).length > 1 && (
               <p className="text-xs text-muted-foreground">
-                {Object.keys(groupedBySeller).length} separate orders will be created (one per seller)
+                {t("separateOrders", { count: Object.keys(groupedBySeller).length })}
               </p>
             )}
             <Link href="/buyer/checkout" className="block">
