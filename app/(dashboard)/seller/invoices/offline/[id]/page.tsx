@@ -39,12 +39,12 @@ export default async function OfflineInvoiceDetailPage({ params, searchParams }:
 
       <div className="space-y-6 invoice-print-area">
         {/* Logo centered at top */}
-        <div className="invoice-print-header" style={{ textAlign: "center", paddingBottom: "12px", marginBottom: "12px", borderBottom: "2px solid currentColor" }}>
+        <div className="invoice-detail-header invoice-print-header">
           <Image src="/logo.svg" alt="IONE Center" width={140} height={46} style={{ margin: "0 auto" }} />
         </div>
 
         {/* Invoice Number, Date, and Supplier on the same row */}
-        <div className="invoice-info-row" style={{ display: "flex", justifyContent: "space-between", paddingBottom: "10px", marginBottom: "12px", borderBottom: "1px solid #cccccc" }}>
+        <div className="invoice-detail-info-row invoice-info-row">
           <div>
             <p className="text-foreground"><strong>{t("invoiceNumber")}:</strong> {invoice.invoice_number}</p>
             <p className="text-foreground"><strong>{tCommon("date")}:</strong> {formatDate(invoice.created_at, intlLocale)}</p>
@@ -56,8 +56,8 @@ export default async function OfflineInvoiceDetailPage({ params, searchParams }:
         </div>
 
         {/* Buyer Information */}
-        <div className="invoice-print-section" style={{ marginBottom: "16px" }}>
-          <h3 className="invoice-print-section-title text-foreground" style={{ fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid currentColor", paddingBottom: "4px", marginBottom: "8px" }}>{t("buyerInformation")}</h3>
+        <div className="invoice-detail-section invoice-print-section">
+          <h3 className="invoice-detail-section-title invoice-print-section-title text-foreground">{t("buyerInformation")}</h3>
           <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
             <p className="text-foreground"><strong>{t("buyerCode")}:</strong> {invoice.buyer_code || "—"}</p>
             <p className="text-foreground"><strong>{t("buyerName")}:</strong> {invoice.buyer_name || "—"}</p>
@@ -66,8 +66,8 @@ export default async function OfflineInvoiceDetailPage({ params, searchParams }:
         </div>
 
         {/* Supplier Information */}
-        <div className="invoice-print-section" style={{ marginBottom: "16px" }}>
-          <h3 className="invoice-print-section-title text-foreground" style={{ fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid currentColor", paddingBottom: "4px", marginBottom: "8px" }}>{t("sellerInformation")}</h3>
+        <div className="invoice-detail-section invoice-print-section">
+          <h3 className="invoice-detail-section-title invoice-print-section-title text-foreground">{t("sellerInformation")}</h3>
           <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
             <p className="text-foreground"><strong>{t("sellerCode")}:</strong> {invoice.seller?.user_code || "—"}</p>
             <p className="text-foreground"><strong>{t("sellerName")}:</strong> {invoice.seller?.display_name || "—"}</p>
@@ -77,8 +77,8 @@ export default async function OfflineInvoiceDetailPage({ params, searchParams }:
 
         {/* Bank Information — from seller profile */}
         {hasSellerBank && (
-          <div className="invoice-print-section" style={{ marginBottom: "16px" }}>
-            <h3 className="invoice-print-section-title text-foreground" style={{ fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid currentColor", paddingBottom: "4px", marginBottom: "8px" }}>{t("bankInformation")}</h3>
+          <div className="invoice-detail-section invoice-print-section">
+            <h3 className="invoice-detail-section-title invoice-print-section-title text-foreground">{t("bankInformation")}</h3>
             <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
               {invoice.seller!.account_name && <p className="text-foreground"><strong>{t("accountHolder")}:</strong> {invoice.seller!.account_name}</p>}
               {invoice.seller!.account_number && <p className="text-foreground"><strong>{t("accountNumber")}:</strong> {invoice.seller!.account_number}</p>}
