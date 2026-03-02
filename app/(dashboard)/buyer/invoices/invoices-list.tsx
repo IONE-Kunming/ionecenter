@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { InvoiceStatusBadge } from "@/components/ui/status-badge"
 import { EmptyState } from "@/components/ui/empty-state"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 import type { InvoiceStatus } from "@/types/database"
 
 interface InvoiceRow {
@@ -27,6 +27,7 @@ interface InvoiceRow {
 export function BuyerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
   const t = useTranslations("invoices")
   const tCommon = useTranslations("common")
+  const { formatCurrency, formatDate } = useFormatters()
   const [search, setSearch] = useState("")
 
   const filtered = invoices.filter((inv) =>

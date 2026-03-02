@@ -144,7 +144,10 @@
     "viewAsBuyer": "عرض كمشتري",
     "categories": "التصنيفات",
     "myList": "قائمتي",
-    "gallery": "المعرض"
+    "gallery": "المعرض",
+    "role_buyer": "مشتري",
+    "role_seller": "بائع",
+    "role_admin": "مشرف"
   },
   "common": {
     "search": "بحث...",
@@ -280,7 +283,8 @@
     "bankRegion": "منطقة البنك",
     "bankCode": "رمز البنك",
     "branchCode": "رمز الفرع",
-    "bankAddress": "عنوان البنك"
+    "bankAddress": "عنوان البنك",
+    "createInvoice": "إنشاء فاتورة"
   },
   "notifications": {
     "unread": "{count} غير مقروءة",
@@ -1075,6 +1079,8 @@
     "videos": "فيديوهات",
     "folders": "مجلدات",
     "selectFile": "اختر هذا الملف لمنتجك",
-    "noFolderName": "يرجى إدخال اسم المجلد"
+    "noFolderName": "يرجى إدخال اسم المجلد",
+    "deleteFolder": "حذف المجلد",
+    "deleteFolderConfirm": "هل أنت متأكد من حذف هذا المجلد وجميع محتوياته؟ لا يمكن التراجع عن هذا الإجراء."
   }
 }

@@ -166,3 +166,51 @@ export async function deleteGalleryFile(
   if (error) return { error: error.message }
   return {}
 }
+
+/**
+ * Delete a folder and all its contents from the seller's gallery.
+ */
+export async function deleteGalleryFolder(
+  folderPath: string
+): Promise<{ error?: string }> {
+  const user = await getCurrentUser()
+  if (!user) return { error: "Not authenticated" }
+
+  const supabase = createAdminClient()
+  const prefix = `gallery/${user.id}/${folderPath}`
+
+  // List all files inside the folder (recursively up to 1000)
+  const { data, error: listError } = await supabase.storage
+    .from(GALLERY_BUCKET)
+    .list(prefix, { limit: 1000, offset: 0 })
+
+  if (listError) return { error: listError.message }
+
+  const paths: string[] = []
+
+  for (const item of data ?? []) {
+    if (item.metadata === null) {
+      // Sub-folder placeholder — list its contents recursively
+      const sub = await supabase.storage
+        .from(GALLERY_BUCKET)
+        .list(`${prefix}/${item.name}`, { limit: 1000, offset: 0 })
+      for (const subItem of sub.data ?? []) {
+        paths.push(`${prefix}/${item.name}/${subItem.name}`)
+      }
+    } else {
+      paths.push(`${prefix}/${item.name}`)
+    }
+  }
+
+  // Remove the .keep placeholder for the folder itself if present
+  paths.push(`${prefix}/.keep`)
+
+  if (paths.length > 0) {
+    const { error: removeError } = await supabase.storage
+      .from(GALLERY_BUCKET)
+      .remove(paths)
+    if (removeError) return { error: removeError.message }
+  }
+
+  return {}
+}

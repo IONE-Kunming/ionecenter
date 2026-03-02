@@ -144,7 +144,10 @@
     "viewAsBuyer": "以买家身份预览",
     "categories": "分类管理",
     "myList": "我的收藏",
-    "gallery": "图库"
+    "gallery": "图库",
+    "role_buyer": "买家",
+    "role_seller": "卖家",
+    "role_admin": "管理员"
   },
   "common": {
     "search": "搜索...",
@@ -280,7 +283,8 @@
     "bankRegion": "银行地区",
     "bankCode": "银行代码",
     "branchCode": "分行代码",
-    "bankAddress": "银行地址"
+    "bankAddress": "银行地址",
+    "createInvoice": "创建发票"
   },
   "notifications": {
     "unread": "{count} 条未读",
@@ -1075,6 +1079,8 @@
     "videos": "视频",
     "folders": "文件夹",
     "selectFile": "为您的产品选择此文件",
-    "noFolderName": "请输入文件夹名称"
+    "noFolderName": "请输入文件夹名称",
+    "deleteFolder": "删除文件夹",
+    "deleteFolderConfirm": "确定要删除此文件夹及其所有内容吗？此操作无法撤销。"
   }
 }

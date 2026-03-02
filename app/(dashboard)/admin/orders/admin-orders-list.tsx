@@ -10,7 +10,7 @@ import { Select } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { OrderStatusBadge, PaymentStatusBadge } from "@/components/ui/status-badge"
 import { EmptyState } from "@/components/ui/empty-state"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 import type { OrderStatus, PaymentStatus } from "@/types/database"
 
 interface OrderRow {
@@ -26,6 +26,7 @@ interface OrderRow {
 export function AdminOrdersList({ orders }: { orders: OrderRow[] }) {
   const t = useTranslations("orders")
   const tCommon = useTranslations("common")
+  const { formatCurrency, formatDate } = useFormatters()
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
 

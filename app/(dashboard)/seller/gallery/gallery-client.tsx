@@ -11,11 +11,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { EmptyState } from "@/components/ui/empty-state"
 import { cn } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 import {
   listGallery,
   uploadGalleryFile,
   createGalleryFolder,
   deleteGalleryFile,
+  deleteGalleryFolder,
 } from "@/lib/actions/gallery"
 import type { GalleryItem, GalleryFolder } from "@/lib/actions/gallery"
 
@@ -25,16 +27,20 @@ interface GalleryClientProps {
   currentPath: string
 }
 
-function formatBytes(bytes: number): string {
+function formatBytes(bytes: number, formatNumber?: (n: number) => string): string {
   if (bytes === 0) return "0 B"
   const k = 1024
   const sizes = ["B", "KB", "MB", "GB"]
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`
+  const val = parseFloat((bytes / Math.pow(k, i)).toFixed(1))
+  return `${formatNumber ? formatNumber(val) : val} ${sizes[i]}`
 }
 
 export function GalleryClient({ initialFolders, initialFiles, currentPath: initPath }: GalleryClientProps) {
   const t = useTranslations("gallery")
+  const { formatCurrency: _fc } = useFormatters()
+  // We only need formatBytes locale-aware for byte values — use a simple number formatter
+  const formatNum = (n: number) => n.toLocaleString()
   const [folders, setFolders] = useState<GalleryFolder[]>(initialFolders)
   const [files, setFiles] = useState<GalleryItem[]>(initialFiles)
   const [currentPath, setCurrentPath] = useState(initPath)
@@ -43,6 +49,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
   const [showNewFolder, setShowNewFolder] = useState(false)
   const [folderName, setFolderName] = useState("")
   const [creating, setCreating] = useState(false)
+  const [deletingFolder, setDeletingFolder] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -130,6 +137,19 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
       return
     }
     setFiles((prev) => prev.filter((f) => f.fullPath !== item.fullPath))
+  }
+
+  async function handleDeleteFolder(folder: GalleryFolder) {
+    if (!window.confirm(t("deleteFolderConfirm"))) return
+    setError(null)
+    setDeletingFolder(folder.fullPath)
+    const result = await deleteGalleryFolder(folder.fullPath)
+    setDeletingFolder(null)
+    if (result.error) {
+      setError(result.error)
+      return
+    }
+    setFolders((prev) => prev.filter((f) => f.fullPath !== folder.fullPath))
   }
 
   const isEmpty = folders.length === 0 && files.length === 0
@@ -256,14 +276,28 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {folders.map((folder) => (
-              <button
+              <div
                 key={folder.fullPath}
-                onClick={() => navigateTo(folder.fullPath)}
-                className="flex flex-col items-center gap-2 p-3 rounded-lg border hover:bg-accent transition-colors text-center group"
+                className="relative flex flex-col items-center gap-2 p-3 rounded-lg border hover:bg-accent transition-colors text-center group"
               >
-                <FolderOpen className="h-10 w-10 text-yellow-500 group-hover:text-yellow-400" />
-                <span className="text-xs font-medium truncate w-full">{folder.name}</span>
-              </button>
+                <button
+                  onClick={() => navigateTo(folder.fullPath)}
+                  className="flex flex-col items-center gap-2 w-full"
+                >
+                  <FolderOpen className="h-10 w-10 text-yellow-500 group-hover:text-yellow-400" />
+                  <span className="text-xs font-medium truncate w-full">{folder.name}</span>
+                </button>
+                <button
+                  onClick={() => handleDeleteFolder(folder)}
+                  disabled={deletingFolder === folder.fullPath}
+                  className="absolute top-1 end-1 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity bg-destructive/80 hover:bg-destructive"
+                  title={t("deleteFolder")}
+                >
+                  {deletingFolder === folder.fullPath
+                    ? <Loader2 className="h-3 w-3 text-white animate-spin" />
+                    : <Trash2 className="h-3 w-3 text-white" />}
+                </button>
+              </div>
             ))}
           </div>
         </div>
@@ -305,7 +339,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                 {/* Info */}
                 <div className="p-2">
                   <p className="text-xs font-medium truncate" title={item.name}>{item.name}</p>
-                  <p className="text-xs text-muted-foreground">{formatBytes(item.size)}</p>
+                  <p className="text-xs text-muted-foreground">{formatBytes(item.size, formatNum)}</p>
                 </div>
 
                 {/* Actions overlay */}
