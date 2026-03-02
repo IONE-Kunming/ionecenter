@@ -1,7 +1,6 @@
 "use server"
 
 import { auth, currentUser } from "@clerk/nextjs/server"
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import type { User } from "@/types/database"
 import type { SupabaseClient } from "@supabase/supabase-js"
@@ -112,7 +111,7 @@ export async function updateUserProfile(
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase
     .from("users")
     .update(updates)
@@ -123,7 +122,7 @@ export async function updateUserProfile(
 }
 
 export async function getSellers(): Promise<User[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("users")
     .select("*")

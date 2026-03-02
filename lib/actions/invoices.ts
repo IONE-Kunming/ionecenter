@@ -1,6 +1,5 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import type { Invoice } from "@/types/database"
@@ -9,7 +8,7 @@ export async function getBuyerInvoices(): Promise<Invoice[]> {
   const user = await getCurrentUser()
   if (!user) return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("invoices")
     .select("*, seller:users!seller_id(display_name, company)")
@@ -26,7 +25,7 @@ export async function getSellerInvoices(): Promise<Invoice[]> {
   const user = await getCurrentUser()
   if (!user) return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("invoices")
     .select("*, buyer:users!buyer_id(display_name, company)")
@@ -112,7 +111,7 @@ export async function getInvoice(invoiceId: string): Promise<Invoice | null> {
   const user = await getCurrentUser()
   if (!user) return null
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: invoice } = await supabase
     .from("invoices")
     .select("*, buyer:users!buyer_id(*), seller:users!seller_id(*)")
@@ -138,7 +137,7 @@ export async function searchSellerProducts(query: string) {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("products")
     .select("id, name, model_number, description, price_per_meter, price_usd")

@@ -1,6 +1,5 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import type { Conversation, Message } from "@/types/database"
@@ -14,7 +13,7 @@ export async function getConversations(): Promise<ConversationWithParties[]> {
   const user = await getCurrentUser()
   if (!user) return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("conversations")
     .select("*, buyer:users!buyer_id(id, display_name, company), seller:users!seller_id(id, display_name, company)")
@@ -35,7 +34,7 @@ export async function getOrCreateConversation(
   const user = await getCurrentUser()
   if (!user) return null
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Try to find existing conversation
   let query = supabase
@@ -56,8 +55,7 @@ export async function getOrCreateConversation(
   if (existing) return existing
 
   // Create new conversation
-  const adminSupabase = createAdminClient()
-  const { data: conversation, error } = await adminSupabase
+  const { data: conversation, error } = await supabase
     .from("conversations")
     .insert({
       listing_id: productId,
@@ -79,7 +77,7 @@ export async function getMessages(conversationId: string): Promise<Message[]> {
   const user = await getCurrentUser()
   if (!user) return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("messages")
     .select("*")
