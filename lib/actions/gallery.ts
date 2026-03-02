@@ -98,13 +98,19 @@ export async function uploadGalleryFile(
 
   const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(data.path)
 
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? ""
+  // Extract the actual stored filename from the path (includes timestamp prefix)
+  const storedFileName = data.path.split("/").pop() ?? file.name
+  const ext = storedFileName.split(".").pop()?.toLowerCase() ?? ""
   const isVid = ["mp4", "mov", "avi", "webm", "mkv"].includes(ext)
-  const itemFullPath = folderPath ? `${folderPath}/${file.name}` : file.name
+  // fullPath relative to the user's gallery root (strip "gallery/{userId}/" prefix)
+  const userPrefix = `gallery/${user.id}/`
+  const itemFullPath = data.path.startsWith(userPrefix)
+    ? data.path.slice(userPrefix.length)
+    : data.path
 
   return {
     item: {
-      name: file.name,
+      name: storedFileName,
       fullPath: itemFullPath,
       publicUrl: urlData.publicUrl,
       type: isVid ? "video" : "image",

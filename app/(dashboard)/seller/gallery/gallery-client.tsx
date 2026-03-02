@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useTransition } from "react"
+import NextImage from "next/image"
 import { useTranslations } from "next-intl"
 import {
   FolderOpen, FolderPlus, Upload, Trash2, ArrowLeft, Image as ImageIcon,
@@ -281,13 +282,15 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                 className="group relative rounded-lg border overflow-hidden bg-muted/30 hover:shadow-md transition-all"
               >
                 {/* Preview */}
-                <div className="aspect-square overflow-hidden bg-muted flex items-center justify-center">
+                <div className="aspect-square overflow-hidden bg-muted flex items-center justify-center relative">
                   {item.type === "image" ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <NextImage
                       src={item.publicUrl}
                       alt={item.name}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                      unoptimized
                     />
                   ) : item.type === "video" ? (
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
