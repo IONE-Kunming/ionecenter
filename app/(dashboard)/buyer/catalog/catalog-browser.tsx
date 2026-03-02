@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useTransition } from "react"
 import { useTranslations } from "next-intl"
 import Link from "@/components/ui/link"
 import Image from "next/image"
-import { Package, ArrowLeft, Search, ShoppingCart, MessageSquare, Heart } from "lucide-react"
+import { Package, ArrowLeft, Search, ShoppingCart, MessageSquare, Check, Loader2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
 import { formatDualPrice } from "@/lib/utils"
 import { useExchangeRate } from "@/lib/use-exchange-rate"
+import { addToCart } from "@/lib/actions/cart"
 import type { CategoryData } from "@/lib/categories"
 import { toCategoryKey } from "@/lib/categories"
 import type { PricingType } from "@/types/database"
@@ -44,8 +45,10 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
+  const tCart = useTranslations("cart")
   const tCatNames = useTranslations("categoryNames")
   const { rate } = useExchangeRate()
+  const [, startTransition] = useTransition()
 
   const translateCat = (name: string): string => {
     const key = toCategoryKey(name)
@@ -58,6 +61,36 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
   const [selectedSubcategory, setSelectedSubcategory] = useState("")
   const [search, setSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
+  const [addingIds, setAddingIds] = useState<Set<string>>(new Set())
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
+  const [cartCount, setCartCount] = useState(0)
+
+  const handleAddToCart = (productId: string) => {
+    if (addingIds.has(productId)) return
+    setAddingIds((prev) => new Set(prev).add(productId))
+    startTransition(async () => {
+      try {
+        const result = await addToCart(productId, 1)
+        if (!result.error) {
+          setAddedIds((prev) => new Set(prev).add(productId))
+          setCartCount((c) => c + 1)
+          setTimeout(() => {
+            setAddedIds((prev) => {
+              const next = new Set(prev)
+              next.delete(productId)
+              return next
+            })
+          }, 2000)
+        }
+      } finally {
+        setAddingIds((prev) => {
+          const next = new Set(prev)
+          next.delete(productId)
+          return next
+        })
+      }
+    })
+  }
 
   const breadcrumb = useMemo(() => {
     const items = [{ label: t("categoriesLabel"), onClick: () => { setLevel("categories"); setSelectedCategory(""); setSelectedSubcategory("") } }]
@@ -246,11 +279,20 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                             <Link href={`/buyer/product/${product.id}`}>
                               <Button size="sm" variant="ghost" title={tChat("chatWithSeller")}><MessageSquare className="h-3.5 w-3.5" /></Button>
                             </Link>
-                            <Link href={`/buyer/product/${product.id}`}>
-                              <Button size="sm" variant="outline">
-                                <ShoppingCart className="h-3.5 w-3.5 mr-1" /> {tCommon("add")}
-                              </Button>
-                            </Link>
+                            <Button
+                              size="sm"
+                              variant={addedIds.has(product.id) ? "default" : "outline"}
+                              onClick={() => handleAddToCart(product.id)}
+                              disabled={addingIds.has(product.id)}
+                            >
+                              {addingIds.has(product.id) ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : addedIds.has(product.id) ? (
+                                <><Check className="h-3.5 w-3.5 mr-1" /> {tCart("addedToCart")}</>
+                              ) : (
+                                <><ShoppingCart className="h-3.5 w-3.5 mr-1" /> {tCart("addToCart")}</>
+                              )}
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -263,6 +305,19 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
           ) : (
             <EmptyState icon={Package} title={t("noProducts")} description={t("noProductsDesc")} />
           )}
+        </div>
+      )}
+
+      {/* Sticky Go to Cart overlay */}
+      {cartCount > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-full bg-primary px-6 py-3 shadow-lg text-primary-foreground">
+          <ShoppingCart className="h-5 w-5" />
+          <span className="font-medium">{cartCount} {cartCount === 1 ? tCommon("item") : tCommon("items")}</span>
+          <Link href="/buyer/cart">
+            <Button size="sm" variant="secondary" className="rounded-full font-semibold">
+              {tCart("goToCart")}
+            </Button>
+          </Link>
         </div>
       )}
     </div>
