@@ -64,6 +64,16 @@ export default async function LandingPage() {
     // Fallback to local video if site_settings table doesn't exist yet
   }
 
+  // Derive MIME type from the URL path (strip any query string first)
+  const videoPath = videoSrc.split("?")[0]
+  const extMatch = videoPath.match(/\.([a-z0-9]+)$/i)
+  const videoExt = extMatch ? extMatch[1].toLowerCase() : "mp4"
+  const videoType =
+    videoExt === "webm" ? "video/webm" :
+    videoExt === "ogg" || videoExt === "ogv" ? "video/ogg" :
+    videoExt === "mov" ? "video/quicktime" :
+    "video/mp4"
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* ===== HEADER ===== */}
@@ -302,7 +312,7 @@ export default async function LandingPage() {
                 playsInline
                 poster=""
               >
-                <source src={videoSrc} type="video/mp4" />
+                <source src={videoSrc} type={videoType} />
               </video>
             </div>
           </div>

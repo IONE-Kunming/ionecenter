@@ -62,12 +62,15 @@ export async function uploadSiteVideo(formData: FormData) {
       .from("site-assets")
       .getPublicUrl(filePath)
 
+    // Append cache-busting timestamp so browsers/CDNs fetch the new video
+    const videoUrl = `${urlData.publicUrl}?t=${Date.now()}`
+
     // Save the URL in site settings
     await supabase
       .from("site_settings")
-      .upsert({ key: "homepage_video_url", value: urlData.publicUrl, updated_at: new Date().toISOString() })
+      .upsert({ key: "homepage_video_url", value: videoUrl, updated_at: new Date().toISOString() })
 
-    return { success: true, url: urlData.publicUrl }
+    return { success: true, url: videoUrl }
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Upload failed" }
   }
@@ -113,11 +116,14 @@ export async function finalizeVideoUpload(filePath: string) {
       .from("site-assets")
       .getPublicUrl(filePath)
 
+    // Append cache-busting timestamp so browsers/CDNs fetch the new video
+    const videoUrl = `${urlData.publicUrl}?t=${Date.now()}`
+
     await supabase
       .from("site_settings")
-      .upsert({ key: "homepage_video_url", value: urlData.publicUrl, updated_at: new Date().toISOString() })
+      .upsert({ key: "homepage_video_url", value: videoUrl, updated_at: new Date().toISOString() })
 
-    return { success: true, url: urlData.publicUrl }
+    return { success: true, url: videoUrl }
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Failed to save video URL" }
   }
