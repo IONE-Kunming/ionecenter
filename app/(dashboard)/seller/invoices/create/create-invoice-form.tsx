@@ -741,7 +741,7 @@ export function CreateOfflineInvoiceForm() {
         )}
 
         {/* Buyer Information */}
-        <Card>
+        <Card className="print:hidden">
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
               <User className="h-4 w-4" />
