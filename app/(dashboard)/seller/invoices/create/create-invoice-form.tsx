@@ -681,14 +681,14 @@ export function CreateOfflineInvoiceForm() {
           <div className="hidden print:block invoice-print-section">
             <h3 className="invoice-print-section-title">{lbl.buyerBankDetails}</h3>
             <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
-              {foundBuyer!.account_name && <p><strong>{lbl.accountHolder}:</strong> {foundBuyer!.account_name}</p>}
-              {foundBuyer!.account_number && <p><strong>{lbl.accountNumber}:</strong> {foundBuyer!.account_number}</p>}
-              {foundBuyer!.swift_code && <p><strong>{lbl.swiftBic}:</strong> {foundBuyer!.swift_code}</p>}
-              {foundBuyer!.bank_name && <p><strong>{lbl.bankName}:</strong> {foundBuyer!.bank_name}</p>}
-              {foundBuyer!.bank_region && <p><strong>{lbl.bankRegion}:</strong> {foundBuyer!.bank_region}</p>}
-              {foundBuyer!.bank_code && <p><strong>{lbl.bankCode}:</strong> {foundBuyer!.bank_code}</p>}
-              {foundBuyer!.branch_code && <p><strong>{lbl.branchCode}:</strong> {foundBuyer!.branch_code}</p>}
-              {foundBuyer!.bank_address && <p><strong>{lbl.bankAddress}:</strong> {foundBuyer!.bank_address}</p>}
+              {foundBuyer?.account_name && <p><strong>{lbl.accountHolder}:</strong> {foundBuyer.account_name}</p>}
+              {foundBuyer?.account_number && <p><strong>{lbl.accountNumber}:</strong> {foundBuyer.account_number}</p>}
+              {foundBuyer?.swift_code && <p><strong>{lbl.swiftBic}:</strong> {foundBuyer.swift_code}</p>}
+              {foundBuyer?.bank_name && <p><strong>{lbl.bankName}:</strong> {foundBuyer.bank_name}</p>}
+              {foundBuyer?.bank_region && <p><strong>{lbl.bankRegion}:</strong> {foundBuyer.bank_region}</p>}
+              {foundBuyer?.bank_code && <p><strong>{lbl.bankCode}:</strong> {foundBuyer.bank_code}</p>}
+              {foundBuyer?.branch_code && <p><strong>{lbl.branchCode}:</strong> {foundBuyer.branch_code}</p>}
+              {foundBuyer?.bank_address && <p><strong>{lbl.bankAddress}:</strong> {foundBuyer.bank_address}</p>}
             </div>
           </div>
         )}
