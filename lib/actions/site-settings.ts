@@ -1,5 +1,6 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 
@@ -70,6 +71,7 @@ export async function uploadSiteVideo(formData: FormData) {
       .from("site_settings")
       .upsert({ key: "homepage_video_url", value: videoUrl, updated_at: new Date().toISOString() })
 
+    revalidatePath("/")
     return { success: true, url: videoUrl }
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Upload failed" }
@@ -123,6 +125,7 @@ export async function finalizeVideoUpload(filePath: string) {
       .from("site_settings")
       .upsert({ key: "homepage_video_url", value: videoUrl, updated_at: new Date().toISOString() })
 
+    revalidatePath("/")
     return { success: true, url: videoUrl }
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Failed to save video URL" }
@@ -148,6 +151,7 @@ export async function removeSiteVideo() {
       .from("site_settings")
       .upsert({ key: "homepage_video_url", value: "", updated_at: new Date().toISOString() })
 
+    revalidatePath("/")
     return { success: true }
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Remove failed" }

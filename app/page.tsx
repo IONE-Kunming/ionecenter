@@ -56,7 +56,8 @@ export default async function LandingPage() {
   const teamT = await getTranslations("team")
 
   // Fetch video URL from Supabase site settings, fall back to local file
-  let videoSrc = "/Our%20Factory.mp4"
+  const LOCAL_VIDEO = "/Our%20Factory.mp4"
+  let videoSrc = LOCAL_VIDEO
   try {
     const supabaseVideoUrl = await getSiteSetting("homepage_video_url")
     if (supabaseVideoUrl) videoSrc = supabaseVideoUrl
@@ -310,9 +311,11 @@ export default async function LandingPage() {
                 controls
                 preload="metadata"
                 playsInline
-                poster=""
               >
                 <source src={videoSrc} type={videoType} />
+                {videoSrc !== LOCAL_VIDEO && (
+                  <source src={LOCAL_VIDEO} type="video/mp4" />
+                )}
               </video>
             </div>
           </div>
