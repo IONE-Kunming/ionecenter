@@ -80,6 +80,8 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
   const [translateLang, setTranslateLang] = useState<string | null>(null)
   const [translations, setTranslations] = useState<Record<string, string>>({})
   const [translatingIds, setTranslatingIds] = useState<Set<string>>(new Set())
+  // Separate state for individual right-click translations (persists when bulk translation is off)
+  const [contextTranslations, setContextTranslations] = useState<Record<string, string>>({})
 
   const resolvedLang = translateLang === "default" ? preferredLanguage : translateLang
 
@@ -159,10 +161,10 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
     setTranslatingIds((prev) => new Set(prev).add(messageId))
     translateText(msg.text, targetLang)
       .then((translated) => {
-        setTranslations((prev) => ({ ...prev, [messageId]: translated }))
+        setContextTranslations((prev) => ({ ...prev, [messageId]: translated }))
       })
       .catch(() => {
-        setTranslations((prev) => ({ ...prev, [messageId]: t("translationFailed") }))
+        setContextTranslations((prev) => ({ ...prev, [messageId]: t("translationFailed") }))
       })
       .finally(() => {
         setTranslatingIds((prev) => {
@@ -191,6 +193,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
       setShowSidebar(false)
       setMessages([])
       setTranslations({})
+      setContextTranslations({})
       setTranslateLang(null)
       startLoadMessages(async () => {
         const msgs = await getMessages(initialConversationId)
@@ -251,6 +254,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
     setShowSidebar(false)
     setMessages([])
     setTranslations({})
+    setContextTranslations({})
     setTranslateLang(null)
     startLoadMessages(async () => {
       const msgs = await getMessages(id)
@@ -408,7 +412,9 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
               {messages.map((msg) => {
                 const isMe = msg.sender_id === currentUserId
                 const hasTranslation = translations[msg.id] !== undefined
+                const hasContextTranslation = contextTranslations[msg.id] !== undefined
                 const isTranslating = translatingIds.has(msg.id)
+                const showTranslation = msg.type === "text" && msg.text && (resolvedLang || hasContextTranslation || hasTranslation)
                 return (
                   <div key={msg.id} className={cn("flex flex-col", isMe ? "items-end" : "items-start")}
                     onContextMenu={(e) => {
@@ -436,7 +442,7 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                       </p>
                     </div>
                     {/* Translation row */}
-                    {resolvedLang && msg.type === "text" && msg.text && (
+                    {showTranslation && (
                       <div className={cn("max-w-[70%] mt-1 rounded-md px-3 py-1.5 text-xs border border-dashed", isMe ? "bg-primary/5 text-foreground" : "bg-accent/50 text-foreground")}>
                         {isTranslating ? (
                           <span className="flex items-center gap-1 text-muted-foreground">
@@ -445,6 +451,8 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                           </span>
                         ) : hasTranslation ? (
                           <p>{translations[msg.id]}</p>
+                        ) : hasContextTranslation ? (
+                          <p>{contextTranslations[msg.id]}</p>
                         ) : null}
                       </div>
                     )}

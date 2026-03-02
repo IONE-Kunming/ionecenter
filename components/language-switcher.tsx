@@ -19,7 +19,11 @@ const languages: { code: Locale; label: string }[] = [
   { code: "ur", label: "اردو" },
 ]
 
-export function LanguageSwitcher() {
+interface LanguageSwitcherProps {
+  side?: "top" | "bottom" | "left" | "right"
+}
+
+export function LanguageSwitcher({ side }: LanguageSwitcherProps = {}) {
   const [isPending, startTransition] = useTransition()
 
   function handleLocaleChange(locale: Locale) {
@@ -36,7 +40,7 @@ export function LanguageSwitcher() {
           <Globe className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" side={side}>
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}

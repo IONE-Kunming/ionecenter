@@ -143,7 +143,8 @@
     "signOut": "退出登录",
     "viewAsBuyer": "以买家身份预览",
     "categories": "分类管理",
-    "myList": "我的收藏"
+    "myList": "我的收藏",
+    "gallery": "图库"
   },
   "common": {
     "search": "搜索...",
@@ -1045,5 +1046,35 @@
     "mockPaymentNote": "付款已记录。您可以在订单页面跟踪订单状态。",
     "viewOrders": "查看我的订单",
     "continueShopping": "继续购物"
+  },
+  "gallery": {
+    "title": "图库",
+    "subtitle": "管理您的产品图片和视频",
+    "newFolder": "新建文件夹",
+    "upload": "上传",
+    "uploadFiles": "上传文件",
+    "folderName": "文件夹名称",
+    "create": "创建",
+    "cancel": "取消",
+    "delete": "删除",
+    "back": "返回",
+    "root": "图库",
+    "emptyFolder": "此文件夹为空",
+    "emptyFolderDesc": "上传文件或创建文件夹以开始。",
+    "emptyGallery": "图库为空",
+    "emptyGalleryDesc": "上传图片或视频以构建您的产品图库。",
+    "uploadSuccess": "文件上传成功",
+    "uploadError": "文件上传失败",
+    "deleteConfirm": "删除此文件？",
+    "folderCreated": "文件夹已创建",
+    "folderError": "创建文件夹失败",
+    "deleteError": "删除文件失败",
+    "uploading": "上传中...",
+    "creating": "创建中...",
+    "images": "图片",
+    "videos": "视频",
+    "folders": "文件夹",
+    "selectFile": "为您的产品选择此文件",
+    "noFolderName": "请输入文件夹名称"
   }
 }

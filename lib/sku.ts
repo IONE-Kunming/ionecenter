@@ -29,7 +29,8 @@ export function getSubcategoryIndex(
 
 /**
  * Generates an IONE SKU code.
- * Format: "categoryIndex-subcategoryIndex-productIndex"
+ * Format: "IONE-{categoryIndex}{subcategoryIndex}{productIndex}"
+ * e.g. IONE-111 = product #1 in subcategory #1 under category #1
  */
 export function generateSKU(
   categoryData: CategoryData,
@@ -39,5 +40,5 @@ export function generateSKU(
 ): string {
   const catIdx = getCategoryIndex(categoryData, mainCategory)
   const subIdx = getSubcategoryIndex(categoryData, mainCategory, subcategory)
-  return `${catIdx}-${subIdx}-${productIndex}`
+  return `IONE-${catIdx}${subIdx}${productIndex}`
 }

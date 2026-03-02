@@ -143,7 +143,8 @@
     "signOut": "تسجيل الخروج",
     "viewAsBuyer": "عرض كمشتري",
     "categories": "التصنيفات",
-    "myList": "قائمتي"
+    "myList": "قائمتي",
+    "gallery": "المعرض"
   },
   "common": {
     "search": "بحث...",
@@ -1045,5 +1046,35 @@
     "mockPaymentNote": "تم تسجيل الدفع. يمكنك تتبع حالة طلبك من صفحة الطلبات.",
     "viewOrders": "عرض طلباتي",
     "continueShopping": "متابعة التسوق"
+  },
+  "gallery": {
+    "title": "المعرض",
+    "subtitle": "إدارة صور وفيديوهات منتجاتك",
+    "newFolder": "مجلد جديد",
+    "upload": "رفع",
+    "uploadFiles": "رفع ملفات",
+    "folderName": "اسم المجلد",
+    "create": "إنشاء",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "back": "رجوع",
+    "root": "المعرض",
+    "emptyFolder": "هذا المجلد فارغ",
+    "emptyFolderDesc": "ارفع ملفات أو أنشئ مجلداً للبدء.",
+    "emptyGallery": "معرضك فارغ",
+    "emptyGalleryDesc": "ارفع صوراً أو فيديوهات لبناء معرض منتجاتك.",
+    "uploadSuccess": "تم رفع الملف بنجاح",
+    "uploadError": "فشل رفع الملف",
+    "deleteConfirm": "حذف هذا الملف؟",
+    "folderCreated": "تم إنشاء المجلد",
+    "folderError": "فشل إنشاء المجلد",
+    "deleteError": "فشل حذف الملف",
+    "uploading": "جاري الرفع...",
+    "creating": "جاري الإنشاء...",
+    "images": "صور",
+    "videos": "فيديوهات",
+    "folders": "مجلدات",
+    "selectFile": "اختر هذا الملف لمنتجك",
+    "noFolderName": "يرجى إدخال اسم المجلد"
   }
 }

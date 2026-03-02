@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, FileText, Users, MessageSquare,
   Bell, Settings, HelpCircle, LogOut, ChevronDown, Sun, Moon, Menu, X,
   Building2, Pencil, DollarSign, BarChart3, Receipt, Calculator, Scale,
-  Layers, Store, ClipboardList, Globe, Eye, FolderTree, Heart
+  Layers, Store, ClipboardList, Globe, Eye, FolderTree, Heart, Images
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -68,6 +68,7 @@ function getNavItems(role: UserRole, t: TranslationFn): NavItem[] {
     return [
       { label: t("dashboard"), href: "/seller/dashboard", icon: LayoutDashboard },
       { label: t("products"), href: "/seller/products", icon: Package },
+      { label: t("gallery"), href: "/seller/gallery", icon: Images },
       { label: t("myList"), href: "/seller/my-list", icon: Heart },
       { label: t("bulkEdit"), href: "/seller/bulk-edit", icon: Pencil },
       { label: t("orders"), href: "/seller/orders", icon: FileText },
@@ -136,9 +137,10 @@ export function Sidebar({ role }: SidebarProps) {
   // Auto-expand active finance section
   React.useEffect(() => {
     if (pathname.includes("/finances/")) {
-      setExpandedItems((prev) => (prev.includes("Finances") ? prev : [...prev, "Finances"]))
+      const financesLabel = t("finances")
+      setExpandedItems((prev) => (prev.includes(financesLabel) ? prev : [...prev, financesLabel]))
     }
-  }, [pathname])
+  }, [pathname, t])
 
   const sidebarContent = (
     <div className="flex h-full flex-col">
@@ -162,7 +164,7 @@ export function Sidebar({ role }: SidebarProps) {
                     )}
                   >
                     <item.icon className="h-4 w-4" />
-                    <span className="flex-1 text-left">{item.label}</span>
+                    <span className="flex-1 text-start">{item.label}</span>
                     <ChevronDown
                       className={cn(
                         "h-4 w-4 transition-transform",
@@ -220,14 +222,14 @@ export function Sidebar({ role }: SidebarProps) {
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent transition-colors"
         >
           {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          {theme === "dark" ? "Light Mode" : "Dark Mode"}
+          {theme === "dark" ? t("lightMode") : t("darkMode")}
         </button>
 
         {/* Language switcher */}
         <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground">
           <Globe className="h-4 w-4" />
-          <span className="flex-1">Language</span>
-          <LanguageSwitcher />
+          <span className="flex-1">{t("language")}</span>
+          <LanguageSwitcher side="top" />
         </div>
 
         {/* User info */}
@@ -250,7 +252,7 @@ export function Sidebar({ role }: SidebarProps) {
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent transition-colors"
         >
           <LogOut className="h-4 w-4" />
-          Sign Out
+          {t("signOut")}
         </button>
       </div>
     </div>
