@@ -12,8 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
 import { formatCurrency } from "@/lib/utils"
-import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers, getNextSellerInvoiceNumber } from "@/lib/actions/invoices"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers, getNextSellerInvoiceNumber, searchBuyerByCode } from "@/lib/actions/invoices"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 
@@ -112,24 +111,6 @@ const emptyBuyerBankInfo: BuyerBankInfo = {
   bank_code: "",
   branch_code: "",
   bank_address: "",
-}
-
-async function searchBuyerByCode(buyerCode: string) {
-  const supabase = createClientComponentClient()
-  
-  const { data, error } = await supabase
-    .from('users')
-    .select('id, email, user_code, display_name')
-    .ilike('user_code', buyerCode.trim())
-    .limit(1)
-  
-  console.log('Buyer search result:', data, 'Error:', error)
-  
-  if (error || !data || data.length === 0) {
-    return null
-  }
-  
-  return data[0]
 }
 
 export function CreateOfflineInvoiceForm() {

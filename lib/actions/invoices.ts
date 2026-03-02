@@ -188,6 +188,24 @@ export async function searchBuyers(query: string) {
   return data ?? []
 }
 
+export async function searchBuyerByCode(buyerCode: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return null
+
+  const adminSupabase = createAdminClient()
+  const { data, error } = await adminSupabase
+    .from("users")
+    .select("id, email, user_code, display_name")
+    .ilike("user_code", buyerCode.trim().replace(/[%_]/g, ""))
+    .limit(1)
+
+  if (error || !data || data.length === 0) {
+    return null
+  }
+
+  return data[0]
+}
+
 export async function getNextSellerInvoiceNumber(): Promise<string> {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return "INV-0001"
