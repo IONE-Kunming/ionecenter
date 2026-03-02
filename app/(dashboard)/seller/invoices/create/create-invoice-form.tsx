@@ -739,6 +739,10 @@ export function CreateOfflineInvoiceForm() {
                     <p className="text-sm text-destructive">{buyerCodeError}</p>
                   )}
                 </div>
+                <div className="hidden print:block text-sm mb-2">
+                  <span className="text-muted-foreground">Buyer Code:</span>{" "}
+                  <span className="font-medium">{buyerCode || "N/A"}</span>
+                </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="buyerName">Buyer Name</Label>
