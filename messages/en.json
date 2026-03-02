@@ -143,7 +143,8 @@
     "signOut": "Sign Out",
     "viewAsBuyer": "View as Buyer",
     "categories": "Categories",
-    "myList": "My List"
+    "myList": "My List",
+    "gallery": "Gallery"
   },
   "common": {
     "search": "Search...",
@@ -1040,5 +1041,35 @@
     "mockPaymentNote": "Payment has been recorded. You can track your order status from the orders page.",
     "viewOrders": "View My Orders",
     "continueShopping": "Continue Shopping"
+  },
+  "gallery": {
+    "title": "Gallery",
+    "subtitle": "Manage your product images and videos",
+    "newFolder": "New Folder",
+    "upload": "Upload",
+    "uploadFiles": "Upload Files",
+    "folderName": "Folder Name",
+    "create": "Create",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "back": "Back",
+    "root": "Gallery",
+    "emptyFolder": "This folder is empty",
+    "emptyFolderDesc": "Upload files or create a folder to get started.",
+    "emptyGallery": "Your gallery is empty",
+    "emptyGalleryDesc": "Upload images or videos to build your product gallery.",
+    "uploadSuccess": "File uploaded successfully",
+    "uploadError": "Failed to upload file",
+    "deleteConfirm": "Delete this file?",
+    "folderCreated": "Folder created",
+    "folderError": "Failed to create folder",
+    "deleteError": "Failed to delete file",
+    "uploading": "Uploading...",
+    "creating": "Creating...",
+    "images": "Images",
+    "videos": "Videos",
+    "folders": "Folders",
+    "selectFile": "Select this file for your product",
+    "noFolderName": "Please enter a folder name"
   }
 }

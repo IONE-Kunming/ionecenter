@@ -19,7 +19,7 @@ export interface CategoryData {
 export function buildCategoryData(siteCategories: SiteCategory[]): CategoryData {
   const mainCats = siteCategories
     .filter((c) => !c.parent_id)
-    .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+    .sort((a, b) => a.name.localeCompare(b.name))
 
   const categoryMap: Record<string, string[]> = {}
   const categoryImageMap: Record<string, string | null> = {}
@@ -28,7 +28,7 @@ export function buildCategoryData(siteCategories: SiteCategory[]): CategoryData 
     categoryImageMap[main.name] = main.image_url
     const subs = siteCategories
       .filter((c) => c.parent_id === main.id)
-      .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+      .sort((a, b) => a.name.localeCompare(b.name))
     categoryMap[main.name] = subs.map((c) => c.name)
     for (const sub of subs) {
       categoryImageMap[sub.name] = sub.image_url

@@ -14,6 +14,7 @@ interface DropdownMenuTriggerProps {
 
 interface DropdownMenuContentProps extends React.HTMLAttributes<HTMLDivElement> {
   align?: "start" | "center" | "end"
+  side?: "top" | "bottom" | "left" | "right"
 }
 
 interface DropdownMenuItemProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -58,7 +59,7 @@ function DropdownMenuTrigger({ children, asChild }: DropdownMenuTriggerProps) {
   )
 }
 
-function DropdownMenuContent({ children, align = "end", className, ...props }: DropdownMenuContentProps) {
+function DropdownMenuContent({ children, align = "end", side = "bottom", className, ...props }: DropdownMenuContentProps) {
   const { open, setOpen } = React.useContext(DropdownMenuContext)
   const ref = React.useRef<HTMLDivElement>(null)
 
@@ -79,7 +80,9 @@ function DropdownMenuContent({ children, align = "end", className, ...props }: D
     <div
       ref={ref}
       className={cn(
-        "absolute z-50 mt-1 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95",
+        "absolute z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95",
+        side === "bottom" && "mt-1 top-full",
+        side === "top" && "mb-1 bottom-full",
         align === "end" && "right-0",
         align === "start" && "left-0",
         align === "center" && "left-1/2 -translate-x-1/2",
