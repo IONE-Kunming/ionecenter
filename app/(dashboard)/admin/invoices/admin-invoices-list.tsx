@@ -1,13 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Receipt, Search } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { InvoiceStatusBadge } from "@/components/ui/status-badge"
 import { EmptyState } from "@/components/ui/empty-state"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 import type { InvoiceStatus } from "@/types/database"
 
 interface InvoiceRow {
@@ -21,6 +22,9 @@ interface InvoiceRow {
 }
 
 export function AdminInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
+  const t = useTranslations("invoices")
+  const tCommon = useTranslations("common")
+  const { formatCurrency, formatDate } = useFormatters()
   const [search, setSearch] = useState("")
 
   const filtered = invoices.filter((inv) =>
@@ -31,7 +35,7 @@ export function AdminInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
     <div className="space-y-6">
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search invoices..." className="pl-9" />
+        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchInvoices")} className="pl-9" />
       </div>
 
       {filtered.length > 0 ? (
@@ -39,12 +43,12 @@ export function AdminInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Buyer</TableHead>
-                <TableHead>Seller</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("invoiceNumber")}</TableHead>
+                <TableHead>{tCommon("date")}</TableHead>
+                <TableHead>{t("buyer")}</TableHead>
+                <TableHead>{t("seller")}</TableHead>
+                <TableHead>{tCommon("total")}</TableHead>
+                <TableHead>{tCommon("status")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -62,7 +66,7 @@ export function AdminInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
           </Table>
         </Card>
       ) : (
-        <EmptyState icon={Receipt} title="No invoices found" />
+        <EmptyState icon={Receipt} title={t("noInvoices")} />
       )}
     </div>
   )

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { EmptyState } from "@/components/ui/empty-state"
-import { formatDate } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 
 interface SellerRow {
   id: string
@@ -26,6 +26,7 @@ interface SellerRow {
 export function AdminSellersList({ sellers }: { sellers: SellerRow[] }) {
   const t = useTranslations("adminSellers")
   const tCommon = useTranslations("common")
+  const { formatDate } = useFormatters()
   const [search, setSearch] = useState("")
 
   const filtered = sellers.filter((s) => {

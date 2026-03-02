@@ -2,7 +2,8 @@ import { Scale, CheckCircle2, XCircle, AlertTriangle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatCard } from "@/components/ui/stat-card"
 import { Badge } from "@/components/ui/badge"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { formatCurrency, formatDate, getIntlLocale } from "@/lib/utils"
+import { getLocale } from "next-intl/server"
 
 const matchedTransactions = [
   { id: "REC-001", date: "2024-12-15", description: "Payment received - Order #1042", bookAmount: 2450.0, bankAmount: 2450.0 },
@@ -17,7 +18,10 @@ const unmatchedTransactions = [
   { id: "REC-007", date: "2024-12-09", description: "Service charge", bookAmount: null, bankAmount: -15.0, source: "bank" },
 ]
 
-export default function ReconciliationPage() {
+export default async function ReconciliationPage() {
+  const locale = await getLocale()
+  const intlLocale = getIntlLocale(locale)
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -31,17 +35,17 @@ export default function ReconciliationPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
           title="Book Balance"
-          value={formatCurrency(25322.5)}
+          value={formatCurrency(25322.5, "USD", intlLocale)}
           icon={CheckCircle2}
         />
         <StatCard
           title="Bank Balance"
-          value={formatCurrency(25262.5)}
+          value={formatCurrency(25262.5, "USD", intlLocale)}
           icon={Scale}
         />
         <StatCard
           title="Difference"
-          value={formatCurrency(60.0)}
+          value={formatCurrency(60.0, "USD", intlLocale)}
           icon={AlertTriangle}
           trend={{ value: -2.1, label: "items to reconcile" }}
         />
@@ -69,10 +73,10 @@ export default function ReconciliationPage() {
               <tbody>
                 {matchedTransactions.map((txn) => (
                   <tr key={txn.id} className="border-b last:border-0">
-                    <td className="py-3 pr-4 text-muted-foreground">{formatDate(txn.date)}</td>
+                    <td className="py-3 pr-4 text-muted-foreground">{formatDate(txn.date, intlLocale)}</td>
                     <td className="py-3 pr-4">{txn.description}</td>
-                    <td className="py-3 pr-4 text-right">{formatCurrency(Math.abs(txn.bookAmount))}</td>
-                    <td className="py-3 pr-4 text-right">{formatCurrency(Math.abs(txn.bankAmount))}</td>
+                    <td className="py-3 pr-4 text-right">{formatCurrency(Math.abs(txn.bookAmount), "USD", intlLocale)}</td>
+                    <td className="py-3 pr-4 text-right">{formatCurrency(Math.abs(txn.bankAmount), "USD", intlLocale)}</td>
                     <td className="py-3">
                       <Badge variant="default" className="gap-1">
                         <CheckCircle2 className="h-3 w-3" />
@@ -109,13 +113,13 @@ export default function ReconciliationPage() {
               <tbody>
                 {unmatchedTransactions.map((txn) => (
                   <tr key={txn.id} className="border-b last:border-0">
-                    <td className="py-3 pr-4 text-muted-foreground">{formatDate(txn.date)}</td>
+                    <td className="py-3 pr-4 text-muted-foreground">{formatDate(txn.date, intlLocale)}</td>
                     <td className="py-3 pr-4">{txn.description}</td>
                     <td className="py-3 pr-4 text-right">
-                      {txn.bookAmount !== null ? formatCurrency(Math.abs(txn.bookAmount)) : "—"}
+                      {txn.bookAmount !== null ? formatCurrency(Math.abs(txn.bookAmount), "USD", intlLocale) : "—"}
                     </td>
                     <td className="py-3 pr-4 text-right">
-                      {txn.bankAmount !== null ? formatCurrency(Math.abs(txn.bankAmount)) : "—"}
+                      {txn.bankAmount !== null ? formatCurrency(Math.abs(txn.bankAmount), "USD", intlLocale) : "—"}
                     </td>
                     <td className="py-3">
                       <Badge variant="secondary">{txn.source}</Badge>

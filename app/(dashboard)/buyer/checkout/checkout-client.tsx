@@ -5,7 +5,8 @@ import { useTranslations } from "next-intl"
 import { CreditCard, Building } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { cn, formatCurrency, calculateOrderTotals, DEPOSIT_OPTIONS } from "@/lib/utils"
+import { cn, calculateOrderTotals, DEPOSIT_OPTIONS } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 import { createOrdersFromCart } from "@/lib/actions/orders"
 import type { CartItem, PaymentMethod } from "@/types/database"
 
@@ -28,6 +29,7 @@ interface CheckoutClientProps {
 export default function CheckoutClient({ cartItems, subtotal, enrichedItems }: CheckoutClientProps) {
   const t = useTranslations("checkout")
   const tCart = useTranslations("cart")
+  const { formatCurrency } = useFormatters()
   const [depositPct, setDepositPct] = useState<number | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
   const [processing, setProcessing] = useState(false)

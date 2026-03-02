@@ -1,20 +1,22 @@
 import { Package, FileText, DollarSign, TrendingUp } from "lucide-react"
 import { StatCard } from "@/components/ui/stat-card"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatCurrency, formatDualPrice } from "@/lib/utils"
+import { formatCurrency, formatDualPrice, getIntlLocale } from "@/lib/utils"
 import { getExchangeRate } from "@/lib/exchange-rate"
 import { getSellerDashboardStats } from "@/lib/actions/orders"
 import { getSellerProducts } from "@/lib/actions/products"
-import { getTranslations } from "next-intl/server"
+import { getTranslations, getLocale } from "next-intl/server"
 
 export default async function SellerDashboardPage() {
-  const [stats, products, t, tCommon, liveRate] = await Promise.all([
+  const [stats, products, t, tCommon, liveRate, locale] = await Promise.all([
     getSellerDashboardStats(),
     getSellerProducts(),
     getTranslations("sellerDashboard"),
     getTranslations("common"),
     getExchangeRate(),
+    getLocale(),
   ])
+  const intlLocale = getIntlLocale(locale)
 
   const topProducts = products.slice(0, 5)
 
@@ -23,7 +25,7 @@ export default async function SellerDashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard title={t("totalProducts")} value={stats?.totalProducts ?? 0} icon={Package} />
         <StatCard title={t("activeOrders")} value={stats?.activeOrders ?? 0} icon={FileText} />
-        <StatCard title={t("revenue")} value={formatCurrency(stats?.totalRevenue ?? 0)} icon={DollarSign} />
+        <StatCard title={t("revenue")} value={formatCurrency(stats?.totalRevenue ?? 0, "USD", intlLocale)} icon={DollarSign} />
         <StatCard title={t("growth")} value="—" icon={TrendingUp} />
       </div>
       <Card>

@@ -2,16 +2,18 @@ import { Users, Package, FileText, DollarSign } from "lucide-react"
 import { StatCard } from "@/components/ui/stat-card"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { formatCurrency, formatDate, getIntlLocale } from "@/lib/utils"
 import { getAdminDashboardStats, getAllOrders } from "@/lib/actions/admin"
-import { getTranslations } from "next-intl/server"
+import { getTranslations, getLocale } from "next-intl/server"
 
 export default async function AdminDashboardPage() {
-  const [stats, orders, t] = await Promise.all([
+  const [stats, orders, t, locale] = await Promise.all([
     getAdminDashboardStats(),
     getAllOrders(),
     getTranslations("adminDashboard"),
+    getLocale(),
   ])
+  const intlLocale = getIntlLocale(locale)
 
   const recentOrders = orders.slice(0, 5)
 
@@ -22,7 +24,7 @@ export default async function AdminDashboardPage() {
         <StatCard title={t("totalUsers")} value={stats?.totalUsers ?? 0} icon={Users} />
         <StatCard title={t("totalProducts")} value={stats?.totalProducts ?? 0} icon={Package} />
         <StatCard title={t("totalOrders")} value={stats?.totalOrders ?? 0} icon={FileText} />
-        <StatCard title={t("totalRevenue")} value={formatCurrency(stats?.totalRevenue ?? 0)} icon={DollarSign} />
+        <StatCard title={t("totalRevenue")} value={formatCurrency(stats?.totalRevenue ?? 0, "USD", intlLocale)} icon={DollarSign} />
       </div>
 
       {/* Recent Orders */}
@@ -36,10 +38,10 @@ export default async function AdminDashboardPage() {
               <div key={order.id} className="flex items-center justify-between py-2 border-b last:border-0">
                 <div>
                   <p className="font-medium">{order.id.slice(0, 8)}...</p>
-                  <p className="text-sm text-muted-foreground">{formatDate(order.created_at)}</p>
+                  <p className="text-sm text-muted-foreground">{formatDate(order.created_at, intlLocale)}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-medium">{formatCurrency(order.total)}</span>
+                  <span className="font-medium">{formatCurrency(order.total, "USD", intlLocale)}</span>
                   <Badge variant={
                     order.status === "delivered" ? "success" :
                     order.status === "pending" ? "warning" : "default"

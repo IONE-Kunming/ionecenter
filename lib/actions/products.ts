@@ -204,3 +204,32 @@ export async function uploadProductImage(formData: FormData): Promise<{ url?: st
     return { error: e instanceof Error ? e.message : "Upload failed" }
   }
 }
+
+/** Upload a product video and return its public URL. */
+export async function uploadProductVideo(formData: FormData): Promise<{ url?: string; error?: string }> {
+  try {
+    const user = await getCurrentUser()
+    if (!user) return { error: "Not authenticated" }
+
+    const file = formData.get("file") as File
+    if (!file) return { error: "No file provided" }
+
+    if (!file.type.startsWith("video/")) return { error: "Only video files are allowed" }
+
+    const supabase = createAdminClient()
+    const path = `products/${user.id}/${Date.now()}-${file.name}`
+    const { data, error } = await supabase.storage
+      .from("product-images")
+      .upload(path, file, { contentType: file.type })
+
+    if (error) return { error: error.message }
+
+    const { data: urlData } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(data.path)
+
+    return { url: urlData.publicUrl }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Upload failed" }
+  }
+}

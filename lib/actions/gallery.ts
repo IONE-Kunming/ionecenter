@@ -166,3 +166,57 @@ export async function deleteGalleryFile(
   if (error) return { error: error.message }
   return {}
 }
+
+/**
+ * Delete a folder and all its contents from the seller's gallery.
+ * Note: This handles up to 2 levels of nesting (folder → sub-folder → files).
+ * Folders with more than 1000 files will only have the first 1000 deleted.
+ */
+export async function deleteGalleryFolder(
+  folderPath: string
+): Promise<{ error?: string }> {
+  const user = await getCurrentUser()
+  if (!user) return { error: "Not authenticated" }
+
+  const supabase = createAdminClient()
+  const prefix = `gallery/${user.id}/${folderPath}`
+
+  // Recursively collect all storage paths under `prefix`
+  async function collectPaths(storagePrefix: string, depth = 0): Promise<string[]> {
+    if (depth > 5) return [] // guard against unexpectedly deep nesting
+
+    const { data, error: listError } = await supabase.storage
+      .from(GALLERY_BUCKET)
+      .list(storagePrefix, { limit: 1000, offset: 0 })
+
+    if (listError) return []
+
+    const paths: string[] = []
+    for (const item of data ?? []) {
+      const itemPath = `${storagePrefix}/${item.name}`
+      if (item.metadata === null) {
+        // null metadata indicates a folder placeholder (Supabase Storage pseudo-directory)
+        const subPaths = await collectPaths(itemPath, depth + 1)
+        paths.push(...subPaths)
+        // Also add the .keep file that marks this sub-folder
+        paths.push(`${itemPath}/.keep`)
+      } else {
+        paths.push(itemPath)
+      }
+    }
+    return paths
+  }
+
+  const paths = await collectPaths(prefix)
+  // Include the .keep file for the top-level folder itself
+  paths.push(`${prefix}/.keep`)
+
+  if (paths.length > 0) {
+    const { error: removeError } = await supabase.storage
+      .from(GALLERY_BUCKET)
+      .remove(paths)
+    if (removeError) return { error: removeError.message }
+  }
+
+  return {}
+}

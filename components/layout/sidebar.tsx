@@ -242,7 +242,7 @@ export function Sidebar({ role }: SidebarProps) {
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{user?.fullName || "User"}</p>
-            <p className="text-xs text-muted-foreground truncate capitalize">{role}</p>
+            <p className="text-xs text-muted-foreground truncate">{t(`role_${role}`)}</p>
           </div>
         </div>
 

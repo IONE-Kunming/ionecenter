@@ -63,6 +63,7 @@ export interface Product {
   stock_status: string
   image_url: string | null
   additional_images: string[] | null
+  video_urls?: string[] | null
   is_active: boolean
   created_at: string
   updated_at: string

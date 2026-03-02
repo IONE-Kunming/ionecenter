@@ -144,7 +144,10 @@
     "viewAsBuyer": "View as Buyer",
     "categories": "Categories",
     "myList": "My List",
-    "gallery": "Gallery"
+    "gallery": "Gallery",
+    "role_buyer": "Buyer",
+    "role_seller": "Seller",
+    "role_admin": "Admin"
   },
   "common": {
     "search": "Search...",
@@ -280,7 +283,8 @@
     "bankRegion": "Bank Region",
     "bankCode": "Bank Code",
     "branchCode": "Branch Code",
-    "bankAddress": "Bank Address"
+    "bankAddress": "Bank Address",
+    "createInvoice": "Create Invoice"
   },
   "notifications": {
     "unread": "{count} unread",
@@ -1070,6 +1074,8 @@
     "videos": "Videos",
     "folders": "Folders",
     "selectFile": "Select this file for your product",
-    "noFolderName": "Please enter a folder name"
+    "noFolderName": "Please enter a folder name",
+    "deleteFolder": "Delete Folder",
+    "deleteFolderConfirm": "Are you sure you want to delete this folder and all its contents? This cannot be undone."
   }
 }

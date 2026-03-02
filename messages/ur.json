@@ -144,7 +144,10 @@
     "viewAsBuyer": "خریدار کے طور پر دیکھیں",
     "categories": "زمرہ جات",
     "myList": "میری فہرست",
-    "gallery": "گیلری"
+    "gallery": "گیلری",
+    "role_buyer": "خریدار",
+    "role_seller": "فروخت کنندہ",
+    "role_admin": "ایڈمن"
   },
   "common": {
     "search": "تلاش...",
@@ -280,7 +283,8 @@
     "bankRegion": "بینک کا علاقہ",
     "bankCode": "بینک کوڈ",
     "branchCode": "برانچ کوڈ",
-    "bankAddress": "بینک کا پتہ"
+    "bankAddress": "بینک کا پتہ",
+    "createInvoice": "انوائس بنائیں"
   },
   "notifications": {
     "unread": "{count} غیر پڑھی ہوئی",
@@ -1075,6 +1079,8 @@
     "videos": "ویڈیوز",
     "folders": "فولڈرز",
     "selectFile": "اپنی مصنوع کے لیے یہ فائل منتخب کریں",
-    "noFolderName": "براہ کرم فولڈر کا نام درج کریں"
+    "noFolderName": "براہ کرم فولڈر کا نام درج کریں",
+    "deleteFolder": "فولڈر حذف کریں",
+    "deleteFolderConfirm": "کیا آپ واقعی اس فولڈر اور اس کے تمام مواد کو حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں کیا جا سکتا۔"
   }
 }

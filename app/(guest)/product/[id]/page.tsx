@@ -3,7 +3,8 @@ import { ArrowLeft, Package, ShoppingCart, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { formatCurrency, formatDualPrice, getStockStatus } from "@/lib/utils"
+import { formatCurrency, formatDualPrice, getStockStatus, getIntlLocale } from "@/lib/utils"
+import { getLocale } from "next-intl/server"
 
 // Demo product data
 const products: Record<string, { name: string; model_number: string; category: string; main_category: string; price_per_meter: number; stock: number; description: string; seller: string }> = {
@@ -16,6 +17,8 @@ const products: Record<string, { name: string; model_number: string; category: s
 
 export default async function GuestProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const locale = await getLocale()
+  const intlLocale = getIntlLocale(locale)
   const product = products[id]
 
   if (!product) {
@@ -54,7 +57,7 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
 
           <div className="mt-6">
             <span className="text-3xl font-bold text-primary">
-              {formatCurrency(product.price_per_meter)}
+              {formatCurrency(product.price_per_meter, "USD", intlLocale)}
             </span>
           </div>
 
@@ -116,7 +119,7 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
             </div>
             <div className="flex justify-between py-2 border-b">
               <span className="text-muted-foreground">Price</span>
-              <span className="font-medium">{formatCurrency(product.price_per_meter)}</span>
+              <span className="font-medium">{formatCurrency(product.price_per_meter, "USD", intlLocale)}</span>
             </div>
           </div>
         </CardContent>

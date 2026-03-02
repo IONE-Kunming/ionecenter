@@ -3,13 +3,14 @@
 import { useState, useTransition } from "react"
 import { useTranslations } from "next-intl"
 import Image from "next/image"
-import { ArrowLeft, Package, ShoppingCart, MessageSquare, ShieldAlert } from "lucide-react"
+import { ArrowLeft, Package, ShoppingCart, MessageSquare, ShieldAlert, PlayCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/toaster"
-import { formatCurrency, formatDualPrice, getStockStatus } from "@/lib/utils"
+import { getStockStatus } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 import { useExchangeRate } from "@/lib/use-exchange-rate"
 import { getOrCreateConversation } from "@/lib/actions/chat"
 import { addToCart } from "@/lib/actions/cart"
@@ -26,11 +27,22 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
   const tCommon = useTranslations("common")
   const { addToast } = useToast()
   const { rate } = useExchangeRate()
+  const { formatDualPrice } = useFormatters()
   const [chatPending, startChat] = useTransition()
   const [cartPending, startCart] = useTransition()
   const [quantity, setQuantity] = useState(1)
   const [showSellerModal, setShowSellerModal] = useState(false)
   const stockStatus = getStockStatus(product.stock)
+
+  // Build unified media list: images first, then videos
+  const allImages = [
+    ...(product.image_url ? [{ type: "image" as const, url: product.image_url }] : []),
+    ...(product.additional_images ?? []).map((u) => ({ type: "image" as const, url: u })),
+  ]
+  const allVideos = (product.video_urls ?? []).map((u) => ({ type: "video" as const, url: u }))
+  const allMedia = [...allImages, ...allVideos]
+  const [mediaIndex, setMediaIndex] = useState(0)
+  const currentMedia = allMedia[mediaIndex] ?? null
 
   function handleChatWithSeller() {
     startChat(async () => {
@@ -67,19 +79,65 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
       </button>
 
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Product Image */}
-        <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-xl flex items-center justify-center overflow-hidden">
-          {product.image_url ? (
-            <Image
-              src={product.image_url}
-              alt={product.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority
-            />
-          ) : (
-            <Package className="h-24 w-24 text-muted-foreground/20" />
+        {/* Product Media */}
+        <div className="space-y-3">
+          <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-xl flex items-center justify-center overflow-hidden">
+            {currentMedia?.type === "image" ? (
+              <Image
+                src={currentMedia.url}
+                alt={product.name}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
+            ) : currentMedia?.type === "video" ? (
+              <video
+                src={currentMedia.url}
+                controls
+                className="w-full h-full object-contain"
+                preload="none"
+              />
+            ) : (
+              <Package className="h-24 w-24 text-muted-foreground/20" />
+            )}
+            {allMedia.length > 1 && (
+              <>
+                <button
+                  onClick={() => setMediaIndex((i) => (i - 1 + allMedia.length) % allMedia.length)}
+                  className="absolute start-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setMediaIndex((i) => (i + 1) % allMedia.length)}
+                  className="absolute end-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Thumbnail strip */}
+          {allMedia.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {allMedia.map((m, i) => (
+                <button
+                  key={i}
+                  onClick={() => setMediaIndex(i)}
+                  className={`relative flex-shrink-0 w-16 h-16 rounded-lg border-2 overflow-hidden transition-colors ${i === mediaIndex ? "border-primary" : "border-transparent"}`}
+                >
+                  {m.type === "image" ? (
+                    <Image src={m.url} alt="" fill className="object-cover" sizes="64px" unoptimized />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-muted">
+                      <PlayCircle className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
@@ -195,3 +253,4 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
     </div>
   )
 }
+

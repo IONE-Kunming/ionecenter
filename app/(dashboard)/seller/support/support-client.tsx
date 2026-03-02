@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { EmptyState } from "@/components/ui/empty-state"
 import { HelpCircle, Plus, Ticket } from "lucide-react"
 import { createSupportTicket } from "@/lib/actions/support"
-import { formatDate } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 import { useToast } from "@/components/ui/toaster"
 import type { SupportTicket } from "@/types/database"
 
@@ -33,6 +33,7 @@ export default function SupportClient({ tickets: initialTickets }: SupportClient
   const [pending, startTransition] = useTransition()
   const t = useTranslations("support")
   const tCommon = useTranslations("common")
+  const { formatDate } = useFormatters()
   const { addToast } = useToast()
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

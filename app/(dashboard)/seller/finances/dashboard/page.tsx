@@ -1,18 +1,21 @@
 import { DollarSign, TrendingUp, CreditCard, Receipt } from "lucide-react"
 import { StatCard } from "@/components/ui/stat-card"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, getIntlLocale } from "@/lib/utils"
 import { getSellerDashboardStats } from "@/lib/actions/orders"
-import { getTranslations } from "next-intl/server"
+import { getTranslations, getLocale } from "next-intl/server"
 
 export default async function FinancesDashboardPage() {
-  const stats = await getSellerDashboardStats()
+  const [stats, t, locale] = await Promise.all([
+    getSellerDashboardStats(),
+    getTranslations("finance"),
+    getLocale(),
+  ])
+  const intlLocale = getIntlLocale(locale)
 
   const revenue = stats?.totalRevenue ?? 0
   const tax = revenue * 0.1
   const expenses = 0
   const profit = revenue - tax - expenses
-
-  const t = await getTranslations("finance")
 
   return (
     <div className="space-y-6">
@@ -27,22 +30,22 @@ export default async function FinancesDashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title={t("revenue")}
-          value={formatCurrency(revenue)}
+          value={formatCurrency(revenue, "USD", intlLocale)}
           icon={DollarSign}
         />
         <StatCard
           title={t("tax10")}
-          value={formatCurrency(tax)}
+          value={formatCurrency(tax, "USD", intlLocale)}
           icon={Receipt}
         />
         <StatCard
           title={t("totalExpenses")}
-          value={formatCurrency(expenses)}
+          value={formatCurrency(expenses, "USD", intlLocale)}
           icon={CreditCard}
         />
         <StatCard
           title={t("profit")}
-          value={formatCurrency(profit)}
+          value={formatCurrency(profit, "USD", intlLocale)}
           icon={TrendingUp}
         />
       </div>

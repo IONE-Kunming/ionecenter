@@ -6,7 +6,8 @@ import { Bell, Check, ShoppingCart, CreditCard, MessageSquare } from "lucide-rea
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
-import { cn, formatDate } from "@/lib/utils"
+import { cn } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 import { markNotificationRead, markAllNotificationsRead } from "@/lib/actions/notifications"
 import type { Notification } from "@/types/database"
 
@@ -16,6 +17,7 @@ const typeIcons: Record<string, React.ElementType> = {
 
 export function NotificationsList({ initialNotifications }: { initialNotifications: Notification[] }) {
   const t = useTranslations("notifications")
+  const { formatDate } = useFormatters()
   const [notifications, setNotifications] = useState(initialNotifications)
 
   const handleMarkAsRead = async (id: string) => {

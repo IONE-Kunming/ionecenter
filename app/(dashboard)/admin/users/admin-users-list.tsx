@@ -12,7 +12,7 @@ import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { EmptyState } from "@/components/ui/empty-state"
-import { formatDate } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 import { adminUpdateUser, adminDeleteUser, adminUpdateUserCode } from "@/lib/actions/admin"
 import type { UserRole } from "@/types/database"
 
@@ -35,6 +35,7 @@ function roleBadgeVariant(role: UserRole) {
 export function AdminUsersList({ users }: { users: UserRow[] }) {
   const t = useTranslations("adminUsers")
   const tCommon = useTranslations("common")
+  const { formatDate } = useFormatters()
   const [search, setSearch] = useState("")
 
   // Edit modal state

@@ -6,8 +6,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number, currency = "USD"): string {
-  return new Intl.NumberFormat("en-US", {
+export function formatCurrency(amount: number, currency = "USD", locale = "en-US"): string {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
   }).format(amount)
@@ -17,13 +17,14 @@ export function formatDualPrice(
   priceUsd: number,
   priceCny: number | null,
   pricingType: PricingType = "standard",
-  liveRate?: number
+  liveRate?: number,
+  locale = "en-US"
 ): string {
-  const usd = formatCurrency(priceUsd, "USD")
+  const usd = formatCurrency(priceUsd, "USD", locale)
   const liveCny = liveRate != null
     ? Math.round(priceUsd * liveRate * 100) / 100
     : priceCny
-  const cny = liveCny != null ? formatCurrency(liveCny, "CNY") : null
+  const cny = liveCny != null ? formatCurrency(liveCny, "CNY", locale) : null
   const suffix = pricingType === "customized" ? "/m" : ""
   if (cny != null) {
     return `${usd}${suffix} | ${cny}${suffix}`
@@ -31,12 +32,17 @@ export function formatDualPrice(
   return `${usd}${suffix}`
 }
 
-export function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("en-US", {
+export function formatDate(date: Date | string, locale = "en-US"): string {
+  return new Date(date).toLocaleDateString(locale, {
     year: "numeric",
     month: "short",
     day: "numeric",
   })
+}
+
+/** Returns the Intl locale string for formatting numbers/dates (Arabic → ar-EG for Eastern Arabic numerals). */
+export function getIntlLocale(locale: string): string {
+  return locale === "ar" ? "ar-EG" : locale
 }
 
 export function getStockStatus(stock: number): { label: string; color: string } {

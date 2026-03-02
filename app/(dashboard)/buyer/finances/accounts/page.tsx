@@ -3,10 +3,11 @@
 import { Landmark, TrendingUp, TrendingDown, Wallet } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatCurrency } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 
 export default function AccountsPage() {
   const t = useTranslations("finance")
+  const { formatCurrency } = useFormatters()
 
   const accountCategories = [
     {

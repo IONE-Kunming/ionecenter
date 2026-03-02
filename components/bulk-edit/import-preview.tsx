@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
-import { Upload, X, ImagePlus, Trash2, FileSpreadsheet, GripVertical } from "lucide-react"
+import { useState, useRef, useCallback, useEffect, useTransition } from "react"
+import NextImage from "next/image"
+import { Upload, X, ImagePlus, Trash2, FileSpreadsheet, GripVertical, Images, FolderOpen, ArrowLeft, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/select"
@@ -10,7 +11,9 @@ import { cn } from "@/lib/utils"
 import type { CategoryData } from "@/lib/categories"
 import { getSubcategoriesFromData } from "@/lib/categories"
 import { useExchangeRate, usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
+import { listGallery } from "@/lib/actions/gallery"
 import type { ImportRow } from "./bulk-edit-table"
+import type { GalleryItem, GalleryFolder } from "@/lib/actions/gallery"
 
 interface PreviewRow extends ImportRow {
   imageFile: File | null
@@ -56,6 +59,37 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
   const [dragOverRow, setDragOverRow] = useState<number | null>(null)
   const fileRefs = useRef<(HTMLInputElement | null)[]>([])
   const { rate, isLive, loading: rateLoading } = useExchangeRate()
+
+  // ─── Gallery picker state ─────────────────────────────────────────────
+  const [galleryOpenForRow, setGalleryOpenForRow] = useState<number | null>(null)
+  const [galleryFolders, setGalleryFolders] = useState<GalleryFolder[]>([])
+  const [galleryFiles, setGalleryFiles] = useState<GalleryItem[]>([])
+  const [galleryPath, setGalleryPath] = useState("")
+  const [galleryLoading, startGalleryLoad] = useTransition()
+
+  function openGalleryPicker(rowIdx: number) {
+    setGalleryOpenForRow(rowIdx)
+    loadGallery("")
+  }
+
+  function loadGallery(path: string) {
+    startGalleryLoad(async () => {
+      const result = await listGallery(path)
+      setGalleryPath(path)
+      setGalleryFolders(result.folders)
+      setGalleryFiles(result.files.filter((f) => f.type === "image"))
+    })
+  }
+
+  function handleGallerySelect(item: GalleryItem) {
+    if (galleryOpenForRow === null) return
+    setRows((prev) => prev.map((r, i) => {
+      if (i !== galleryOpenForRow) return r
+      if (r.imagePreview && r.imagePreview.startsWith("blob:")) URL.revokeObjectURL(r.imagePreview)
+      return { ...r, imageFile: null, imagePreview: item.publicUrl, image_url: item.publicUrl }
+    }))
+    setGalleryOpenForRow(null)
+  }
 
   // Re-initialize rows when initialRows change (e.g., new CSV parsed)
   // Auto-calculate missing USD/CNY prices using exchange rate
@@ -197,6 +231,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
       price_cny: r.price_cny,
       stock: r.stock,
       description: r.description,
+      // Preserve gallery URLs (already public URLs); files uploaded separately
       image_url: r.image_url,
     }))
     const imageFiles = rows.map((r) => r.imageFile)
@@ -318,7 +353,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
         )
       case "image":
         return (
-          <>
+          <div className="flex items-center gap-1">
             <input
               ref={(el) => { fileRefs.current[idx] = el }}
               type="file"
@@ -330,14 +365,14 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
               }}
             />
             {row.imagePreview ? (
-              <div className="relative h-10 w-10 rounded border overflow-hidden group">
+              <div className="relative h-10 w-10 rounded border overflow-hidden group flex-shrink-0">
                 <img src={row.imagePreview} alt="" className="h-full w-full object-cover" />
                 <button
                   onClick={() => {
                     setRows((prev) => prev.map((r, i) => {
                       if (i !== idx) return r
-                      if (r.imagePreview) URL.revokeObjectURL(r.imagePreview)
-                      return { ...r, imageFile: null, imagePreview: null }
+                      if (r.imagePreview && r.imagePreview.startsWith("blob:")) URL.revokeObjectURL(r.imagePreview)
+                      return { ...r, imageFile: null, imagePreview: null, image_url: undefined }
                     }))
                   }}
                   className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
@@ -346,14 +381,24 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
                 </button>
               </div>
             ) : (
-              <button
-                onClick={() => fileRefs.current[idx]?.click()}
-                className="h-10 w-10 rounded border border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors"
-              >
-                <ImagePlus className="h-4 w-4 text-muted-foreground" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => fileRefs.current[idx]?.click()}
+                  className="h-10 w-10 rounded border border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors"
+                  title="Upload image"
+                >
+                  <ImagePlus className="h-4 w-4 text-muted-foreground" />
+                </button>
+                <button
+                  onClick={() => openGalleryPicker(idx)}
+                  className="h-10 w-10 rounded border border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors"
+                  title="Choose from gallery"
+                >
+                  <Images className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
             )}
-          </>
+          </div>
         )
       default:
         return null
@@ -361,6 +406,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
   }
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }} fullWidth>
       <DialogContent className="w-full max-h-[90vh] flex flex-col p-0">
         {/* Header */}
@@ -468,5 +514,73 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Gallery Picker Dialog */}
+    <Dialog open={galleryOpenForRow !== null} onOpenChange={(v) => { if (!v) setGalleryOpenForRow(null) }}>
+      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+        <div className="flex items-center gap-3 pb-3 border-b">
+          <Images className="h-5 w-5 text-primary" />
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold">Choose from Gallery</h2>
+            {/* Breadcrumb */}
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+              <button onClick={() => loadGallery("")} className="hover:underline">Gallery</button>
+              {galleryPath.split("/").filter(Boolean).map((seg, i, arr) => (
+                <span key={i} className="flex items-center gap-1">
+                  <ChevronRight className="h-3 w-3" />
+                  <button
+                    onClick={() => loadGallery(arr.slice(0, i + 1).join("/"))}
+                    className="hover:underline"
+                  >{seg}</button>
+                </span>
+              ))}
+            </div>
+          </div>
+          {galleryPath && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => loadGallery(galleryPath.split("/").slice(0, -1).join("/"))}
+              className="gap-1"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back
+            </Button>
+          )}
+        </div>
+        <div className="flex-1 overflow-auto">
+          {galleryLoading ? (
+            <div className="flex justify-center items-center py-12 text-muted-foreground text-sm">Loading…</div>
+          ) : galleryFolders.length === 0 && galleryFiles.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground text-sm">No images found in this folder.</div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 pt-3">
+              {galleryFolders.map((f) => (
+                <button
+                  key={f.fullPath}
+                  onClick={() => loadGallery(f.fullPath)}
+                  className="flex flex-col items-center gap-1 p-3 rounded-lg border hover:bg-accent transition-colors"
+                >
+                  <FolderOpen className="h-8 w-8 text-yellow-500" />
+                  <span className="text-xs font-medium truncate w-full text-center">{f.name}</span>
+                </button>
+              ))}
+              {galleryFiles.map((item) => (
+                <button
+                  key={item.fullPath}
+                  onClick={() => handleGallerySelect(item)}
+                  className="relative aspect-square rounded-lg border overflow-hidden hover:ring-2 hover:ring-primary transition-all group"
+                >
+                  <NextImage src={item.publicUrl} alt={item.name} fill className="object-cover" sizes="160px" unoptimized />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <span className="text-white text-xs font-medium px-2 py-1 bg-primary/80 rounded">Select</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }
