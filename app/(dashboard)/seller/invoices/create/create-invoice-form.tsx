@@ -26,6 +26,16 @@ const INVOICE_LABELS: Record<InvoiceLanguage, Record<string, string>> = {
     date: "Date",
     supplier: "Supplier",
     buyer: "Buyer",
+    buyerInformation: "Buyer Information",
+    sellerInformation: "Seller Information",
+    buyerBankDetails: "Buyer Bank Details",
+    sellerBankDetails: "Seller Bank Details",
+    buyerCode: "Buyer Code",
+    buyerNameLabel: "Buyer Name",
+    buyerEmailLabel: "Buyer Email",
+    sellerCode: "Seller Code",
+    sellerName: "Seller Name",
+    sellerEmail: "Seller Email",
     bankInformation: "Bank Information",
     accountHolder: "Account Holder",
     accountNumber: "Account Number",
@@ -52,6 +62,16 @@ const INVOICE_LABELS: Record<InvoiceLanguage, Record<string, string>> = {
     date: "التاريخ",
     supplier: "المورد",
     buyer: "المشتري",
+    buyerInformation: "معلومات المشتري",
+    sellerInformation: "معلومات البائع",
+    buyerBankDetails: "تفاصيل بنك المشتري",
+    sellerBankDetails: "تفاصيل بنك البائع",
+    buyerCode: "رمز المشتري",
+    buyerNameLabel: "اسم المشتري",
+    buyerEmailLabel: "بريد المشتري",
+    sellerCode: "رمز البائع",
+    sellerName: "اسم البائع",
+    sellerEmail: "بريد البائع",
     bankInformation: "المعلومات البنكية",
     accountHolder: "صاحب الحساب",
     accountNumber: "رقم الحساب",
@@ -78,6 +98,16 @@ const INVOICE_LABELS: Record<InvoiceLanguage, Record<string, string>> = {
     date: "日期",
     supplier: "供应商",
     buyer: "买方",
+    buyerInformation: "买方信息",
+    sellerInformation: "卖方信息",
+    buyerBankDetails: "买方银行详情",
+    sellerBankDetails: "卖方银行详情",
+    buyerCode: "买方代码",
+    buyerNameLabel: "买方名称",
+    buyerEmailLabel: "买方邮箱",
+    sellerCode: "卖方代码",
+    sellerName: "卖方名称",
+    sellerEmail: "卖方邮箱",
     bankInformation: "银行信息",
     accountHolder: "账户持有人",
     accountNumber: "账号",
@@ -119,6 +149,8 @@ interface BankInfo {
   bank_address: string | null
   company: string | null
   display_name: string
+  email: string
+  user_code: string | null
   phone_number: string | null
   street: string | null
   city: string | null
@@ -184,6 +216,11 @@ function hasBankInfo(info: BankInfo | null): boolean {
 
 function hasBuyerBankInfo(info: BuyerBankInfo): boolean {
   return !!(info.account_name || info.account_number || info.bank_name)
+}
+
+function hasFoundBuyerBankInfo(buyer: FoundBuyer | null): boolean {
+  if (!buyer) return false
+  return !!(buyer.account_name || buyer.account_number || buyer.bank_name)
 }
 
 const emptyBuyerBankInfo: BuyerBankInfo = {
@@ -312,14 +349,14 @@ export function CreateOfflineInvoiceForm() {
           display_name: result.display_name ?? "",
           email: result.email ?? "",
           user_code: result.user_code ?? null,
-          account_name: null,
-          account_number: null,
-          swift_code: null,
-          bank_name: null,
-          bank_region: null,
-          bank_code: null,
-          branch_code: null,
-          bank_address: null,
+          account_name: result.account_name ?? null,
+          account_number: result.account_number ?? null,
+          swift_code: result.swift_code ?? null,
+          bank_name: result.bank_name ?? null,
+          bank_region: result.bank_region ?? null,
+          bank_code: result.bank_code ?? null,
+          branch_code: result.branch_code ?? null,
+          bank_address: result.bank_address ?? null,
         })
         setBuyerName(result.display_name ?? "")
         setBuyerEmail(result.email ?? "")
@@ -618,10 +655,62 @@ export function CreateOfflineInvoiceForm() {
           <div className="invoice-info-right">
             <p><strong>{lbl.supplier}</strong></p>
             {bankInfo?.display_name && <p>{bankInfo.display_name}</p>}
-            {bankInfo?.street && <p>{bankInfo.street}</p>}
-            {bankInfo?.city && <p>{formatLocation(bankInfo.city, bankInfo.state)}</p>}
           </div>
         </div>
+
+        {/* Print-only: Buyer Information Section */}
+        <div className="hidden print:block invoice-print-section">
+          <h3 className="invoice-print-section-title">{lbl.buyerInformation}</h3>
+          <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
+            <p><strong>{lbl.buyerCode}:</strong> {foundBuyer?.user_code || buyerCode || "—"}</p>
+            <p><strong>{lbl.buyerNameLabel}:</strong> {foundBuyer?.display_name || buyerName || "—"}</p>
+            <p><strong>{lbl.buyerEmailLabel}:</strong> {foundBuyer?.email || buyerEmail || "—"}</p>
+          </div>
+        </div>
+
+        {/* Print-only: Seller Information Section */}
+        <div className="hidden print:block invoice-print-section">
+          <h3 className="invoice-print-section-title">{lbl.sellerInformation}</h3>
+          <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
+            <p><strong>{lbl.sellerCode}:</strong> {bankInfo?.user_code || "—"}</p>
+            <p><strong>{lbl.sellerName}:</strong> {bankInfo?.display_name || "—"}</p>
+            <p><strong>{lbl.sellerEmail}:</strong> {bankInfo?.email || "—"}</p>
+          </div>
+        </div>
+
+        {/* Print-only: Buyer Bank Details (conditional - only if buyer has bank info in DB) */}
+        {hasFoundBuyerBankInfo(foundBuyer) && (
+          <div className="hidden print:block invoice-print-section">
+            <h3 className="invoice-print-section-title">{lbl.buyerBankDetails}</h3>
+            <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
+              {foundBuyer?.account_name && <p><strong>{lbl.accountHolder}:</strong> {foundBuyer.account_name}</p>}
+              {foundBuyer?.account_number && <p><strong>{lbl.accountNumber}:</strong> {foundBuyer.account_number}</p>}
+              {foundBuyer?.swift_code && <p><strong>{lbl.swiftBic}:</strong> {foundBuyer.swift_code}</p>}
+              {foundBuyer?.bank_name && <p><strong>{lbl.bankName}:</strong> {foundBuyer.bank_name}</p>}
+              {foundBuyer?.bank_region && <p><strong>{lbl.bankRegion}:</strong> {foundBuyer.bank_region}</p>}
+              {foundBuyer?.bank_code && <p><strong>{lbl.bankCode}:</strong> {foundBuyer.bank_code}</p>}
+              {foundBuyer?.branch_code && <p><strong>{lbl.branchCode}:</strong> {foundBuyer.branch_code}</p>}
+              {foundBuyer?.bank_address && <p><strong>{lbl.bankAddress}:</strong> {foundBuyer.bank_address}</p>}
+            </div>
+          </div>
+        )}
+
+        {/* Print-only: Seller Bank Details (always shown) */}
+        {bankInfo && (
+          <div className="hidden print:block invoice-print-section">
+            <h3 className="invoice-print-section-title">{lbl.sellerBankDetails}</h3>
+            <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
+              {bankInfo.account_name && <p><strong>{lbl.accountHolder}:</strong> {bankInfo.account_name}</p>}
+              {bankInfo.account_number && <p><strong>{lbl.accountNumber}:</strong> {bankInfo.account_number}</p>}
+              {bankInfo.swift_code && <p><strong>{lbl.swiftBic}:</strong> {bankInfo.swift_code}</p>}
+              {bankInfo.bank_name && <p><strong>{lbl.bankName}:</strong> {bankInfo.bank_name}</p>}
+              {bankInfo.bank_region && <p><strong>{lbl.bankRegion}:</strong> {bankInfo.bank_region}</p>}
+              {bankInfo.bank_code && <p><strong>{lbl.bankCode}:</strong> {bankInfo.bank_code}</p>}
+              {bankInfo.branch_code && <p><strong>{lbl.branchCode}:</strong> {bankInfo.branch_code}</p>}
+              {bankInfo.bank_address && <p><strong>{lbl.bankAddress}:</strong> {bankInfo.bank_address}</p>}
+            </div>
+          </div>
+        )}
 
         {/* Bank Information (dynamic from seller settings) */}
         {bankInfoLoaded && !hasBankInfo(bankInfo) && (
@@ -884,24 +973,8 @@ export function CreateOfflineInvoiceForm() {
           )}
         </Card>
 
-        {/* Print-only: Buyer Bank Information (TT) - only if fields filled */}
-        {hasBuyerBankInfo(buyerBankInfo) && (
-          <div className="hidden print:block" style={{ marginTop: "16px" }}>
-            <h3 style={{ fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>{lbl.buyerBankInformation}</h3>
-            <div style={{ fontSize: "12px", lineHeight: "1.6" }}>
-              {buyerBankInfo.account_name && <p><strong>{lbl.accountHolder}:</strong> {buyerBankInfo.account_name}</p>}
-              {buyerBankInfo.account_number && <p><strong>{lbl.accountNumber}:</strong> {buyerBankInfo.account_number}</p>}
-              {buyerBankInfo.swift_code && <p><strong>{lbl.swiftBic}:</strong> {buyerBankInfo.swift_code}</p>}
-              {buyerBankInfo.bank_name && <p><strong>{lbl.bankName}:</strong> {buyerBankInfo.bank_name}</p>}
-              {buyerBankInfo.bank_region && <p><strong>{lbl.bankRegion}:</strong> {buyerBankInfo.bank_region}</p>}
-              {buyerBankInfo.bank_code && <p><strong>{lbl.bankCode}:</strong> {buyerBankInfo.bank_code}</p>}
-              {buyerBankInfo.branch_code && <p><strong>{lbl.branchCode}:</strong> {buyerBankInfo.branch_code}</p>}
-              {buyerBankInfo.bank_address && <p><strong>{lbl.bankAddress}:</strong> {buyerBankInfo.bank_address}</p>}
-            </div>
-          </div>
-        )}
-
-        {/* Product Items */}
+        {/* Product Items + Invoice Summary — forced onto a new page in print */}
+        <div className="invoice-print-page-break">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t("productItems")}</CardTitle>
@@ -1070,23 +1143,7 @@ export function CreateOfflineInvoiceForm() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Print-only: Seller Bank Information - shown below Invoice Summary */}
-        {hasBankInfo(bankInfo) && (
-          <div className="hidden print:block" style={{ marginTop: "16px" }}>
-            <h3 style={{ fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>{lbl.bankInformation}</h3>
-            <div style={{ fontSize: "12px", lineHeight: "1.6" }}>
-              {bankInfo!.account_name && <p><strong>{lbl.accountHolder}:</strong> {bankInfo!.account_name}</p>}
-              {bankInfo!.account_number && <p><strong>{lbl.accountNumber}:</strong> {bankInfo!.account_number}</p>}
-              {bankInfo!.swift_code && <p><strong>{lbl.swiftBic}:</strong> {bankInfo!.swift_code}</p>}
-              {bankInfo!.bank_name && <p><strong>{lbl.bankName}:</strong> {bankInfo!.bank_name}</p>}
-              {bankInfo!.bank_region && <p><strong>{lbl.bankRegion}:</strong> {bankInfo!.bank_region}</p>}
-              {bankInfo!.bank_code && <p><strong>{lbl.bankCode}:</strong> {bankInfo!.bank_code}</p>}
-              {bankInfo!.branch_code && <p><strong>{lbl.branchCode}:</strong> {bankInfo!.branch_code}</p>}
-              {bankInfo!.bank_address && <p><strong>{lbl.bankAddress}:</strong> {bankInfo!.bank_address}</p>}
-            </div>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Action Buttons */}

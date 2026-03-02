@@ -164,6 +164,8 @@ export async function getSellerBankInfo() {
     bank_address: user.bank_address,
     company: user.company,
     display_name: user.display_name,
+    email: user.email,
+    user_code: user.user_code,
     phone_number: user.phone_number,
     street: user.street,
     city: user.city,
@@ -194,7 +196,7 @@ export async function searchBuyerByCode(buyerCode: string) {
   const adminSupabase = createAdminClient()
   const { data, error } = await adminSupabase
     .from("users")
-    .select("id, email, user_code, display_name")
+    .select("id, email, user_code, display_name, account_name, account_number, swift_code, bank_name, bank_region, bank_code, branch_code, bank_address")
     .ilike("user_code", buyerCode.trim().replace(/[%_]/g, ""))
     .limit(1)
 
