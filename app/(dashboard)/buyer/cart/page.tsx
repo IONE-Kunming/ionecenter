@@ -1,5 +1,5 @@
 import { getCart } from "@/lib/actions/cart"
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import CartClient from "./cart-client"
 
 export default async function CartPage() {
@@ -8,7 +8,7 @@ export default async function CartPage() {
     return <CartClient items={[]} sellerMap={{}} />
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const productIds = cart.items.map((item) => item.product_id)
   const { data: products } = await supabase
     .from("products")
