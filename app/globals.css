@@ -598,6 +598,12 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0;
   }
 
+  /* Force white background and black text on all elements */
+  * {
+    background: white !important;
+    color: black !important;
+  }
+
   body {
     background: white !important;
     color: #000000 !important;
@@ -755,6 +761,8 @@ h1, h2, h3, h4, h5, h6 {
     width: 100% !important;
     border-collapse: collapse !important;
     border: 1px solid #000000 !important;
+    background-color: white !important;
+    color: black !important;
   }
 
   /* Table column headers — bold uppercase with borders */
@@ -766,6 +774,7 @@ h1, h2, h3, h4, h5, h6 {
     border: 1px solid #000000 !important;
     padding: 8px 10px !important;
     background-color: #f2f2f2 !important;
+    color: black !important;
   }
 
   /* Table cells with clear borders on every cell */
@@ -773,6 +782,14 @@ h1, h2, h3, h4, h5, h6 {
     border: 1px solid #000000 !important;
     padding: 8px 10px !important;
     font-size: 13px !important;
+    background-color: white !important;
+    color: black !important;
+  }
+
+  /* Table rows — white background */
+  .invoice-print-area table tr {
+    background-color: white !important;
+    color: black !important;
   }
 
   /* Right-align number columns in table */
