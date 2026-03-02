@@ -163,10 +163,10 @@ export function SellerInvoicesList({
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Link href={`/seller/invoices/${inv.id}`}>
+                        <Link href={`/seller/invoices/offline/${inv.id}`}>
                           <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
                         </Link>
-                        <Link href={`/seller/invoices/${inv.id}`}>
+                        <Link href={`/seller/invoices/offline/${inv.id}?print=true`}>
                           <Button variant="ghost" size="sm"><Printer className="h-4 w-4" /></Button>
                         </Link>
                         <Button

@@ -287,7 +287,10 @@
     "createInvoice": "Create Invoice",
     "orderInvoices": "Order Invoices",
     "buyerInvoices": "Buyer Invoices",
-    "buyerEmail": "Buyer Email"
+    "buyerEmail": "Buyer Email",
+    "discount": "Discount",
+    "amountPaid": "Amount Paid",
+    "amountDue": "Amount Due"
   },
   "notifications": {
     "unread": "{count} unread",

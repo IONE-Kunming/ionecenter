@@ -287,7 +287,10 @@
     "createInvoice": "انوائس بنائیں",
     "orderInvoices": "آرڈر انوائسز",
     "buyerInvoices": "خریدار انوائسز",
-    "buyerEmail": "خریدار ای میل"
+    "buyerEmail": "خریدار ای میل",
+    "discount": "رعایت",
+    "amountPaid": "ادا شدہ رقم",
+    "amountDue": "واجب الادا رقم"
   },
   "notifications": {
     "unread": "{count} غیر پڑھی ہوئی",
