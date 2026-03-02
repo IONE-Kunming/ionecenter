@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2, AlertTriangle, User, Pencil, ChevronDown, ChevronUp, Globe } from "lucide-react"
@@ -198,6 +199,7 @@ const emptyBuyerBankInfo: BuyerBankInfo = {
 
 export function CreateOfflineInvoiceForm() {
   const router = useRouter()
+  const t = useTranslations("invoiceCreate")
   const { addToast } = useToast()
   const { formatCurrency } = useFormatters()
   const printRef = useRef<HTMLDivElement>(null)
@@ -293,7 +295,7 @@ export function CreateOfflineInvoiceForm() {
   const handleBuyerCodeSearch = useCallback(async () => {
     const code = buyerCode.trim()
     if (!code) {
-      setBuyerCodeError("Buyer code is required")
+      setBuyerCodeError(t("buyerCodeRequired"))
       return
     }
 
@@ -323,11 +325,11 @@ export function CreateOfflineInvoiceForm() {
         setBuyerEmail(result.email ?? "")
       }
     } catch {
-      setBuyerCodeError("Search failed. Please try again.")
+      setBuyerCodeError(t("searchFailed"))
     } finally {
       setBuyerCodeSearching(false)
     }
-  }, [buyerCode])
+  }, [buyerCode, t])
 
   const clearFoundBuyer = useCallback(() => {
     setFoundBuyer(null)
@@ -438,15 +440,15 @@ export function CreateOfflineInvoiceForm() {
 
   const handleSave = async () => {
     if (!buyerName.trim()) {
-      addToast("error", "Buyer name is required")
+      addToast("error", t("buyerNameRequired"))
       return
     }
     if (!buyerEmail.trim()) {
-      addToast("error", "Buyer email is required")
+      addToast("error", t("buyerEmailRequired"))
       return
     }
     if (rows.length === 0 || rows.every((r) => !r.productName.trim())) {
-      addToast("error", "Add at least one product")
+      addToast("error", t("addAtLeastOneProduct"))
       return
     }
 
@@ -473,11 +475,11 @@ export function CreateOfflineInvoiceForm() {
       if (result.error) {
         addToast("error", result.error)
       } else if (result.invoice) {
-        addToast("success", "Invoice saved successfully")
+        addToast("success", t("invoiceSavedSuccess"))
         router.push("/seller/invoices")
       }
     } catch {
-      addToast("error", "Failed to save invoice")
+      addToast("error", t("invoiceSaveFailed"))
     } finally {
       setSaving(false)
     }
@@ -485,11 +487,11 @@ export function CreateOfflineInvoiceForm() {
 
   const handleSendEmail = async () => {
     if (!savedInvoiceNumber) {
-      addToast("error", "Please save the invoice first")
+      addToast("error", t("saveFirstWarning"))
       return
     }
     if (!buyerEmail.trim()) {
-      addToast("error", "Buyer email is required")
+      addToast("error", t("buyerEmailRequired"))
       return
     }
 
@@ -524,10 +526,10 @@ export function CreateOfflineInvoiceForm() {
       if (data.error) {
         addToast("error", data.error)
       } else {
-        addToast("success", `Invoice sent to ${buyerEmail}`)
+        addToast("success", t("invoiceSentTo", { email: buyerEmail }))
       }
     } catch {
-      addToast("error", "Failed to send email")
+      addToast("error", t("emailSendFailed"))
     } finally {
       setSending(false)
     }
@@ -539,7 +541,7 @@ export function CreateOfflineInvoiceForm() {
 
   const handleWhatsApp = async () => {
     if (!savedInvoiceNumber) {
-      addToast("error", "Please save the invoice first")
+      addToast("error", t("saveFirstWarning"))
       return
     }
 
@@ -558,7 +560,7 @@ export function CreateOfflineInvoiceForm() {
       const message = encodeURIComponent(`Invoice ${savedInvoiceNumber} attached`)
       window.open(`https://wa.me/?text=${message}`, "_blank")
     } catch {
-      addToast("error", "Failed to generate PDF")
+      addToast("error", t("pdfGenerateFailed"))
     }
   }
 
@@ -569,7 +571,7 @@ export function CreateOfflineInvoiceForm() {
           href="/seller/invoices"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4" /> Back to Invoices
+          <ArrowLeft className="h-4 w-4" /> {t("backToInvoices")}
         </Link>
       </div>
 
@@ -625,26 +627,26 @@ export function CreateOfflineInvoiceForm() {
         {bankInfoLoaded && !hasBankInfo(bankInfo) && (
           <div className="flex items-center gap-2 rounded-md border border-yellow-300 bg-yellow-50 p-4 text-sm text-yellow-800 dark:border-yellow-700 dark:bg-yellow-950 dark:text-yellow-200 print:hidden">
             <AlertTriangle className="h-4 w-4 shrink-0" />
-            <p>Please add your bank information in settings before creating an invoice.</p>
+            <p>{t("noBankInfoWarning")}</p>
             <Link href="/seller/profile" className="ml-auto underline whitespace-nowrap">
-              Go to Settings
+              {t("goToSettings")}
             </Link>
           </div>
         )}
         {hasBankInfo(bankInfo) && (
           <Card className="print:hidden">
             <CardHeader>
-              <CardTitle className="text-sm">Bank Information</CardTitle>
+              <CardTitle className="text-sm">{t("bankInformation")}</CardTitle>
             </CardHeader>
             <CardContent className="text-sm space-y-1">
-              {bankInfo!.account_name && <p><strong>Account Holder:</strong> {bankInfo!.account_name}</p>}
-              {bankInfo!.account_number && <p><strong>Account Number:</strong> {bankInfo!.account_number}</p>}
-              {bankInfo!.swift_code && <p><strong>SWIFT/BIC Code:</strong> {bankInfo!.swift_code}</p>}
-              {bankInfo!.bank_name && <p><strong>Bank Name:</strong> {bankInfo!.bank_name}</p>}
-              {bankInfo!.bank_region && <p><strong>Bank Region:</strong> {bankInfo!.bank_region}</p>}
-              {bankInfo!.bank_code && <p><strong>Bank Code:</strong> {bankInfo!.bank_code}</p>}
-              {bankInfo!.branch_code && <p><strong>Branch Code:</strong> {bankInfo!.branch_code}</p>}
-              {bankInfo!.bank_address && <p><strong>Bank Address:</strong> {bankInfo!.bank_address}</p>}
+              {bankInfo!.account_name && <p><strong>{t("accountHolderName")}:</strong> {bankInfo!.account_name}</p>}
+              {bankInfo!.account_number && <p><strong>{t("accountNumber")}:</strong> {bankInfo!.account_number}</p>}
+              {bankInfo!.swift_code && <p><strong>{t("swiftBicCode")}:</strong> {bankInfo!.swift_code}</p>}
+              {bankInfo!.bank_name && <p><strong>{t("bankName")}:</strong> {bankInfo!.bank_name}</p>}
+              {bankInfo!.bank_region && <p><strong>{t("bankRegion")}:</strong> {bankInfo!.bank_region}</p>}
+              {bankInfo!.bank_code && <p><strong>{t("bankCode")}:</strong> {bankInfo!.bank_code}</p>}
+              {bankInfo!.branch_code && <p><strong>{t("branchCode")}:</strong> {bankInfo!.branch_code}</p>}
+              {bankInfo!.bank_address && <p><strong>{t("bankAddress")}:</strong> {bankInfo!.bank_address}</p>}
             </CardContent>
           </Card>
         )}
@@ -654,7 +656,7 @@ export function CreateOfflineInvoiceForm() {
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
               <User className="h-4 w-4" />
-              Buyer Information
+              {t("buyerInformation")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -663,15 +665,15 @@ export function CreateOfflineInvoiceForm() {
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 text-sm">
                     <div className="border-b pb-2 mb-2">
-                      <span className="text-muted-foreground">Code:</span>{" "}
+                      <span className="text-muted-foreground">{t("code")}:</span>{" "}
                       <span className="font-medium">{foundBuyer.user_code}</span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Name:</span>{" "}
+                      <span className="text-muted-foreground">{t("name")}:</span>{" "}
                       <span className="font-medium">{foundBuyer.display_name}</span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Email:</span>{" "}
+                      <span className="text-muted-foreground">{t("email")}:</span>{" "}
                       <span className="font-medium">{foundBuyer.email}</span>
                     </div>
                   </div>
@@ -682,14 +684,14 @@ export function CreateOfflineInvoiceForm() {
                     className="print:hidden shrink-0"
                   >
                     <Pencil className="h-3.5 w-3.5 mr-1" />
-                    Change
+                    {t("change")}
                   </Button>
                 </div>
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="space-y-2 print:hidden">
-                  <Label htmlFor="buyerCode">Buyer Code</Label>
+                  <Label htmlFor="buyerCode">{t("buyerCode")}</Label>
                   <div className="flex gap-2">
                     <div className="relative flex-1">
                       <Input
@@ -705,7 +707,7 @@ export function CreateOfflineInvoiceForm() {
                             handleBuyerCodeSearch()
                           }
                         }}
-                        placeholder="Enter buyer code (e.g. B250)"
+                        placeholder={t("buyerCodePlaceholder")}
                         className="print:border-none print:p-0 print:shadow-none"
                         autoComplete="off"
                       />
@@ -723,7 +725,7 @@ export function CreateOfflineInvoiceForm() {
                       disabled={buyerCodeSearching}
                       className="shrink-0"
                     >
-                      Search
+                      {t("search")}
                     </Button>
                   </div>
                   {buyerCodeError && (
@@ -731,12 +733,12 @@ export function CreateOfflineInvoiceForm() {
                   )}
                 </div>
                 <div className="hidden print:block text-sm mb-2">
-                  <span className="text-muted-foreground">Buyer Code:</span>{" "}
-                  <span className="font-medium">{buyerCode || "N/A"}</span>
+                  <span className="text-muted-foreground">{t("buyerCodePrint")}:</span>{" "}
+                  <span className="font-medium">{buyerCode || t("na")}</span>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="buyerName">Buyer Name</Label>
+                    <Label htmlFor="buyerName">{t("buyerName")}</Label>
                     <div className="relative">
                       <Input
                         id="buyerName"
@@ -748,7 +750,7 @@ export function CreateOfflineInvoiceForm() {
                             setShowBuyerSuggestions(false)
                           }, 200)
                         }}
-                        placeholder="Enter buyer name"
+                        placeholder={t("buyerNamePlaceholder")}
                         className="print:border-none print:p-0 print:shadow-none"
                         autoComplete="off"
                       />
@@ -771,13 +773,13 @@ export function CreateOfflineInvoiceForm() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="buyerEmail">Buyer Email</Label>
+                    <Label htmlFor="buyerEmail">{t("buyerEmailLabel")}</Label>
                     <Input
                       id="buyerEmail"
                       type="email"
                       value={buyerEmail}
                       onChange={(e) => setBuyerEmail(e.target.value)}
-                      placeholder="Enter buyer email"
+                      placeholder={t("buyerEmailPlaceholder")}
                       className="print:border-none print:p-0 print:shadow-none"
                     />
                   </div>
@@ -794,7 +796,7 @@ export function CreateOfflineInvoiceForm() {
             onClick={() => setShowBuyerBankSection(!showBuyerBankSection)}
           >
             <CardTitle className="text-sm flex items-center justify-between">
-              <span>Buyer Bank Information (Optional)</span>
+              <span>{t("buyerBankInfoOptional")}</span>
               {showBuyerBankSection ? (
                 <ChevronUp className="h-4 w-4 text-muted-foreground" />
               ) : (
@@ -806,75 +808,75 @@ export function CreateOfflineInvoiceForm() {
             <CardContent className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="buyerBankAccountName">Account Holder Name</Label>
+                  <Label htmlFor="buyerBankAccountName">{t("accountHolderName")}</Label>
                   <Input
                     id="buyerBankAccountName"
                     value={buyerBankInfo.account_name}
                     onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, account_name: e.target.value }))}
-                    placeholder="Account holder name"
+                    placeholder={t("accountHolderNamePlaceholder")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="buyerBankAccountNumber">Account Number</Label>
+                  <Label htmlFor="buyerBankAccountNumber">{t("accountNumber")}</Label>
                   <Input
                     id="buyerBankAccountNumber"
                     value={buyerBankInfo.account_number}
                     onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, account_number: e.target.value }))}
-                    placeholder="Account number"
+                    placeholder={t("accountNumberPlaceholder")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="buyerBankSwiftCode">SWIFT/BIC Code</Label>
+                  <Label htmlFor="buyerBankSwiftCode">{t("swiftBicCode")}</Label>
                   <Input
                     id="buyerBankSwiftCode"
                     value={buyerBankInfo.swift_code}
                     onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, swift_code: e.target.value }))}
-                    placeholder="SWIFT/BIC code"
+                    placeholder={t("swiftBicCodePlaceholder")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="buyerBankName">Bank Name</Label>
+                  <Label htmlFor="buyerBankName">{t("bankName")}</Label>
                   <Input
                     id="buyerBankName"
                     value={buyerBankInfo.bank_name}
                     onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, bank_name: e.target.value }))}
-                    placeholder="Bank name"
+                    placeholder={t("bankNamePlaceholder")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="buyerBankRegion">Bank Region</Label>
+                  <Label htmlFor="buyerBankRegion">{t("bankRegion")}</Label>
                   <Input
                     id="buyerBankRegion"
                     value={buyerBankInfo.bank_region}
                     onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, bank_region: e.target.value }))}
-                    placeholder="Bank region"
+                    placeholder={t("bankRegionPlaceholder")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="buyerBankCode">Bank Code</Label>
+                  <Label htmlFor="buyerBankCode">{t("bankCode")}</Label>
                   <Input
                     id="buyerBankCode"
                     value={buyerBankInfo.bank_code}
                     onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, bank_code: e.target.value }))}
-                    placeholder="Bank code"
+                    placeholder={t("bankCodePlaceholder")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="buyerBankBranchCode">Branch Code</Label>
+                  <Label htmlFor="buyerBankBranchCode">{t("branchCode")}</Label>
                   <Input
                     id="buyerBankBranchCode"
                     value={buyerBankInfo.branch_code}
                     onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, branch_code: e.target.value }))}
-                    placeholder="Branch code"
+                    placeholder={t("branchCodePlaceholder")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="buyerBankAddress">Bank Address</Label>
+                  <Label htmlFor="buyerBankAddress">{t("bankAddress")}</Label>
                   <Input
                     id="buyerBankAddress"
                     value={buyerBankInfo.bank_address}
                     onChange={(e) => setBuyerBankInfo((prev) => ({ ...prev, bank_address: e.target.value }))}
-                    placeholder="Bank address"
+                    placeholder={t("bankAddressPlaceholder")}
                   />
                 </div>
               </div>
@@ -902,14 +904,14 @@ export function CreateOfflineInvoiceForm() {
         {/* Product Items */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Product Items</CardTitle>
+            <CardTitle>{t("productItems")}</CardTitle>
             <Button
               variant="outline"
               size="sm"
               onClick={addRow}
               className="print:hidden"
             >
-              <Plus className="h-4 w-4 mr-1" /> Add Item
+              <Plus className="h-4 w-4 mr-1" /> {t("addItem")}
             </Button>
           </CardHeader>
           <CardContent>
@@ -948,7 +950,7 @@ export function CreateOfflineInvoiceForm() {
                               )
                             }, 200)
                           }}
-                          placeholder="Type model number..."
+                          placeholder={t("typeModelNumber")}
                           className="mt-1 text-sm print:border-none print:p-0 print:shadow-none"
                         />
                         {row.showSuggestions && row.suggestions.length > 0 && (
@@ -1026,7 +1028,7 @@ export function CreateOfflineInvoiceForm() {
         {/* Invoice Summary */}
         <Card className="invoice-summary-card">
           <CardHeader className="print:hidden">
-            <CardTitle>Invoice Summary</CardTitle>
+            <CardTitle>{t("invoiceSummary")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm max-w-xs ml-auto">
             <div className="flex justify-between">
@@ -1095,7 +1097,7 @@ export function CreateOfflineInvoiceForm() {
           ) : (
             <Save className="h-4 w-4 mr-2" />
           )}
-          {savedInvoiceId ? "Saved" : "Save Invoice"}
+          {savedInvoiceId ? t("saved") : t("saveInvoice")}
         </Button>
         <Button
           variant="outline"
@@ -1107,7 +1109,7 @@ export function CreateOfflineInvoiceForm() {
           ) : (
             <Send className="h-4 w-4 mr-2" />
           )}
-          Send Invoice
+          {t("sendInvoice")}
         </Button>
         <button
           type="button"
@@ -1129,7 +1131,7 @@ export function CreateOfflineInvoiceForm() {
           <span className="whatsapp-BG" />
         </button>
         <Button variant="outline" onClick={handlePrint}>
-          <Printer className="h-4 w-4 mr-2" /> Print Invoice
+          <Printer className="h-4 w-4 mr-2" /> {t("printInvoice")}
         </Button>
         {/* Invoice Language Selector */}
         <div className="flex items-center gap-2 ml-auto">
@@ -1150,7 +1152,7 @@ export function CreateOfflineInvoiceForm() {
             variant="secondary"
             onClick={() => router.push("/seller/invoices")}
           >
-            View All Invoices
+            {t("viewAllInvoices")}
           </Button>
         )}
       </div>
