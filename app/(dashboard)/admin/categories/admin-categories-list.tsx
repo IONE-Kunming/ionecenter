@@ -496,7 +496,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
         </p>
         {videoUrl ? (
           <div className="rounded-lg overflow-hidden border border-border max-w-xl">
-            <video className="w-full" controls preload="metadata">
+            <video className="w-full" controls preload="metadata" playsInline>
               <source src={videoUrl} type="video/mp4" />
             </video>
             <p className="text-xs text-muted-foreground px-3 py-2 bg-muted truncate">

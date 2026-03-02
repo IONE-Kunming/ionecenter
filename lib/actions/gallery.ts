@@ -68,6 +68,64 @@ export async function listGallery(
 }
 
 /**
+ * Create a signed upload URL for direct browser-to-storage gallery upload.
+ */
+export async function createGallerySignedUploadUrl(
+  ext: string,
+  folderPath: string,
+  fileName: string
+): Promise<{ signedUrl?: string; token?: string; path?: string; storagePath?: string; error?: string }> {
+  const user = await getCurrentUser()
+  if (!user) return { error: "Not authenticated" }
+
+  const supabase = createAdminClient()
+  const storagePath = folderPath
+    ? `gallery/${user.id}/${folderPath}/${Date.now()}-${fileName}`
+    : `gallery/${user.id}/${Date.now()}-${fileName}`
+
+  const { data, error } = await supabase.storage
+    .from(GALLERY_BUCKET)
+    .createSignedUploadUrl(storagePath)
+
+  if (error) return { error: error.message }
+  return { signedUrl: data.signedUrl, token: data.token, path: data.path, storagePath }
+}
+
+/**
+ * Finalize a gallery file upload: return a GalleryItem from the uploaded storage path.
+ */
+export async function finalizeGalleryUpload(
+  storagePath: string,
+  fileSize: number,
+  _folderPath: string
+): Promise<{ item?: GalleryItem; error?: string }> {
+  const user = await getCurrentUser()
+  if (!user) return { error: "Not authenticated" }
+
+  const supabase = createAdminClient()
+  const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(storagePath)
+
+  const storedFileName = storagePath.split("/").pop() ?? ""
+  const ext = storedFileName.split(".").pop()?.toLowerCase() ?? ""
+  const isVid = ["mp4", "mov", "avi", "webm", "mkv"].includes(ext)
+  const userPrefix = `gallery/${user.id}/`
+  const itemFullPath = storagePath.startsWith(userPrefix)
+    ? storagePath.slice(userPrefix.length)
+    : storagePath
+
+  return {
+    item: {
+      name: storedFileName,
+      fullPath: itemFullPath,
+      publicUrl: urlData.publicUrl,
+      type: isVid ? "video" : "image",
+      size: fileSize,
+      createdAt: new Date().toISOString(),
+    },
+  }
+}
+
+/**
  * Upload a file to the seller's gallery.
  */
 export async function uploadGalleryFile(

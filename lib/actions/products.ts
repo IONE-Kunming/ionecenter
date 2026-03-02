@@ -205,6 +205,64 @@ export async function uploadProductImage(formData: FormData): Promise<{ url?: st
   }
 }
 
+/** Create a signed upload URL for direct browser-to-storage product image upload. */
+export async function createProductImageSignedUploadUrl(
+  ext: string
+): Promise<{ signedUrl?: string; token?: string; path?: string; storagePath?: string; error?: string }> {
+  try {
+    const user = await getCurrentUser()
+    if (!user) return { error: "Not authenticated" }
+
+    const supabase = createAdminClient()
+    const storagePath = `products/${user.id}/${Date.now()}.${ext}`
+    const { data, error } = await supabase.storage
+      .from("product-images")
+      .createSignedUploadUrl(storagePath)
+
+    if (error) return { error: error.message }
+    return { signedUrl: data.signedUrl, token: data.token, path: data.path, storagePath }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to create upload URL" }
+  }
+}
+
+/** Create a signed upload URL for direct browser-to-storage product video upload. */
+export async function createProductVideoSignedUploadUrl(
+  ext: string
+): Promise<{ signedUrl?: string; token?: string; path?: string; storagePath?: string; error?: string }> {
+  try {
+    const user = await getCurrentUser()
+    if (!user) return { error: "Not authenticated" }
+
+    const supabase = createAdminClient()
+    const storagePath = `products/${user.id}/${Date.now()}.${ext}`
+    const { data, error } = await supabase.storage
+      .from("product-images")
+      .createSignedUploadUrl(storagePath)
+
+    if (error) return { error: error.message }
+    return { signedUrl: data.signedUrl, token: data.token, path: data.path, storagePath }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to create upload URL" }
+  }
+}
+
+/** Get the public URL for a file already uploaded to the product-images bucket. */
+export async function getProductFilePublicUrl(
+  storagePath: string
+): Promise<{ url?: string; error?: string }> {
+  try {
+    const user = await getCurrentUser()
+    if (!user) return { error: "Not authenticated" }
+
+    const supabase = createAdminClient()
+    const { data } = supabase.storage.from("product-images").getPublicUrl(storagePath)
+    return { url: data.publicUrl }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to get public URL" }
+  }
+}
+
 /** Upload a product video and return its public URL. */
 export async function uploadProductVideo(formData: FormData): Promise<{ url?: string; error?: string }> {
   try {
