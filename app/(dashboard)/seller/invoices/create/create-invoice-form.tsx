@@ -23,6 +23,7 @@ async function searchBuyerByCode(buyerCode: string) {
   const { data, error } = await supabase
     .from('users')
     .select('id, email, user_code, display_name')
+    .eq('role', 'buyer')
     .ilike('user_code', buyerCode.trim())
     .limit(1)
 
