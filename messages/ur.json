@@ -300,7 +300,8 @@
     "sellerCode": "فروخت کنندہ کوڈ",
     "sellerName": "فروخت کنندہ کا نام",
     "sellerEmail": "فروخت کنندہ ای میل",
-    "supplier": "فراہم کنندہ"
+    "supplier": "فراہم کنندہ",
+    "printInvoice": "انوائس پرنٹ کریں"
   },
   "notifications": {
     "unread": "{count} غیر پڑھی ہوئی",

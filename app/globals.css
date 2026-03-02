@@ -589,6 +589,36 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* Invoice detail page — screen styles matching the print preview layout */
+.invoice-detail-header {
+  text-align: center;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid currentColor;
+}
+
+.invoice-detail-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #cccccc;
+}
+
+.invoice-detail-section {
+  margin-bottom: 16px;
+}
+
+.invoice-detail-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
 /* Print styles for invoice */
 @media print {
   /* Hide URL and page numbers by removing page margins (browser renders

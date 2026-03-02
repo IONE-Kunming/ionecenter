@@ -300,7 +300,8 @@
     "sellerCode": "卖方代码",
     "sellerName": "卖方名称",
     "sellerEmail": "卖方邮箱",
-    "supplier": "供应商"
+    "supplier": "供应商",
+    "printInvoice": "打印发票"
   },
   "notifications": {
     "unread": "{count} 条未读",
