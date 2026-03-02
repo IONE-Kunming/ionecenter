@@ -292,7 +292,15 @@
     "buyerEmail": "买家邮箱",
     "discount": "折扣",
     "amountPaid": "已付金额",
-    "amountDue": "应付金额"
+    "amountDue": "应付金额",
+    "buyerInformation": "买方信息",
+    "buyerCode": "买方代码",
+    "buyerName": "买方名称",
+    "sellerInformation": "供应商信息",
+    "sellerCode": "卖方代码",
+    "sellerName": "卖方名称",
+    "sellerEmail": "卖方邮箱",
+    "supplier": "供应商"
   },
   "notifications": {
     "unread": "{count} 条未读",

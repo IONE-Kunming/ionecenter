@@ -292,7 +292,15 @@
     "buyerEmail": "بريد المشتري",
     "discount": "خصم",
     "amountPaid": "المبلغ المدفوع",
-    "amountDue": "المبلغ المستحق"
+    "amountDue": "المبلغ المستحق",
+    "buyerInformation": "معلومات المشتري",
+    "buyerCode": "رمز المشتري",
+    "buyerName": "اسم المشتري",
+    "sellerInformation": "معلومات المورد",
+    "sellerCode": "رمز البائع",
+    "sellerName": "اسم البائع",
+    "sellerEmail": "بريد البائع",
+    "supplier": "المورد"
   },
   "notifications": {
     "unread": "{count} غير مقروءة",
