@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatCard } from "@/components/ui/stat-card"
 import { Badge } from "@/components/ui/badge"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 
 const taxEntries = [
   { id: "TAX-001", date: "2024-12-15", description: "Sales tax on Order #1042", taxableAmount: 2450.0, taxAmount: 245.0, status: "collected" },
@@ -26,6 +26,7 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive" | "o
 export default function TaxPage() {
   const t = useTranslations("finance")
   const tCommon = useTranslations("common")
+  const { formatCurrency, formatDate } = useFormatters()
 
   return (
     <div className="space-y-6">

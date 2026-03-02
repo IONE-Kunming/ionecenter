@@ -2,7 +2,8 @@ import { Receipt, Percent } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatCard } from "@/components/ui/stat-card"
 import { Badge } from "@/components/ui/badge"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { formatCurrency, formatDate, getIntlLocale } from "@/lib/utils"
+import { getLocale } from "next-intl/server"
 
 const taxEntries = [
   { id: "TAX-001", date: "2024-12-15", description: "Sales tax on Order #1042", taxableAmount: 2450.0, taxAmount: 245.0, status: "collected" },
@@ -20,7 +21,10 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive" | "o
   adjusted: "destructive",
 }
 
-export default function TaxPage() {
+export default async function TaxPage() {
+  const locale = await getLocale()
+  const intlLocale = getIntlLocale(locale)
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -39,13 +43,13 @@ export default function TaxPage() {
         />
         <StatCard
           title="Tax Collected (YTD)"
-          value={formatCurrency(4825.0)}
+          value={formatCurrency(4825.0, "USD", intlLocale)}
           icon={Receipt}
           trend={{ value: 8.3, label: "from last year" }}
         />
         <StatCard
           title="Tax Remitted (YTD)"
-          value={formatCurrency(3720.0)}
+          value={formatCurrency(3720.0, "USD", intlLocale)}
           icon={Receipt}
           trend={{ value: 5.1, label: "from last year" }}
         />
@@ -70,10 +74,10 @@ export default function TaxPage() {
               <tbody>
                 {taxEntries.map((entry) => (
                   <tr key={entry.id} className="border-b last:border-0">
-                    <td className="py-3 pr-4 text-muted-foreground">{formatDate(entry.date)}</td>
+                    <td className="py-3 pr-4 text-muted-foreground">{formatDate(entry.date, intlLocale)}</td>
                     <td className="py-3 pr-4">{entry.description}</td>
-                    <td className="py-3 pr-4 text-right">{formatCurrency(entry.taxableAmount)}</td>
-                    <td className="py-3 pr-4 text-right font-medium">{formatCurrency(entry.taxAmount)}</td>
+                    <td className="py-3 pr-4 text-right">{formatCurrency(entry.taxableAmount, "USD", intlLocale)}</td>
+                    <td className="py-3 pr-4 text-right font-medium">{formatCurrency(entry.taxAmount, "USD", intlLocale)}</td>
                     <td className="py-3">
                       <Badge variant={statusVariant[entry.status] ?? "outline"}>
                         {entry.status}

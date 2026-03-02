@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatCard } from "@/components/ui/stat-card"
 import { Badge } from "@/components/ui/badge"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 
 const matchedTransactions = [
   { id: "REC-001", date: "2024-12-15", description: "Payment received - Order #1042", bookAmount: 2450.0, bankAmount: 2450.0 },
@@ -23,6 +23,7 @@ const unmatchedTransactions = [
 export default function ReconciliationPage() {
   const t = useTranslations("finance")
   const tCommon = useTranslations("common")
+  const { formatCurrency, formatDate } = useFormatters()
 
   return (
     <div className="space-y-6">

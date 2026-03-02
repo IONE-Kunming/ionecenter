@@ -1,6 +1,7 @@
 import { Landmark, TrendingUp, TrendingDown, Wallet } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, getIntlLocale } from "@/lib/utils"
+import { getLocale } from "next-intl/server"
 
 const accountCategories = [
   {
@@ -45,7 +46,10 @@ const accountCategories = [
   },
 ]
 
-export default function AccountsPage() {
+export default async function AccountsPage() {
+  const locale = await getLocale()
+  const intlLocale = getIntlLocale(locale)
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -70,7 +74,7 @@ export default function AccountsPage() {
                     <CategoryIcon className="h-5 w-5" />
                     {category.name}
                   </div>
-                  <span className="text-lg">{formatCurrency(total)}</span>
+                  <span className="text-lg">{formatCurrency(total, "USD", intlLocale)}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -78,7 +82,7 @@ export default function AccountsPage() {
                   {category.accounts.map((account) => (
                     <div key={account.name} className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0">
                       <span className="text-sm text-muted-foreground">{account.name}</span>
-                      <span className="text-sm font-medium">{formatCurrency(account.balance)}</span>
+                      <span className="text-sm font-medium">{formatCurrency(account.balance, "USD", intlLocale)}</span>
                     </div>
                   ))}
                 </div>

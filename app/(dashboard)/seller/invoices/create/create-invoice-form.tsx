@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
-import { formatCurrency } from "@/lib/utils"
+import { useFormatters } from "@/lib/use-formatters"
 import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers, getNextSellerInvoiceNumber, searchBuyerByCode } from "@/lib/actions/invoices"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
@@ -116,6 +116,7 @@ const emptyBuyerBankInfo: BuyerBankInfo = {
 export function CreateOfflineInvoiceForm() {
   const router = useRouter()
   const { addToast } = useToast()
+  const { formatCurrency } = useFormatters()
   const printRef = useRef<HTMLDivElement>(null)
 
   const [buyerName, setBuyerName] = useState("")
