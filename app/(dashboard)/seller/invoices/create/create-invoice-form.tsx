@@ -584,7 +584,7 @@ export function CreateOfflineInvoiceForm() {
 
       <div ref={printRef} className="space-y-6 invoice-print-area" dir={isRtl ? "rtl" : undefined}>
         {/* Screen Invoice Header */}
-        <div className="flex items-start justify-between print:hidden invoice-screen-header">
+        <div className="flex items-start justify-between invoice-screen-header">
           <Image src="/logo.svg" alt="IONE Center" width={120} height={40} />
           <div className="text-right">
             <h2 className="text-xl font-bold">
