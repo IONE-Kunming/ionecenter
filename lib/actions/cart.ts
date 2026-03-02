@@ -14,7 +14,7 @@ export async function getCart(): Promise<Cart | null> {
     .from("carts")
     .select("*")
     .eq("user_id", user.id)
-    .single()
+    .maybeSingle()
 
   return data
 }
@@ -29,7 +29,7 @@ export async function updateCart(items: CartItem[]) {
     .upsert({
       user_id: user.id,
       items,
-    })
+    }, { onConflict: "user_id" })
 
   if (error) return { error: error.message }
   return { success: true }
@@ -58,7 +58,7 @@ export async function addToCart(productId: string, quantity: number) {
     .from("carts")
     .select("*")
     .eq("user_id", user.id)
-    .single()
+    .maybeSingle()
 
   const items: CartItem[] = Array.isArray(cart?.items) ? (cart.items as CartItem[]) : []
   const existing = items.find((i) => i.product_id === productId)
@@ -76,7 +76,7 @@ export async function addToCart(productId: string, quantity: number) {
 
   const { error } = await supabase
     .from("carts")
-    .upsert({ user_id: user.id, items })
+    .upsert({ user_id: user.id, items }, { onConflict: "user_id" })
 
   if (error) return { error: error.message }
   revalidatePath("/buyer/cart")
