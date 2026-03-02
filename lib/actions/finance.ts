@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 
 export interface Transaction {
@@ -19,7 +19,7 @@ export async function getTransactions(): Promise<Transaction[]> {
   const user = await getCurrentUser()
   if (!user) return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   let query = supabase
     .from("orders")

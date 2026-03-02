@@ -1,6 +1,5 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import { calculateOrderTotals, TAX_RATE } from "@/lib/utils"
@@ -188,8 +187,7 @@ export async function createOrdersFromCart(
 
   if (cartItems.length === 0) return { error: "Cart is empty" }
 
-  const supabase = await createClient()
-  const adminSupabase = createAdminClient()
+  const supabase = createAdminClient()
 
   // Fetch products to determine seller for each item
   const productIds = cartItems.map((item) => item.product_id)
@@ -220,7 +218,7 @@ export async function createOrdersFromCart(
 
     const paymentStatus = depositPercentage >= 100 ? "paid" : "deposit_paid"
 
-    const { data: order, error: orderError } = await adminSupabase
+    const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
         buyer_id: user.id,
@@ -253,7 +251,7 @@ export async function createOrdersFromCart(
       image_url: item.product.image_url,
     }))
 
-    const { error: itemsError } = await adminSupabase
+    const { error: itemsError } = await supabase
       .from("order_items")
       .insert(orderItems)
 
@@ -266,7 +264,7 @@ export async function createOrdersFromCart(
   }
 
   // Clear the cart
-  await adminSupabase
+  await supabase
     .from("carts")
     .update({ items: [] })
     .eq("user_id", user.id)

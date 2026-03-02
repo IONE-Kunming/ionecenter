@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import type { Notification } from "@/types/database"
 
@@ -8,7 +8,7 @@ export async function getNotifications(): Promise<Notification[]> {
   const user = await getCurrentUser()
   if (!user) return []
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from("notifications")
     .select("*")
@@ -23,7 +23,7 @@ export async function markNotificationRead(id: string) {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase
     .from("notifications")
     .update({ read: true })
@@ -38,7 +38,7 @@ export async function markAllNotificationsRead() {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase
     .from("notifications")
     .update({ read: true })
