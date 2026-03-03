@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useTranslations } from "next-intl"
-import { Receipt, Search, Download } from "lucide-react"
+import { Receipt, Search, Eye } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { InvoiceStatusBadge } from "@/components/ui/status-badge"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useFormatters } from "@/lib/use-formatters"
+import Link from "@/components/ui/link"
 import type { InvoiceStatus } from "@/types/database"
 
 interface InvoiceRow {
@@ -69,7 +70,9 @@ export function BuyerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
                   <TableCell>{formatDate(inv.due_date)}</TableCell>
                   <TableCell><InvoiceStatusBadge status={inv.status} /></TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="icon"><Download className="h-4 w-4" /></Button>
+                    <Link href={`/buyer/invoices/${inv.id}`}>
+                      <Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button>
+                    </Link>
                   </TableCell>
                 </TableRow>
               ))}
