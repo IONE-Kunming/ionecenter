@@ -264,7 +264,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
         setAddProductError(result.error)
       }
     } catch (e) {
-      setAddProductError(e instanceof Error ? e.message : "Failed to create product")
+      setAddProductError(e instanceof Error ? e.message : t("failedToCreate"))
     }
     setAddingProduct(false)
   }
@@ -361,7 +361,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
         }
 
         return {
-          name: r.name || r.product_name || "Unnamed Product",
+          name: r.name || r.product_name || t("unnamedProduct"),
           model_number: r.model_number || "",
           main_category: mainCat,
           category: subCat,

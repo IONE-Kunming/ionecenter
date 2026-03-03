@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect, useTransition } from "react"
+import { useState, useRef, useCallback, useEffect, useTransition, useMemo } from "react"
 import NextImage from "next/image"
 import { Upload, X, ImagePlus, Trash2, FileSpreadsheet, GripVertical, Images, FolderOpen, ArrowLeft, ChevronRight } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/select"
@@ -37,20 +38,24 @@ interface ColumnDef {
   minWidth: string
 }
 
-const DEFAULT_COLUMNS: ColumnDef[] = [
-  { key: "name", label: "Name", minWidth: "min-w-[160px]" },
-  { key: "model_number", label: "Model #", minWidth: "min-w-[120px]" },
-  { key: "main_category", label: "Category", minWidth: "min-w-[180px]" },
-  { key: "category", label: "Subcategory", minWidth: "min-w-[180px]" },
-  { key: "price_usd", label: "Price (USD $)", minWidth: "min-w-[120px]" },
-  { key: "price_cny", label: "Price (CNY ¥)", minWidth: "min-w-[120px]" },
-  { key: "stock", label: "Stock", minWidth: "min-w-[80px]" },
-  { key: "pricing_type", label: "Pricing Type", minWidth: "min-w-[140px]" },
-  { key: "description", label: "Description", minWidth: "min-w-[200px]" },
-  { key: "image", label: "Image", minWidth: "min-w-[100px]" },
-]
 
 export function ImportPreview({ open, onClose, initialRows, onFinishImport, importing, categoryData }: ImportPreviewProps) {
+  const t = useTranslations("bulkEdit")
+  const tCommon = useTranslations("common")
+
+  const DEFAULT_COLUMNS = useMemo<ColumnDef[]>(() => [
+    { key: "name", label: t("colName"), minWidth: "min-w-[160px]" },
+    { key: "model_number", label: t("colModelNumber"), minWidth: "min-w-[120px]" },
+    { key: "main_category", label: t("colCategory"), minWidth: "min-w-[180px]" },
+    { key: "category", label: t("colSubcategory"), minWidth: "min-w-[180px]" },
+    { key: "price_usd", label: t("colPriceUsd"), minWidth: "min-w-[120px]" },
+    { key: "price_cny", label: t("colPriceCny"), minWidth: "min-w-[120px]" },
+    { key: "stock", label: t("colStock"), minWidth: "min-w-[80px]" },
+    { key: "pricing_type", label: t("colPricingType"), minWidth: "min-w-[140px]" },
+    { key: "description", label: t("colDescription"), minWidth: "min-w-[200px]" },
+    { key: "image", label: t("colImage"), minWidth: "min-w-[100px]" },
+  ], [t])
+
   const [rows, setRows] = useState<PreviewRow[]>([])
   const [columns, setColumns] = useState<ColumnDef[]>(DEFAULT_COLUMNS)
   const [draggedCol, setDraggedCol] = useState<number | null>(null)
@@ -247,7 +252,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
             value={row.name}
             onChange={(e) => updateRow(idx, "name", e.target.value)}
             className="h-8 text-xs"
-            placeholder="Product name"
+            placeholder={t("placeholderProductName")}
           />
         )
       case "model_number":
@@ -256,7 +261,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
             value={row.model_number}
             onChange={(e) => updateRow(idx, "model_number", e.target.value)}
             className="h-8 text-xs"
-            placeholder="Model #"
+            placeholder={t("placeholderModelNumber")}
           />
         )
       case "main_category":
@@ -265,7 +270,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
             value={row.main_category}
             onChange={(e) => updateMainCategory(idx, e.target.value)}
             options={categoryData.mainCategories.map((c) => ({ value: c, label: c }))}
-            placeholder="Select category"
+            placeholder={t("placeholderSelectCategory")}
             className="h-8 text-xs"
           />
         )
@@ -275,7 +280,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
             value={row.category}
             onChange={(e) => updateRow(idx, "category", e.target.value)}
             options={getSubcategoriesFromData(categoryData, row.main_category).map((c) => ({ value: c, label: c }))}
-            placeholder="Select subcategory"
+            placeholder={t("placeholderSelectSubcategory")}
             className="h-8 text-xs"
           />
         )
@@ -336,8 +341,8 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
             value={row.pricing_type || "standard"}
             onChange={(e) => updateRow(idx, "pricing_type", e.target.value)}
             options={[
-              { value: "standard", label: "Standard" },
-              { value: "customized", label: "Customized" },
+              { value: "standard", label: t("pricingStandard") },
+              { value: "customized", label: t("pricingCustomized") },
             ]}
             className="h-8 text-xs"
           />
@@ -348,7 +353,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
             value={row.description ?? ""}
             onChange={(e) => updateRow(idx, "description", e.target.value)}
             className="h-8 text-xs"
-            placeholder="Description"
+            placeholder={t("colDescription")}
           />
         )
       case "image":
@@ -385,14 +390,14 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
                 <button
                   onClick={() => fileRefs.current[idx]?.click()}
                   className="h-10 w-10 rounded border border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors"
-                  title="Upload image"
+                  title={t("uploadImageTitle")}
                 >
                   <ImagePlus className="h-4 w-4 text-muted-foreground" />
                 </button>
                 <button
                   onClick={() => openGalleryPicker(idx)}
                   className="h-10 w-10 rounded border border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors"
-                  title="Choose from gallery"
+                  title={t("chooseFromGallery")}
                 >
                   <Images className="h-4 w-4 text-muted-foreground" />
                 </button>
@@ -414,12 +419,12 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
           <div className="flex items-center gap-3">
             <FileSpreadsheet className="h-5 w-5 text-primary" />
             <div>
-              <h2 className="text-lg font-semibold">Import Preview</h2>
+              <h2 className="text-lg font-semibold">{t("importPreviewTitle")}</h2>
               <p className="text-xs text-muted-foreground">
-                {rows.length} products ready to import — Drag column headers to reorder
+                {t("importPreviewDesc", { count: rows.length })}
                 {" · "}
                 <span className={isLive ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"}>
-                  Rate: $1 = ¥{rate.toFixed(2)} {isLive ? "(live)" : rateLoading ? "(loading…)" : "(fallback)"}
+                  {isLive ? t("rateLive", { rate: rate.toFixed(2) }) : rateLoading ? t("rateLoading", { rate: rate.toFixed(2) }) : t("rateFallback", { rate: rate.toFixed(2) })}
                 </span>
               </p>
             </div>
@@ -430,7 +435,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
         <div className="flex-1 overflow-auto px-6 py-4">
           {rows.length === 0 ? (
             <div className="py-16 text-center text-muted-foreground">
-              <p className="text-sm">No products to import. All rows have been removed.</p>
+              <p className="text-sm">{t("noProductsToImport")}</p>
             </div>
           ) : (
             <table className="w-full text-sm border-collapse">
@@ -503,12 +508,12 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
 
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t bg-card">
-          <p className="text-sm text-muted-foreground">{rows.length} products</p>
+          <p className="text-sm text-muted-foreground">{t("productCount", { count: rows.length })}</p>
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={onClose} disabled={importing}>Cancel</Button>
+            <Button variant="outline" onClick={onClose} disabled={importing}>{tCommon("cancel")}</Button>
             <Button onClick={handleFinish} disabled={rows.length === 0 || importing} className="gap-2">
               <Upload className="h-4 w-4" />
-              {importing ? "Importing..." : "Finish Import"}
+              {importing ? t("importing") : t("finishImport")}
             </Button>
           </div>
         </div>
@@ -521,10 +526,10 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
         <div className="flex items-center gap-3 pb-3 border-b">
           <Images className="h-5 w-5 text-primary" />
           <div className="flex-1">
-            <h2 className="text-lg font-semibold">Choose from Gallery</h2>
+            <h2 className="text-lg font-semibold">{t("chooseFromGalleryTitle")}</h2>
             {/* Breadcrumb */}
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-              <button onClick={() => loadGallery("")} className="hover:underline">Gallery</button>
+              <button onClick={() => loadGallery("")} className="hover:underline">{t("galleryRoot")}</button>
               {galleryPath.split("/").filter(Boolean).map((seg, i, arr) => (
                 <span key={i} className="flex items-center gap-1">
                   <ChevronRight className="h-3 w-3" />
@@ -543,15 +548,15 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
               onClick={() => loadGallery(galleryPath.split("/").slice(0, -1).join("/"))}
               className="gap-1"
             >
-              <ArrowLeft className="h-4 w-4" /> Back
+              <ArrowLeft className="h-4 w-4" /> {tCommon("back")}
             </Button>
           )}
         </div>
         <div className="flex-1 overflow-auto">
           {galleryLoading ? (
-            <div className="flex justify-center items-center py-12 text-muted-foreground text-sm">Loading…</div>
+            <div className="flex justify-center items-center py-12 text-muted-foreground text-sm">{t("galleryLoading")}</div>
           ) : galleryFolders.length === 0 && galleryFiles.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground text-sm">No images found in this folder.</div>
+            <div className="py-12 text-center text-muted-foreground text-sm">{t("noImagesInFolder")}</div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 pt-3">
               {galleryFolders.map((f) => (
@@ -572,7 +577,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
                 >
                   <NextImage src={item.publicUrl} alt={item.name} fill className="object-cover" sizes="160px" unoptimized />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="text-white text-xs font-medium px-2 py-1 bg-primary/80 rounded">Select</span>
+                    <span className="text-white text-xs font-medium px-2 py-1 bg-primary/80 rounded">{t("selectImage")}</span>
                   </div>
                 </button>
               ))}

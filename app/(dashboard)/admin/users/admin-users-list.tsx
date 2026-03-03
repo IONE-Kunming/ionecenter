@@ -110,7 +110,7 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
 
   const handleSaveCode = async (userId: string) => {
     if (!editingCodeValue.trim()) {
-      setCodeError("Code cannot be empty.")
+      setCodeError(tCommon("codeCannotBeEmpty"))
       return
     }
     setCodeSaving(true)
@@ -191,7 +191,7 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
                       <button
                         className="text-sm hover:underline cursor-pointer text-left"
                         onClick={() => startEditCode(user)}
-                        title="Click to edit user code"
+                        title={tCommon("clickToEditCode")}
                       >
                         {user.user_code || <span className="text-muted-foreground italic">Set code</span>}
                       </button>
@@ -215,7 +215,7 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
           </Table>
         </Card>
       ) : (
-        <EmptyState icon={Users} title={t("noUsers")} description="No users match your search." />
+        <EmptyState icon={Users} title={t("noUsers")} description={tCommon("noUsersMatch")} />
       )}
 
       {/* Edit User Modal */}
@@ -237,9 +237,9 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
                 value={editRole}
                 onChange={(e) => setEditRole(e.target.value)}
                 options={[
-                  { value: "admin", label: "Admin" },
-                  { value: "seller", label: "Seller" },
-                  { value: "buyer", label: "Buyer" },
+                  { value: "admin", label: tCommon("adminRole") },
+                  { value: "seller", label: tCommon("sellerRole") },
+                  { value: "buyer", label: tCommon("buyerRole") },
                 ]}
               />
             </div>
@@ -249,9 +249,9 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditUser(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setEditUser(null)}>{tCommon("cancel")}</Button>
             <Button onClick={handleEditSave} disabled={editSaving}>
-              {editSaving ? "Saving..." : "Save Changes"}
+              {editSaving ? tCommon("saving") : tCommon("save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -260,16 +260,16 @@ export function AdminUsersList({ users }: { users: UserRow[] }) {
       {/* Delete User Confirmation */}
       <Dialog open={!!deleteUser} onOpenChange={(v) => { if (!v) setDeleteUser(null) }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Delete User</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{tCommon("deleteUser")}</DialogTitle></DialogHeader>
           <div className="mt-4">
             <p className="text-sm text-muted-foreground">
               Are you sure you want to permanently delete <strong>{deleteUser?.display_name}</strong>? This action cannot be undone.
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteUser(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setDeleteUser(null)}>{tCommon("cancel")}</Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-              {deleting ? "Deleting..." : "Delete User"}
+              {deleting ? tCommon("deleting") : tCommon("deleteUser")}
             </Button>
           </DialogFooter>
         </DialogContent>

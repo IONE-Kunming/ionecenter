@@ -84,7 +84,7 @@ export function AdminProductsList({ products, initialSearch = "", categoryData }
         window.location.reload()
       }
     } catch {
-      setDeleteError("Failed to delete product")
+      setDeleteError(t("failedToDelete"))
     }
     setDeletingId(null)
   }
@@ -99,7 +99,7 @@ export function AdminProductsList({ products, initialSearch = "", categoryData }
       const rows = parseCSV(text)
       if (rows.length === 0) {
         setImportIsError(true)
-        setImportResult("No valid rows found in CSV.")
+        setImportResult(tBulk("noValidRows"))
         setImporting(false)
         return
       }
@@ -145,7 +145,7 @@ export function AdminProductsList({ products, initialSearch = "", categoryData }
         }
 
         return {
-          name: r.name || r.product_name || "Unnamed Product",
+          name: r.name || r.product_name || t("unnamedProduct"),
           model_number: r.model_number || "",
           main_category: mainCat,
           category: subCat,
@@ -166,7 +166,7 @@ export function AdminProductsList({ products, initialSearch = "", categoryData }
       }
     } catch {
       setImportIsError(true)
-      setImportResult("Failed to import CSV file.")
+      setImportResult(tBulk("importFailed"))
     }
     setImporting(false)
     if (fileInputRef.current) fileInputRef.current.value = ""

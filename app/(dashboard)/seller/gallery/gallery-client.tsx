@@ -94,7 +94,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
         const isImage = file.type.startsWith("image/")
         const isVideo = file.type.startsWith("video/")
         if (!isImage && !isVideo) {
-          setError("Only images and videos are allowed")
+          setError(t("onlyImagesVideos"))
           break
         }
         const ext = file.name.split(".").pop() || (isVideo ? "mp4" : "jpg")
