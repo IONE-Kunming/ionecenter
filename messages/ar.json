@@ -301,7 +301,11 @@
     "sellerName": "اسم البائع",
     "sellerEmail": "بريد البائع",
     "supplier": "المورد",
-    "printInvoice": "طباعة الفاتورة"
+    "printInvoice": "طباعة الفاتورة",
+    "deleteInvoice": "حذف الفاتورة",
+    "deleteInvoiceConfirmation": "هل أنت متأكد أنك تريد حذف هذه الفاتورة؟",
+    "invoiceDeleted": "تم حذف الفاتورة بنجاح",
+    "invoiceDeleteFailed": "فشل في حذف الفاتورة"
   },
   "notifications": {
     "unread": "{count} غير مقروءة",

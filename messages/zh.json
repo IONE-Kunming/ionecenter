@@ -301,7 +301,11 @@
     "sellerName": "卖方名称",
     "sellerEmail": "卖方邮箱",
     "supplier": "供应商",
-    "printInvoice": "打印发票"
+    "printInvoice": "打印发票",
+    "deleteInvoice": "删除发票",
+    "deleteInvoiceConfirmation": "您确定要删除此发票吗？",
+    "invoiceDeleted": "发票删除成功",
+    "invoiceDeleteFailed": "删除发票失败"
   },
   "notifications": {
     "unread": "{count} 条未读",

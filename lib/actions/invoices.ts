@@ -584,6 +584,40 @@ export async function updateOfflineInvoice(invoiceId: string, input: OfflineInvo
   return { success: true, invoice }
 }
 
+export async function deleteOrderInvoice(invoiceId: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return { error: "Not authorized" }
+
+  const adminSupabase = createAdminClient()
+
+  // Verify ownership
+  const { data: invoice } = await adminSupabase
+    .from("invoices")
+    .select("id, seller_id")
+    .eq("id", invoiceId)
+    .single()
+
+  if (!invoice || invoice.seller_id !== user.id) {
+    return { error: "Invoice not found or not authorized" }
+  }
+
+  // Delete invoice items first (also handled by ON DELETE CASCADE)
+  await adminSupabase
+    .from("invoice_items")
+    .delete()
+    .eq("invoice_id", invoiceId)
+
+  // Delete the invoice
+  const { error } = await adminSupabase
+    .from("invoices")
+    .delete()
+    .eq("id", invoiceId)
+
+  if (error) return { error: error.message }
+
+  return { success: true }
+}
+
 export async function deleteOfflineInvoice(invoiceId: string) {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return { error: "Not authorized" }

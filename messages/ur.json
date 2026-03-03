@@ -301,7 +301,11 @@
     "sellerName": "فروخت کنندہ کا نام",
     "sellerEmail": "فروخت کنندہ ای میل",
     "supplier": "فراہم کنندہ",
-    "printInvoice": "انوائس پرنٹ کریں"
+    "printInvoice": "انوائس پرنٹ کریں",
+    "deleteInvoice": "انوائس حذف کریں",
+    "deleteInvoiceConfirmation": "کیا آپ واقعی اس انوائس کو حذف کرنا چاہتے ہیں؟",
+    "invoiceDeleted": "انوائس کامیابی سے حذف ہو گئی",
+    "invoiceDeleteFailed": "انوائس حذف کرنے میں ناکامی"
   },
   "notifications": {
     "unread": "{count} غیر پڑھی ہوئی",

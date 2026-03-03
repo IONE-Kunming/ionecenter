@@ -7,12 +7,13 @@ import { Receipt, Search, Plus, Eye, Printer, Trash2, Pencil } from "lucide-reac
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { InvoiceStatusBadge } from "@/components/ui/status-badge"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useFormatters } from "@/lib/use-formatters"
 import { useToast } from "@/components/ui/toaster"
-import { deleteOfflineInvoice, getInvoice } from "@/lib/actions/invoices"
+import { deleteOfflineInvoice, deleteOrderInvoice, getInvoice } from "@/lib/actions/invoices"
 import Link from "@/components/ui/link"
 import type { InvoiceStatus, Invoice } from "@/types/database"
 
@@ -55,6 +56,8 @@ export function SellerInvoicesList({
   const [isPending, startTransition] = useTransition()
   const [search, setSearch] = useState("")
   const [printInvoice, setPrintInvoice] = useState<Invoice | null>(null)
+  const [deleteOrderTarget, setDeleteOrderTarget] = useState<OrderInvoiceRow | null>(null)
+  const [deletingOrder, setDeletingOrder] = useState(false)
 
   useEffect(() => {
     if (printInvoice) {
@@ -110,6 +113,24 @@ export function SellerInvoicesList({
         addToast("error", "Failed to fetch invoice data")
       }
     })
+  }
+
+  const handleDeleteOrder = async () => {
+    if (!deleteOrderTarget) return
+    setDeletingOrder(true)
+    try {
+      const result = await deleteOrderInvoice(deleteOrderTarget.id)
+      if (result.error) {
+        addToast("error", result.error)
+      } else {
+        addToast("success", t("invoiceDeleted"))
+        setDeleteOrderTarget(null)
+        router.refresh()
+      }
+    } catch {
+      addToast("error", t("invoiceDeleteFailed"))
+    }
+    setDeletingOrder(false)
   }
 
   const hasBuyerBank = printInvoice && (
@@ -169,6 +190,9 @@ export function SellerInvoicesList({
                         </Link>
                         <Button variant="ghost" size="sm" disabled={isPending} onClick={() => handlePrint(inv.id)}>
                           <Printer className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setDeleteOrderTarget(inv)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
                     </TableCell>
@@ -367,6 +391,24 @@ export function SellerInvoicesList({
         </div>
       </div>
     )}
+
+    {/* Delete Order Invoice Confirmation */}
+    <Dialog open={!!deleteOrderTarget} onOpenChange={(v) => { if (!v) setDeleteOrderTarget(null) }}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>{t("deleteInvoice")}</DialogTitle></DialogHeader>
+        <div className="mt-4">
+          <p className="text-sm text-muted-foreground">
+            {t("deleteInvoiceConfirmation")}
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setDeleteOrderTarget(null)}>{tCommon("cancel")}</Button>
+          <Button variant="destructive" onClick={handleDeleteOrder} disabled={deletingOrder}>
+            {tCommon("delete")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </>
   )
 }
