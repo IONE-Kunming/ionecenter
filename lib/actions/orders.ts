@@ -257,8 +257,11 @@ export async function createOrdersFromCart(
 
     if (itemsError) return { error: itemsError.message }
 
-    // Create invoice for deposit using admin client (bypasses RLS)
-    await createInvoice(order.id)
+    // Create invoice for this order
+    const invoiceResult = await createInvoice(order.id)
+    if (invoiceResult.error) {
+      console.error(`Failed to create invoice for order ${order.id}:`, invoiceResult.error)
+    }
 
     createdOrderIds.push(order.id)
   }
