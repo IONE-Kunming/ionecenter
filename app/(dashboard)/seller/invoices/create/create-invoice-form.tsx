@@ -328,7 +328,7 @@ export function CreateOfflineInvoiceForm() {
       setBuyerSuggestions(results)
       setShowBuyerSuggestions(true)
     }, 300)
-  }, [recentBuyers.length])
+  }, [recentBuyers])
 
   const selectBuyer = useCallback(async (buyer: BuyerResult) => {
     setBuyerSearchQuery("")
@@ -356,8 +356,8 @@ export function CreateOfflineInvoiceForm() {
         setBuyerName(result.display_name ?? "")
         setBuyerEmail(result.email ?? "")
         setBuyerCode(result.user_code ?? "")
-        // Save to seller's buyer list
-        saveSellerBuyer(buyer.id)
+        // Save to seller's buyer list (best-effort)
+        saveSellerBuyer(buyer.id).catch(() => {})
         return
       }
     }
@@ -380,8 +380,8 @@ export function CreateOfflineInvoiceForm() {
     setBuyerName(buyer.display_name)
     setBuyerEmail(buyer.email)
     setBuyerCode(buyer.user_code ?? "")
-    // Save to seller's buyer list
-    saveSellerBuyer(buyer.id)
+    // Save to seller's buyer list (best-effort)
+    saveSellerBuyer(buyer.id).catch(() => {})
   }, [])
 
   const clearFoundBuyer = useCallback(() => {

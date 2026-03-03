@@ -178,7 +178,7 @@ export async function searchBuyers(query: string) {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return []
 
-  const safe = query.replace(/[%_]/g, "")
+  const safe = query.replace(/[%_\\]/g, "")
   const adminSupabase = createAdminClient()
   const { data } = await adminSupabase
     .from("users")
