@@ -110,6 +110,7 @@ export function SellerInvoicesList({
                   <TableHead>{t("buyerEmail")}</TableHead>
                   <TableHead>{tCommon("total")}</TableHead>
                   <TableHead>{tCommon("status")}</TableHead>
+                  <TableHead>{tCommon("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -121,6 +122,11 @@ export function SellerInvoicesList({
                     <TableCell>{inv.buyer_email}</TableCell>
                     <TableCell>{formatCurrency(inv.total)}</TableCell>
                     <TableCell><InvoiceStatusBadge status={inv.status} /></TableCell>
+                    <TableCell>
+                      <Link href={`/seller/invoices/${inv.id}`}>
+                        <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
+                      </Link>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

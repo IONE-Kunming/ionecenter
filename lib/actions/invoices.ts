@@ -120,6 +120,13 @@ export async function getInvoice(invoiceId: string): Promise<Invoice | null> {
 
   if (!invoice) return null
 
+  // Only the buyer, seller, or an admin may view this invoice
+  const isParticipant =
+    invoice.buyer_id === user.id ||
+    invoice.seller_id === user.id ||
+    user.role === "admin"
+  if (!isParticipant) return null
+
   const { data: items } = await supabase
     .from("invoice_items")
     .select("*")
