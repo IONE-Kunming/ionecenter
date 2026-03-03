@@ -406,7 +406,9 @@
     "urdu": "الأردية",
     "yourBuyerCode": "رمز المشتري الخاص بك",
     "yourSellerCode": "رمز البائع الخاص بك",
-    "copyCode": "نسخ الرمز"
+    "copyCode": "نسخ الرمز",
+    "showCategoryNumbers": "إظهار أرقام الفئات",
+    "catalogPreferences": "تفضيلات الكتالوج"
   },
   "sellerDirectory": {
     "searchSellers": "البحث عن البائعين...",

@@ -406,7 +406,9 @@
     "urdu": "اردو",
     "yourBuyerCode": "آپ کا خریدار کوڈ",
     "yourSellerCode": "آپ کا بیچنے والے کا کوڈ",
-    "copyCode": "کوڈ کاپی کریں"
+    "copyCode": "کوڈ کاپی کریں",
+    "showCategoryNumbers": "زمرے کے نمبر دکھائیں",
+    "catalogPreferences": "کیٹلاگ کی ترجیحات"
   },
   "sellerDirectory": {
     "searchSellers": "فروخت کنندگان تلاش کریں...",

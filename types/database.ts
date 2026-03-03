@@ -38,6 +38,7 @@ export interface User {
   bank_address: string | null
   currency: string
   payment_notes: string | null
+  show_category_numbers: boolean
   user_code: string | null
   created_at: string
   updated_at: string
