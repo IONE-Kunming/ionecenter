@@ -123,9 +123,14 @@ export function SellerInvoicesList({
                     <TableCell>{formatCurrency(inv.total)}</TableCell>
                     <TableCell><InvoiceStatusBadge status={inv.status} /></TableCell>
                     <TableCell>
-                      <Link href={`/seller/invoices/${inv.id}`}>
-                        <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
-                      </Link>
+                      <div className="flex items-center gap-1">
+                        <Link href={`/seller/invoices/${inv.id}`}>
+                          <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
+                        </Link>
+                        <Link href={`/seller/invoices/${inv.id}?print=true`}>
+                          <Button variant="ghost" size="sm"><Printer className="h-4 w-4" /></Button>
+                        </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
