@@ -392,7 +392,7 @@ export function SellerInvoicesList({
       </div>
     )}
     {/* Delete confirmation dialog */}
-    <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
+    <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("deleteInvoice")}</DialogTitle>
