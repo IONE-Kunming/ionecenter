@@ -1,23 +1,25 @@
 "use client"
 
 import { useTransition } from "react"
-
+import { useTranslations } from "next-intl"
 import { Select } from "@/components/ui/select"
 import { updateOrderStatus } from "@/lib/actions/orders"
 import type { OrderStatus } from "@/types/database"
 
-const statusOptions: { value: OrderStatus; label: string }[] = [
-  { value: "under_review", label: "Under Review" },
-  { value: "confirmed", label: "Confirmed" },
-  { value: "in_production", label: "In Production" },
-  { value: "out_of_production", label: "Out of Production" },
-  { value: "shipped", label: "Shipped" },
-  { value: "arrived_at_port", label: "Arrived at Port" },
-  { value: "delivered", label: "Delivered" },
-]
-
 export function StatusUpdate({ orderId, currentStatus }: { orderId: string; currentStatus: OrderStatus }) {
+  const t = useTranslations("orders")
+  const tCommon = useTranslations("common")
   const [isPending, startTransition] = useTransition()
+
+  const statusOptions: { value: OrderStatus; label: string }[] = [
+    { value: "under_review", label: t("underReview") },
+    { value: "confirmed", label: t("confirmed") },
+    { value: "in_production", label: t("inProduction") },
+    { value: "out_of_production", label: t("outOfProduction") },
+    { value: "shipped", label: tCommon("shipped") },
+    { value: "arrived_at_port", label: t("arrivedAtPort") },
+    { value: "delivered", label: tCommon("delivered") },
+  ]
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newStatus = e.target.value as OrderStatus

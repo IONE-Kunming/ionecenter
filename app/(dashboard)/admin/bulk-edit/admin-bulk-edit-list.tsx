@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useTranslations } from "next-intl"
 import { BulkEditTable, type BulkEditProduct, type ImportRow } from "@/components/bulk-edit/bulk-edit-table"
 import { adminBulkUpdateProducts, adminDeleteProduct, adminBulkImportProducts } from "@/lib/actions/admin"
 import { Select } from "@/components/ui/select"
@@ -25,6 +26,7 @@ export function AdminBulkEditList({
   sellers: Seller[]
   categoryData: CategoryData
 }) {
+  const t = useTranslations("bulkEdit")
   const [selectedSellerId, setSelectedSellerId] = useState("")
 
   const filteredProducts = useMemo(() => {
@@ -65,12 +67,12 @@ export function AdminBulkEditList({
     <div className="space-y-4">
       {/* Seller selector */}
       <div className="flex items-center gap-3">
-        <label className="text-sm font-medium whitespace-nowrap">Filter by seller:</label>
+        <label className="text-sm font-medium whitespace-nowrap">{t("filterBySeller")}</label>
         <Select
           value={selectedSellerId}
           onChange={(e) => setSelectedSellerId(e.target.value)}
           options={sellerOptions}
-          placeholder="All Sellers"
+          placeholder={t("allSellers")}
           className="w-full max-w-sm"
         />
       </div>
@@ -80,10 +82,10 @@ export function AdminBulkEditList({
         onSave={handleSave}
         onDelete={handleDelete}
         onImport={handleImport}
-        title="Admin Bulk Edit"
+        title={t("adminBulkEditTitle")}
         subtitle={selectedSellerId
-          ? `MANAGING PRODUCTS FOR: ${sellers.find((s) => s.id === selectedSellerId)?.display_name ?? "SELECTED SELLER"}`
-          : "ALL SELLER PRODUCTS — INLINE EDITOR"
+          ? `${t("managingProductsFor")} ${sellers.find((s) => s.id === selectedSellerId)?.display_name ?? t("selectedSeller")}`
+          : t("adminBulkEditSubtitle")
         }
         categoryData={categoryData}
       />
