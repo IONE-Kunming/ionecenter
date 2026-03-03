@@ -55,13 +55,14 @@ export default async function LandingPage() {
   const footerT = await getTranslations("footer")
   const teamT = await getTranslations("team")
 
-  // Fetch video URL from Supabase site settings
-  let videoSrc = ""
+  // Fetch video URL from Supabase site settings, fall back to default asset
+  const DEFAULT_VIDEO_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/site-assets/videos/homepage-video.mp4`
+  let videoSrc = DEFAULT_VIDEO_URL
   try {
     const supabaseVideoUrl = await getSiteSetting("homepage_video_url")
     if (supabaseVideoUrl) videoSrc = supabaseVideoUrl
   } catch {
-    // No video available if site_settings table doesn't exist yet
+    // Keep the default if site_settings table doesn't exist yet
   }
 
   // Derive MIME type from the URL path (strip any query string first)
