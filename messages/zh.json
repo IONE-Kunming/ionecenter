@@ -1166,6 +1166,8 @@
     "searchBuyer": "搜索买家",
     "searchBuyerPlaceholder": "按姓名、邮箱或买家代码搜索...",
     "recentBuyers": "最近的买家",
-    "allBuyers": "所有买家"
+    "allBuyers": "所有买家",
+    "updateInvoice": "更新发票",
+    "invoiceUpdatedSuccess": "发票更新成功"
   }
 }
