@@ -1161,6 +1161,9 @@
     "searchBuyer": "Search Buyer",
     "searchBuyerPlaceholder": "Search by name, email, or buyer code...",
     "recentBuyers": "Recent Buyers",
-    "allBuyers": "All Buyers"
+    "allBuyers": "All Buyers",
+    "myBuyers": "My Buyers",
+    "myBuyersSearch": "Search by name, email, or code...",
+    "noPreviousBuyers": "No previous buyers found"
   }
 }

@@ -1166,6 +1166,9 @@
     "searchBuyer": "خریدار تلاش کریں",
     "searchBuyerPlaceholder": "نام، ای میل، یا خریدار کوڈ سے تلاش کریں...",
     "recentBuyers": "حالیہ خریدار",
-    "allBuyers": "تمام خریدار"
+    "allBuyers": "تمام خریدار",
+    "myBuyers": "میرے خریدار",
+    "myBuyersSearch": "نام، ای میل، یا کوڈ سے تلاش کریں...",
+    "noPreviousBuyers": "کوئی پچھلے خریدار نہیں ملے"
   }
 }

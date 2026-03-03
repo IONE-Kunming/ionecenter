@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react"
 import { useTranslations } from "next-intl"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2, AlertTriangle, User, Pencil, ChevronDown, ChevronUp, Globe } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2, AlertTriangle, User, Pencil, ChevronDown, ChevronUp, Globe, Users } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
 import { useFormatters } from "@/lib/use-formatters"
-import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers, getNextSellerInvoiceNumber, searchBuyerByCode, getSellerRecentBuyers, saveSellerBuyer } from "@/lib/actions/invoices"
+import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers, getNextSellerInvoiceNumber, searchBuyerByCode, getSellerRecentBuyers, saveSellerBuyer, getMyBuyers } from "@/lib/actions/invoices"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 
@@ -263,6 +263,11 @@ export function CreateOfflineInvoiceForm() {
   const [bankInfoLoaded, setBankInfoLoaded] = useState(false)
   const [buyerBankInfo, setBuyerBankInfo] = useState<BuyerBankInfo>({ ...emptyBuyerBankInfo })
   const [showBuyerBankSection, setShowBuyerBankSection] = useState(false)
+  const [showMyBuyers, setShowMyBuyers] = useState(false)
+  const [myBuyers, setMyBuyers] = useState<BuyerResult[]>([])
+  const [myBuyersLoading, setMyBuyersLoading] = useState(false)
+  const [myBuyersLoaded, setMyBuyersLoaded] = useState(false)
+  const [myBuyersFilter, setMyBuyersFilter] = useState("")
 
   const [rows, setRows] = useState<InvoiceRow[]>([
     {
@@ -281,6 +286,7 @@ export function CreateOfflineInvoiceForm() {
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const buyerSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const buyerBlurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const myBuyersRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     return () => {
@@ -310,6 +316,35 @@ export function CreateOfflineInvoiceForm() {
     })
   }, [])
 
+  // Close My Buyers dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (myBuyersRef.current && !myBuyersRef.current.contains(event.target as Node)) {
+        setShowMyBuyers(false)
+      }
+    }
+    if (showMyBuyers) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [showMyBuyers])
+
+  const handleToggleMyBuyers = useCallback(async () => {
+    if (showMyBuyers) {
+      setShowMyBuyers(false)
+      return
+    }
+    setShowMyBuyers(true)
+    setMyBuyersFilter("")
+    if (!myBuyersLoaded) {
+      setMyBuyersLoading(true)
+      const buyers = await getMyBuyers()
+      setMyBuyers(buyers)
+      setMyBuyersLoaded(true)
+      setMyBuyersLoading(false)
+    }
+  }, [showMyBuyers, myBuyersLoaded])
+
   const handleBuyerSearch = useCallback(async (query: string) => {
     setBuyerSearchQuery(query)
     setShowBuyerSuggestions(true)
@@ -334,6 +369,7 @@ export function CreateOfflineInvoiceForm() {
     setBuyerSearchQuery("")
     setBuyerSuggestions([])
     setShowBuyerSuggestions(false)
+    setShowMyBuyers(false)
 
     // Look up full buyer info (bank details etc.) if buyer has a user_code
     if (buyer.user_code) {
@@ -802,7 +838,76 @@ export function CreateOfflineInvoiceForm() {
             ) : (
               <div className="space-y-4">
                 <div className="space-y-2 print:hidden">
-                  <Label htmlFor="buyerSearch">{t("searchBuyer")}</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="buyerSearch">{t("searchBuyer")}</Label>
+                    <div className="relative" ref={myBuyersRef}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleToggleMyBuyers}
+                        className="text-xs h-7"
+                      >
+                        <Users className="h-3.5 w-3.5 mr-1" />
+                        {t("myBuyers")}
+                      </Button>
+                      {showMyBuyers && (
+                        <div className="absolute right-0 z-20 mt-1 w-80 bg-background border rounded-md shadow-lg print:hidden">
+                          <div className="p-2 border-b">
+                            <Input
+                              value={myBuyersFilter}
+                              onChange={(e) => setMyBuyersFilter(e.target.value)}
+                              placeholder={t("myBuyersSearch")}
+                              className="h-8 text-sm"
+                              autoComplete="off"
+                              autoFocus
+                            />
+                          </div>
+                          <div className="max-h-60 overflow-y-auto">
+                            {myBuyersLoading ? (
+                              <div className="flex items-center justify-center py-4">
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                              </div>
+                            ) : myBuyers.length === 0 ? (
+                              <div className="px-3 py-4 text-sm text-muted-foreground text-center">
+                                {t("noPreviousBuyers")}
+                              </div>
+                            ) : (() => {
+                              const filter = myBuyersFilter.toLowerCase()
+                              const filtered = filter
+                                ? myBuyers.filter(
+                                    (b) =>
+                                      b.display_name.toLowerCase().includes(filter) ||
+                                      b.email.toLowerCase().includes(filter) ||
+                                      b.user_code?.toLowerCase().includes(filter)
+                                  )
+                                : myBuyers
+                              return filtered.length === 0 ? (
+                                <div className="px-3 py-4 text-sm text-muted-foreground text-center">
+                                  {t("noPreviousBuyers")}
+                                </div>
+                              ) : (
+                                filtered.map((buyer) => (
+                                  <button
+                                    key={buyer.id}
+                                    type="button"
+                                    className="w-full text-left px-3 py-2 text-sm hover:bg-accent cursor-pointer"
+                                    onClick={() => selectBuyer(buyer)}
+                                  >
+                                    {buyer.user_code && (
+                                      <span className="font-mono text-xs text-muted-foreground mr-2">{buyer.user_code}</span>
+                                    )}
+                                    <span className="font-medium">{buyer.display_name}</span>
+                                    <span className="text-muted-foreground ml-2">— {buyer.email}</span>
+                                  </button>
+                                ))
+                              )
+                            })()}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   <div className="relative">
                     <Input
                       id="buyerSearch"
