@@ -1,6 +1,7 @@
 "use server"
 
 import { auth, currentUser } from "@clerk/nextjs/server"
+import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import type { User } from "@/types/database"
 import type { SupabaseClient } from "@supabase/supabase-js"
@@ -118,6 +119,11 @@ export async function updateUserProfile(
     .eq("id", user.id)
 
   if (error) return { error: error.message }
+
+  if ("show_category_numbers" in updates) {
+    revalidatePath("/buyer/catalog")
+  }
+
   return { success: true }
 }
 
