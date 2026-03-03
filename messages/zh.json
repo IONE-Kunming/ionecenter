@@ -306,7 +306,9 @@
     "sellerName": "卖方名称",
     "sellerEmail": "卖方邮箱",
     "supplier": "供应商",
-    "printInvoice": "打印发票"
+    "printInvoice": "打印发票",
+    "deleteInvoice": "删除发票",
+    "deleteInvoiceConfirm": "您确定要删除此发票吗？此操作无法撤消。"
   },
   "notifications": {
     "unread": "{count} 条未读",
