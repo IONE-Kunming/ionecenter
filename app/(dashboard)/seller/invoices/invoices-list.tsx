@@ -7,6 +7,7 @@ import { Receipt, Search, Plus, Eye, Printer, Trash2, Pencil } from "lucide-reac
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { InvoiceStatusBadge } from "@/components/ui/status-badge"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -55,6 +56,7 @@ export function SellerInvoicesList({
   const [isPending, startTransition] = useTransition()
   const [search, setSearch] = useState("")
   const [printInvoice, setPrintInvoice] = useState<Invoice | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; type: "order" | "buyer" } | null>(null)
 
   useEffect(() => {
     if (printInvoice) {
@@ -186,7 +188,7 @@ export function SellerInvoicesList({
                         <Button variant="ghost" size="sm" disabled={isPending} onClick={() => handlePrint(inv.id)}>
                           <Printer className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" disabled={isPending} onClick={() => handleDeleteOrderInvoice(inv.id)}>
+                        <Button variant="ghost" size="sm" disabled={isPending} onClick={() => setDeleteTarget({ id: inv.id, type: "order" })}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
@@ -249,7 +251,7 @@ export function SellerInvoicesList({
                           variant="ghost"
                           size="sm"
                           disabled={isPending}
-                          onClick={() => handleDelete(inv.id)}
+                          onClick={() => setDeleteTarget({ id: inv.id, type: "buyer" })}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -389,6 +391,37 @@ export function SellerInvoicesList({
         </div>
       </div>
     )}
+    {/* Delete confirmation dialog */}
+    <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("deleteInvoice")}</DialogTitle>
+          <DialogDescription>
+            {t("deleteInvoiceConfirm")}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+            {tCommon("cancel")}
+          </Button>
+          <Button
+            variant="destructive"
+            disabled={isPending}
+            onClick={() => {
+              if (!deleteTarget) return
+              if (deleteTarget.type === "order") {
+                handleDeleteOrderInvoice(deleteTarget.id)
+              } else {
+                handleDelete(deleteTarget.id)
+              }
+              setDeleteTarget(null)
+            }}
+          >
+            {tCommon("delete")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </>
   )
 }

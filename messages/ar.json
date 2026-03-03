@@ -306,7 +306,9 @@
     "sellerName": "اسم البائع",
     "sellerEmail": "بريد البائع",
     "supplier": "المورد",
-    "printInvoice": "طباعة الفاتورة"
+    "printInvoice": "طباعة الفاتورة",
+    "deleteInvoice": "حذف الفاتورة",
+    "deleteInvoiceConfirm": "هل أنت متأكد أنك تريد حذف هذه الفاتورة؟ لا يمكن التراجع عن هذا الإجراء."
   },
   "notifications": {
     "unread": "{count} غير مقروءة",
