@@ -235,7 +235,7 @@ const emptyBuyerBankInfo: BuyerBankInfo = {
   bank_address: "",
 }
 
-interface EditData {
+export interface EditData {
   id: string
   invoice_number: string
   buyer_name: string

@@ -500,10 +500,12 @@ export async function updateOfflineInvoice(invoiceId: string, input: OfflineInvo
     return { error: invoiceError?.message ?? "Failed to update invoice" }
 
   // Delete old items and insert new ones
-  await adminSupabase
+  const { error: deleteError } = await adminSupabase
     .from("offline_invoice_items")
     .delete()
     .eq("invoice_id", invoiceId)
+
+  if (deleteError) return { error: deleteError.message }
 
   if (input.items.length > 0) {
     const invoiceItems = input.items.map((item) => ({
