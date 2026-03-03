@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl"
 import { Receipt, Search, Plus, Eye, Printer, Trash2, Pencil } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { InvoiceStatusBadge } from "@/components/ui/status-badge"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -164,8 +164,8 @@ export function SellerInvoicesList({
                     <TableCell><InvoiceStatusBadge status={inv.status} /></TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Link href={`/seller/invoices/${inv.id}`}>
-                          <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
+                        <Link href={`/seller/invoices/${inv.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                          <Eye className="h-4 w-4" />
                         </Link>
                         <Button variant="ghost" size="sm" disabled={isPending} onClick={() => handlePrint(inv.id)}>
                           <Printer className="h-4 w-4" />
