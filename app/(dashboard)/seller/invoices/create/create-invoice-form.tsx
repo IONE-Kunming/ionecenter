@@ -266,6 +266,7 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
   const [buyerSearchQuery, setBuyerSearchQuery] = useState("")
   const [buyerSuggestions, setBuyerSuggestions] = useState<BuyerResult[]>([])
   const [showBuyerSuggestions, setShowBuyerSuggestions] = useState(false)
+  const [buyerSearchLoading, setBuyerSearchLoading] = useState(false)
   const [recentBuyers, setRecentBuyers] = useState<BuyerResult[]>([])
   const [myBuyers, setMyBuyers] = useState<BuyerResult[]>([])
   const [showMyBuyers, setShowMyBuyers] = useState(false)
@@ -391,16 +392,19 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
 
     if (buyerSearchTimerRef.current) clearTimeout(buyerSearchTimerRef.current)
 
-    if (query.length < 2) {
+    if (query.length < 1) {
       setBuyerSuggestions([])
-      // Show recent buyers when query is short
+      setBuyerSearchLoading(false)
+      // Show recent buyers when query is empty
       setShowBuyerSuggestions(recentBuyers.length > 0)
       return
     }
 
+    setBuyerSearchLoading(true)
     buyerSearchTimerRef.current = setTimeout(async () => {
       const results = await searchBuyers(query)
       setBuyerSuggestions(results)
+      setBuyerSearchLoading(false)
       setShowBuyerSuggestions(true)
     }, 300)
   }, [recentBuyers])
@@ -886,7 +890,9 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
                         value={buyerSearchQuery}
                         onChange={(e) => handleBuyerSearch(e.target.value)}
                         onFocus={() => {
-                          if (buyerSearchQuery.length < 2 && recentBuyers.length > 0) {
+                          if (buyerSearchQuery.length < 1 && recentBuyers.length > 0) {
+                            setShowBuyerSuggestions(true)
+                          } else if (buyerSearchQuery.length >= 1) {
                             setShowBuyerSuggestions(true)
                           } else if (buyerSuggestions.length > 0) {
                             setShowBuyerSuggestions(true)
@@ -902,9 +908,9 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
                         className="print:border-none print:p-0 print:shadow-none"
                         autoComplete="off"
                       />
-                    {showBuyerSuggestions && (buyerSearchQuery.length < 2 ? recentBuyers.length > 0 : buyerSuggestions.length > 0) && (
+                    {showBuyerSuggestions && (buyerSearchQuery.length < 1 ? recentBuyers.length > 0 : true) && (
                       <div className="absolute z-10 mt-1 w-full bg-background border rounded-md shadow-lg max-h-60 overflow-y-auto print:hidden">
-                        {buyerSearchQuery.length < 2 ? (
+                        {buyerSearchQuery.length < 1 ? (
                           <>
                             <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide border-b">
                               {t("recentBuyers")}
@@ -995,6 +1001,16 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
                                 <span className="text-muted-foreground ml-2">— {buyer.email}</span>
                               </button>
                             ))}
+                            {buyerSuggestions.length === 0 && !buyerSearchLoading && (
+                              <div className="px-3 py-4 text-sm text-muted-foreground text-center">
+                                {t("noBuyersFound")}
+                              </div>
+                            )}
+                            {buyerSearchLoading && buyerSuggestions.length === 0 && (
+                              <div className="flex items-center justify-center py-4">
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                              </div>
+                            )}
                           </>
                         )}
                       </div>

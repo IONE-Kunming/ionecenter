@@ -1166,6 +1166,7 @@
     "invoiceUpdatedSuccess": "Invoice updated successfully",
     "myBuyers": "My Buyers",
     "myBuyersSearch": "Search by name, email, or code...",
-    "noPreviousBuyers": "No previous buyers found"
+    "noPreviousBuyers": "No previous buyers found",
+    "noBuyersFound": "No buyers found"
   }
 }

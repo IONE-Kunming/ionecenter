@@ -1171,6 +1171,7 @@
     "invoiceUpdatedSuccess": "انوائس کامیابی سے اپ ڈیٹ ہو گئی",
     "myBuyers": "میرے خریدار",
     "myBuyersSearch": "نام، ای میل، یا کوڈ سے تلاش کریں...",
-    "noPreviousBuyers": "کوئی پچھلے خریدار نہیں ملے"
+    "noPreviousBuyers": "کوئی پچھلے خریدار نہیں ملے",
+    "noBuyersFound": "کوئی خریدار نہیں ملے"
   }
 }
