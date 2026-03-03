@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const invoice = await getCachedInvoice(id)
   const t = await getTranslations("invoices")
   if (!invoice) return { title: t("invoiceDetails") }
-  return { title: `${t("invoice")} ${invoice.invoice_number}` }
+  return { title: t("invoiceDetails") }
 }
 
 export default async function SellerInvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
