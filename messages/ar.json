@@ -1171,6 +1171,7 @@
     "invoiceUpdatedSuccess": "تم تحديث الفاتورة بنجاح",
     "myBuyers": "مشترياتي",
     "myBuyersSearch": "البحث بالاسم أو البريد الإلكتروني أو الرمز...",
-    "noPreviousBuyers": "لم يتم العثور على مشترين سابقين"
+    "noPreviousBuyers": "لم يتم العثور على مشترين سابقين",
+    "noBuyersFound": "لم يتم العثور على مشترين"
   }
 }

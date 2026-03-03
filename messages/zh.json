@@ -1171,6 +1171,7 @@
     "invoiceUpdatedSuccess": "发票更新成功",
     "myBuyers": "我的买家",
     "myBuyersSearch": "按名称、邮箱或代码搜索...",
-    "noPreviousBuyers": "未找到以前的买家"
+    "noPreviousBuyers": "未找到以前的买家",
+    "noBuyersFound": "未找到买家"
   }
 }
