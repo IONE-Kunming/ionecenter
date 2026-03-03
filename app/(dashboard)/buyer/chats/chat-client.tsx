@@ -345,18 +345,18 @@ export default function ChatClient({ conversations, currentUserId, userRole, ini
                   key={conv.id}
                   onClick={() => selectConversation(conv.id)}
                   className={cn(
-                    "w-full flex items-start gap-3 p-4 border-b hover:bg-accent transition-colors text-left",
-                    selectedId === conv.id && "bg-accent"
+                    "w-full flex items-start gap-3 p-4 border-b hover:bg-accent transition-colors text-left dark:hover:text-black",
+                    selectedId === conv.id && "bg-accent dark:text-black"
                   )}
                 >
                   <Avatar alt={other.display_name} fallback={other.display_name.charAt(0)} size="sm" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{other.display_name}</span>
-                      <span className="text-xs text-muted-foreground">{formatMessageTime(conv.last_message_at)}</span>
+                      <span className="text-xs">{formatMessageTime(conv.last_message_at)}</span>
                     </div>
-                    {other.company && <p className="text-xs text-muted-foreground">{other.company}</p>}
-                    <p className="text-xs text-muted-foreground truncate">{conv.last_message ?? t("noMessagesYet")}</p>
+                    {other.company && <p className="text-xs">{other.company}</p>}
+                    <p className="text-xs truncate">{conv.last_message ?? t("noMessagesYet")}</p>
                   </div>
                 </button>
               )
