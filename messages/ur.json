@@ -1162,6 +1162,10 @@
     "pdfDownloadedAttachWhatsApp": "PDF ڈاؤن لوڈ ہو گئی — براہ کرم اسے اپنے واٹس ایپ پیغام میں منسلک کریں",
     "buyerCodeRequired": "خریدار کوڈ ضروری ہے",
     "separateOrdersWillBeCreated": "{count} الگ آرڈرز بنائے جائیں گے (فی بیچنے والا ایک)",
-    "searchFailed": "تلاش ناکام ہوئی۔ براہ کرم دوبارہ کوشش کریں۔"
+    "searchFailed": "تلاش ناکام ہوئی۔ براہ کرم دوبارہ کوشش کریں۔",
+    "searchBuyer": "خریدار تلاش کریں",
+    "searchBuyerPlaceholder": "نام، ای میل، یا خریدار کوڈ سے تلاش کریں...",
+    "recentBuyers": "حالیہ خریدار",
+    "allBuyers": "تمام خریدار"
   }
 }

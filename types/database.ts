@@ -273,6 +273,13 @@ export interface OfflineInvoiceItem {
   created_at: string
 }
 
+export interface SellerBuyer {
+  id: string
+  seller_id: string
+  buyer_id: string
+  created_at: string
+}
+
 export interface DashboardStats {
   totalOrders: number
   totalRevenue: number

@@ -178,15 +178,66 @@ export async function searchBuyers(query: string) {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return []
 
+  const safe = query.replace(/[%_]/g, "")
   const adminSupabase = createAdminClient()
   const { data } = await adminSupabase
     .from("users")
-    .select("id, display_name, email")
+    .select("id, display_name, email, user_code")
     .eq("role", "buyer")
-    .or(`display_name.ilike.%${query}%,email.ilike.%${query}%`)
+    .or(`display_name.ilike.%${safe}%,email.ilike.%${safe}%,user_code.ilike.%${safe}%`)
     .limit(10)
 
   return data ?? []
+}
+
+export async function getSellerRecentBuyers() {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return []
+
+  const adminSupabase = createAdminClient()
+  const { data: sellerBuyers } = await adminSupabase
+    .from("seller_buyers")
+    .select("buyer_id, created_at")
+    .eq("seller_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(10)
+
+  if (!sellerBuyers || sellerBuyers.length === 0) return []
+
+  const buyerIds = sellerBuyers.map((sb) => sb.buyer_id)
+  const { data: buyers } = await adminSupabase
+    .from("users")
+    .select("id, display_name, email, user_code")
+    .in("id", buyerIds)
+
+  if (!buyers) return []
+
+  // Preserve the order from seller_buyers (most recent first)
+  const buyerMap = new Map(buyers.map((b) => [b.id, b]))
+  return buyerIds.map((id) => buyerMap.get(id)).filter(Boolean) as {
+    id: string
+    display_name: string
+    email: string
+    user_code: string | null
+  }[]
+}
+
+export async function saveSellerBuyer(buyerId: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return { error: "Not authorized" }
+
+  const adminSupabase = createAdminClient()
+
+  // Upsert: if already exists, update created_at to move it to the top of recents
+  const { error } = await adminSupabase
+    .from("seller_buyers")
+    .upsert(
+      { seller_id: user.id, buyer_id: buyerId, created_at: new Date().toISOString() },
+      { onConflict: "seller_id,buyer_id" }
+    )
+
+  if (error) return { error: error.message }
+  return { success: true }
 }
 
 export async function searchBuyerByCode(buyerCode: string) {

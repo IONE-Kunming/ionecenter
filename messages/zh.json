@@ -1162,6 +1162,10 @@
     "pdfDownloadedAttachWhatsApp": "PDF 已下载 - 请将其附加到您的 WhatsApp 消息中",
     "buyerCodeRequired": "买家代码为必填项",
     "separateOrdersWillBeCreated": "将创建 {count} 个单独的订单（每个卖家一个）",
-    "searchFailed": "搜索失败，请重试。"
+    "searchFailed": "搜索失败，请重试。",
+    "searchBuyer": "搜索买家",
+    "searchBuyerPlaceholder": "按姓名、邮箱或买家代码搜索...",
+    "recentBuyers": "最近的买家",
+    "allBuyers": "所有买家"
   }
 }
