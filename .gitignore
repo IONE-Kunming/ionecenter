@@ -38,3 +38,8 @@ next-env.d.ts
 
 # turbopack
 .turbo
+
+# local video files (should be uploaded to Supabase storage instead)
+public/*.mp4
+public/*.webm
+public/*.mov
