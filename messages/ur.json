@@ -322,7 +322,8 @@
     "separateOrders": "{count} الگ آرڈرز بنائے جائیں گے (فی بیچنے والا ایک)",
     "goToCart": "کارٹ پر جائیں",
     "addedToCart": "کارٹ میں شامل ہو گیا!",
-    "addToCart": "کارٹ میں شامل کریں"
+    "addToCart": "کارٹ میں شامل کریں",
+    "outOfStock": "اسٹاک میں نہیں"
   },
   "checkout": {
     "title": "چیک آؤٹ",

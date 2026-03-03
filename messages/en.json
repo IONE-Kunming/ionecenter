@@ -322,7 +322,8 @@
     "separateOrders": "{count} separate orders will be created (one per seller)",
     "goToCart": "Go to Cart",
     "addedToCart": "Added to cart!",
-    "addToCart": "Add to Cart"
+    "addToCart": "Add to Cart",
+    "outOfStock": "Out of Stock"
   },
   "checkout": {
     "title": "Checkout",

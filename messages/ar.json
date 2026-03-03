@@ -322,7 +322,8 @@
     "separateOrders": "سيتم إنشاء {count} طلب منفصل (واحد لكل بائع)",
     "goToCart": "اذهب إلى السلة",
     "addedToCart": "أضيف إلى السلة!",
-    "addToCart": "أضف إلى السلة"
+    "addToCart": "أضف إلى السلة",
+    "outOfStock": "نفد من المخزون"
   },
   "checkout": {
     "title": "الدفع",

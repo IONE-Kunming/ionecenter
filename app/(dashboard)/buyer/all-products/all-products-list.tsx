@@ -13,6 +13,7 @@ import { Select } from "@/components/ui/select"
 import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
+import { useToast } from "@/components/ui/toaster"
 import { formatDualPrice } from "@/lib/utils"
 import { useExchangeRate } from "@/lib/use-exchange-rate"
 import { addToCart } from "@/lib/actions/cart"
@@ -27,6 +28,7 @@ export function AllProductsList({ products, initialSearch = "", categoryData, wi
   const tCart = useTranslations("cart")
   const tCatNames = useTranslations("categoryNames")
   const { rate } = useExchangeRate()
+  const { addToast } = useToast()
   const [, startTransition] = useTransition()
 
   const translateCat = (name: string): string => {
@@ -59,6 +61,8 @@ export function AllProductsList({ products, initialSearch = "", categoryData, wi
               return next
             })
           }, 2000)
+        } else {
+          addToast("error", result.error)
         }
       } finally {
         setAddingIds((prev) => {
@@ -129,10 +133,12 @@ export function AllProductsList({ products, initialSearch = "", categoryData, wi
                           size="sm"
                           variant={addedIds.has(product.id) ? "default" : "outline"}
                           onClick={() => handleAddToCart(product.id)}
-                          disabled={addingIds.has(product.id)}
+                          disabled={addingIds.has(product.id) || product.stock <= 0}
                         >
                           {addingIds.has(product.id) ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : product.stock <= 0 ? (
+                            tCart("outOfStock")
                           ) : addedIds.has(product.id) ? (
                             <><Check className="h-3.5 w-3.5 mr-1" /> {tCart("addedToCart")}</>
                           ) : (
