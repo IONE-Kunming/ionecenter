@@ -21,9 +21,12 @@ export function DashboardHeader() {
   // Detect offline invoice detail page: /seller/invoices/offline/[id]
   const isOfflineInvoiceDetailPage = parts.length >= 4 && parts[1] === "invoices" && parts[2] === "offline"
 
+  // Detect invoice detail page: /seller/invoices/[id] or /buyer/invoices/[id]
+  const isInvoiceDetailPage = parts.length === 3 && parts[1] === "invoices" && parts[2] !== "create" && parts[2] !== "offline"
+
   const title = isProductDetailPage
     ? tProductDetail("title")
-    : isOfflineInvoiceDetailPage
+    : isOfflineInvoiceDetailPage || isInvoiceDetailPage
     ? tInvoices("invoiceDetails")
     : parts[parts.length - 1]
         ?.replace(/-/g, " ")
