@@ -601,7 +601,7 @@ export async function deleteOrderInvoice(invoiceId: string) {
     return { error: "Invoice not found or not authorized" }
   }
 
-  // Delete invoice items first (also handled by ON DELETE CASCADE)
+  // Delete invoice items
   await adminSupabase
     .from("invoice_items")
     .delete()

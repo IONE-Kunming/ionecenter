@@ -191,7 +191,7 @@ export function SellerInvoicesList({
                         <Button variant="ghost" size="sm" disabled={isPending} onClick={() => handlePrint(inv.id)}>
                           <Printer className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => setDeleteOrderTarget(inv)}>
+                        <Button variant="ghost" size="sm" aria-label={t("deleteInvoice")} onClick={() => setDeleteOrderTarget(inv)}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
