@@ -1158,6 +1158,7 @@
     "invoiceSentTo": "发票已发送至 {email}",
     "emailSendFailed": "发送邮件失败",
     "pdfGenerateFailed": "生成 PDF 失败",
+    "pdfDownloadedAttachWhatsApp": "PDF 已下载 - 请将其附加到您的 WhatsApp 消息中",
     "buyerCodeRequired": "买家代码为必填项",
     "separateOrdersWillBeCreated": "将创建 {count} 个单独的订单（每个卖家一个）",
     "searchFailed": "搜索失败，请重试。"
