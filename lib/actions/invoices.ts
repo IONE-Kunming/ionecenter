@@ -190,6 +190,38 @@ export async function searchBuyers(query: string) {
   return data ?? []
 }
 
+export async function getMyBuyers() {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return []
+
+  const adminSupabase = createAdminClient()
+
+  // Find all unique buyer_ids from orders where seller_id matches this seller
+  const { data: orders, error } = await adminSupabase
+    .from("orders")
+    .select("buyer_id")
+    .eq("seller_id", user.id)
+
+  if (error || !orders || orders.length === 0) return []
+
+  // Get unique buyer IDs
+  const uniqueBuyerIds = [...new Set(orders.map((o) => o.buyer_id))]
+
+  const { data: buyers } = await adminSupabase
+    .from("users")
+    .select("id, display_name, email, user_code")
+    .in("id", uniqueBuyerIds)
+
+  if (!buyers) return []
+
+  return buyers as {
+    id: string
+    display_name: string
+    email: string
+    user_code: string | null
+  }[]
+}
+
 export async function getSellerRecentBuyers() {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return []
