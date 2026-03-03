@@ -7,9 +7,10 @@ import { buildCategoryData, toCategoryKey } from "@/lib/categories"
 import { getTranslations } from "next-intl/server"
 
 export default async function GuestCategoriesPage() {
-  const [siteCategories, tCatNames] = await Promise.all([
+  const [siteCategories, tCatNames, tCat] = await Promise.all([
     getSiteCategories(),
     getTranslations("categoryNames"),
+    getTranslations("categories"),
   ])
   const categoryData = buildCategoryData(siteCategories)
 
@@ -23,9 +24,9 @@ export default async function GuestCategoriesPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Browse Categories</h1>
+        <h1 className="text-3xl font-bold">{tCat("title")}</h1>
         <p className="mt-2 text-muted-foreground">
-          Explore Our Wide Range B2B Product Categories.
+          {tCat("guestSubtitle")}
         </p>
       </div>
 
@@ -79,11 +80,11 @@ export default async function GuestCategoriesPage() {
 
       {/* Signup CTA */}
       <div className="mt-12 text-center p-8 rounded-xl bg-muted/50">
-        <h2 className="text-xl font-bold">Want to purchase? Create an account!</h2>
-        <p className="mt-2 text-muted-foreground">Sign up as a buyer to add products to cart and place orders.</p>
+        <h2 className="text-xl font-bold">{tCat("wantToCreateAccount")}</h2>
+        <p className="mt-2 text-muted-foreground">{tCat("signUpDesc")}</p>
         <Link href="/sign-up">
           <button className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-            Sign Up Now
+            {tCat("signUpNow")}
           </button>
         </Link>
       </div>

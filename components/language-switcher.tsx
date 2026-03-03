@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { setLocale } from "@/lib/actions/locale"
 import type { Locale } from "@/lib/i18n/request"
+import { useTranslations } from "next-intl"
 
 const languages: { code: Locale; label: string }[] = [
   { code: "en", label: "English" },
@@ -25,6 +26,7 @@ interface LanguageSwitcherProps {
 
 export function LanguageSwitcher({ side }: LanguageSwitcherProps = {}) {
   const [isPending, startTransition] = useTransition()
+  const t = useTranslations("language")
 
   function handleLocaleChange(locale: Locale) {
     startTransition(async () => {
@@ -36,7 +38,7 @@ export function LanguageSwitcher({ side }: LanguageSwitcherProps = {}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" disabled={isPending} aria-label="Switch language">
+        <Button variant="ghost" size="icon" disabled={isPending} aria-label={t("switchLanguage")}>
           <Globe className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react"
 import { Heart } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toggleWishlist } from "@/lib/actions/wishlist"
+import { useTranslations } from "next-intl"
 
 interface WishlistButtonProps {
   productId: string
@@ -16,6 +17,7 @@ export function WishlistButton({ productId, initialLiked, size = "sm", onToggle 
   const [liked, setLiked] = useState(initialLiked)
   const [animate, setAnimate] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const t = useTranslations("wishlist")
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -59,7 +61,7 @@ export function WishlistButton({ productId, initialLiked, size = "sm", onToggle 
         animate && "scale-125",
         "hover:bg-gray-900 dark:hover:bg-gray-700"
       )}
-      aria-label={liked ? "Remove from My List" : "Add to My List"}
+      aria-label={liked ? t("removeFromList") : t("addToList")}
     >
       <Heart
         className={cn(

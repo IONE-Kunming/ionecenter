@@ -42,7 +42,11 @@
   "categories": {
     "title": "تصفح الفئات",
     "subtitle": "استكشف كتالوج منتجاتنا الشامل.",
-    "productsLabel": "منتج"
+    "productsLabel": "منتج",
+    "guestSubtitle": "استكشف فئاتنا الواسعة من منتجات B2B.",
+    "wantToCreateAccount": "هل تريد الشراء؟ أنشئ حسابًا!",
+    "signUpDesc": "سجّل كمشترٍ لإضافة المنتجات إلى العربة وتقديم الطلبات.",
+    "signUpNow": "سجّل الآن"
   },
   "howItWorks": {
     "title": "كيف يعمل",
@@ -112,7 +116,8 @@
     "en": "English",
     "zh": "中文",
     "ar": "العربية",
-    "ur": "اردو"
+    "ur": "اردو",
+    "switchLanguage": "تغيير اللغة"
   },
   "sidebar": {
     "dashboard": "لوحة التحكم",
@@ -547,7 +552,9 @@
     "chartOfAccountsDesc": "إدارة حساباتك المالية وأرصدتك",
     "financialReports": "التقارير المالية",
     "financialReportsDesc": "إنشاء وعرض التقارير المالية",
-    "profit": "الربح"
+    "profit": "الربح",
+    "sourceBooks": "السجلات",
+    "sourceBank": "البنك"
   },
   "sellerDashboard": {
     "totalProducts": "إجمالي المنتجات",
@@ -697,7 +704,13 @@
     "wantToPurchase": "هل تريد شراء هذه المنتجات؟",
     "createFreeAccount": "أنشئ حساباً مجانياً لإضافة المنتجات إلى السلة وتقديم الطلبات.",
     "signUpToPurchase": "سجل للشراء",
-    "categoriesLabel": "الفئات"
+    "categoriesLabel": "الفئات",
+    "catalogTitle": "كتالوج المنتجات",
+    "catalogDesc": "تصفح مجموعتنا من مواد البناء. سجّل للشراء.",
+    "backToCatalog": "العودة إلى الكتالوج",
+    "productNotFound": "المنتج غير موجود",
+    "productNotFoundDesc": "المنتج الذي تبحث عنه غير موجود.",
+    "signUpToChat": "سجّل للتواصل مع البائع"
   },
   "categoryNames": {
     "construction": "البناء",
@@ -1062,7 +1075,9 @@
   "wishlist": {
     "title": "قائمتي",
     "emptyTitle": "لا توجد منتجات محفوظة",
-    "emptyDescription": "المنتجات التي تعجبك ستظهر هنا"
+    "emptyDescription": "المنتجات التي تعجبك ستظهر هنا",
+    "addToList": "أضف إلى قائمتي",
+    "removeFromList": "إزالة من قائمتي"
   },
   "orderConfirmation": {
     "title": "تم تقديم الطلب بنجاح!",

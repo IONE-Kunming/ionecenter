@@ -7,15 +7,43 @@ import { getAdminDashboardStats, getAllOrders } from "@/lib/actions/admin"
 import { getTranslations, getLocale } from "next-intl/server"
 
 export default async function AdminDashboardPage() {
-  const [stats, orders, t, locale] = await Promise.all([
+  const [stats, orders, t, tCommon, tOrders, locale] = await Promise.all([
     getAdminDashboardStats(),
     getAllOrders(),
     getTranslations("adminDashboard"),
+    getTranslations("common"),
+    getTranslations("orders"),
     getLocale(),
   ])
   const intlLocale = getIntlLocale(locale)
 
   const recentOrders = orders.slice(0, 5)
+
+  function translateOrderStatus(status: string): string {
+    const map: Record<string, string> = {
+      pending: tCommon("pending"),
+      processing: tCommon("processing"),
+      shipped: tCommon("shipped"),
+      delivered: tCommon("delivered"),
+      cancelled: tCommon("cancelled"),
+      under_review: tOrders("underReview"),
+      confirmed: tOrders("confirmed"),
+      in_production: tOrders("inProduction"),
+      out_of_production: tOrders("outOfProduction"),
+      arrived_at_port: tOrders("arrivedAtPort"),
+    }
+    return map[status] ?? status
+  }
+
+  function translatePaymentStatus(status: string): string {
+    const map: Record<string, string> = {
+      paid: tCommon("paid"),
+      unpaid: tCommon("unpaid"),
+      partial: tCommon("partial"),
+      deposit_paid: tCommon("depositPaid"),
+    }
+    return map[status] ?? status
+  }
 
   return (
     <div className="space-y-6">
@@ -46,13 +74,13 @@ export default async function AdminDashboardPage() {
                     order.status === "delivered" ? "success" :
                     order.status === "pending" ? "warning" : "default"
                   }>
-                    {order.status}
+                    {translateOrderStatus(order.status)}
                   </Badge>
                   <Badge variant={
                     order.payment_status === "paid" ? "success" :
                     order.payment_status === "deposit_paid" ? "warning" : "default"
                   }>
-                    {order.payment_status}
+                    {translatePaymentStatus(order.payment_status)}
                   </Badge>
                 </div>
               </div>

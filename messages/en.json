@@ -42,7 +42,11 @@
   "categories": {
     "title": "Browse Categories",
     "subtitle": "Explore our comprehensive catalog of products.",
-    "productsLabel": "products"
+    "productsLabel": "products",
+    "guestSubtitle": "Explore Our Wide Range B2B Product Categories.",
+    "wantToCreateAccount": "Want to purchase? Create an account!",
+    "signUpDesc": "Sign up as a buyer to add products to cart and place orders.",
+    "signUpNow": "Sign Up Now"
   },
   "howItWorks": {
     "title": "How It Works",
@@ -112,7 +116,8 @@
     "en": "English",
     "zh": "中文",
     "ar": "العربية",
-    "ur": "اردو"
+    "ur": "اردو",
+    "switchLanguage": "Switch Language"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -581,7 +586,9 @@
     "balanceSheetFullDesc": "Snapshot of your assets, liabilities, and equity at a point in time. Understand your financial position.",
     "cashFlowFullDesc": "Track cash inflows and outflows from operating, investing, and financing activities.",
     "accountsReceivableFullDesc": "Overview of outstanding customer invoices and aging analysis. Monitor collection efficiency.",
-    "accountsPayableFullDesc": "Summary of outstanding vendor bills and payment schedules. Manage your payment obligations."
+    "accountsPayableFullDesc": "Summary of outstanding vendor bills and payment schedules. Manage your payment obligations.",
+    "sourceBooks": "Books",
+    "sourceBank": "Bank"
   },
   "sellerDashboard": {
     "totalProducts": "Total Products",
@@ -773,7 +780,13 @@
     "wantToPurchase": "Want to purchase these products?",
     "createFreeAccount": "Create a free account to add items to cart and place orders.",
     "signUpToPurchase": "Sign Up to Purchase",
-    "categoriesLabel": "Categories"
+    "categoriesLabel": "Categories",
+    "catalogTitle": "Product Catalog",
+    "catalogDesc": "Browse our selection of construction materials. Sign up to purchase.",
+    "backToCatalog": "Back to Catalog",
+    "productNotFound": "Product Not Found",
+    "productNotFoundDesc": "The product you are looking for does not exist.",
+    "signUpToChat": "Sign Up to Chat with Seller"
   },
   "categoryNames": {
     "construction": "Construction",
@@ -1133,7 +1146,9 @@
   "wishlist": {
     "title": "My List",
     "emptyTitle": "No saved products",
-    "emptyDescription": "Products you like will appear here"
+    "emptyDescription": "Products you like will appear here",
+    "addToList": "Add to My List",
+    "removeFromList": "Remove from My List"
   },
   "orderConfirmation": {
     "title": "Order Placed Successfully!",
