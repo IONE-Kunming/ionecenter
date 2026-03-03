@@ -55,14 +55,13 @@ export default async function LandingPage() {
   const footerT = await getTranslations("footer")
   const teamT = await getTranslations("team")
 
-  // Fetch video URL from Supabase site settings, fall back to local file
-  const LOCAL_VIDEO = "/Our%20Factory.mp4"
-  let videoSrc = LOCAL_VIDEO
+  // Fetch video URL from Supabase site settings
+  let videoSrc = ""
   try {
     const supabaseVideoUrl = await getSiteSetting("homepage_video_url")
     if (supabaseVideoUrl) videoSrc = supabaseVideoUrl
   } catch {
-    // Fallback to local video if site_settings table doesn't exist yet
+    // No video available if site_settings table doesn't exist yet
   }
 
   // Derive MIME type from the URL path (strip any query string first)
@@ -296,6 +295,7 @@ export default async function LandingPage() {
       </section>
 
       {/* ===== VIDEO SECTION ===== */}
+      {videoSrc && (
       <section className="py-24 md:py-32 relative overflow-hidden bg-muted/30">
         <div className="relative max-w-[1320px] mx-auto px-6 text-center">
           <div className="fade-in-up">
@@ -313,14 +313,12 @@ export default async function LandingPage() {
                 playsInline
               >
                 <source src={videoSrc} type={videoType} />
-                {videoSrc !== LOCAL_VIDEO && (
-                  <source src={LOCAL_VIDEO} type="video/mp4" />
-                )}
               </video>
             </div>
           </div>
         </div>
       </section>
+      )}
 
       {/* ===== TESTIMONIALS ===== */}
       <section id="testimonials" className="py-24 md:py-32">
