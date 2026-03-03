@@ -1166,6 +1166,8 @@
     "searchBuyer": "البحث عن مشتري",
     "searchBuyerPlaceholder": "ابحث بالاسم أو البريد الإلكتروني أو رمز المشتري...",
     "recentBuyers": "المشترون الأخيرون",
-    "allBuyers": "جميع المشترين"
+    "allBuyers": "جميع المشترين",
+    "updateInvoice": "تحديث الفاتورة",
+    "invoiceUpdatedSuccess": "تم تحديث الفاتورة بنجاح"
   }
 }

@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
 import { useFormatters } from "@/lib/use-formatters"
-import { createOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers, getNextSellerInvoiceNumber, searchBuyerByCode, getSellerRecentBuyers, saveSellerBuyer } from "@/lib/actions/invoices"
+import { createOfflineInvoice, updateOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers, getNextSellerInvoiceNumber, searchBuyerByCode, getSellerRecentBuyers, saveSellerBuyer } from "@/lib/actions/invoices"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 
@@ -235,7 +235,25 @@ const emptyBuyerBankInfo: BuyerBankInfo = {
   bank_address: "",
 }
 
-export function CreateOfflineInvoiceForm() {
+interface EditData {
+  id: string
+  invoice_number: string
+  buyer_name: string
+  buyer_email: string
+  buyer_code: string | null
+  discount: number
+  amount_paid: number
+  items: {
+    item_code: string | null
+    product_name: string | null
+    description: string | null
+    unit_price: number
+    quantity: number
+  }[]
+}
+
+export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | null }) {
+  const isEditMode = !!editData
   const router = useRouter()
   const t = useTranslations("invoiceCreate")
   const { addToast } = useToast()
@@ -243,39 +261,52 @@ export function CreateOfflineInvoiceForm() {
   const printRef = useRef<HTMLDivElement>(null)
 
   const [invoiceLanguage, setInvoiceLanguage] = useState<InvoiceLanguage>("en")
-  const [buyerName, setBuyerName] = useState("")
-  const [buyerEmail, setBuyerEmail] = useState("")
+  const [buyerName, setBuyerName] = useState(editData?.buyer_name ?? "")
+  const [buyerEmail, setBuyerEmail] = useState(editData?.buyer_email ?? "")
   const [buyerSearchQuery, setBuyerSearchQuery] = useState("")
   const [buyerSuggestions, setBuyerSuggestions] = useState<BuyerResult[]>([])
   const [showBuyerSuggestions, setShowBuyerSuggestions] = useState(false)
   const [recentBuyers, setRecentBuyers] = useState<BuyerResult[]>([])
-  const [buyerCode, setBuyerCode] = useState("")
+  const [buyerCode, setBuyerCode] = useState(editData?.buyer_code ?? "")
   const [foundBuyer, setFoundBuyer] = useState<FoundBuyer | null>(null)
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split("T")[0])
-  const [discount, setDiscount] = useState(0)
-  const [amountPaid, setAmountPaid] = useState(0)
+  const [discount, setDiscount] = useState(editData?.discount ?? 0)
+  const [amountPaid, setAmountPaid] = useState(editData?.amount_paid ?? 0)
   const [saving, setSaving] = useState(false)
   const [sending, setSending] = useState(false)
   const [savedInvoiceNumber, _setSavedInvoiceNumber] = useState<string | null>(null)
-  const [autoInvoiceNumber, setAutoInvoiceNumber] = useState<string | null>(null)
+  const [autoInvoiceNumber, setAutoInvoiceNumber] = useState<string | null>(editData?.invoice_number ?? null)
   const [savedInvoiceId, _setSavedInvoiceId] = useState<string | null>(null)
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null)
   const [bankInfoLoaded, setBankInfoLoaded] = useState(false)
   const [buyerBankInfo, setBuyerBankInfo] = useState<BuyerBankInfo>({ ...emptyBuyerBankInfo })
   const [showBuyerBankSection, setShowBuyerBankSection] = useState(false)
 
-  const [rows, setRows] = useState<InvoiceRow[]>([
-    {
-      key: generateItemKey(0),
-      productName: "",
-      description: "",
-      unitPrice: 0,
-      quantity: 1,
-      searchQuery: "",
-      suggestions: [],
-      showSuggestions: false,
-    },
-  ])
+  const [rows, setRows] = useState<InvoiceRow[]>(
+    editData && editData.items.length > 0
+      ? editData.items.map((item, i) => ({
+          key: item.item_code || generateItemKey(i),
+          productName: item.product_name ?? "",
+          description: item.description ?? "",
+          unitPrice: item.unit_price,
+          quantity: item.quantity,
+          searchQuery: "",
+          suggestions: [],
+          showSuggestions: false,
+        }))
+      : [
+          {
+            key: generateItemKey(0),
+            productName: "",
+            description: "",
+            unitPrice: 0,
+            quantity: 1,
+            searchQuery: "",
+            suggestions: [],
+            showSuggestions: false,
+          },
+        ]
+  )
 
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -299,10 +330,12 @@ export function CreateOfflineInvoiceForm() {
   }, [])
 
   useEffect(() => {
-    getNextSellerInvoiceNumber().then((num) => {
-      setAutoInvoiceNumber(num)
-    })
-  }, [])
+    if (!isEditMode) {
+      getNextSellerInvoiceNumber().then((num) => {
+        setAutoInvoiceNumber(num)
+      })
+    }
+  }, [isEditMode])
 
   useEffect(() => {
     getSellerRecentBuyers().then((buyers) => {
@@ -506,7 +539,7 @@ export function CreateOfflineInvoiceForm() {
 
     setSaving(true)
     try {
-      const result = await createOfflineInvoice({
+      const invoiceInput = {
         buyer_name: buyerName.trim(),
         buyer_email: buyerEmail.trim(),
         buyer_code: buyerCode.trim() || undefined,
@@ -522,12 +555,16 @@ export function CreateOfflineInvoiceForm() {
           })),
         discount,
         amount_paid: amountPaid,
-      })
+      }
+
+      const result = isEditMode
+        ? await updateOfflineInvoice(editData!.id, invoiceInput)
+        : await createOfflineInvoice(invoiceInput)
 
       if (result.error) {
         addToast("error", result.error)
       } else if (result.invoice) {
-        addToast("success", t("invoiceSavedSuccess"))
+        addToast("success", isEditMode ? t("invoiceUpdatedSuccess") : t("invoiceSavedSuccess"))
         router.push("/seller/invoices")
       }
     } catch {
@@ -592,26 +629,22 @@ export function CreateOfflineInvoiceForm() {
   }
 
   const handleWhatsApp = async () => {
-    if (!savedInvoiceNumber) {
-      addToast("error", t("saveFirstWarning"))
-      return
-    }
-
     try {
       const element = printRef.current
       if (!element) return
 
+      const invoiceNum = displayInvoiceNumber || "DRAFT"
       const canvas = await html2canvas(element, { scale: 2 })
       const imgData = canvas.toDataURL("image/png")
       const pdf = new jsPDF("p", "mm", "a4")
       const pdfWidth = pdf.internal.pageSize.getWidth()
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight)
-      pdf.save(`Invoice-${savedInvoiceNumber}.pdf`)
+      pdf.save(`Invoice-${invoiceNum}.pdf`)
 
       const formattedDate = new Date(invoiceDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
       const message = encodeURIComponent(
-        `Invoice: ${savedInvoiceNumber}\nDate: ${formattedDate}\nBuyer: ${buyerName}\nAmount Due: ${formatCurrency(amountDue)}\n\nPlease find your invoice PDF attached.`
+        `Invoice: ${invoiceNum}\nDate: ${formattedDate}\nBuyer: ${buyerName}\nAmount Due: ${formatCurrency(amountDue)}\n\nPlease find your invoice PDF attached.`
       )
 
       addToast("success", t("pdfDownloadedAttachWhatsApp"))
@@ -1226,13 +1259,13 @@ export function CreateOfflineInvoiceForm() {
 
       {/* Action Buttons */}
       <div className="flex flex-wrap items-center gap-3 print:hidden">
-        <Button onClick={handleSave} disabled={saving || !!savedInvoiceId}>
+        <Button onClick={handleSave} disabled={saving || (!isEditMode && !!savedInvoiceId)}>
           {saving ? (
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
           ) : (
             <Save className="h-4 w-4 mr-2" />
           )}
-          {savedInvoiceId ? t("saved") : t("saveInvoice")}
+          {savedInvoiceId ? t("saved") : isEditMode ? t("updateInvoice") : t("saveInvoice")}
         </Button>
         <Button
           variant="outline"

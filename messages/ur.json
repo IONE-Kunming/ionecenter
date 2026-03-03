@@ -1166,6 +1166,8 @@
     "searchBuyer": "خریدار تلاش کریں",
     "searchBuyerPlaceholder": "نام، ای میل، یا خریدار کوڈ سے تلاش کریں...",
     "recentBuyers": "حالیہ خریدار",
-    "allBuyers": "تمام خریدار"
+    "allBuyers": "تمام خریدار",
+    "updateInvoice": "انوائس اپ ڈیٹ کریں",
+    "invoiceUpdatedSuccess": "انوائس کامیابی سے اپ ڈیٹ ہو گئی"
   }
 }
