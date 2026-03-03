@@ -1,25 +1,19 @@
 import Link from "@/components/ui/link"
+import Image from "next/image"
 import { ArrowLeft, Package, ShoppingCart, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { formatCurrency, formatDualPrice, getStockStatus, getIntlLocale } from "@/lib/utils"
+import { formatDualPrice, getStockStatus, getIntlLocale } from "@/lib/utils"
+import { getProduct } from "@/lib/actions/products"
+import { getExchangeRate } from "@/lib/exchange-rate"
 import { getLocale } from "next-intl/server"
-
-// Demo product data
-const products: Record<string, { name: string; model_number: string; category: string; main_category: string; price_per_meter: number; stock: number; description: string; seller: string }> = {
-  "1": { name: "Premium Window Profile", model_number: "WP-6063-T5", category: "Aluminum", main_category: "Construction", price_per_meter: 12.50, stock: 500, description: "High-quality 6063-T5 aluminum window profile with thermal break technology. Ideal for residential and commercial window systems. Features excellent thermal insulation, corrosion resistance, and structural strength.", seller: "Kunming Aluminum Co." },
-  "2": { name: "Curtain Wall Section", model_number: "CW-100-A", category: "Glass", main_category: "Construction", price_per_meter: 28.00, stock: 350, description: "Structural curtain wall profile for commercial buildings. Designed for high-rise applications with superior wind load resistance and waterproofing capabilities.", seller: "Kunming Aluminum Co." },
-  "3": { name: "Industrial T-Slot Profile", model_number: "TS-4040-V2", category: "Steel", main_category: "Construction", price_per_meter: 8.75, stock: 1200, description: "Versatile 40x40mm T-slot profile for industrial framing systems. Compatible with standard T-nuts and accessories. Perfect for machine guards, workstations, and material handling systems.", seller: "Kunming Aluminum Co." },
-  "4": { name: "Coated Aluminum Sheet 3mm", model_number: "AS-3MM-PE", category: "Aluminum", main_category: "Construction", price_per_meter: 45.00, stock: 800, description: "PE coated aluminum sheet, 3mm thickness. Available in various colors including white, silver, bronze, and custom RAL colors. Suitable for exterior cladding and interior decoration.", seller: "Gulf Aluminum Industries" },
-  "5": { name: "Tempered Glass Panel 10mm", model_number: "TG-10-CLR", category: "Glass", main_category: "Construction", price_per_meter: 65.00, stock: 200, description: "Clear tempered safety glass, 10mm thickness. Custom sizes available. Meets international safety standards for commercial and residential applications.", seller: "Gulf Aluminum Industries" },
-}
 
 export default async function GuestProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const locale = await getLocale()
   const intlLocale = getIntlLocale(locale)
-  const product = products[id]
+  const [product, liveRate] = await Promise.all([getProduct(id), getExchangeRate()])
 
   if (!product) {
     return (
@@ -45,8 +39,19 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* Product Image */}
-        <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 rounded-xl flex items-center justify-center">
-          <Package className="h-24 w-24 text-muted-foreground/20" />
+        <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-xl flex items-center justify-center overflow-hidden">
+          {product.image_url ? (
+            <Image
+              src={product.image_url}
+              alt={product.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
+              priority
+            />
+          ) : (
+            <Package className="h-24 w-24 text-muted-foreground/20" />
+          )}
         </div>
 
         {/* Product Info */}
@@ -57,7 +62,7 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
 
           <div className="mt-6">
             <span className="text-3xl font-bold text-primary">
-              {formatCurrency(product.price_per_meter, "USD", intlLocale)}
+              {formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, liveRate, intlLocale)}
             </span>
           </div>
 
@@ -83,22 +88,26 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
             </Link>
           </div>
 
-          <Card className="mt-6">
-            <CardContent className="p-4">
-              <h3 className="font-semibold">Seller</h3>
-              <p className="text-sm text-muted-foreground mt-1">{product.seller}</p>
-            </CardContent>
-          </Card>
+          {product.seller_name && (
+            <Card className="mt-6">
+              <CardContent className="p-4">
+                <h3 className="font-semibold">Seller</h3>
+                <p className="text-sm text-muted-foreground mt-1">{product.seller_name}</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
       {/* Description */}
-      <Card className="mt-8">
-        <CardContent className="p-6">
-          <h2 className="text-lg font-semibold mb-3">Product Description</h2>
-          <p className="text-muted-foreground">{product.description}</p>
-        </CardContent>
-      </Card>
+      {product.description && (
+        <Card className="mt-8">
+          <CardContent className="p-6">
+            <h2 className="text-lg font-semibold mb-3">Product Description</h2>
+            <p className="text-muted-foreground">{product.description}</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Specifications */}
       <Card className="mt-4">
@@ -119,7 +128,7 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
             </div>
             <div className="flex justify-between py-2 border-b">
               <span className="text-muted-foreground">Price</span>
-              <span className="font-medium">{formatCurrency(product.price_per_meter, "USD", intlLocale)}</span>
+              <span className="font-medium">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, liveRate, intlLocale)}</span>
             </div>
           </div>
         </CardContent>
