@@ -25,6 +25,12 @@ export default function ReconciliationPage() {
   const tCommon = useTranslations("common")
   const { formatCurrency, formatDate } = useFormatters()
 
+  function translateSource(source: string): string {
+    if (source === "books") return t("sourceBooks")
+    if (source === "bank") return t("sourceBank")
+    return source
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -125,7 +131,7 @@ export default function ReconciliationPage() {
                       {txn.bankAmount !== null ? formatCurrency(Math.abs(txn.bankAmount)) : "—"}
                     </td>
                     <td className="py-3">
-                      <Badge variant="secondary">{txn.source}</Badge>
+                      <Badge variant="secondary">{translateSource(txn.source)}</Badge>
                     </td>
                   </tr>
                 ))}

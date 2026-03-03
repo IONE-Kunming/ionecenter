@@ -2,12 +2,13 @@ import { DollarSign, TrendingUp, CreditCard, Receipt } from "lucide-react"
 import { StatCard } from "@/components/ui/stat-card"
 import { formatCurrency, getIntlLocale } from "@/lib/utils"
 import { getAdminDashboardStats } from "@/lib/actions/admin"
-import { getLocale } from "next-intl/server"
+import { getTranslations, getLocale } from "next-intl/server"
 
 export default async function FinancesDashboardPage() {
-  const [stats, locale] = await Promise.all([
+  const [stats, locale, t] = await Promise.all([
     getAdminDashboardStats(),
     getLocale(),
+    getTranslations("finance"),
   ])
   const intlLocale = getIntlLocale(locale)
 
@@ -21,29 +22,29 @@ export default async function FinancesDashboardPage() {
       <div className="flex items-center gap-3">
         <DollarSign className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Finance Dashboard</h1>
-          <p className="text-muted-foreground">Overview of platform financial activity</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("adminFinanceDashboardTitle")}</h1>
+          <p className="text-muted-foreground">{t("adminFinanceDashboardDesc")}</p>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Revenue"
+          title={t("revenue")}
           value={formatCurrency(revenue, "USD", intlLocale)}
           icon={DollarSign}
         />
         <StatCard
-          title="Tax (10%)"
+          title={t("tax10")}
           value={formatCurrency(tax, "USD", intlLocale)}
           icon={Receipt}
         />
         <StatCard
-          title="Expenses"
+          title={t("expenses")}
           value={formatCurrency(expenses, "USD", intlLocale)}
           icon={CreditCard}
         />
         <StatCard
-          title="Profit"
+          title={t("profit")}
           value={formatCurrency(profit, "USD", intlLocale)}
           icon={TrendingUp}
         />

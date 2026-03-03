@@ -7,22 +7,28 @@ import { Badge } from "@/components/ui/badge"
 import { formatDualPrice, getStockStatus, getIntlLocale } from "@/lib/utils"
 import { getProduct } from "@/lib/actions/products"
 import { getExchangeRate } from "@/lib/exchange-rate"
-import { getLocale } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 
 export default async function GuestProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const locale = await getLocale()
   const intlLocale = getIntlLocale(locale)
-  const [product, liveRate] = await Promise.all([getProduct(id), getExchangeRate()])
+  const [product, liveRate, tCatalog, tProduct, tOrders] = await Promise.all([
+    getProduct(id),
+    getExchangeRate(),
+    getTranslations("catalog"),
+    getTranslations("productDetail"),
+    getTranslations("orders"),
+  ])
 
   if (!product) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <Package className="h-16 w-16 mx-auto text-muted-foreground/30" />
-        <h1 className="mt-4 text-2xl font-bold">Product Not Found</h1>
-        <p className="mt-2 text-muted-foreground">The product you are looking for does not exist.</p>
+        <h1 className="mt-4 text-2xl font-bold">{tCatalog("productNotFound")}</h1>
+        <p className="mt-2 text-muted-foreground">{tCatalog("productNotFoundDesc")}</p>
         <Link href="/guest/catalog">
-          <Button className="mt-4">Back to Catalog</Button>
+          <Button className="mt-4">{tCatalog("backToCatalog")}</Button>
         </Link>
       </div>
     )
@@ -34,7 +40,7 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
     <div className="container mx-auto px-4 py-8">
       <Link href="/guest/catalog" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
         <ArrowLeft className="h-4 w-4" />
-        Back to Catalog
+        {tCatalog("backToCatalog")}
       </Link>
 
       <div className="grid md:grid-cols-2 gap-8">
@@ -58,7 +64,7 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
         <div>
           <Badge variant="secondary">{product.category}</Badge>
           <h1 className="mt-3 text-3xl font-bold">{product.name}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Model: {product.model_number}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{tProduct("modelNumber")}: {product.model_number}</p>
 
           <div className="mt-6">
             <span className="text-3xl font-bold text-primary">
@@ -70,20 +76,20 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
             <Badge variant={stockStatus.color === "green" ? "success" : stockStatus.color === "yellow" ? "warning" : "destructive"}>
               {stockStatus.label}
             </Badge>
-            <span className="text-sm text-muted-foreground">{product.stock} units available</span>
+            <span className="text-sm text-muted-foreground">{product.stock} {tProduct("unitsAvailable")}</span>
           </div>
 
           <div className="mt-6 space-y-3">
             <Link href="/sign-up" className="block">
               <Button className="w-full gap-2" size="lg">
                 <ShoppingCart className="h-4 w-4" />
-                Sign Up to Purchase
+                {tCatalog("signUpToPurchase")}
               </Button>
             </Link>
             <Link href="/sign-up" className="block">
               <Button variant="outline" className="w-full gap-2" size="lg">
                 <MessageSquare className="h-4 w-4" />
-                Sign Up to Chat with Seller
+                {tCatalog("signUpToChat")}
               </Button>
             </Link>
           </div>
@@ -91,7 +97,7 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
           {product.seller_name && (
             <Card className="mt-6">
               <CardContent className="p-4">
-                <h3 className="font-semibold">Seller</h3>
+                <h3 className="font-semibold">{tOrders("seller")}</h3>
                 <p className="text-sm text-muted-foreground mt-1">{product.seller_name}</p>
               </CardContent>
             </Card>
@@ -103,7 +109,7 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
       {product.description && (
         <Card className="mt-8">
           <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-3">Product Description</h2>
+            <h2 className="text-lg font-semibold mb-3">{tProduct("productDescription")}</h2>
             <p className="text-muted-foreground">{product.description}</p>
           </CardContent>
         </Card>
@@ -112,22 +118,22 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
       {/* Specifications */}
       <Card className="mt-4">
         <CardContent className="p-6">
-          <h2 className="text-lg font-semibold mb-3">Specifications</h2>
+          <h2 className="text-lg font-semibold mb-3">{tProduct("specifications")}</h2>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex justify-between py-2 border-b">
-              <span className="text-muted-foreground">Category</span>
+              <span className="text-muted-foreground">{tProduct("category")}</span>
               <span className="font-medium">{product.main_category}</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span className="text-muted-foreground">Subcategory</span>
+              <span className="text-muted-foreground">{tProduct("subcategory")}</span>
               <span className="font-medium">{product.category}</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span className="text-muted-foreground">Model Number</span>
+              <span className="text-muted-foreground">{tProduct("modelNumber")}</span>
               <span className="font-medium">{product.model_number}</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span className="text-muted-foreground">Price</span>
+              <span className="text-muted-foreground">{tProduct("price")}</span>
               <span className="font-medium">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, liveRate, intlLocale)}</span>
             </div>
           </div>

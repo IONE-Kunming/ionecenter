@@ -7,16 +7,33 @@ import { getBuyerDashboardStats, getBuyerOrders } from "@/lib/actions/orders"
 import { getTranslations, getLocale } from "next-intl/server"
 
 export default async function BuyerDashboardPage() {
-  const [stats, orders, t, tCommon, locale] = await Promise.all([
+  const [stats, orders, t, tCommon, tOrders, locale] = await Promise.all([
     getBuyerDashboardStats(),
     getBuyerOrders(),
     getTranslations("buyerDashboard"),
     getTranslations("common"),
+    getTranslations("orders"),
     getLocale(),
   ])
   const intlLocale = getIntlLocale(locale)
 
   const recentOrders = orders.slice(0, 5)
+
+  function translateOrderStatus(status: string): string {
+    const map: Record<string, string> = {
+      pending: tCommon("pending"),
+      processing: tCommon("processing"),
+      shipped: tCommon("shipped"),
+      delivered: tCommon("delivered"),
+      cancelled: tCommon("cancelled"),
+      under_review: tOrders("underReview"),
+      confirmed: tOrders("confirmed"),
+      in_production: tOrders("inProduction"),
+      out_of_production: tOrders("outOfProduction"),
+      arrived_at_port: tOrders("arrivedAtPort"),
+    }
+    return map[status] ?? status
+  }
 
   return (
     <div className="space-y-6">
@@ -47,7 +64,7 @@ export default async function BuyerDashboardPage() {
                     order.status === "delivered" ? "success" :
                     order.status === "pending" ? "warning" : "default"
                   }>
-                    {order.status}
+                    {translateOrderStatus(order.status)}
                   </Badge>
                 </div>
               </div>

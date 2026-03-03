@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,6 +11,8 @@ import { updateUserProfile } from "@/lib/actions/users"
 import type { User } from "@/types/database"
 
 export default function AdminProfileForm({ user }: { user: User }) {
+  const t = useTranslations("profile")
+  const tCommon = useTranslations("common")
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
@@ -41,39 +44,39 @@ export default function AdminProfileForm({ user }: { user: User }) {
     if (result.error) {
       setMessage({ type: "error", text: result.error })
     } else {
-      setMessage({ type: "success", text: "Profile saved successfully." })
+      setMessage({ type: "success", text: tCommon("profileSaved") })
     }
   }
 
   return (
     <div className="max-w-2xl space-y-6">
       <Card>
-        <CardHeader><CardTitle>Personal Information</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("personalInfo")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Display Name</Label>
+              <Label htmlFor="name">{t("displayName")}</Label>
               <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="company">Company</Label>
+              <Label htmlFor="company">{tCommon("company")}</Label>
               <Input id="company" value={company} onChange={(e) => setCompany(e.target.value)} />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("emailAddress")}</Label>
             <Input id="email" type="email" value={user.email} disabled />
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">{t("phoneNumber")}</Label>
               <Input id="phone" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="language">Preferred Language</Label>
+              <Label htmlFor="language">{t("language")}</Label>
               <Select id="language" value={preferredLanguage} onChange={(e) => setPreferredLanguage(e.target.value)} options={[
-                { value: "en", label: "English" }, { value: "zh", label: "Chinese" },
-                { value: "ar", label: "Arabic" }, { value: "ur", label: "Urdu" },
+                { value: "en", label: t("english") }, { value: "zh", label: t("chinese") },
+                { value: "ar", label: t("arabic") }, { value: "ur", label: t("urdu") },
               ]} />
             </div>
           </div>
@@ -81,28 +84,28 @@ export default function AdminProfileForm({ user }: { user: User }) {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Address</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("address")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="street">Street Address</Label>
+            <Label htmlFor="street">{t("street")}</Label>
             <Input id="street" value={street} onChange={(e) => setStreet(e.target.value)} />
           </div>
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
+              <Label htmlFor="city">{t("city")}</Label>
               <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="state">State</Label>
+              <Label htmlFor="state">{t("state")}</Label>
               <Input id="state" value={state} onChange={(e) => setState(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="zip">ZIP Code</Label>
+              <Label htmlFor="zip">{t("zip")}</Label>
               <Input id="zip" value={zip} onChange={(e) => setZip(e.target.value)} />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="country">Country</Label>
+            <Label htmlFor="country">{t("country")}</Label>
             <Input id="country" value={country} onChange={(e) => setCountry(e.target.value)} />
           </div>
         </CardContent>
@@ -115,7 +118,7 @@ export default function AdminProfileForm({ user }: { user: User }) {
       )}
 
       <Button onClick={handleSave} disabled={saving}>
-        {saving ? "Saving..." : "Save Changes"}
+      {saving ? tCommon("saving") : t("saveChanges")}
       </Button>
     </div>
   )

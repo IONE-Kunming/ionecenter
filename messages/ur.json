@@ -42,7 +42,11 @@
   "categories": {
     "title": "زمرے دیکھیں",
     "subtitle": "ہمارے جامع پروڈکٹ کیٹلاگ کو دریافت کریں۔",
-    "productsLabel": "مصنوعات"
+    "productsLabel": "مصنوعات",
+    "guestSubtitle": "ہماری وسیع B2B پروڈکٹ کیٹیگریز دیکھیں۔",
+    "wantToCreateAccount": "خریدنا چاہتے ہیں؟ اکاؤنٹ بنائیں!",
+    "signUpDesc": "پروڈکٹس کو کارٹ میں شامل کرنے اور آرڈر دینے کے لیے خریدار کے طور پر سائن اپ کریں۔",
+    "signUpNow": "ابھی سائن اپ کریں"
   },
   "howItWorks": {
     "title": "یہ کیسے کام کرتا ہے",
@@ -112,7 +116,8 @@
     "en": "English",
     "zh": "中文",
     "ar": "العربية",
-    "ur": "اردو"
+    "ur": "اردو",
+    "switchLanguage": "زبان تبدیل کریں"
   },
   "sidebar": {
     "dashboard": "ڈیش بورڈ",
@@ -547,7 +552,9 @@
     "chartOfAccountsDesc": "اپنے مالی اکاؤنٹس اور بیلنس کا انتظام کریں",
     "financialReports": "مالی رپورٹیں",
     "financialReportsDesc": "مالی رپورٹیں بنائیں اور دیکھیں",
-    "profit": "منافع"
+    "profit": "منافع",
+    "sourceBooks": "بہی خاتہ",
+    "sourceBank": "بینک"
   },
   "sellerDashboard": {
     "totalProducts": "کل مصنوعات",
@@ -697,7 +704,13 @@
     "wantToPurchase": "یہ مصنوعات خریدنا چاہتے ہیں؟",
     "createFreeAccount": "کارٹ میں آئٹمز شامل کرنے اور آرڈر دینے کے لیے مفت اکاؤنٹ بنائیں۔",
     "signUpToPurchase": "خریداری کے لیے سائن اپ کریں",
-    "categoriesLabel": "زمرے"
+    "categoriesLabel": "زمرے",
+    "catalogTitle": "پروڈکٹ کیٹلاگ",
+    "catalogDesc": "ہماری تعمیراتی مواد کی مجموعہ دیکھیں۔ خریدنے کے لیے سائن اپ کریں۔",
+    "backToCatalog": "کیٹلاگ پر واپس",
+    "productNotFound": "پروڈکٹ نہیں ملی",
+    "productNotFoundDesc": "آپ جو پروڈکٹ تلاش کر رہے ہیں وہ موجود نہیں ہے۔",
+    "signUpToChat": "بیچنے والے سے چیٹ کرنے کے لیے سائن اپ کریں"
   },
   "categoryNames": {
     "construction": "تعمیرات",
@@ -1062,7 +1075,9 @@
   "wishlist": {
     "title": "میری فہرست",
     "emptyTitle": "کوئی محفوظ شدہ مصنوعات نہیں",
-    "emptyDescription": "آپ کی پسند کردہ مصنوعات یہاں ظاہر ہوں گی"
+    "emptyDescription": "آپ کی پسند کردہ مصنوعات یہاں ظاہر ہوں گی",
+    "addToList": "میری فہرست میں شامل کریں",
+    "removeFromList": "میری فہرست سے ہٹائیں"
   },
   "orderConfirmation": {
     "title": "آرڈر کامیابی سے دیا گیا!",

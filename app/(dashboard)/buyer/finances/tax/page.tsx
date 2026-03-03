@@ -28,6 +28,16 @@ export default function TaxPage() {
   const tCommon = useTranslations("common")
   const { formatCurrency, formatDate } = useFormatters()
 
+  function translateTaxStatus(status: string): string {
+    const map: Record<string, string> = {
+      collected: t("collected"),
+      pending: tCommon("pending"),
+      remitted: t("remitted"),
+      adjusted: tCommon("adjusted"),
+    }
+    return map[status] ?? status
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -83,7 +93,7 @@ export default function TaxPage() {
                     <td className="py-3 pr-4 text-right font-medium">{formatCurrency(entry.taxAmount)}</td>
                     <td className="py-3">
                       <Badge variant={statusVariant[entry.status] ?? "outline"}>
-                        {entry.status}
+                        {translateTaxStatus(entry.status)}
                       </Badge>
                     </td>
                   </tr>

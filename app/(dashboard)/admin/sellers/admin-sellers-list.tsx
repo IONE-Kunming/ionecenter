@@ -111,7 +111,7 @@ export function AdminSellersList({ sellers }: { sellers: SellerRow[] }) {
           </Table>
         </Card>
       ) : (
-        <EmptyState icon={Store} title={t("noSellers")} description="No sellers match your search criteria." />
+        <EmptyState icon={Store} title={t("noSellers")} description={tCommon("noSellersMatch")} />
       )}
     </div>
   )

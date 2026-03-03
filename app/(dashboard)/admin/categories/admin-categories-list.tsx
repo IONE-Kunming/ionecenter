@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react"
 import NextImage from "next/image"
+import { useTranslations } from "next-intl"
 import {
   FolderTree, Plus, Pencil, Trash2, GripVertical,
   Upload, X, Image as ImageIcon, ChevronDown, ChevronRight, Video,
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export function AdminCategoriesList({ categories: initialCategories, videoUrl: initialVideoUrl }: Props) {
+  const t = useTranslations("adminCategories")
   const [categories, setCategories] = useState(initialCategories)
   const [videoUrl, setVideoUrl] = useState(initialVideoUrl)
   const [loading, setLoading] = useState(false)
@@ -170,10 +172,9 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
         setCategories((prev) =>
           prev.map((c) => (c.id === target ? { ...c, image_url: res.url! } : c))
         )
-        showToast("success", "Image uploaded")
-      }
+        showToast("success", t("imageUploaded"))      }
     } catch {
-      showToast("error", "Failed to upload image. Please try again with a smaller file.")
+      showToast("error", t("imageUploadFailed"))
     }
     imageTargetRef.current = null
     setImageTarget(null)
@@ -189,10 +190,10 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
         showToast("error", res.error)
       } else {
         setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, image_url: null } : c)))
-        showToast("success", "Image removed")
+        showToast("success", t("imageRemoved"))
       }
     } catch {
-      showToast("error", "Failed to remove image")
+      showToast("error", t("imageRemoveFailed"))
     }
     setLoading(false)
   }
@@ -236,10 +237,10 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
         showToast("error", finalResult.error)
       } else if (finalResult.url) {
         setVideoUrl(finalResult.url)
-        showToast("success", "Video uploaded to Supabase")
+        showToast("success", t("videoUploaded"))
       }
     } catch (e) {
-      showToast("error", e instanceof Error ? e.message : "Failed to upload video")
+      showToast("error", e instanceof Error ? e.message : t("videoUploadFailed"))
     }
     setLoading(false)
     if (videoInputRef.current) videoInputRef.current.value = ""
@@ -253,10 +254,10 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
         showToast("error", res.error)
       } else {
         setVideoUrl("")
-        showToast("success", "Video removed — will use local fallback")
+        showToast("success", t("videoRemoved"))
       }
     } catch {
-      showToast("error", "Failed to remove video")
+      showToast("error", t("videoRemoveFailed"))
     }
     setVideoDialogOpen(false)
     setLoading(false)
@@ -317,7 +318,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
           {/* Sub count */}
           {isMain && subs.length > 0 && (
             <span className="text-xs text-muted-foreground mr-2">
-              {subs.length} sub{subs.length !== 1 ? "s" : ""}
+              {subs.length !== 1 ? t("subsCount", { count: subs.length }) : t("subCount", { count: subs.length })}
             </span>
           )}
 
@@ -330,7 +331,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
               className="h-7 w-7"
               disabled={idx === 0}
               onClick={() => moveCategory(cat.id, "up", cat.parent_id)}
-              title="Move up"
+              title={t("moveUp")}
             >
               <span className="text-xs">↑</span>
             </Button>
@@ -340,7 +341,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
               className="h-7 w-7"
               disabled={idx === siblings.length - 1}
               onClick={() => moveCategory(cat.id, "down", cat.parent_id)}
-              title="Move down"
+              title={t("moveDown")}
             >
               <span className="text-xs">↓</span>
             </Button>
@@ -355,7 +356,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
                 setImageTarget(cat.id)
                 imageInputRef.current?.click()
               }}
-              title="Upload image"
+              title={t("uploadImage")}
             >
               <Upload className="h-3.5 w-3.5" />
             </Button>
@@ -367,7 +368,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
                 size="icon"
                 className="h-7 w-7"
                 onClick={() => handleRemoveImage(cat.id)}
-                title="Remove image"
+                title={t("removeImage")}
               >
                 <X className="h-3.5 w-3.5" />
               </Button>
@@ -383,7 +384,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
                 setFormName(cat.name)
                 setEditOpen(true)
               }}
-              title="Edit"
+              title={t("edit")}
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>
@@ -397,7 +398,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
                 setSelectedCategory(cat)
                 setDeleteOpen(true)
               }}
-              title="Delete"
+              title={t("delete2")}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
@@ -413,7 +414,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
                   setFormName("")
                   setAddOpen(true)
                 }}
-                title="Add subcategory"
+                title={t("addSubcategoryBtn")}
               >
                 <Plus className="h-3.5 w-3.5" />
               </Button>
@@ -467,7 +468,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Video className="h-5 w-5" />
-            <h2 className="text-lg font-semibold">Homepage Video</h2>
+            <h2 className="text-lg font-semibold">{t("homepageVideo")}</h2>
           </div>
           <div className="flex gap-2">
             <Button
@@ -476,7 +477,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
               disabled={loading}
             >
               <Upload className="h-4 w-4 mr-1" />
-              {videoUrl ? "Replace Video" : "Upload Video"}
+              {videoUrl ? t("replaceVideo") : t("uploadVideo")}
             </Button>
             {videoUrl && (
               <Button
@@ -486,13 +487,13 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
                 disabled={loading}
               >
                 <Trash2 className="h-4 w-4 mr-1" />
-                Remove
+                {t("remove")}
               </Button>
             )}
           </div>
         </div>
         <p className="text-sm text-muted-foreground mb-3">
-          Upload a video to Supabase storage for the &quot;Ready to Start Trading?&quot; section. Videos served from Supabase CDN load faster globally.
+          {t("videoDesc")}
         </p>
         {videoUrl ? (
           <div className="rounded-lg overflow-hidden border border-border max-w-xl">
@@ -505,7 +506,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
           </div>
         ) : (
           <p className="text-sm text-muted-foreground italic">
-            No Supabase video set — using local fallback (/Our Factory.mp4)
+            {t("noVideoSet")}
           </p>
         )}
       </Card>
@@ -515,7 +516,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <FolderTree className="h-5 w-5" />
-            <h2 className="text-lg font-semibold">Categories & Subcategories</h2>
+            <h2 className="text-lg font-semibold">{t("title")}</h2>
           </div>
           <Button
             size="sm"
@@ -526,18 +527,18 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
             }}
           >
             <Plus className="h-4 w-4 mr-1" />
-            Add Category
+            {t("addCategory")}
           </Button>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
-          Add, edit, reorder, and manage images for categories and subcategories. Use the arrow buttons to reorder, and the upload icon to set images.
+          {t("managementDesc")}
         </p>
 
         {mainCategories.length === 0 ? (
           <EmptyState
             icon={FolderTree}
-            title="No categories yet"
-            description="Add your first category to get started."
+            title={t("noCategories")}
+            description={t("noCategoriesDesc")}
           />
         ) : (
           <div className="border border-border rounded-lg overflow-hidden">
@@ -553,30 +554,30 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {formParentId ? "Add Subcategory" : "Add Category"}
+              {formParentId ? t("addSubcategory") : t("addCategory")}
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <label className="text-sm font-medium">Name</label>
+            <label className="text-sm font-medium">{t("subcategoryName")}</label>
             <Input
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
-              placeholder="Enter category name"
+              placeholder={t("categoryNamePlaceholder")}
               className="mt-1"
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             />
             {formParentId && (
               <p className="text-xs text-muted-foreground mt-2">
-                Adding under: {categories.find((c) => c.id === formParentId)?.name}
+                {t("addingUnder", { name: categories.find((c) => c.id === formParentId)?.name ?? "" })}
               </p>
             )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddOpen(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button onClick={handleAdd} disabled={loading || !formName.trim()}>
-              {loading ? "Creating..." : "Create"}
+              {loading ? t("creating") : t("create")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -586,24 +587,24 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
+            <DialogTitle>{t("editCategory")}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <label className="text-sm font-medium">Name</label>
+            <label className="text-sm font-medium">{t("subcategoryName")}</label>
             <Input
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
-              placeholder="Enter category name"
+              placeholder={t("categoryNamePlaceholder")}
               className="mt-1"
               onKeyDown={(e) => e.key === "Enter" && handleEdit()}
             />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button onClick={handleEdit} disabled={loading || !formName.trim()}>
-              {loading ? "Saving..." : "Save"}
+              {loading ? t("saving") : t("save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -613,18 +614,18 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Category</DialogTitle>
+            <DialogTitle>{t("deleteCategory")}</DialogTitle>
           </DialogHeader>
           <p className="py-4 text-sm text-muted-foreground">
-            Are you sure you want to delete &quot;{selectedCategory?.name}&quot;?
-            {!selectedCategory?.parent_id && " All subcategories will also be deleted."}
+            {t("deleteConfirm", { name: selectedCategory?.name ?? "" })}
+            {!selectedCategory?.parent_id && " " + t("deleteSubcategoriesWarning")}
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={loading}>
-              {loading ? "Deleting..." : "Delete"}
+              {loading ? t("deleting") : t("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -634,17 +635,17 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
       <Dialog open={videoDialogOpen} onOpenChange={setVideoDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Remove Homepage Video</DialogTitle>
+            <DialogTitle>{t("removeVideoTitle")}</DialogTitle>
           </DialogHeader>
           <p className="py-4 text-sm text-muted-foreground">
-            Are you sure? The homepage will revert to using the local video file.
+            {t("removeVideoConfirm")}
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setVideoDialogOpen(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button variant="destructive" onClick={handleRemoveVideo} disabled={loading}>
-              {loading ? "Removing..." : "Remove"}
+              {loading ? t("removing") : t("remove")}
             </Button>
           </DialogFooter>
         </DialogContent>
