@@ -10,6 +10,7 @@ import { InvoiceStatusBadge } from "@/components/ui/status-badge"
 import { formatCurrency, formatDate, getIntlLocale } from "@/lib/utils"
 import { getInvoice } from "@/lib/actions/invoices"
 import { getTranslations, getLocale } from "next-intl/server"
+import { PrintButton } from "./print-button"
 
 const getCachedInvoice = cache(getInvoice)
 
@@ -35,9 +36,12 @@ export default async function SellerInvoiceDetailPage({ params }: { params: Prom
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <Link href="/seller/invoices" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" /> {t("backToInvoices")}
-      </Link>
+      <div className="print:hidden flex items-center justify-between">
+        <Link href="/seller/invoices" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-4 w-4" /> {t("backToInvoices")}
+        </Link>
+        <PrintButton label={t("printInvoice")} />
+      </div>
 
       <h1 className="text-2xl font-bold">{t("invoiceDetails")}</h1>
 
