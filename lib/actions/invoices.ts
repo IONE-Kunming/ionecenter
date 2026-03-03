@@ -41,15 +41,14 @@ export async function getSellerInvoices(): Promise<Invoice[]> {
 export async function createInvoice(orderId: string) {
   const adminSupabase = createAdminClient()
 
-  // Fetch order with items
-  const { data: order, error: orderError } = await adminSupabase
-    .from("orders")
-    .select("*")
-    .eq("id", orderId)
-    .single()
+  // Check if an invoice was already created (e.g. by the DB trigger)
+  const { data: existingInvoice } = await adminSupabase
+    .from("invoices")
+    .select("id")
+    .eq("order_id", orderId)
+    .maybeSingle()
 
-  if (orderError || !order) return { error: orderError?.message ?? "Order not found" }
-
+  // Fetch order items to attach to the invoice
   const { data: items, error: itemsError } = await adminSupabase
     .from("order_items")
     .select("*")
@@ -57,54 +56,80 @@ export async function createInvoice(orderId: string) {
 
   if (itemsError) return { error: itemsError.message }
 
-  // Generate invoice number via SQL function
-  const { data: invoiceNum, error: numError } = await adminSupabase
-    .rpc("generate_invoice_number")
+  let invoiceId: string
 
-  if (numError) return { error: numError.message }
+  if (existingInvoice) {
+    // Invoice was already created by the DB trigger — reuse it
+    invoiceId = existingInvoice.id
+  } else {
+    // Fallback: trigger didn't fire, create the invoice here
+    const { data: order, error: orderError } = await adminSupabase
+      .from("orders")
+      .select("*")
+      .eq("id", orderId)
+      .single()
 
-  const invoiceNumber = invoiceNum as string
+    if (orderError || !order) return { error: orderError?.message ?? "Order not found" }
 
-  // Create invoice record
-  const { data: invoice, error: invoiceError } = await adminSupabase
-    .from("invoices")
-    .insert({
-      invoice_number: invoiceNumber,
-      order_id: orderId,
-      buyer_id: order.buyer_id,
-      seller_id: order.seller_id,
-      subtotal: order.subtotal,
-      tax: order.tax,
-      total: order.total,
-      deposit_paid: order.deposit_amount,
-      remaining_balance: order.remaining_balance,
-      status: order.remaining_balance > 0 ? "issued" : "paid",
-      paid_at: order.remaining_balance <= 0 ? new Date().toISOString() : null,
-    })
-    .select()
-    .single()
+    const { data: invoiceNum, error: numError } = await adminSupabase
+      .rpc("generate_invoice_number")
 
-  if (invoiceError || !invoice) return { error: invoiceError?.message ?? "Failed to create invoice" }
+    if (numError) return { error: numError.message }
 
-  // Create invoice items
-  if (items && items.length > 0) {
-    const invoiceItems = items.map((item) => ({
-      invoice_id: invoice.id,
-      name: item.name,
-      quantity: item.quantity,
-      unit: "m",
-      price: item.price_per_meter ?? (item.quantity > 0 ? Number((item.price / item.quantity).toFixed(2)) : 0),
-      subtotal: item.price,
-    }))
+    const invoiceNumber = invoiceNum as string
+    if (!invoiceNumber) return { error: "Failed to generate invoice number" }
 
-    const { error: invItemsError } = await adminSupabase
-      .from("invoice_items")
-      .insert(invoiceItems)
+    const { data: invoice, error: invoiceError } = await adminSupabase
+      .from("invoices")
+      .insert({
+        invoice_number: invoiceNumber,
+        order_id: orderId,
+        buyer_id: order.buyer_id,
+        seller_id: order.seller_id,
+        subtotal: order.subtotal,
+        tax: order.tax,
+        total: order.total,
+        deposit_paid: order.deposit_amount,
+        remaining_balance: order.remaining_balance,
+        status: order.remaining_balance > 0 ? "issued" : "paid",
+        paid_at: order.remaining_balance <= 0 ? new Date().toISOString() : null,
+      })
+      .select()
+      .single()
 
-    if (invItemsError) return { error: invItemsError.message }
+    if (invoiceError || !invoice) return { error: invoiceError?.message ?? "Failed to create invoice" }
+    invoiceId = invoice.id
   }
 
-  return { success: true, invoice }
+  // Add invoice items if they haven't been added yet
+  if (items && items.length > 0) {
+    const { data: existingItems, error: existingItemsError } = await adminSupabase
+      .from("invoice_items")
+      .select("id")
+      .eq("invoice_id", invoiceId)
+      .limit(1)
+
+    if (existingItemsError) return { error: existingItemsError.message }
+
+    if (!existingItems || existingItems.length === 0) {
+      const invoiceItems = items.map((item) => ({
+        invoice_id: invoiceId,
+        name: item.name,
+        quantity: item.quantity,
+        unit: "m",
+        price: item.price_per_meter ?? (item.quantity > 0 ? Number((item.price / item.quantity).toFixed(2)) : 0),
+        subtotal: item.price,
+      }))
+
+      const { error: invItemsError } = await adminSupabase
+        .from("invoice_items")
+        .insert(invoiceItems)
+
+      if (invItemsError) return { error: invItemsError.message }
+    }
+  }
+
+  return { success: true }
 }
 
 export async function getInvoice(invoiceId: string): Promise<Invoice | null> {
