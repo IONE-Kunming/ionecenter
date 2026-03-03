@@ -568,7 +568,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
             />
             {formParentId && (
               <p className="text-xs text-muted-foreground mt-2">
-                {t("addingUnder", { name: categories.find((c) => c.id === formParentId)?.name })}
+                {t("addingUnder", { name: categories.find((c) => c.id === formParentId)?.name ?? "" })}
               </p>
             )}
           </div>
@@ -617,7 +617,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
             <DialogTitle>{t("deleteCategory")}</DialogTitle>
           </DialogHeader>
           <p className="py-4 text-sm text-muted-foreground">
-            {t("deleteConfirm", { name: selectedCategory?.name })}
+            {t("deleteConfirm", { name: selectedCategory?.name ?? "" })}
             {!selectedCategory?.parent_id && " " + t("deleteSubcategoriesWarning")}
           </p>
           <DialogFooter>

@@ -1324,5 +1324,16 @@
     "country": "Country",
     "saveChanges": "Save Changes",
     "profileSaved": "Profile saved successfully."
+  },
+  "testimonials": {
+    "quote1": "IONE Center transformed our supply chain. The platform is incredibly efficient and the support team is outstanding.",
+    "author1": "David Kim",
+    "company1": "KimTrade Co.",
+    "quote2": "We've expanded to 15 new markets since joining. The global reach and multi-language support are game changers.",
+    "author2": "Fatima Al-Rashid",
+    "company2": "Gulf Exports LLC",
+    "quote3": "The financial tools and real-time tracking give us complete visibility over our B2B operations.",
+    "author3": "Carlos Mendez",
+    "company3": "Mendez Industries"
   }
 }

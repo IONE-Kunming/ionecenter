@@ -33,11 +33,7 @@ const teamMembers = [
 ]
 const teamMembersDouble = [...teamMembers, ...teamMembers]
 
-const testimonials = [
-  { quote: "IONE Center transformed our supply chain. The platform is incredibly efficient and the support team is outstanding.", author: "David Kim", company: "KimTrade Co." },
-  { quote: "We've expanded to 15 new markets since joining. The global reach and multi-language support are game changers.", author: "Fatima Al-Rashid", company: "Gulf Exports LLC" },
-  { quote: "The financial tools and real-time tracking give us complete visibility over our B2B operations.", author: "Carlos Mendez", company: "Mendez Industries" },
-]
+// testimonials array is built inside the component using translations
 
 const baseBrandNames = [
   "IONE Palestine", "IONE Saudi Arabia", "IONE Kunming", "IONE Shenzhen",
@@ -54,6 +50,13 @@ export default async function LandingPage() {
   const ctaT = await getTranslations("cta")
   const footerT = await getTranslations("footer")
   const teamT = await getTranslations("team")
+  const testimonialsT = await getTranslations("testimonials")
+
+  const testimonials = [
+    { quote: testimonialsT("quote1"), author: testimonialsT("author1"), company: testimonialsT("company1") },
+    { quote: testimonialsT("quote2"), author: testimonialsT("author2"), company: testimonialsT("company2") },
+    { quote: testimonialsT("quote3"), author: testimonialsT("author3"), company: testimonialsT("company3") },
+  ]
 
   // Fetch video URL from Supabase site settings, fall back to default asset
   const DEFAULT_VIDEO_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/site-assets/videos/homepage-video.mp4`
