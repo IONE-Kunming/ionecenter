@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { InvoiceStatusBadge } from "@/components/ui/status-badge"
 import { formatCurrency, formatDate, getIntlLocale } from "@/lib/utils"
 import { getInvoice } from "@/lib/actions/invoices"
-import { getLocale } from "next-intl/server"
+import { getTranslations, getLocale } from "next-intl/server"
 
 const getCachedInvoice = cache(getInvoice)
 
@@ -26,13 +26,17 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
 
   if (!invoice) notFound()
 
-  const locale = await getLocale()
+  const [locale, t, tCommon] = await Promise.all([
+    getLocale(),
+    getTranslations("invoices"),
+    getTranslations("common"),
+  ])
   const intlLocale = getIntlLocale(locale)
 
   return (
     <div className="space-y-6 max-w-4xl">
       <Link href="/admin/invoices" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" /> Back to Invoices
+        <ArrowLeft className="h-4 w-4" /> {t("backToInvoices")}
       </Link>
 
       {/* Company Logo */}
@@ -43,16 +47,16 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
       {/* Seller Bank Information */}
       {invoice.seller && (invoice.seller.account_name || invoice.seller.account_number || invoice.seller.bank_name) && (
         <Card>
-          <CardHeader><CardTitle className="text-sm">Bank Information</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm">{t("bankInformation")}</CardTitle></CardHeader>
           <CardContent className="text-sm space-y-1">
-            {invoice.seller.account_name && <p><strong>Account Holder:</strong> {invoice.seller.account_name}</p>}
-            {invoice.seller.account_number && <p><strong>Account Number:</strong> {invoice.seller.account_number}</p>}
-            {invoice.seller.swift_code && <p><strong>SWIFT/BIC Code:</strong> {invoice.seller.swift_code}</p>}
-            {invoice.seller.bank_name && <p><strong>Bank Name:</strong> {invoice.seller.bank_name}</p>}
-            {invoice.seller.bank_region && <p><strong>Bank Region:</strong> {invoice.seller.bank_region}</p>}
-            {invoice.seller.bank_code && <p><strong>Bank Code:</strong> {invoice.seller.bank_code}</p>}
-            {invoice.seller.branch_code && <p><strong>Branch Code:</strong> {invoice.seller.branch_code}</p>}
-            {invoice.seller.bank_address && <p><strong>Bank Address:</strong> {invoice.seller.bank_address}</p>}
+            {invoice.seller.account_name && <p><strong>{t("accountHolder")}:</strong> {invoice.seller.account_name}</p>}
+            {invoice.seller.account_number && <p><strong>{t("accountNumber")}:</strong> {invoice.seller.account_number}</p>}
+            {invoice.seller.swift_code && <p><strong>{t("swiftBicCode")}:</strong> {invoice.seller.swift_code}</p>}
+            {invoice.seller.bank_name && <p><strong>{t("bankName")}:</strong> {invoice.seller.bank_name}</p>}
+            {invoice.seller.bank_region && <p><strong>{t("bankRegion")}:</strong> {invoice.seller.bank_region}</p>}
+            {invoice.seller.bank_code && <p><strong>{t("bankCode")}:</strong> {invoice.seller.bank_code}</p>}
+            {invoice.seller.branch_code && <p><strong>{t("branchCode")}:</strong> {invoice.seller.branch_code}</p>}
+            {invoice.seller.bank_address && <p><strong>{t("bankAddress")}:</strong> {invoice.seller.bank_address}</p>}
           </CardContent>
         </Card>
       )}
@@ -67,17 +71,17 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
 
       <div className="grid md:grid-cols-2 gap-4">
         <Card>
-          <CardHeader><CardTitle className="text-sm">Buyer</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm">{t("buyer")}</CardTitle></CardHeader>
           <CardContent className="text-sm space-y-1">
-            <p className="font-medium">{invoice.buyer?.display_name ?? "Unknown"}</p>
+            <p className="font-medium">{invoice.buyer?.display_name ?? tCommon("unknown")}</p>
             <p className="text-muted-foreground">{invoice.buyer?.company ?? ""}</p>
             <p className="text-muted-foreground">{invoice.buyer?.email ?? ""}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle className="text-sm">Seller</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm">{t("seller")}</CardTitle></CardHeader>
           <CardContent className="text-sm space-y-1">
-            <p className="font-medium">{invoice.seller?.display_name ?? "Unknown"}</p>
+            <p className="font-medium">{invoice.seller?.display_name ?? tCommon("unknown")}</p>
             <p className="text-muted-foreground">{invoice.seller?.company ?? ""}</p>
             <p className="text-muted-foreground">{invoice.seller?.email ?? ""}</p>
           </CardContent>
@@ -86,15 +90,15 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
 
       {invoice.items && invoice.items.length > 0 && (
         <Card>
-          <CardHeader><CardTitle>Items</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t("items")}</CardTitle></CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Item</TableHead>
-                  <TableHead className="text-right">Qty</TableHead>
-                  <TableHead className="text-right">Unit Price</TableHead>
-                  <TableHead className="text-right">Subtotal</TableHead>
+                  <TableHead>{t("item")}</TableHead>
+                  <TableHead className="text-right">{t("qty")}</TableHead>
+                  <TableHead className="text-right">{t("unitPrice")}</TableHead>
+                  <TableHead className="text-right">{t("subtotal")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -113,26 +117,26 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
       )}
 
       <Card>
-        <CardHeader><CardTitle>Payment Summary</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("paymentSummary")}</CardTitle></CardHeader>
         <CardContent className="space-y-2 text-sm max-w-xs ml-auto">
-          <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatCurrency(invoice.subtotal, "USD", intlLocale)}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Tax</span><span>{formatCurrency(invoice.tax, "USD", intlLocale)}</span></div>
-          <div className="border-t pt-2 flex justify-between font-semibold"><span>Total</span><span>{formatCurrency(invoice.total, "USD", intlLocale)}</span></div>
-          <div className="flex justify-between text-green-600"><span>Deposit Paid</span><span>-{formatCurrency(invoice.deposit_paid, "USD", intlLocale)}</span></div>
-          <div className="border-t pt-2 flex justify-between font-semibold"><span>Remaining Balance</span><span>{formatCurrency(invoice.remaining_balance, "USD", intlLocale)}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">{t("subtotal")}</span><span>{formatCurrency(invoice.subtotal, "USD", intlLocale)}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">{t("tax")}</span><span>{formatCurrency(invoice.tax, "USD", intlLocale)}</span></div>
+          <div className="border-t pt-2 flex justify-between font-semibold"><span>{tCommon("total")}</span><span>{formatCurrency(invoice.total, "USD", intlLocale)}</span></div>
+          <div className="flex justify-between text-green-600"><span>{t("depositPaid")}</span><span>-{formatCurrency(invoice.deposit_paid, "USD", intlLocale)}</span></div>
+          <div className="border-t pt-2 flex justify-between font-semibold"><span>{t("remainingBalance")}</span><span>{formatCurrency(invoice.remaining_balance, "USD", intlLocale)}</span></div>
         </CardContent>
       </Card>
 
       <div className="grid md:grid-cols-2 gap-4">
         {invoice.due_date && (
           <Card>
-            <CardHeader><CardTitle className="text-sm">Due Date</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-sm">{t("dueDate")}</CardTitle></CardHeader>
             <CardContent><p className="text-sm">{formatDate(invoice.due_date, intlLocale)}</p></CardContent>
           </Card>
         )}
         {invoice.payment_terms && (
           <Card>
-            <CardHeader><CardTitle className="text-sm">Payment Terms</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-sm">{t("paymentTerms")}</CardTitle></CardHeader>
             <CardContent><p className="text-sm">{invoice.payment_terms}</p></CardContent>
           </Card>
         )}
@@ -140,7 +144,7 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
 
       {invoice.notes && (
         <Card>
-          <CardHeader><CardTitle className="text-sm">Notes</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm">{t("notes")}</CardTitle></CardHeader>
           <CardContent><p className="text-sm text-muted-foreground">{invoice.notes}</p></CardContent>
         </Card>
       )}

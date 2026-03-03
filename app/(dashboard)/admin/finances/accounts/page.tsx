@@ -1,62 +1,65 @@
 import { Landmark, TrendingUp, TrendingDown, Wallet } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency, getIntlLocale } from "@/lib/utils"
-import { getLocale } from "next-intl/server"
-
-const accountCategories = [
-  {
-    name: "Assets",
-    icon: Wallet,
-    color: "bg-blue-500",
-    accounts: [
-      { name: "Cash & Bank", balance: 24500.0 },
-      { name: "Accounts Receivable", balance: 8750.0 },
-      { name: "Inventory", balance: 15200.0 },
-    ],
-  },
-  {
-    name: "Liabilities",
-    icon: TrendingDown,
-    color: "bg-red-500",
-    accounts: [
-      { name: "Accounts Payable", balance: 6300.0 },
-      { name: "Accrued Expenses", balance: 1250.0 },
-      { name: "Loans Payable", balance: 10000.0 },
-    ],
-  },
-  {
-    name: "Revenue",
-    icon: TrendingUp,
-    color: "bg-green-500",
-    accounts: [
-      { name: "Product Sales", balance: 48250.0 },
-      { name: "Service Income", balance: 5400.0 },
-      { name: "Other Income", balance: 820.0 },
-    ],
-  },
-  {
-    name: "Expenses",
-    icon: TrendingDown,
-    color: "bg-orange-500",
-    accounts: [
-      { name: "Cost of Goods Sold", balance: 22100.0 },
-      { name: "Operating Expenses", balance: 8900.0 },
-      { name: "Platform Fees", balance: 2415.0 },
-    ],
-  },
-]
+import { getTranslations, getLocale } from "next-intl/server"
 
 export default async function AccountsPage() {
-  const locale = await getLocale()
+  const [locale, t] = await Promise.all([
+    getLocale(),
+    getTranslations("finance"),
+  ])
   const intlLocale = getIntlLocale(locale)
+
+  const accountCategories = [
+    {
+      name: t("assets"),
+      icon: Wallet,
+      color: "bg-blue-500",
+      accounts: [
+        { name: t("cash"), balance: 24500.0 },
+        { name: t("receivables"), balance: 8750.0 },
+        { name: t("inventory"), balance: 15200.0 },
+      ],
+    },
+    {
+      name: t("liabilities"),
+      icon: TrendingDown,
+      color: "bg-red-500",
+      accounts: [
+        { name: t("payable"), balance: 6300.0 },
+        { name: t("accruedExpenses"), balance: 1250.0 },
+        { name: t("loansPayable"), balance: 10000.0 },
+      ],
+    },
+    {
+      name: t("revenue"),
+      icon: TrendingUp,
+      color: "bg-green-500",
+      accounts: [
+        { name: t("productSales"), balance: 48250.0 },
+        { name: t("serviceIncome"), balance: 5400.0 },
+        { name: t("otherIncome"), balance: 820.0 },
+      ],
+    },
+    {
+      name: t("expenses"),
+      icon: TrendingDown,
+      color: "bg-orange-500",
+      accounts: [
+        { name: t("cogs"), balance: 22100.0 },
+        { name: t("operatingExpenses"), balance: 8900.0 },
+        { name: t("fees"), balance: 2415.0 },
+      ],
+    },
+  ]
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Landmark className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Chart of Accounts</h1>
-          <p className="text-muted-foreground">Manage your financial accounts and balances</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("chartOfAccounts")}</h1>
+          <p className="text-muted-foreground">{t("chartOfAccountsDesc")}</p>
         </div>
       </div>
 

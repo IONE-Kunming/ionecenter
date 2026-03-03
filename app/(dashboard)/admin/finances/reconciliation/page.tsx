@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatCard } from "@/components/ui/stat-card"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency, formatDate, getIntlLocale } from "@/lib/utils"
-import { getLocale } from "next-intl/server"
+import { getTranslations, getLocale } from "next-intl/server"
 
 const matchedTransactions = [
   { id: "REC-001", date: "2024-12-15", description: "Payment received - Order #1042", bookAmount: 2450.0, bankAmount: 2450.0 },
@@ -19,7 +19,11 @@ const unmatchedTransactions = [
 ]
 
 export default async function ReconciliationPage() {
-  const locale = await getLocale()
+  const [locale, t, tCommon] = await Promise.all([
+    getLocale(),
+    getTranslations("finance"),
+    getTranslations("common"),
+  ])
   const intlLocale = getIntlLocale(locale)
 
   return (
@@ -27,27 +31,27 @@ export default async function ReconciliationPage() {
       <div className="flex items-center gap-3">
         <Scale className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bank Reconciliation</h1>
-          <p className="text-muted-foreground">Match your book records with bank statements</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("bankReconciliation")}</h1>
+          <p className="text-muted-foreground">{t("bankReconciliationDesc")}</p>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
-          title="Book Balance"
+          title={t("bookBalance")}
           value={formatCurrency(25322.5, "USD", intlLocale)}
           icon={CheckCircle2}
         />
         <StatCard
-          title="Bank Balance"
+          title={t("bankBalance")}
           value={formatCurrency(25262.5, "USD", intlLocale)}
           icon={Scale}
         />
         <StatCard
-          title="Difference"
+          title={t("difference")}
           value={formatCurrency(60.0, "USD", intlLocale)}
           icon={AlertTriangle}
-          trend={{ value: -2.1, label: "items to reconcile" }}
+          trend={{ value: -2.1, label: t("itemsToReconcile") }}
         />
       </div>
 
@@ -55,7 +59,7 @@ export default async function ReconciliationPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-green-500" />
-            Matched Transactions
+            {t("matchedTransactions")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -63,11 +67,11 @@ export default async function ReconciliationPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left">
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground">Date</th>
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground">Description</th>
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">Book Amount</th>
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">Bank Amount</th>
-                  <th className="pb-3 font-medium text-muted-foreground">Status</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground">{tCommon("date")}</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground">{t("description")}</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">{t("bookAmount")}</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">{t("bankAmount")}</th>
+                  <th className="pb-3 font-medium text-muted-foreground">{tCommon("status")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -80,7 +84,7 @@ export default async function ReconciliationPage() {
                     <td className="py-3">
                       <Badge variant="default" className="gap-1">
                         <CheckCircle2 className="h-3 w-3" />
-                        Matched
+                        {t("matched")}
                       </Badge>
                     </td>
                   </tr>
@@ -95,7 +99,7 @@ export default async function ReconciliationPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <XCircle className="h-5 w-5 text-red-500" />
-            Unmatched Transactions
+            {t("unmatchedTransactions")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -103,11 +107,11 @@ export default async function ReconciliationPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left">
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground">Date</th>
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground">Description</th>
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">Book Amount</th>
-                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">Bank Amount</th>
-                  <th className="pb-3 font-medium text-muted-foreground">Source</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground">{tCommon("date")}</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground">{t("description")}</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">{t("bookAmount")}</th>
+                  <th className="pb-3 pr-4 font-medium text-muted-foreground text-right">{t("bankAmount")}</th>
+                  <th className="pb-3 font-medium text-muted-foreground">{t("source")}</th>
                 </tr>
               </thead>
               <tbody>

@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { OrderStatusBadge, PaymentStatusBadge } from "@/components/ui/status-badge"
 import { formatCurrency, formatDate, getIntlLocale } from "@/lib/utils"
 import { getOrder } from "@/lib/actions/orders"
-import { getLocale } from "next-intl/server"
+import { getTranslations, getLocale } from "next-intl/server"
 
 export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -14,13 +14,17 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
   if (!order) notFound()
 
-  const locale = await getLocale()
+  const [locale, t, tCommon] = await Promise.all([
+    getLocale(),
+    getTranslations("orders"),
+    getTranslations("common"),
+  ])
   const intlLocale = getIntlLocale(locale)
 
   return (
     <div className="space-y-6">
       <Link href="/admin/orders" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" /> Back to Orders
+        <ArrowLeft className="h-4 w-4" /> {t("backToOrders")}
       </Link>
 
       <div className="flex items-center justify-between">
@@ -36,17 +40,17 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <CardHeader><CardTitle>Buyer</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t("buyer")}</CardTitle></CardHeader>
           <CardContent className="space-y-1">
-            <p className="font-medium">{order.buyer?.display_name ?? "Unknown"}</p>
+            <p className="font-medium">{order.buyer?.display_name ?? tCommon("unknown")}</p>
             <p className="text-sm text-muted-foreground">{order.buyer?.company ?? ""}</p>
             <p className="text-sm text-muted-foreground">{order.buyer?.email ?? ""}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle>Seller</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t("seller")}</CardTitle></CardHeader>
           <CardContent className="space-y-1">
-            <p className="font-medium">{order.seller?.display_name ?? "Unknown"}</p>
+            <p className="font-medium">{order.seller?.display_name ?? tCommon("unknown")}</p>
             <p className="text-sm text-muted-foreground">{order.seller?.company ?? ""}</p>
             <p className="text-sm text-muted-foreground">{order.seller?.email ?? ""}</p>
           </CardContent>
@@ -54,16 +58,16 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
       </div>
 
       <Card>
-        <CardHeader><CardTitle>Order Items</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("orderItems")}</CardTitle></CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Model</TableHead>
-                <TableHead>Qty</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Subtotal</TableHead>
+                <TableHead>{t("product")}</TableHead>
+                <TableHead>{t("model")}</TableHead>
+                <TableHead>{t("qty")}</TableHead>
+                <TableHead>{t("price")}</TableHead>
+                <TableHead>{t("subtotal")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -82,14 +86,14 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Payment Summary</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("paymentSummary")}</CardTitle></CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatCurrency(order.subtotal, "USD", intlLocale)}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Tax ({order.tax_rate}%)</span><span>{formatCurrency(order.tax, "USD", intlLocale)}</span></div>
-            <div className="flex justify-between font-bold border-t pt-2"><span>Total</span><span>{formatCurrency(order.total, "USD", intlLocale)}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Deposit Paid</span><span>{formatCurrency(order.deposit_amount, "USD", intlLocale)}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Remaining Balance</span><span>{formatCurrency(order.remaining_balance, "USD", intlLocale)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">{t("subtotal")}</span><span>{formatCurrency(order.subtotal, "USD", intlLocale)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">{t("taxPercent", { rate: order.tax_rate })}</span><span>{formatCurrency(order.tax, "USD", intlLocale)}</span></div>
+            <div className="flex justify-between font-bold border-t pt-2"><span>{tCommon("total")}</span><span>{formatCurrency(order.total, "USD", intlLocale)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">{t("depositPaid")}</span><span>{formatCurrency(order.deposit_amount, "USD", intlLocale)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">{t("remainingBalance")}</span><span>{formatCurrency(order.remaining_balance, "USD", intlLocale)}</span></div>
           </div>
         </CardContent>
       </Card>
