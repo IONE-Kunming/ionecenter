@@ -27,6 +27,8 @@ export default async function SellerInvoiceDetailPage({ params }: { params: Prom
         <ArrowLeft className="h-4 w-4" /> {t("backToInvoices")}
       </Link>
 
+      <h1 className="text-2xl font-bold">{t("invoiceDetails")}</h1>
+
       {/* Company Logo */}
       <div className="flex items-center gap-3">
         <Image src="/logo.svg" alt="IONE Center" width={120} height={40} />
