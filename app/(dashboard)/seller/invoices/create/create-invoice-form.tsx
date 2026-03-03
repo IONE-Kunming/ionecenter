@@ -1177,7 +1177,6 @@ export function CreateOfflineInvoiceForm() {
           type="button"
           className="whatsapp-btn"
           onClick={handleWhatsApp}
-          disabled={!savedInvoiceId}
           title="Send via WhatsApp"
         >
           <span className="whatsapp-svgContainer">
