@@ -58,6 +58,7 @@ export function SellerInvoicesList({
 
   useEffect(() => {
     if (printInvoice) {
+      // Short delay to ensure the hidden print div is rendered in the DOM before printing
       const timer = setTimeout(() => {
         window.print()
         setPrintInvoice(null)
@@ -302,14 +303,14 @@ export function SellerInvoicesList({
             <div className="invoice-detail-section invoice-print-section">
               <h3 className="invoice-detail-section-title invoice-print-section-title">{t("bankInformation")}</h3>
               <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
-                {printInvoice.seller!.account_name && <p><strong>{t("accountHolder")}:</strong> {printInvoice.seller!.account_name}</p>}
-                {printInvoice.seller!.account_number && <p><strong>{t("accountNumber")}:</strong> {printInvoice.seller!.account_number}</p>}
-                {printInvoice.seller!.swift_code && <p><strong>{t("swiftBicCode")}:</strong> {printInvoice.seller!.swift_code}</p>}
-                {printInvoice.seller!.bank_name && <p><strong>{t("bankName")}:</strong> {printInvoice.seller!.bank_name}</p>}
-                {printInvoice.seller!.bank_region && <p><strong>{t("bankRegion")}:</strong> {printInvoice.seller!.bank_region}</p>}
-                {printInvoice.seller!.bank_code && <p><strong>{t("bankCode")}:</strong> {printInvoice.seller!.bank_code}</p>}
-                {printInvoice.seller!.branch_code && <p><strong>{t("branchCode")}:</strong> {printInvoice.seller!.branch_code}</p>}
-                {printInvoice.seller!.bank_address && <p><strong>{t("bankAddress")}:</strong> {printInvoice.seller!.bank_address}</p>}
+                {printInvoice.seller?.account_name && <p><strong>{t("accountHolder")}:</strong> {printInvoice.seller.account_name}</p>}
+                {printInvoice.seller?.account_number && <p><strong>{t("accountNumber")}:</strong> {printInvoice.seller.account_number}</p>}
+                {printInvoice.seller?.swift_code && <p><strong>{t("swiftBicCode")}:</strong> {printInvoice.seller.swift_code}</p>}
+                {printInvoice.seller?.bank_name && <p><strong>{t("bankName")}:</strong> {printInvoice.seller.bank_name}</p>}
+                {printInvoice.seller?.bank_region && <p><strong>{t("bankRegion")}:</strong> {printInvoice.seller.bank_region}</p>}
+                {printInvoice.seller?.bank_code && <p><strong>{t("bankCode")}:</strong> {printInvoice.seller.bank_code}</p>}
+                {printInvoice.seller?.branch_code && <p><strong>{t("branchCode")}:</strong> {printInvoice.seller.branch_code}</p>}
+                {printInvoice.seller?.bank_address && <p><strong>{t("bankAddress")}:</strong> {printInvoice.seller.bank_address}</p>}
               </div>
             </div>
           )}
@@ -369,3 +370,4 @@ export function SellerInvoicesList({
     </>
   )
 }
+
