@@ -1157,6 +1157,8 @@
     "pdfDownloadedAttachWhatsApp": "PDF downloaded — please attach it to your WhatsApp message",
     "buyerCodeRequired": "Buyer code is required",
     "separateOrdersWillBeCreated": "{count} separate orders will be created (one per seller)",
-    "searchFailed": "Search failed. Please try again."
+    "searchFailed": "Search failed. Please try again.",
+    "invoiceUpdatedSuccess": "Invoice updated successfully",
+    "updateInvoice": "Update Invoice"
   }
 }

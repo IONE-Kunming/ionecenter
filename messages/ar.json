@@ -1162,6 +1162,8 @@
     "pdfDownloadedAttachWhatsApp": "تم تنزيل PDF — يرجى إرفاقه برسالة واتساب الخاصة بك",
     "buyerCodeRequired": "رمز المشتري مطلوب",
     "separateOrdersWillBeCreated": "سيتم إنشاء {count} طلب منفصل (واحد لكل بائع)",
-    "searchFailed": "فشل البحث. يرجى المحاولة مرة أخرى."
+    "searchFailed": "فشل البحث. يرجى المحاولة مرة أخرى.",
+    "invoiceUpdatedSuccess": "تم تحديث الفاتورة بنجاح",
+    "updateInvoice": "تحديث الفاتورة"
   }
 }

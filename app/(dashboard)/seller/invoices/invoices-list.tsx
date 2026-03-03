@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { Receipt, Search, Plus, Eye, Printer, Trash2 } from "lucide-react"
+import { Receipt, Search, Plus, Eye, Printer, Trash2, Pencil } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -165,6 +165,9 @@ export function SellerInvoicesList({
                       <div className="flex items-center gap-1">
                         <Link href={`/seller/invoices/offline/${inv.id}`}>
                           <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
+                        </Link>
+                        <Link href={`/seller/invoices/create?edit=${inv.id}`}>
+                          <Button variant="ghost" size="sm"><Pencil className="h-4 w-4" /></Button>
                         </Link>
                         <Link href={`/seller/invoices/offline/${inv.id}?print=true`}>
                           <Button variant="ghost" size="sm"><Printer className="h-4 w-4" /></Button>
