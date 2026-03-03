@@ -71,18 +71,11 @@ export async function createInvoice(orderId: string) {
 
     if (orderError || !order) return { error: orderError?.message ?? "Order not found" }
 
-    const { data: invoiceNum, error: numError } = await adminSupabase
-      .rpc("generate_invoice_number")
-
-    if (numError) return { error: numError.message }
-
-    const invoiceNumber = invoiceNum as string
-    if (!invoiceNumber) return { error: "Failed to generate invoice number" }
-
     const { data: invoice, error: invoiceError } = await adminSupabase
       .from("invoices")
       .insert({
-        invoice_number: invoiceNumber,
+        // invoice_number is intentionally omitted: the BEFORE INSERT trigger
+        // (generate_invoice_number_trigger) will generate and assign it.
         order_id: orderId,
         buyer_id: order.buyer_id,
         seller_id: order.seller_id,
