@@ -322,7 +322,8 @@
     "separateOrders": "将创建 {count} 个单独的订单（每个卖家一个）",
     "goToCart": "前往购物车",
     "addedToCart": "已加入购物车！",
-    "addToCart": "加入购物车"
+    "addToCart": "加入购物车",
+    "outOfStock": "缺货"
   },
   "checkout": {
     "title": "结账",
