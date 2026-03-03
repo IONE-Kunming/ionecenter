@@ -1,7 +1,6 @@
 "use server"
 
 import { auth, currentUser } from "@clerk/nextjs/server"
-import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import type { User } from "@/types/database"
 import type { SupabaseClient } from "@supabase/supabase-js"
@@ -107,7 +106,7 @@ export async function ensureUserInSupabase(): Promise<User | null> {
 }
 
 export async function updateUserProfile(
-  updates: Partial<Pick<User, "display_name" | "company" | "phone_number" | "preferred_language" | "street" | "city" | "state" | "zip" | "country" | "bank_name" | "account_name" | "account_number" | "swift_code" | "bank_branch" | "bank_region" | "bank_code" | "branch_code" | "bank_address" | "currency" | "payment_notes" | "show_category_numbers">>
+  updates: Partial<Pick<User, "display_name" | "company" | "phone_number" | "preferred_language" | "street" | "city" | "state" | "zip" | "country" | "bank_name" | "account_name" | "account_number" | "swift_code" | "bank_branch" | "bank_region" | "bank_code" | "branch_code" | "bank_address" | "currency" | "payment_notes">>
 ) {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
@@ -119,10 +118,6 @@ export async function updateUserProfile(
     .eq("id", user.id)
 
   if (error) return { error: error.message }
-
-  if ("show_category_numbers" in updates) {
-    revalidatePath("/buyer/catalog")
-  }
 
   return { success: true }
 }

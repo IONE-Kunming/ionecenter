@@ -9,6 +9,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
@@ -42,7 +44,7 @@ const CATEGORY_BADGE_BASE = "rounded-full bg-primary text-primary-foreground fle
 const CATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE}`
 const SUBCATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE} text-[10px]`
 
-export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = [], showCategoryNumbers = true }: { products: CatalogProduct[]; categoryData: CategoryData; wishlistedIds?: string[]; showCategoryNumbers?: boolean }) {
+export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = [] }: { products: CatalogProduct[]; categoryData: CategoryData; wishlistedIds?: string[] }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
@@ -66,6 +68,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
   const [addingIds, setAddingIds] = useState<Set<string>>(new Set())
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
   const [cartCount, setCartCount] = useState(0)
+  const [showCategoryNumbers, setShowCategoryNumbers] = useState(true)
 
   const handleAddToCart = (productId: string) => {
     if (addingIds.has(productId)) return
@@ -135,7 +138,12 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
 
       {/* Category Grid */}
       {level === "categories" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-4">
+          <div className="flex justify-end items-center gap-2">
+            <Label htmlFor="showNumbers" className="text-sm">{t("showNumbers")}</Label>
+            <Switch id="showNumbers" checked={showCategoryNumbers} onCheckedChange={setShowCategoryNumbers} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {categoryData.mainCategories.map((cat, catIdx) => {
             const subcategories = categoryData.categoryMap[cat] ?? []
             const categoryCode = String(catIdx + 1).padStart(2, '0')
@@ -187,6 +195,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
             </Card>
             )
           })}
+          </div>
         </div>
       )}
 
@@ -196,6 +205,10 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
           <Button variant="ghost" size="sm" onClick={() => { setLevel("categories"); setSelectedCategory("") }}>
             <ArrowLeft className="h-4 w-4 mr-2" /> {tCommon("back")}
           </Button>
+          <div className="flex justify-end items-center gap-2">
+            <Label htmlFor="showSubNumbers" className="text-sm">{t("showNumbers")}</Label>
+            <Switch id="showSubNumbers" checked={showCategoryNumbers} onCheckedChange={setShowCategoryNumbers} />
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {(categoryData.categoryMap[selectedCategory] ?? []).map((sub, subIdx) => {
               const parentIdx = categoryData.mainCategories.indexOf(selectedCategory) + 1
