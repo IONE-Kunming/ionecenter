@@ -1,3 +1,5 @@
+import { cache } from "react"
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "@/components/ui/link"
 import Image from "next/image"
@@ -9,9 +11,19 @@ import { formatCurrency, formatDate, getIntlLocale } from "@/lib/utils"
 import { getInvoice } from "@/lib/actions/invoices"
 import { getTranslations, getLocale } from "next-intl/server"
 
+const getCachedInvoice = cache(getInvoice)
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const invoice = await getCachedInvoice(id)
+  const t = await getTranslations("invoices")
+  if (!invoice) return { title: t("invoiceDetails") }
+  return { title: `${t("invoice")} ${invoice.invoice_number}` }
+}
+
 export default async function SellerInvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const invoice = await getInvoice(id)
+  const invoice = await getCachedInvoice(id)
 
   if (!invoice) notFound()
 
