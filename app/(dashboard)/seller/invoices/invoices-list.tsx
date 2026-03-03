@@ -128,7 +128,7 @@ export function SellerInvoicesList({
                           <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
                         </Link>
                         <Link href={`/seller/invoices/${inv.id}?print=true`}>
-                          <Button variant="ghost" size="sm"><Printer className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="sm" aria-label="Print invoice"><Printer className="h-4 w-4" /></Button>
                         </Link>
                       </div>
                     </TableCell>

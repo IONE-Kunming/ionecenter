@@ -109,14 +109,14 @@ export default async function SellerInvoiceDetailPage({ params, searchParams }: 
           <div className="invoice-detail-section invoice-print-section">
             <h3 className="invoice-detail-section-title invoice-print-section-title text-foreground">{t("bankInformation")}</h3>
             <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
-              {invoice.seller!.account_name && <p className="text-foreground"><strong>{t("accountHolder")}:</strong> {invoice.seller!.account_name}</p>}
-              {invoice.seller!.account_number && <p className="text-foreground"><strong>{t("accountNumber")}:</strong> {invoice.seller!.account_number}</p>}
-              {invoice.seller!.swift_code && <p className="text-foreground"><strong>{t("swiftBicCode")}:</strong> {invoice.seller!.swift_code}</p>}
-              {invoice.seller!.bank_name && <p className="text-foreground"><strong>{t("bankName")}:</strong> {invoice.seller!.bank_name}</p>}
-              {invoice.seller!.bank_region && <p className="text-foreground"><strong>{t("bankRegion")}:</strong> {invoice.seller!.bank_region}</p>}
-              {invoice.seller!.bank_code && <p className="text-foreground"><strong>{t("bankCode")}:</strong> {invoice.seller!.bank_code}</p>}
-              {invoice.seller!.branch_code && <p className="text-foreground"><strong>{t("branchCode")}:</strong> {invoice.seller!.branch_code}</p>}
-              {invoice.seller!.bank_address && <p className="text-foreground"><strong>{t("bankAddress")}:</strong> {invoice.seller!.bank_address}</p>}
+              {invoice.seller?.account_name && <p className="text-foreground"><strong>{t("accountHolder")}:</strong> {invoice.seller.account_name}</p>}
+              {invoice.seller?.account_number && <p className="text-foreground"><strong>{t("accountNumber")}:</strong> {invoice.seller.account_number}</p>}
+              {invoice.seller?.swift_code && <p className="text-foreground"><strong>{t("swiftBicCode")}:</strong> {invoice.seller.swift_code}</p>}
+              {invoice.seller?.bank_name && <p className="text-foreground"><strong>{t("bankName")}:</strong> {invoice.seller.bank_name}</p>}
+              {invoice.seller?.bank_region && <p className="text-foreground"><strong>{t("bankRegion")}:</strong> {invoice.seller.bank_region}</p>}
+              {invoice.seller?.bank_code && <p className="text-foreground"><strong>{t("bankCode")}:</strong> {invoice.seller.bank_code}</p>}
+              {invoice.seller?.branch_code && <p className="text-foreground"><strong>{t("branchCode")}:</strong> {invoice.seller.branch_code}</p>}
+              {invoice.seller?.bank_address && <p className="text-foreground"><strong>{t("bankAddress")}:</strong> {invoice.seller.bank_address}</p>}
             </div>
           </div>
         )}
