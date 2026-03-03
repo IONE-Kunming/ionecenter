@@ -430,7 +430,9 @@
     "urdu": "Urdu",
     "yourBuyerCode": "Your Buyer Code",
     "yourSellerCode": "Your Seller Code",
-    "copyCode": "Copy code"
+    "copyCode": "Copy code",
+    "showCategoryNumbers": "Show Category Numbers",
+    "catalogPreferences": "Catalog Preferences"
   },
   "sellerDirectory": {
     "searchSellers": "Search sellers...",

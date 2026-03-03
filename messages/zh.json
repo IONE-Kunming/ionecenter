@@ -406,7 +406,9 @@
     "urdu": "乌尔都语",
     "yourBuyerCode": "您的买家代码",
     "yourSellerCode": "您的卖家代码",
-    "copyCode": "复制代码"
+    "copyCode": "复制代码",
+    "showCategoryNumbers": "显示类别编号",
+    "catalogPreferences": "目录偏好"
   },
   "sellerDirectory": {
     "searchSellers": "搜索卖家...",

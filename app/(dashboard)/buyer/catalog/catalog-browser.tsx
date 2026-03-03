@@ -42,7 +42,7 @@ const CATEGORY_BADGE_BASE = "rounded-full bg-primary text-primary-foreground fle
 const CATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE}`
 const SUBCATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE} text-[10px]`
 
-export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = [] }: { products: CatalogProduct[]; categoryData: CategoryData; wishlistedIds?: string[] }) {
+export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = [], showCategoryNumbers = true }: { products: CatalogProduct[]; categoryData: CategoryData; wishlistedIds?: string[]; showCategoryNumbers?: boolean }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
@@ -149,9 +149,11 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
               <CardContent className="p-0">
                 {imageUrl ? (
                   <div className="relative h-[160px]">
-                    <div className={`${CATEGORY_BADGE_ABSOLUTE} text-xs`} aria-label={`Category ${categoryCode}`}>
-                      {categoryCode}
-                    </div>
+                    {showCategoryNumbers && (
+                      <div className={`${CATEGORY_BADGE_ABSOLUTE} text-xs`} aria-label={`Category ${categoryCode}`}>
+                        {categoryCode}
+                      </div>
+                    )}
                     <Image
                       src={imageUrl}
                       alt={cat}
@@ -169,9 +171,11 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                   </div>
                 ) : (
                   <div className="p-8 text-center relative">
-                    <div className={`${CATEGORY_BADGE_ABSOLUTE} text-xs`} aria-label={`Category ${categoryCode}`}>
-                      {categoryCode}
-                    </div>
+                    {showCategoryNumbers && (
+                      <div className={`${CATEGORY_BADGE_ABSOLUTE} text-xs`} aria-label={`Category ${categoryCode}`}>
+                        {categoryCode}
+                      </div>
+                    )}
                     <Package className="h-10 w-10 mx-auto text-primary" />
                     <h3 className="mt-4 font-semibold text-base">{translateCat(cat)}</h3>
                     <p className="text-sm text-muted-foreground mt-1">
@@ -206,9 +210,11 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                 <CardContent className="p-0">
                   {subImageUrl ? (
                     <div className="relative h-[120px]">
-                      <div className={SUBCATEGORY_BADGE_ABSOLUTE} aria-label={`Subcategory ${subcategoryCode}`}>
-                        {subcategoryCode}
-                      </div>
+                      {showCategoryNumbers && (
+                        <div className={SUBCATEGORY_BADGE_ABSOLUTE} aria-label={`Subcategory ${subcategoryCode}`}>
+                          {subcategoryCode}
+                        </div>
+                      )}
                       <Image
                         src={subImageUrl}
                         alt={sub}
@@ -223,9 +229,11 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                     </div>
                   ) : (
                     <div className="p-6 text-center relative">
-                      <div className={SUBCATEGORY_BADGE_ABSOLUTE} aria-label={`Subcategory ${subcategoryCode}`}>
-                        {subcategoryCode}
-                      </div>
+                      {showCategoryNumbers && (
+                        <div className={SUBCATEGORY_BADGE_ABSOLUTE} aria-label={`Subcategory ${subcategoryCode}`}>
+                          {subcategoryCode}
+                        </div>
+                      )}
                       <Package className="h-8 w-8 mx-auto text-primary" />
                       <h3 className="mt-2 font-semibold text-sm">{translateCat(sub)}</h3>
                     </div>
