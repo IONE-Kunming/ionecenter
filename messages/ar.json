@@ -1168,6 +1168,9 @@
     "recentBuyers": "المشترون الأخيرون",
     "allBuyers": "جميع المشترين",
     "updateInvoice": "تحديث الفاتورة",
-    "invoiceUpdatedSuccess": "تم تحديث الفاتورة بنجاح"
+    "invoiceUpdatedSuccess": "تم تحديث الفاتورة بنجاح",
+    "myBuyers": "مشترياتي",
+    "myBuyersSearch": "البحث بالاسم أو البريد الإلكتروني أو الرمز...",
+    "noPreviousBuyers": "لم يتم العثور على مشترين سابقين"
   }
 }

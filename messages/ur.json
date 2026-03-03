@@ -1168,6 +1168,9 @@
     "recentBuyers": "حالیہ خریدار",
     "allBuyers": "تمام خریدار",
     "updateInvoice": "انوائس اپ ڈیٹ کریں",
-    "invoiceUpdatedSuccess": "انوائس کامیابی سے اپ ڈیٹ ہو گئی"
+    "invoiceUpdatedSuccess": "انوائس کامیابی سے اپ ڈیٹ ہو گئی",
+    "myBuyers": "میرے خریدار",
+    "myBuyersSearch": "نام، ای میل، یا کوڈ سے تلاش کریں...",
+    "noPreviousBuyers": "کوئی پچھلے خریدار نہیں ملے"
   }
 }

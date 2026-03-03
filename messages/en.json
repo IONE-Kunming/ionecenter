@@ -1163,6 +1163,9 @@
     "recentBuyers": "Recent Buyers",
     "allBuyers": "All Buyers",
     "updateInvoice": "Update Invoice",
-    "invoiceUpdatedSuccess": "Invoice updated successfully"
+    "invoiceUpdatedSuccess": "Invoice updated successfully",
+    "myBuyers": "My Buyers",
+    "myBuyersSearch": "Search by name, email, or code...",
+    "noPreviousBuyers": "No previous buyers found"
   }
 }
