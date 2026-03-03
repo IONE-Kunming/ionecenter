@@ -259,7 +259,7 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
   const [buyerEmail, setBuyerEmail] = useState(editData?.buyer_email ?? "")
   const [buyerSuggestions, setBuyerSuggestions] = useState<BuyerResult[]>([])
   const [showBuyerSuggestions, setShowBuyerSuggestions] = useState(false)
-  const [buyerCode, setBuyerCode] = useState(editData?.buyer_code ?? "")
+  const [buyerCode, setBuyerCode] = useState(editData?.buyer_code || "")
   const [buyerCodeError, setBuyerCodeError] = useState<string | null>(null)
   const [buyerCodeSearching, setBuyerCodeSearching] = useState(false)
   const [foundBuyer, setFoundBuyer] = useState<FoundBuyer | null>(null)
@@ -537,8 +537,8 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
         amount_paid: amountPaid,
       }
 
-      const result = isEditMode
-        ? await updateOfflineInvoice(editData!.id, invoiceInput)
+      const result = isEditMode && editData
+        ? await updateOfflineInvoice(editData.id, invoiceInput)
         : await createOfflineInvoice(invoiceInput)
 
       if (result.error) {
