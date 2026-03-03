@@ -196,15 +196,17 @@ export async function getMyBuyers() {
 
   const adminSupabase = createAdminClient()
 
-  // Find all unique buyer_ids from orders where seller_id matches this seller
+  // Find unique buyer_ids from orders where seller_id matches this seller
+  // Limit order rows fetched to keep query efficient
   const { data: orders, error } = await adminSupabase
     .from("orders")
     .select("buyer_id")
     .eq("seller_id", user.id)
+    .limit(1000)
 
   if (error || !orders || orders.length === 0) return []
 
-  // Get unique buyer IDs
+  // Deduplicate buyer IDs client-side
   const uniqueBuyerIds = [...new Set(orders.map((o) => o.buyer_id))]
 
   const { data: buyers } = await adminSupabase

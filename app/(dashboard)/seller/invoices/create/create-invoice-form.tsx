@@ -879,7 +879,7 @@ export function CreateOfflineInvoiceForm() {
                                     (b) =>
                                       b.display_name.toLowerCase().includes(filter) ||
                                       b.email.toLowerCase().includes(filter) ||
-                                      (b.user_code && b.user_code.toLowerCase().includes(filter))
+                                      b.user_code?.toLowerCase().includes(filter)
                                   )
                                 : myBuyers
                               return filtered.length === 0 ? (
