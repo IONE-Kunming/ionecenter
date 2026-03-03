@@ -12,7 +12,7 @@ import { InvoiceStatusBadge } from "@/components/ui/status-badge"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useFormatters } from "@/lib/use-formatters"
 import { useToast } from "@/components/ui/toaster"
-import { deleteOfflineInvoice, getInvoice } from "@/lib/actions/invoices"
+import { deleteInvoice, deleteOfflineInvoice, getInvoice } from "@/lib/actions/invoices"
 import Link from "@/components/ui/link"
 import type { InvoiceStatus, Invoice } from "@/types/database"
 
@@ -80,6 +80,22 @@ export function SellerInvoicesList({
       inv.invoice_number.toLowerCase().includes(search.toLowerCase()) ||
       inv.buyer_name.toLowerCase().includes(search.toLowerCase())
   )
+
+  const handleDeleteOrderInvoice = (invoiceId: string) => {
+    startTransition(async () => {
+      try {
+        const result = await deleteInvoice(invoiceId)
+        if (result.error) {
+          addToast("error", result.error)
+        } else {
+          addToast("success", "Invoice deleted successfully")
+          router.refresh()
+        }
+      } catch {
+        addToast("error", "Failed to delete invoice")
+      }
+    })
+  }
 
   const handleDelete = (invoiceId: string) => {
     startTransition(async () => {
@@ -169,6 +185,9 @@ export function SellerInvoicesList({
                         </Link>
                         <Button variant="ghost" size="sm" disabled={isPending} onClick={() => handlePrint(inv.id)}>
                           <Printer className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" disabled={isPending} onClick={() => handleDeleteOrderInvoice(inv.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
                     </TableCell>
