@@ -594,8 +594,21 @@ export function CreateOfflineInvoiceForm() {
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight)
       pdf.save(`Invoice-${savedInvoiceNumber}.pdf`)
 
-      const message = encodeURIComponent(`Invoice ${savedInvoiceNumber} attached`)
-      window.open(`https://wa.me/?text=${message}`, "_blank")
+      const formattedDate = new Date(invoiceDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+      const message = encodeURIComponent(
+        `Invoice: ${savedInvoiceNumber}\nDate: ${formattedDate}\nBuyer: ${buyerName}\nAmount Due: ${formatCurrency(amountDue)}\n\nPlease find your invoice PDF attached.`
+      )
+
+      addToast("success", t("pdfDownloadedAttachWhatsApp"))
+
+      const appUrl = `whatsapp://send?text=${message}`
+      const webUrl = `https://wa.me/?text=${message}`
+      const appWindow = window.open(appUrl, "_blank")
+      setTimeout(() => {
+        if (!appWindow || appWindow.closed) {
+          window.open(webUrl, "_blank")
+        }
+      }, 2000)
     } catch {
       addToast("error", t("pdfGenerateFailed"))
     }

@@ -1158,6 +1158,7 @@
     "invoiceSentTo": "تم إرسال الفاتورة إلى {email}",
     "emailSendFailed": "فشل في إرسال البريد الإلكتروني",
     "pdfGenerateFailed": "فشل في إنشاء PDF",
+    "pdfDownloadedAttachWhatsApp": "تم تنزيل PDF — يرجى إرفاقه برسالة واتساب الخاصة بك",
     "buyerCodeRequired": "رمز المشتري مطلوب",
     "separateOrdersWillBeCreated": "سيتم إنشاء {count} طلب منفصل (واحد لكل بائع)",
     "searchFailed": "فشل البحث. يرجى المحاولة مرة أخرى."
