@@ -201,6 +201,9 @@ export function SellerInvoicesList({
         )}
       </div>
 
+      {/* Separator between sections */}
+      <hr className="my-4 border-border" />
+
       {/* Section 2: Buyer Invoices (offline) */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">{t("buyerInvoices")}</h2>

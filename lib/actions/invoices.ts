@@ -28,7 +28,7 @@ export async function getSellerInvoices(): Promise<Invoice[]> {
   const supabase = createAdminClient()
   const { data } = await supabase
     .from("invoices")
-    .select("*, buyer:users!buyer_id(display_name, company)")
+    .select("*, buyer:users!buyer_id(display_name, company, email)")
     .eq("seller_id", user.id)
     .order("created_at", { ascending: false })
 
