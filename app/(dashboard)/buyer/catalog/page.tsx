@@ -1,16 +1,14 @@
 import { getProducts } from "@/lib/actions/products"
 import { getWishlistProductIds } from "@/lib/actions/wishlist"
 import { getSiteCategories } from "@/lib/actions/site-settings"
-import { getCurrentUser } from "@/lib/actions/users"
 import { buildCategoryData } from "@/lib/categories"
 import { BuyerCatalogBrowser } from "./catalog-browser"
 
 export default async function BuyerCatalogPage() {
-  const [products, siteCategories, wishlistedIds, user] = await Promise.all([
+  const [products, siteCategories, wishlistedIds] = await Promise.all([
     getProducts(),
     getSiteCategories(),
     getWishlistProductIds(),
-    getCurrentUser(),
   ])
   const categoryData = buildCategoryData(siteCategories)
 
@@ -28,5 +26,5 @@ export default async function BuyerCatalogPage() {
     image_url: p.image_url ?? null,
   }))
 
-  return <BuyerCatalogBrowser products={mapped} categoryData={categoryData} wishlistedIds={wishlistedIds} showCategoryNumbers={user?.show_category_numbers ?? true} />
+  return <BuyerCatalogBrowser products={mapped} categoryData={categoryData} wishlistedIds={wishlistedIds} />
 }

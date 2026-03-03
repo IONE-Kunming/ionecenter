@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { updateUserProfile } from "@/lib/actions/users"
 import type { User } from "@/types/database"
 
@@ -39,7 +38,6 @@ export default function BuyerProfileForm({ user, buyerCode }: { user: User; buye
   const [state, setState] = useState(user.state ?? "")
   const [zip, setZip] = useState(user.zip ?? "")
   const [country, setCountry] = useState(user.country ?? "")
-  const [showCategoryNumbers, setShowCategoryNumbers] = useState(user.show_category_numbers ?? true)
 
   const handleSave = async () => {
     setSaving(true)
@@ -54,7 +52,6 @@ export default function BuyerProfileForm({ user, buyerCode }: { user: User; buye
       state: state || null,
       zip: zip || null,
       country: country || null,
-      show_category_numbers: showCategoryNumbers,
     })
     setSaving(false)
     if (result.error) {
@@ -111,16 +108,6 @@ export default function BuyerProfileForm({ user, buyerCode }: { user: User; buye
                 { value: "ar", label: t("arabic") }, { value: "ur", label: t("urdu") },
               ]} />
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle>{t("catalogPreferences")}</CardTitle></CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="showCategoryNumbers">{t("showCategoryNumbers")}</Label>
-            <Switch id="showCategoryNumbers" checked={showCategoryNumbers} onCheckedChange={setShowCategoryNumbers} />
           </div>
         </CardContent>
       </Card>
