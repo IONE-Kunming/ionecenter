@@ -1168,6 +1168,9 @@
     "recentBuyers": "最近的买家",
     "allBuyers": "所有买家",
     "updateInvoice": "更新发票",
-    "invoiceUpdatedSuccess": "发票更新成功"
+    "invoiceUpdatedSuccess": "发票更新成功",
+    "myBuyers": "我的买家",
+    "myBuyersSearch": "按名称、邮箱或代码搜索...",
+    "noPreviousBuyers": "未找到以前的买家"
   }
 }

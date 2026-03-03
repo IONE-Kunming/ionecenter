@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react"
 import { useTranslations } from "next-intl"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2, AlertTriangle, User, Pencil, ChevronDown, ChevronUp, Globe } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Printer, Send, Save, Loader2, AlertTriangle, User, Pencil, ChevronDown, ChevronUp, Globe, Users } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
 import { useFormatters } from "@/lib/use-formatters"
-import { createOfflineInvoice, updateOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers, getNextSellerInvoiceNumber, searchBuyerByCode, getSellerRecentBuyers, saveSellerBuyer } from "@/lib/actions/invoices"
+import { createOfflineInvoice, updateOfflineInvoice, searchSellerProducts, getSellerBankInfo, searchBuyers, getNextSellerInvoiceNumber, searchBuyerByCode, getSellerRecentBuyers, saveSellerBuyer, getSellerOrderBuyers } from "@/lib/actions/invoices"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 
@@ -267,6 +267,10 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
   const [buyerSuggestions, setBuyerSuggestions] = useState<BuyerResult[]>([])
   const [showBuyerSuggestions, setShowBuyerSuggestions] = useState(false)
   const [recentBuyers, setRecentBuyers] = useState<BuyerResult[]>([])
+  const [myBuyers, setMyBuyers] = useState<BuyerResult[]>([])
+  const [showMyBuyers, setShowMyBuyers] = useState(false)
+  const [myBuyersSearch, setMyBuyersSearch] = useState("")
+  const [myBuyersLoading, setMyBuyersLoading] = useState(false)
   const [buyerCode, setBuyerCode] = useState(editData?.buyer_code ?? "")
   const [foundBuyer, setFoundBuyer] = useState<FoundBuyer | null>(null)
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split("T")[0])
@@ -312,6 +316,7 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const buyerSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const buyerBlurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const myBuyersRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     return () => {
@@ -343,6 +348,32 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
     })
   }, [])
 
+  useEffect(() => {
+    if (!showMyBuyers) return
+    function handleClickOutside(e: MouseEvent) {
+      if (myBuyersRef.current && !myBuyersRef.current.contains(e.target as Node)) {
+        setShowMyBuyers(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [showMyBuyers])
+
+  const handleMyBuyersToggle = useCallback(async () => {
+    if (showMyBuyers) {
+      setShowMyBuyers(false)
+      return
+    }
+    setShowMyBuyers(true)
+    setMyBuyersSearch("")
+    if (myBuyers.length === 0) {
+      setMyBuyersLoading(true)
+      const buyers = await getSellerOrderBuyers()
+      setMyBuyers(buyers)
+      setMyBuyersLoading(false)
+    }
+  }, [showMyBuyers, myBuyers.length])
+
   const handleBuyerSearch = useCallback(async (query: string) => {
     setBuyerSearchQuery(query)
     setShowBuyerSuggestions(true)
@@ -367,6 +398,7 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
     setBuyerSearchQuery("")
     setBuyerSuggestions([])
     setShowBuyerSuggestions(false)
+    setShowMyBuyers(false)
 
     // Look up full buyer info (bank details etc.) if buyer has a user_code
     if (buyer.user_code) {
@@ -836,28 +868,29 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
               <div className="space-y-4">
                 <div className="space-y-2 print:hidden">
                   <Label htmlFor="buyerSearch">{t("searchBuyer")}</Label>
-                  <div className="relative">
-                    <Input
-                      id="buyerSearch"
-                      value={buyerSearchQuery}
-                      onChange={(e) => handleBuyerSearch(e.target.value)}
-                      onFocus={() => {
-                        if (buyerSearchQuery.length < 2 && recentBuyers.length > 0) {
-                          setShowBuyerSuggestions(true)
-                        } else if (buyerSuggestions.length > 0) {
-                          setShowBuyerSuggestions(true)
-                        }
-                      }}
-                      onBlur={() => {
-                        if (buyerBlurTimerRef.current) clearTimeout(buyerBlurTimerRef.current)
-                        buyerBlurTimerRef.current = setTimeout(() => {
-                          setShowBuyerSuggestions(false)
-                        }, 200)
-                      }}
-                      placeholder={t("searchBuyerPlaceholder")}
-                      className="print:border-none print:p-0 print:shadow-none"
-                      autoComplete="off"
-                    />
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        id="buyerSearch"
+                        value={buyerSearchQuery}
+                        onChange={(e) => handleBuyerSearch(e.target.value)}
+                        onFocus={() => {
+                          if (buyerSearchQuery.length < 2 && recentBuyers.length > 0) {
+                            setShowBuyerSuggestions(true)
+                          } else if (buyerSuggestions.length > 0) {
+                            setShowBuyerSuggestions(true)
+                          }
+                        }}
+                        onBlur={() => {
+                          if (buyerBlurTimerRef.current) clearTimeout(buyerBlurTimerRef.current)
+                          buyerBlurTimerRef.current = setTimeout(() => {
+                            setShowBuyerSuggestions(false)
+                          }, 200)
+                        }}
+                        placeholder={t("searchBuyerPlaceholder")}
+                        className="print:border-none print:p-0 print:shadow-none"
+                        autoComplete="off"
+                      />
                     {showBuyerSuggestions && (buyerSearchQuery.length < 2 ? recentBuyers.length > 0 : buyerSuggestions.length > 0) && (
                       <div className="absolute z-10 mt-1 w-full bg-background border rounded-md shadow-lg max-h-60 overflow-y-auto print:hidden">
                         {buyerSearchQuery.length < 2 ? (
@@ -955,6 +988,75 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
                         )}
                       </div>
                     )}
+                    </div>
+                    <div className="relative" ref={myBuyersRef}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="default"
+                        onClick={handleMyBuyersToggle}
+                        className="shrink-0 whitespace-nowrap"
+                      >
+                        <Users className="h-4 w-4 mr-1.5" />
+                        {t("myBuyers")}
+                      </Button>
+                      {showMyBuyers && (
+                        <div className="absolute z-20 mt-1 right-0 w-80 bg-background border rounded-md shadow-lg print:hidden">
+                          <div className="p-2 border-b">
+                            <Input
+                              value={myBuyersSearch}
+                              onChange={(e) => setMyBuyersSearch(e.target.value)}
+                              placeholder={t("myBuyersSearch")}
+                              className="h-8 text-sm"
+                              autoComplete="off"
+                            />
+                          </div>
+                          <div className="max-h-60 overflow-y-auto">
+                            {myBuyersLoading ? (
+                              <div className="flex items-center justify-center py-4">
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                              </div>
+                            ) : myBuyers.length === 0 ? (
+                              <div className="px-3 py-4 text-sm text-muted-foreground text-center">
+                                {t("noPreviousBuyers")}
+                              </div>
+                            ) : (() => {
+                              const q = myBuyersSearch.toLowerCase()
+                              const filtered = q
+                                ? myBuyers.filter(
+                                    (b) =>
+                                      b.display_name?.toLowerCase().includes(q) ||
+                                      b.email?.toLowerCase().includes(q) ||
+                                      b.user_code?.toLowerCase().includes(q)
+                                  )
+                                : myBuyers
+                              return filtered.length === 0 ? (
+                                <div className="px-3 py-4 text-sm text-muted-foreground text-center">
+                                  {t("noPreviousBuyers")}
+                                </div>
+                              ) : (
+                                filtered.map((buyer) => (
+                                  <button
+                                    key={buyer.id}
+                                    type="button"
+                                    className="w-full text-left px-3 py-2 text-sm hover:bg-accent cursor-pointer border-b last:border-b-0"
+                                    onClick={() => selectBuyer(buyer)}
+                                  >
+                                    <div className="flex flex-col gap-0.5">
+                                      {buyer.user_code && (
+                                        <span className="font-mono text-xs text-muted-foreground">{buyer.user_code}</span>
+                                      )}
+                                      <span className="font-medium">{buyer.display_name}</span>
+                                      <span className="text-xs text-muted-foreground">{buyer.email}</span>
+                                    </div>
+                                  </button>
+                                ))
+                              )
+                            })()}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="hidden print:block text-sm mb-2">
