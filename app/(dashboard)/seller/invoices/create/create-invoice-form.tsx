@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect } from "react"
+import { useState, useCallback, useRef, useEffect, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -358,6 +358,17 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [showMyBuyers])
+
+  const filteredMyBuyers = useMemo(() => {
+    const q = myBuyersSearch.toLowerCase()
+    if (!q) return myBuyers
+    return myBuyers.filter(
+      (b) =>
+        b.display_name?.toLowerCase().includes(q) ||
+        b.email?.toLowerCase().includes(q) ||
+        b.user_code?.toLowerCase().includes(q)
+    )
+  }, [myBuyers, myBuyersSearch])
 
   const handleMyBuyersToggle = useCallback(async () => {
     if (showMyBuyers) {
@@ -1020,39 +1031,28 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
                               <div className="px-3 py-4 text-sm text-muted-foreground text-center">
                                 {t("noPreviousBuyers")}
                               </div>
-                            ) : (() => {
-                              const q = myBuyersSearch.toLowerCase()
-                              const filtered = q
-                                ? myBuyers.filter(
-                                    (b) =>
-                                      b.display_name?.toLowerCase().includes(q) ||
-                                      b.email?.toLowerCase().includes(q) ||
-                                      b.user_code?.toLowerCase().includes(q)
-                                  )
-                                : myBuyers
-                              return filtered.length === 0 ? (
-                                <div className="px-3 py-4 text-sm text-muted-foreground text-center">
-                                  {t("noPreviousBuyers")}
-                                </div>
-                              ) : (
-                                filtered.map((buyer) => (
-                                  <button
-                                    key={buyer.id}
-                                    type="button"
-                                    className="w-full text-left px-3 py-2 text-sm hover:bg-accent cursor-pointer border-b last:border-b-0"
-                                    onClick={() => selectBuyer(buyer)}
-                                  >
-                                    <div className="flex flex-col gap-0.5">
-                                      {buyer.user_code && (
-                                        <span className="font-mono text-xs text-muted-foreground">{buyer.user_code}</span>
-                                      )}
-                                      <span className="font-medium">{buyer.display_name}</span>
-                                      <span className="text-xs text-muted-foreground">{buyer.email}</span>
-                                    </div>
-                                  </button>
-                                ))
-                              )
-                            })()}
+                            ) : filteredMyBuyers.length === 0 ? (
+                              <div className="px-3 py-4 text-sm text-muted-foreground text-center">
+                                {t("noPreviousBuyers")}
+                              </div>
+                            ) : (
+                              filteredMyBuyers.map((buyer) => (
+                                <button
+                                  key={buyer.id}
+                                  type="button"
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-accent cursor-pointer border-b last:border-b-0"
+                                  onClick={() => selectBuyer(buyer)}
+                                >
+                                  <div className="flex flex-col gap-0.5">
+                                    {buyer.user_code && (
+                                      <span className="font-mono text-xs text-muted-foreground">{buyer.user_code}</span>
+                                    )}
+                                    <span className="font-medium">{buyer.display_name}</span>
+                                    <span className="text-xs text-muted-foreground">{buyer.email}</span>
+                                  </div>
+                                </button>
+                              ))
+                            )}
                           </div>
                         </div>
                       )}
