@@ -14,6 +14,7 @@ import Link from "@/components/ui/link"
 import { createPackingList, getNextPackingListNumber } from "@/lib/actions/packing-lists"
 import { getSellerOfflineInvoicesForLinking } from "@/lib/actions/contracts"
 import { getSellerBankInfo, searchBuyers, searchBuyerByCode } from "@/lib/actions/invoices"
+import { searchProductsByModelNumber } from "@/lib/actions/products"
 
 interface BuyerResult {
   id: string
@@ -38,6 +39,11 @@ interface PackingItem {
   net_weight: number
   gross_weight: number
   carton_number: string
+}
+
+interface ProductResult {
+  model_number: string
+  name: string
 }
 
 const emptyItem: PackingItem = {
@@ -78,6 +84,48 @@ export function CreatePackingListForm() {
   const [showBuyerDropdown, setShowBuyerDropdown] = useState(false)
   const buyerDropdownRef = useRef<HTMLDivElement>(null)
 
+  // Product code search
+  const [productResults, setProductResults] = useState<Record<number, ProductResult[]>>({})
+  const [activeProductDropdown, setActiveProductDropdown] = useState<number | null>(null)
+  const productDropdownRefs = useRef<Record<number, HTMLDivElement | null>>({})
+  const productSearchTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({})
+
+  const handleItemCodeSearch = useCallback((index: number, query: string) => {
+    setItems((prev) => {
+      const updated = [...prev]
+      updated[index] = { ...updated[index], item_code: query }
+      return updated
+    })
+
+    // Clear previous timer for this row
+    if (productSearchTimers.current[index]) {
+      clearTimeout(productSearchTimers.current[index])
+    }
+
+    if (query.length < 1) {
+      setProductResults((prev) => ({ ...prev, [index]: [] }))
+      setActiveProductDropdown(null)
+      return
+    }
+
+    // Debounce the search
+    productSearchTimers.current[index] = setTimeout(async () => {
+      const results = await searchProductsByModelNumber(query)
+      setProductResults((prev) => ({ ...prev, [index]: results }))
+      setActiveProductDropdown(index)
+    }, 300)
+  }, [])
+
+  const selectProduct = (index: number, product: ProductResult) => {
+    setItems((prev) => {
+      const updated = [...prev]
+      updated[index] = { ...updated[index], item_code: product.model_number, product_name: product.name }
+      return updated
+    })
+    setProductResults((prev) => ({ ...prev, [index]: [] }))
+    setActiveProductDropdown(null)
+  }
+
   // Load initial data
   useEffect(() => {
     async function loadData() {
@@ -95,6 +143,14 @@ export function CreatePackingListForm() {
       setInvoices(invoiceList)
     }
     loadData()
+  }, [])
+
+  // Cleanup product search timers on unmount
+  useEffect(() => {
+    const timers = productSearchTimers.current
+    return () => {
+      Object.values(timers).forEach(clearTimeout)
+    }
   }, [])
 
   // Buyer search
@@ -133,10 +189,17 @@ export function CreatePackingListForm() {
       if (buyerDropdownRef.current && !buyerDropdownRef.current.contains(e.target as Node)) {
         setShowBuyerDropdown(false)
       }
+      // Close product dropdown if clicking outside
+      if (activeProductDropdown !== null) {
+        const ref = productDropdownRefs.current[activeProductDropdown]
+        if (ref && !ref.contains(e.target as Node)) {
+          setActiveProductDropdown(null)
+        }
+      }
     }
     document.addEventListener("mousedown", handleClick)
     return () => document.removeEventListener("mousedown", handleClick)
-  }, [])
+  }, [activeProductDropdown])
 
   // Item management
   const addItem = () => setItems([...items, { ...emptyItem }])
@@ -325,11 +388,37 @@ export function CreatePackingListForm() {
                   {items.map((item, index) => (
                     <TableRow key={index}>
                       <TableCell>
-                        <Input
-                          value={item.item_code}
-                          onChange={(e) => updateItem(index, "item_code", e.target.value)}
-                          className="min-w-[90px]"
-                        />
+                        <div className="relative" ref={(el) => { productDropdownRefs.current[index] = el }}>
+                          <Input
+                            value={item.item_code}
+                            onChange={(e) => handleItemCodeSearch(index, e.target.value)}
+                            onFocus={() => {
+                              if (item.item_code.length >= 1 && productResults[index]?.length) {
+                                setActiveProductDropdown(index)
+                              }
+                            }}
+                            className="min-w-[90px]"
+                          />
+                          {activeProductDropdown === index && (
+                            <div className="absolute z-20 w-64 mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-auto">
+                              {(productResults[index] ?? []).length > 0 ? (
+                                productResults[index].map((p, pi) => (
+                                  <button
+                                    key={pi}
+                                    type="button"
+                                    className="w-full text-left px-3 py-2 hover:bg-accent text-sm"
+                                    onClick={() => selectProduct(index, p)}
+                                  >
+                                    <span className="font-medium">{p.model_number}</span>
+                                    <span className="text-muted-foreground ml-2">{p.name}</span>
+                                  </button>
+                                ))
+                              ) : (
+                                <div className="px-3 py-2 text-sm text-muted-foreground">No products found</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Input
