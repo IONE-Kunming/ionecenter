@@ -154,8 +154,8 @@ export function CreatePackingListForm() {
 
   // Totals
   const totalPackages = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)
-  const totalNetWeight = items.reduce((sum, item) => sum + ((Number(item.net_weight) || 0) * (Number(item.quantity) || 0)), 0)
-  const totalGrossWeight = items.reduce((sum, item) => sum + ((Number(item.gross_weight) || 0) * (Number(item.quantity) || 0)), 0)
+  const totalNetWeight = items.reduce((sum, item) => sum + (Number(item.net_weight) || 0), 0)
+  const totalGrossWeight = items.reduce((sum, item) => sum + (Number(item.gross_weight) || 0), 0)
 
   const handleSubmit = async () => {
     if (!buyerName || !buyerEmail) {

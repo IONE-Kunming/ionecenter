@@ -66,6 +66,7 @@ CREATE POLICY "Sellers can delete their own packing lists" ON packing_lists FOR 
 CREATE POLICY "Sellers can view their packing list items" ON packing_list_items FOR SELECT USING (auth.uid() = (SELECT seller_id FROM packing_lists WHERE id = packing_list_id));
 CREATE POLICY "Sellers can insert packing list items" ON packing_list_items FOR INSERT WITH CHECK (auth.uid() = (SELECT seller_id FROM packing_lists WHERE id = packing_list_id));
 CREATE POLICY "Sellers can delete packing list items" ON packing_list_items FOR DELETE USING (auth.uid() = (SELECT seller_id FROM packing_lists WHERE id = packing_list_id));
+CREATE POLICY "Sellers can update packing list items" ON packing_list_items FOR UPDATE USING (auth.uid() = (SELECT seller_id FROM packing_lists WHERE id = packing_list_id));
 
 -- Notify PostgREST to reload schema cache
 NOTIFY pgrst, 'reload schema';

@@ -74,8 +74,8 @@ export async function createPackingList(input: PackingListInput) {
 
   // Calculate totals
   const totalPackages = input.items.reduce((sum, item) => sum + item.quantity, 0)
-  const totalNetWeight = input.items.reduce((sum, item) => sum + (item.net_weight * item.quantity), 0)
-  const totalGrossWeight = input.items.reduce((sum, item) => sum + (item.gross_weight * item.quantity), 0)
+  const totalNetWeight = input.items.reduce((sum, item) => sum + item.net_weight, 0)
+  const totalGrossWeight = input.items.reduce((sum, item) => sum + item.gross_weight, 0)
 
   const { data: packingList, error: plError } = await adminSupabase
     .from("packing_lists")
