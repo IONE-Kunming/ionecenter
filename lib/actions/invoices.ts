@@ -584,6 +584,93 @@ export async function updateOfflineInvoice(invoiceId: string, input: OfflineInvo
   return { success: true, invoice }
 }
 
+export interface OrderInvoiceInput {
+  items: {
+    name: string
+    description: string
+    quantity: number
+    unit: string
+    price: number
+  }[]
+  discount: number
+  deposit_paid: number
+  notes: string
+}
+
+export async function updateInvoice(invoiceId: string, input: OrderInvoiceInput) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return { error: "Not authorized" }
+
+  const adminSupabase = createAdminClient()
+
+  // Verify ownership
+  const { data: existing } = await adminSupabase
+    .from("invoices")
+    .select("id, seller_id, tax")
+    .eq("id", invoiceId)
+    .single()
+
+  if (!existing || existing.seller_id !== user.id) {
+    return { error: "Invoice not found or not authorized" }
+  }
+
+  // Calculate totals
+  const subtotal = input.items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  )
+  const discount = input.discount
+  const total = Math.max(subtotal - discount + existing.tax, 0)
+  const depositPaid = input.deposit_paid
+  const remainingBalance = Math.max(total - depositPaid, 0)
+
+  const { data: invoice, error: invoiceError } = await adminSupabase
+    .from("invoices")
+    .update({
+      subtotal,
+      discount,
+      total,
+      deposit_paid: depositPaid,
+      remaining_balance: remainingBalance,
+      notes: input.notes || null,
+      status: remainingBalance <= 0 ? "paid" : "issued",
+    })
+    .eq("id", invoiceId)
+    .select()
+    .single()
+
+  if (invoiceError || !invoice)
+    return { error: invoiceError?.message ?? "Failed to update invoice" }
+
+  // Delete old items and insert new ones
+  const { error: deleteError } = await adminSupabase
+    .from("invoice_items")
+    .delete()
+    .eq("invoice_id", invoiceId)
+
+  if (deleteError) return { error: deleteError.message }
+
+  if (input.items.length > 0) {
+    const invoiceItems = input.items.map((item) => ({
+      invoice_id: invoiceId,
+      name: item.name,
+      description: item.description || null,
+      quantity: item.quantity,
+      unit: item.unit || "m",
+      price: item.price,
+      subtotal: Number((item.price * item.quantity).toFixed(2)),
+    }))
+
+    const { error: itemsError } = await adminSupabase
+      .from("invoice_items")
+      .insert(invoiceItems)
+
+    if (itemsError) return { error: itemsError.message }
+  }
+
+  return { success: true, invoice }
+}
+
 export async function deleteInvoice(invoiceId: string) {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return { error: "Not authorized" }

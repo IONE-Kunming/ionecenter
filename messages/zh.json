@@ -308,7 +308,8 @@
     "supplier": "供应商",
     "printInvoice": "打印发票",
     "deleteInvoice": "删除发票",
-    "deleteInvoiceConfirm": "您确定要删除此发票吗？此操作无法撤消。"
+    "deleteInvoiceConfirm": "您确定要删除此发票吗？此操作无法撤消。",
+    "editInvoice": "编辑发票"
   },
   "notifications": {
     "unread": "{count} 条未读",

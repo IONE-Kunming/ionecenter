@@ -185,6 +185,9 @@ export function SellerInvoicesList({
                         <Link href={`/seller/invoices/${inv.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
                           <Eye className="h-4 w-4" />
                         </Link>
+                        <Link href={`/seller/invoices/${inv.id}/edit`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                          <Pencil className="h-4 w-4" />
+                        </Link>
                         <Button variant="ghost" size="sm" disabled={isPending} onClick={() => handlePrint(inv.id)}>
                           <Printer className="h-4 w-4" />
                         </Button>
