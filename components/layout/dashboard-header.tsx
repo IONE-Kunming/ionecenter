@@ -6,13 +6,16 @@ import { useTranslations } from "next-intl"
 import { ArrowLeft, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { usePageTitle } from "./page-title-context"
 
 export function DashboardHeader() {
+  const { pageTitle } = usePageTitle()
   const pathname = usePathname()
   const router = useRouter()
   const tCommon = useTranslations("common")
   const tProductDetail = useTranslations("productDetail")
   const tInvoices = useTranslations("invoices")
+  const tPackingLists = useTranslations("packingLists")
   const parts = pathname.split("/").filter(Boolean)
 
   // Detect product detail page pattern: /buyer/product/[id] or /seller/product/[id]
@@ -24,13 +27,20 @@ export function DashboardHeader() {
   // Detect invoice detail page: /seller/invoices/[id] or /buyer/invoices/[id]
   const isInvoiceDetailPage = parts.length === 3 && parts[1] === "invoices" && parts[2] !== "create" && parts[2] !== "offline"
 
-  const title = isProductDetailPage
+  // Detect packing list detail page: /seller/packing-lists/[id]
+  const isPackingListDetailPage = parts.length === 3 && parts[1] === "packing-lists" && parts[2] !== "create"
+
+  const fallbackTitle = isProductDetailPage
     ? tProductDetail("title")
     : isOfflineInvoiceDetailPage || isInvoiceDetailPage
     ? tInvoices("invoiceDetails")
+    : isPackingListDetailPage
+    ? tPackingLists("packingList")
     : parts[parts.length - 1]
         ?.replace(/-/g, " ")
         .replace(/\b\w/g, (c) => c.toUpperCase()) || "Dashboard"
+
+  const title = pageTitle || fallbackTitle
 
   const [searchQuery, setSearchQuery] = useState("")
 

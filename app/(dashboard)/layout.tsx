@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import { Sidebar } from "@/components/layout/sidebar"
 import { DashboardHeader } from "@/components/layout/dashboard-header"
+import { PageTitleProvider } from "@/components/layout/page-title-context"
 import { ensureUserInSupabase, getCurrentUser } from "@/lib/actions/users"
 import type { UserRole } from "@/types/database"
 
@@ -33,8 +34,10 @@ export default async function DashboardLayout({
     <div className="min-h-screen">
       <Sidebar role={role} />
       <div className="md:ms-64">
-        <DashboardHeader />
-        <main className="p-6">{children}</main>
+        <PageTitleProvider>
+          <DashboardHeader />
+          <main className="p-6">{children}</main>
+        </PageTitleProvider>
       </div>
     </div>
   )
