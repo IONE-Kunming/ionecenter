@@ -33,7 +33,9 @@ export interface PackingListItemInput {
   product_name: string
   quantity: number
   unit: string
-  dimensions: string
+  height: number
+  length: number
+  width: number
   net_weight: number
   gross_weight: number
   carton_number: string
@@ -105,7 +107,9 @@ export async function createPackingList(input: PackingListInput) {
       product_name: item.product_name,
       quantity: item.quantity,
       unit: item.unit || null,
-      dimensions: item.dimensions || null,
+      height: Number(item.height) || 0,
+      length: Number(item.length) || 0,
+      width: Number(item.width) || 0,
       net_weight: Number(item.net_weight) || 0,
       gross_weight: Number(item.gross_weight) || 0,
       carton_number: item.carton_number || null,

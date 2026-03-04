@@ -12,16 +12,6 @@ import { PrintButton } from "./print-button"
 import { BarcodeCanvas } from "./barcode"
 import { SetPageTitle } from "@/components/layout/page-title-context"
 
-/** Parse a dimension string like "60x30x40" or "60×30×40" into [L, W, H] numbers */
-function parseDimensions(dimensions: string | null): { l: number; w: number; h: number } | null {
-  if (!dimensions) return null
-  const parts = dimensions.replace(/[×x]/gi, " ").trim().split(/\s+/)
-  if (parts.length !== 3) return null
-  const [l, w, h] = parts.map(Number)
-  if (isNaN(l) || isNaN(w) || isNaN(h)) return null
-  return { l, w, h }
-}
-
 export default async function PackingListDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ print?: string }> }) {
   const { id } = await params
   const { print } = await searchParams
@@ -51,12 +41,14 @@ export default async function PackingListDetailPage({ params, searchParams }: { 
   /* Compute totals for the print summary bar */
   const items = packingList.items ?? []
   const totalQty = items.reduce((sum, item) => sum + item.quantity, 0)
-  /* CBM: if item has dimensions in "LxWxH" format, compute per-item CBM; otherwise fall back to 0 */
+  /* CBM: if item has height/length/width, compute per-item CBM; otherwise fall back to 0 */
   let totalCBM = 0
   for (const item of items) {
-    const dims = parseDimensions(item.dimensions)
-    if (dims) {
-      totalCBM += (dims.l * dims.w * dims.h) / 1_000_000 * item.quantity
+    const h = item.height ?? 0
+    const l = item.length ?? 0
+    const w = item.width ?? 0
+    if (h && l && w) {
+      totalCBM += (l * w * h) / 1_000_000 * item.quantity
     }
   }
   totalCBM = Number(totalCBM.toFixed(4))
@@ -135,24 +127,24 @@ export default async function PackingListDetailPage({ params, searchParams }: { 
                 </TableHeader>
                 <TableBody>
                   {items.map((item, idx) => {
-                    const dims = parseDimensions(item.dimensions)
-                    const h = dims ? String(dims.h) : "—"
-                    const l = dims ? String(dims.l) : "—"
-                    const w = dims ? String(dims.w) : "—"
+                    const h = item.height ?? 0
+                    const l = item.length ?? 0
+                    const w = item.width ?? 0
+                    const hasDims = h > 0 && l > 0 && w > 0
                     const totalWeight = (item.net_weight * item.quantity).toFixed(2)
-                    const itemCBM = dims
-                      ? ((dims.l * dims.w * dims.h) / 1_000_000).toFixed(4)
+                    const itemCBM = hasDims
+                      ? ((l * w * h) / 1_000_000).toFixed(4)
                       : "—"
-                    const itemTotalCBM = dims
-                      ? ((dims.l * dims.w * dims.h) / 1_000_000 * item.quantity).toFixed(4)
+                    const itemTotalCBM = hasDims
+                      ? ((l * w * h) / 1_000_000 * item.quantity).toFixed(4)
                       : "—"
                     return (
                     <TableRow key={item.id}>
                       <TableCell className="text-foreground">{idx + 1}</TableCell>
                       <TableCell className="font-mono text-sm text-foreground">{item.item_code || "—"}</TableCell>
-                      <TableCell className="text-foreground">{h}</TableCell>
-                      <TableCell className="text-foreground">{l}</TableCell>
-                      <TableCell className="text-foreground">{w}</TableCell>
+                      <TableCell className="text-foreground">{h || "—"}</TableCell>
+                      <TableCell className="text-foreground">{l || "—"}</TableCell>
+                      <TableCell className="text-foreground">{w || "—"}</TableCell>
                       <TableCell className="text-right text-foreground">{item.quantity}</TableCell>
                       <TableCell className="text-right text-foreground">{item.net_weight}</TableCell>
                       <TableCell className="text-right text-foreground">{totalWeight}</TableCell>
@@ -265,23 +257,23 @@ export default async function PackingListDetailPage({ params, searchParams }: { 
             </thead>
             <tbody>
               {items.map((item, idx) => {
-                const dims = parseDimensions(item.dimensions)
-                const h = dims ? String(dims.h) : "—"
-                const l = dims ? String(dims.l) : "—"
-                const w = dims ? String(dims.w) : "—"
-                const itemCBM = dims
-                  ? ((dims.l * dims.w * dims.h) / 1_000_000).toFixed(4)
+                const h = item.height ?? 0
+                const l = item.length ?? 0
+                const w = item.width ?? 0
+                const hasDims = h > 0 && l > 0 && w > 0
+                const itemCBM = hasDims
+                  ? ((l * w * h) / 1_000_000).toFixed(4)
                   : "—"
-                const itemTotalCBM = dims
-                  ? ((dims.l * dims.w * dims.h) / 1_000_000 * item.quantity).toFixed(4)
+                const itemTotalCBM = hasDims
+                  ? ((l * w * h) / 1_000_000 * item.quantity).toFixed(4)
                   : "—"
                 return (
                   <tr key={item.id} className={idx % 2 === 1 ? "pkl-row-alt" : ""}>
                     <td>{idx + 1}</td>
                     <td>{item.item_code || "—"}</td>
-                    <td>{h}</td>
-                    <td>{l}</td>
-                    <td>{w}</td>
+                    <td>{h || "—"}</td>
+                    <td>{l || "—"}</td>
+                    <td>{w || "—"}</td>
                     <td className="pkl-qty">{item.quantity}</td>
                     <td>{item.net_weight}</td>
                     <td>{(item.net_weight * item.quantity).toFixed(2)}</td>
