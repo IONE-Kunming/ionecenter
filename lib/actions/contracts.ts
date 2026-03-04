@@ -105,7 +105,7 @@ export async function createContract(input: ContractInput) {
       quantity: Number(item.quantity) || 1,
       unit: item.unit || null,
       unit_price: Number(item.unit_price) || 0,
-      total: Number((item.unit_price * item.quantity).toFixed(2)),
+      total: Number(item.unit_price) * Number(item.quantity),
     }))
 
     const { error: itemsError } = await adminSupabase
@@ -179,6 +179,7 @@ export async function getContract(contractId: string): Promise<(Omit<Contract, "
     .from("contract_items")
     .select("*")
     .eq("contract_id", contractId)
+    .order("created_at")
 
   // Fetch seller info
   const { data: seller } = await adminSupabase

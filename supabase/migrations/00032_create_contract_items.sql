@@ -17,6 +17,7 @@ ALTER TABLE contract_items ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for contract_items
 CREATE POLICY "Sellers can view their contract items" ON contract_items FOR SELECT USING (auth.uid() = (SELECT seller_id FROM contracts WHERE id = contract_id));
+CREATE POLICY "Buyers can view their contract items" ON contract_items FOR SELECT USING ((SELECT buyer_email FROM contracts WHERE id = contract_id) = (SELECT email FROM users WHERE id = auth.uid()));
 CREATE POLICY "Sellers can insert contract items" ON contract_items FOR INSERT WITH CHECK (auth.uid() = (SELECT seller_id FROM contracts WHERE id = contract_id));
 CREATE POLICY "Sellers can update contract items" ON contract_items FOR UPDATE USING (auth.uid() = (SELECT seller_id FROM contracts WHERE id = contract_id));
 CREATE POLICY "Sellers can delete contract items" ON contract_items FOR DELETE USING (auth.uid() = (SELECT seller_id FROM contracts WHERE id = contract_id));
