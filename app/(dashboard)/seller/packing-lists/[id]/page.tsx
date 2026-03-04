@@ -9,6 +9,17 @@ import { getPackingList } from "@/lib/actions/packing-lists"
 import { getTranslations, getLocale } from "next-intl/server"
 import { PrintTrigger } from "./print-trigger"
 import { PrintButton } from "./print-button"
+import { BarcodeCanvas } from "./barcode"
+
+/** Parse a dimension string like "60x30x40" or "60×30×40" into [L, W, H] numbers */
+function parseDimensions(dimensions: string | null): { l: number; w: number; h: number } | null {
+  if (!dimensions) return null
+  const parts = dimensions.replace(/[×x]/gi, " ").trim().split(/\s+/)
+  if (parts.length !== 3) return null
+  const [l, w, h] = parts.map(Number)
+  if (isNaN(l) || isNaN(w) || isNaN(h)) return null
+  return { l, w, h }
+}
 
 export default async function PackingListDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ print?: string }> }) {
   const { id } = await params
@@ -22,8 +33,36 @@ export default async function PackingListDetailPage({ params, searchParams }: { 
   const locale = await getLocale()
   const intlLocale = getIntlLocale(locale)
 
+  const createdDate = new Date(packingList.created_at)
+  const year = createdDate.getFullYear()
+  const month = String(createdDate.getMonth() + 1).padStart(2, "0")
+  const day = String(createdDate.getDate()).padStart(2, "0")
+
+  const sellerAddress = [
+    packingList.seller?.street,
+    packingList.seller?.city,
+    packingList.seller?.state,
+    packingList.seller?.zip,
+    packingList.seller?.country,
+  ].filter(Boolean).join(", ")
+  const sellerPhone = packingList.seller?.phone_number || ""
+
+  /* Compute totals for the print summary bar */
+  const items = packingList.items ?? []
+  const totalQty = items.reduce((sum, item) => sum + item.quantity, 0)
+  /* CBM: if item has dimensions in "LxWxH" format, compute per-item CBM; otherwise fall back to 0 */
+  let totalCBM = 0
+  for (const item of items) {
+    const dims = parseDimensions(item.dimensions)
+    if (dims) {
+      totalCBM += (dims.l * dims.w * dims.h) / 1_000_000 * item.quantity
+    }
+  }
+  totalCBM = Number(totalCBM.toFixed(4))
+
   return (
     <div className="space-y-6 max-w-5xl">
+      {/* ---- Screen-only navigation ---- */}
       <div className="print:hidden flex items-center justify-between">
         <Link href="/seller/packing-lists" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> {t("backToPackingLists")}
@@ -33,7 +72,8 @@ export default async function PackingListDetailPage({ params, searchParams }: { 
 
       {print === "true" && <PrintTrigger />}
 
-      <div className="space-y-6 invoice-print-area">
+      {/* ---- Screen layout (hidden in print) ---- */}
+      <div className="space-y-6 invoice-print-area packing-screen-only">
         {/* Logo centered at top */}
         <div className="invoice-detail-header invoice-print-header">
           <Image src="/logo.svg" alt="IONE Center" width={140} height={46} style={{ margin: "0 auto" }} />
@@ -71,7 +111,7 @@ export default async function PackingListDetailPage({ params, searchParams }: { 
         </div>
 
         {/* Packing Items Table */}
-        {packingList.items && packingList.items.length > 0 && (
+        {items.length > 0 && (
           <Card>
             <CardContent className="pt-6">
               <Table>
@@ -88,7 +128,7 @@ export default async function PackingListDetailPage({ params, searchParams }: { 
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {packingList.items.map((item) => (
+                  {items.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-mono text-sm text-foreground">{item.item_code || "—"}</TableCell>
                       <TableCell className="text-foreground">{item.product_name || "—"}</TableCell>
@@ -123,6 +163,134 @@ export default async function PackingListDetailPage({ params, searchParams }: { 
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* ==== PRINT-ONLY Professional Layout ==== */}
+      <div className="hidden packing-print-layout">
+        {/* ---- Header Row ---- */}
+        <div className="pkl-header">
+          <div className="pkl-header-logo">
+            <Image src="/logo.svg" alt="IONE Center" width={140} height={46} />
+          </div>
+          <div className="pkl-header-stamp">
+            <Image src="/stamp.svg" alt="Stamp" width={80} height={80} />
+          </div>
+          <div className="pkl-header-title">
+            <span>PACKING LIST</span>
+          </div>
+          <div className="pkl-header-barcode">
+            <BarcodeCanvas value={packingList.packing_list_number} height={40} width={1.2} />
+          </div>
+        </div>
+
+        {/* ---- Date and Invoice Row ---- */}
+        <div className="pkl-date-row">
+          <div className="pkl-date-boxes">
+            <div className="pkl-date-box">
+              <span className="pkl-date-label">Year</span>
+              <span className="pkl-date-value">{year}</span>
+            </div>
+            <div className="pkl-date-box">
+              <span className="pkl-date-label">Month</span>
+              <span className="pkl-date-value">{month}</span>
+            </div>
+            <div className="pkl-date-box">
+              <span className="pkl-date-label">Day</span>
+              <span className="pkl-date-value">{day}</span>
+            </div>
+          </div>
+          <div className="pkl-invoice-box">
+            <span className="pkl-invoice-label">Invoice No.</span>
+            <span className="pkl-invoice-value">{packingList.packing_list_number}</span>
+          </div>
+        </div>
+
+        {/* ---- Buyer and Seller Row ---- */}
+        <div className="pkl-parties-row">
+          <div className="pkl-party-box">
+            <span className="pkl-party-label">BUYER</span>
+            <span className="pkl-party-code">IONE CODE: {packingList.buyer_code || "—"}</span>
+          </div>
+          <div className="pkl-party-box">
+            <span className="pkl-party-label">SELLER</span>
+            <span className="pkl-party-code">IONE CODE: {packingList.seller?.user_code || "—"}</span>
+          </div>
+        </div>
+
+        {/* ---- Section Title ---- */}
+        <div className="pkl-section-title">
+          ORDER DETAILS PAGE 2
+        </div>
+
+        {/* ---- Packing Items Table ---- */}
+        {items.length > 0 && (
+          <table className="pkl-table">
+            <thead>
+              <tr>
+                <th>NO</th>
+                <th>SKU</th>
+                <th>H</th>
+                <th>L</th>
+                <th>W</th>
+                <th>QTY</th>
+                <th>WEIGHT</th>
+                <th>TOTAL WEIGHT</th>
+                <th>GROSS WEIGHT</th>
+                <th>CBM</th>
+                <th>TOTAL CBM</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item, idx) => {
+                const dims = parseDimensions(item.dimensions)
+                const h = dims ? String(dims.h) : "—"
+                const l = dims ? String(dims.l) : "—"
+                const w = dims ? String(dims.w) : "—"
+                const itemCBM = dims
+                  ? ((dims.l * dims.w * dims.h) / 1_000_000).toFixed(4)
+                  : "—"
+                const itemTotalCBM = dims
+                  ? ((dims.l * dims.w * dims.h) / 1_000_000 * item.quantity).toFixed(4)
+                  : "—"
+                return (
+                  <tr key={item.id} className={idx % 2 === 1 ? "pkl-row-alt" : ""}>
+                    <td>{idx + 1}</td>
+                    <td>{item.item_code || "—"}</td>
+                    <td>{h}</td>
+                    <td>{l}</td>
+                    <td>{w}</td>
+                    <td className="pkl-qty">{item.quantity}</td>
+                    <td>{item.net_weight}</td>
+                    <td>{(item.net_weight * item.quantity).toFixed(2)}</td>
+                    <td>{item.gross_weight}</td>
+                    <td>{itemCBM}</td>
+                    <td>{itemTotalCBM}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
+
+        {/* ---- Summary Footer Bar ---- */}
+        <div className="pkl-summary-bar">
+          <span>TOTAL KG: {packingList.total_gross_weight} KG</span>
+          <span className="pkl-summary-sep">—</span>
+          <span>TOTAL CBM: {totalCBM} CBM</span>
+          <span className="pkl-summary-sep">—</span>
+          <span>TOTAL QUANTITY: {totalQty} CTN</span>
+        </div>
+
+        {/* ---- Bottom Footer ---- */}
+        <div className="pkl-footer">
+          <div className="pkl-footer-left">
+            {sellerAddress && <span>{sellerAddress}</span>}
+            {sellerPhone && <span>{sellerPhone}</span>}
+          </div>
+          <div className="pkl-footer-right">
+            WWW.IONECENTER.COM
+          </div>
+        </div>
       </div>
     </div>
   )

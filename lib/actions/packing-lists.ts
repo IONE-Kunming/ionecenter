@@ -166,7 +166,7 @@ export async function getPackingList(packingListId: string): Promise<(Omit<Packi
   // Fetch seller info
   const { data: seller } = await adminSupabase
     .from("users")
-    .select("display_name, email, user_code, company")
+    .select("display_name, email, user_code, company, phone_number, street, city, state, zip, country")
     .eq("id", packingList.seller_id)
     .single()
 
