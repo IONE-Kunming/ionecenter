@@ -221,7 +221,7 @@ export function CreatePackingListForm() {
 
   // Totals
   const totalPackages = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)
-  const totalNetWeight = items.reduce((sum, item) => sum + ((Number(item.net_weight) || 0) * (Number(item.quantity) || 0)), 0)
+  const totalWeight = items.reduce((sum, item) => sum + ((Number(item.net_weight) || 0) * (Number(item.quantity) || 0)), 0)
   const totalGrossWeight = items.reduce((sum, item) => sum + (Number(item.gross_weight) || 0), 0)
   const totalCBM = items.reduce((sum, item) => {
     const cbm = (item.h && item.l && item.w) ? (item.h * item.l * item.w) / 1_000_000 : 0
@@ -252,7 +252,7 @@ export function CreatePackingListForm() {
           product_name: item.product_name,
           quantity: Number(item.quantity) || 1,
           unit: item.unit,
-          dimensions: (item.l || item.w || item.h) ? `${item.l}x${item.w}x${item.h}` : "",
+          dimensions: (item.l && item.w && item.h) ? `${item.l}x${item.w}x${item.h}` : "",
           net_weight: Number(item.net_weight) || 0,
           gross_weight: Number(item.gross_weight) || 0,
           carton_number: item.carton_number,
@@ -537,7 +537,7 @@ export function CreatePackingListForm() {
                 </div>
                 <div>
                   <span className="text-muted-foreground">Total Weight:</span>
-                  <span className="ml-2 font-medium">{totalNetWeight.toFixed(2)} kg</span>
+                  <span className="ml-2 font-medium">{totalWeight.toFixed(2)} kg</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">{t("totalGrossWeight")}:</span>
