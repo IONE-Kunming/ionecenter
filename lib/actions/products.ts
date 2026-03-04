@@ -272,12 +272,15 @@ export async function searchProductsByModelNumber(
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return []
 
+  // Escape LIKE special characters to prevent pattern injection
+  const escaped = query.replace(/[%_\\]/g, (ch) => `\\${ch}`)
+
   const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("products")
     .select("model_number, name")
     .eq("seller_id", user.id)
-    .ilike("model_number", `%${query}%`)
+    .ilike("model_number", `%${escaped}%`)
     .limit(10)
 
   if (error) {

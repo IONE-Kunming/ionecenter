@@ -145,6 +145,14 @@ export function CreatePackingListForm() {
     loadData()
   }, [])
 
+  // Cleanup product search timers on unmount
+  useEffect(() => {
+    const timers = productSearchTimers.current
+    return () => {
+      Object.values(timers).forEach(clearTimeout)
+    }
+  }, [])
+
   // Buyer search
   const handleBuyerSearch = useCallback(async (query: string) => {
     setBuyerSearch(query)
