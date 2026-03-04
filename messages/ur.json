@@ -308,7 +308,8 @@
     "supplier": "فراہم کنندہ",
     "printInvoice": "انوائس پرنٹ کریں",
     "deleteInvoice": "انوائس حذف کریں",
-    "deleteInvoiceConfirm": "کیا آپ واقعی یہ انوائس حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں کیا جا سکتا۔"
+    "deleteInvoiceConfirm": "کیا آپ واقعی یہ انوائس حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں کیا جا سکتا۔",
+    "editInvoice": "انوائس میں ترمیم کریں"
   },
   "notifications": {
     "unread": "{count} غیر پڑھی ہوئی",
