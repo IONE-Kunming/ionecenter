@@ -1392,6 +1392,7 @@
   },
   "packingLists": {
     "title": "Packing Lists",
+    "packingList": "Packing List",
     "createPackingList": "Create Packing List",
     "packingListNumber": "Packing List #",
     "noPackingLists": "No packing lists found",

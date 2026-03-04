@@ -1245,6 +1245,7 @@
   },
   "packingLists": {
     "title": "قوائم التعبئة",
+    "packingList": "قائمة التعبئة",
     "createPackingList": "إنشاء قائمة تعبئة",
     "packingListNumber": "رقم قائمة التعبئة",
     "noPackingLists": "لا توجد قوائم تعبئة",

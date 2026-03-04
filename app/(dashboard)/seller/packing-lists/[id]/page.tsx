@@ -10,6 +10,7 @@ import { getTranslations, getLocale } from "next-intl/server"
 import { PrintTrigger } from "./print-trigger"
 import { PrintButton } from "./print-button"
 import { BarcodeCanvas } from "./barcode"
+import { SetPageTitle } from "@/components/layout/page-title-context"
 
 /** Parse a dimension string like "60x30x40" or "60×30×40" into [L, W, H] numbers */
 function parseDimensions(dimensions: string | null): { l: number; w: number; h: number } | null {
@@ -62,6 +63,7 @@ export default async function PackingListDetailPage({ params, searchParams }: { 
 
   return (
     <div className="space-y-6 max-w-5xl">
+      <SetPageTitle title={`${t("packingList")} ${packingList.packing_list_number}`} />
       {/* ---- Screen-only navigation ---- */}
       <div className="print:hidden flex items-center justify-between">
         <Link href="/seller/packing-lists" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">

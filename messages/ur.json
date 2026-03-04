@@ -1245,6 +1245,7 @@
   },
   "packingLists": {
     "title": "پیکنگ لسٹ",
+    "packingList": "پیکنگ لسٹ",
     "createPackingList": "پیکنگ لسٹ بنائیں",
     "packingListNumber": "پیکنگ لسٹ نمبر",
     "noPackingLists": "کوئی پیکنگ لسٹ نہیں ملی",

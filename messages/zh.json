@@ -1245,6 +1245,7 @@
   },
   "packingLists": {
     "title": "装箱单",
+    "packingList": "装箱单",
     "createPackingList": "创建装箱单",
     "packingListNumber": "装箱单编号",
     "noPackingLists": "未找到装箱单",
