@@ -3,11 +3,12 @@
 import { useState, useCallback, useRef, useEffect } from "react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Loader2, Save } from "lucide-react"
+import { ArrowLeft, Loader2, Save, Plus, Trash2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
 import { createContract, getNextContractNumber, getSellerOfflineInvoicesForLinking } from "@/lib/actions/contracts"
@@ -27,6 +28,24 @@ interface InvoiceOption {
   buyer_email: string | null
 }
 
+interface ContractItem {
+  item_code: string
+  product_name: string
+  description: string
+  quantity: number
+  unit: string
+  unit_price: number
+}
+
+const emptyItem: ContractItem = {
+  item_code: "",
+  product_name: "",
+  description: "",
+  quantity: 1,
+  unit: "pcs",
+  unit_price: 0,
+}
+
 export function CreateContractForm() {
   const t = useTranslations("contracts")
   const tCommon = useTranslations("common")
@@ -43,7 +62,7 @@ export function CreateContractForm() {
   const [terms, setTerms] = useState("")
   const [invoiceId, setInvoiceId] = useState("")
   const [invoices, setInvoices] = useState<InvoiceOption[]>([])
-
+  const [items, setItems] = useState<ContractItem[]>([{ ...emptyItem }])
   // Seller info
   const [sellerName, setSellerName] = useState("")
   const [sellerCode, setSellerCode] = useState("")
@@ -194,6 +213,20 @@ export function CreateContractForm() {
     return () => document.removeEventListener("mousedown", handleClick)
   }, [])
 
+  // Item management
+  const addItem = () => setItems([...items, { ...emptyItem }])
+
+  const removeItem = (index: number) => {
+    if (items.length <= 1) return
+    setItems(items.filter((_, i) => i !== index))
+  }
+
+  const updateItem = (index: number, field: keyof ContractItem, value: string | number) => {
+    const updated = [...items]
+    updated[index] = { ...updated[index], [field]: value }
+    setItems(updated)
+  }
+
   const handleSubmit = async () => {
     if (!buyerName || !buyerEmail) {
       addToast("error", "Please fill in buyer information")
@@ -215,6 +248,11 @@ export function CreateContractForm() {
         seller_signature: sellerSignature || undefined,
         buyer_signature: buyerSignature || undefined,
         expiry_date: expiryDate || undefined,
+        items: items.filter((item) => item.product_name).map((item) => ({
+          ...item,
+          quantity: Number(item.quantity) || 1,
+          unit_price: Number(item.unit_price) || 0,
+        })),
       })
 
       if (result.error) {
@@ -334,6 +372,99 @@ export function CreateContractForm() {
                 <Label>{t("buyerEmail")}</Label>
                 <Input value={buyerEmail} onChange={(e) => setBuyerEmail(e.target.value)} />
               </div>
+            </div>
+          </div>
+
+          {/* Contract Items Table */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold">{t("contractItems")}</h3>
+              <Button variant="outline" size="sm" onClick={addItem}>
+                <Plus className="h-4 w-4 mr-1" /> {t("addItem")}
+              </Button>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[100px]">{t("itemCode")}</TableHead>
+                    <TableHead className="min-w-[150px]">{t("productName")}</TableHead>
+                    <TableHead className="min-w-[150px]">{t("description")}</TableHead>
+                    <TableHead className="min-w-[80px]">{t("quantity")}</TableHead>
+                    <TableHead className="min-w-[80px]">{t("unit")}</TableHead>
+                    <TableHead className="min-w-[100px]">{t("unitPrice")}</TableHead>
+                    <TableHead className="min-w-[100px]">{t("total")}</TableHead>
+                    <TableHead className="w-[60px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {items.map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Input
+                          value={item.item_code}
+                          onChange={(e) => updateItem(index, "item_code", e.target.value)}
+                          className="min-w-[90px]"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={item.product_name}
+                          onChange={(e) => updateItem(index, "product_name", e.target.value)}
+                          className="min-w-[140px]"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={item.description}
+                          onChange={(e) => updateItem(index, "description", e.target.value)}
+                          className="min-w-[140px]"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={item.quantity}
+                          onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
+                          className="min-w-[70px]"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={item.unit}
+                          onChange={(e) => updateItem(index, "unit", e.target.value)}
+                          placeholder="pcs"
+                          className="min-w-[70px]"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          value={item.unit_price}
+                          onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
+                          className="min-w-[90px]"
+                        />
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {((Number(item.quantity) || 0) * (Number(item.unit_price) || 0)).toFixed(2)}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeItem(index)}
+                          disabled={items.length <= 1}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           </div>
 

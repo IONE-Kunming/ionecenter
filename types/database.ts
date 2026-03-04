@@ -283,6 +283,19 @@ export interface SellerBuyer {
 
 export type ContractStatus = "draft" | "active" | "expired"
 
+export interface ContractItem {
+  id: string
+  contract_id: string
+  item_code: string | null
+  product_name: string | null
+  description: string | null
+  quantity: number
+  unit: string | null
+  unit_price: number
+  total: number
+  created_at: string
+}
+
 export interface Contract {
   id: string
   contract_number: string
@@ -300,6 +313,7 @@ export interface Contract {
   // Joined data
   seller?: User
   invoice?: OfflineInvoice
+  items?: ContractItem[]
 }
 
 export interface PackingList {
