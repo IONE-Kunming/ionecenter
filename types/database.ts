@@ -281,6 +281,59 @@ export interface SellerBuyer {
   created_at: string
 }
 
+export type ContractStatus = "draft" | "active" | "expired"
+
+export interface Contract {
+  id: string
+  contract_number: string
+  seller_id: string
+  buyer_code: string | null
+  buyer_name: string | null
+  buyer_email: string | null
+  invoice_id: string | null
+  terms: string | null
+  seller_signature: string | null
+  buyer_signature: string | null
+  status: ContractStatus
+  expiry_date: string | null
+  created_at: string
+  // Joined data
+  seller?: User
+  invoice?: OfflineInvoice
+}
+
+export interface PackingList {
+  id: string
+  packing_list_number: string
+  seller_id: string
+  buyer_code: string | null
+  buyer_name: string | null
+  buyer_email: string | null
+  invoice_id: string | null
+  total_packages: number
+  total_net_weight: number
+  total_gross_weight: number
+  created_at: string
+  // Joined data
+  seller?: User
+  items?: PackingListItem[]
+  invoice?: OfflineInvoice
+}
+
+export interface PackingListItem {
+  id: string
+  packing_list_id: string
+  item_code: string | null
+  product_name: string | null
+  quantity: number
+  unit: string | null
+  dimensions: string | null
+  net_weight: number
+  gross_weight: number
+  carton_number: string | null
+  created_at: string
+}
+
 export interface DashboardStats {
   totalOrders: number
   totalRevenue: number

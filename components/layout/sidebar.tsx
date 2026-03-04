@@ -10,7 +10,8 @@ import {
   LayoutDashboard, Package, ShoppingCart, FileText, Users, MessageSquare,
   Bell, Settings, HelpCircle, LogOut, ChevronDown, Sun, Moon, Menu, X,
   Building2, Pencil, DollarSign, BarChart3, Receipt, Calculator, Scale,
-  Layers, Store, ClipboardList, Globe, Eye, FolderTree, Heart, Images
+  Layers, Store, ClipboardList, Globe, Eye, FolderTree, Heart, Images,
+  FolderOpen, FileSignature, PackageCheck
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -46,7 +47,15 @@ function getNavItems(role: UserRole, t: TranslationFn): NavItem[] {
       { label: t("myList"), href: "/buyer/my-list", icon: Heart },
       { label: t("cart"), href: "/buyer/cart", icon: ShoppingCart },
       { label: t("orders"), href: "/buyer/orders", icon: FileText },
-      { label: t("invoices"), href: "/buyer/invoices", icon: Receipt },
+      {
+        label: t("exportDocuments"),
+        href: "/buyer/invoices",
+        icon: FolderOpen,
+        children: [
+          { label: t("invoices"), href: "/buyer/invoices", icon: Receipt },
+          { label: t("contracts"), href: "/buyer/contracts", icon: FileSignature },
+        ],
+      },
       { label: t("sellers"), href: "/buyer/sellers", icon: Store },
       { label: t("chats"), href: "/buyer/chats", icon: MessageSquare },
       { label: t("notifications"), href: "/buyer/notifications", icon: Bell },
@@ -72,7 +81,16 @@ function getNavItems(role: UserRole, t: TranslationFn): NavItem[] {
       { label: t("myList"), href: "/seller/my-list", icon: Heart },
       { label: t("bulkEdit"), href: "/seller/bulk-edit", icon: Pencil },
       { label: t("orders"), href: "/seller/orders", icon: FileText },
-      { label: t("invoices"), href: "/seller/invoices", icon: Receipt },
+      {
+        label: t("exportDocuments"),
+        href: "/seller/invoices",
+        icon: FolderOpen,
+        children: [
+          { label: t("invoices"), href: "/seller/invoices", icon: Receipt },
+          { label: t("contracts"), href: "/seller/contracts", icon: FileSignature },
+          { label: t("packingList"), href: "/seller/packing-lists", icon: PackageCheck },
+        ],
+      },
       { label: t("branches"), href: "/seller/branches", icon: Building2 },
       { label: t("chats"), href: "/seller/chats", icon: MessageSquare },
       { label: t("notifications"), href: "/seller/notifications", icon: Bell },
@@ -139,6 +157,10 @@ export function Sidebar({ role }: SidebarProps) {
     if (pathname.includes("/finances/")) {
       const financesLabel = t("finances")
       setExpandedItems((prev) => (prev.includes(financesLabel) ? prev : [...prev, financesLabel]))
+    }
+    if (pathname.includes("/invoices") || pathname.includes("/contracts") || pathname.includes("/packing-lists")) {
+      const exportDocsLabel = t("exportDocuments")
+      setExpandedItems((prev) => (prev.includes(exportDocsLabel) ? prev : [...prev, exportDocsLabel]))
     }
   }, [pathname, t])
 
