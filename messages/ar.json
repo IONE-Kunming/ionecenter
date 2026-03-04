@@ -1241,7 +1241,16 @@
     "unit": "الوحدة",
     "unitPrice": "سعر الوحدة",
     "total": "الإجمالي",
-    "addItem": "إضافة صنف"
+    "addItem": "إضافة صنف",
+    "item": "البند",
+    "importFromInvoice": "استيراد من فاتورة",
+    "selectInvoiceToImport": "اختر فاتورة لاستيراد البنود",
+    "invoiceImported": "تم استيراد بنود الفاتورة بنجاح",
+    "noInvoicesFound": "لا توجد فواتير محفوظة",
+    "invoiceNumber": "رقم الفاتورة",
+    "date": "التاريخ",
+    "buyerNameLabel": "المشتري",
+    "totalAmount": "الإجمالي"
   },
   "packingLists": {
     "title": "قوائم التعبئة",
