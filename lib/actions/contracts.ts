@@ -33,7 +33,6 @@ export interface ContractItemInput {
   product_name: string
   description: string
   quantity: number
-  unit: string
   unit_price: number
 }
 
@@ -103,7 +102,6 @@ export async function createContract(input: ContractInput) {
       product_name: item.product_name,
       description: item.description || null,
       quantity: Number(item.quantity) || 1,
-      unit: item.unit || null,
       unit_price: Number(item.unit_price) || 0,
       total: Number(item.unit_price) * Number(item.quantity),
     }))

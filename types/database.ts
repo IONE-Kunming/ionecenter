@@ -290,7 +290,6 @@ export interface ContractItem {
   product_name: string | null
   description: string | null
   quantity: number
-  unit: string | null
   unit_price: number
   total: number
   created_at: string

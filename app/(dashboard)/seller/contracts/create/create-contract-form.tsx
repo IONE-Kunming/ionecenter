@@ -43,7 +43,6 @@ interface ContractItem {
   product_name: string
   description: string
   quantity: number
-  unit: string
   unit_price: number
 }
 
@@ -52,7 +51,6 @@ const emptyItem: ContractItem = {
   product_name: "",
   description: "",
   quantity: 1,
-  unit: "pcs",
   unit_price: 0,
 }
 
@@ -246,7 +244,6 @@ export function CreateContractForm() {
           product_name: item.product_name || "",
           description: item.description || "",
           quantity: item.quantity,
-          unit: "pcs",
           unit_price: item.unit_price,
         }))
         setItems(newItems)
