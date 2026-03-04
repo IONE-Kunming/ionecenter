@@ -11,6 +11,16 @@ import { PrintTrigger } from "./print-trigger"
 import { PrintButton } from "./print-button"
 import { BarcodeCanvas } from "./barcode"
 
+/** Parse a dimension string like "60x30x40" or "60×30×40" into [L, W, H] numbers */
+function parseDimensions(dimensions: string | null): { l: number; w: number; h: number } | null {
+  if (!dimensions) return null
+  const parts = dimensions.replace(/[×x]/gi, " ").trim().split(/\s+/)
+  if (parts.length !== 3) return null
+  const [l, w, h] = parts.map(Number)
+  if (isNaN(l) || isNaN(w) || isNaN(h)) return null
+  return { l, w, h }
+}
+
 export default async function PackingListDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ print?: string }> }) {
   const { id } = await params
   const { print } = await searchParams
@@ -43,14 +53,9 @@ export default async function PackingListDetailPage({ params, searchParams }: { 
   /* CBM: if item has dimensions in "LxWxH" format, compute per-item CBM; otherwise fall back to 0 */
   let totalCBM = 0
   for (const item of items) {
-    if (item.dimensions) {
-      const parts = item.dimensions.replace(/[×x]/gi, " ").trim().split(/\s+/)
-      if (parts.length === 3) {
-        const [l, w, h] = parts.map(Number)
-        if (!isNaN(l) && !isNaN(w) && !isNaN(h)) {
-          totalCBM += (l * w * h) / 1_000_000 * item.quantity
-        }
-      }
+    const dims = parseDimensions(item.dimensions)
+    if (dims) {
+      totalCBM += (dims.l * dims.w * dims.h) / 1_000_000 * item.quantity
     }
   }
   totalCBM = Number(totalCBM.toFixed(4))
@@ -196,7 +201,7 @@ export default async function PackingListDetailPage({ params, searchParams }: { 
           </div>
           <div className="pkl-invoice-box">
             <span className="pkl-invoice-label">Invoice No.</span>
-            <span className="pkl-invoice-value">{packingList.invoice_id ? `INV-${packingList.invoice_id.slice(0, 8)}` : packingList.packing_list_number}</span>
+            <span className="pkl-invoice-value">{packingList.packing_list_number}</span>
           </div>
         </div>
 
@@ -237,18 +242,16 @@ export default async function PackingListDetailPage({ params, searchParams }: { 
             </thead>
             <tbody>
               {items.map((item, idx) => {
-                const dims = item.dimensions?.replace(/[×x]/gi, " ").trim().split(/\s+/) ?? []
-                const h = dims[2] || "—"
-                const l = dims[0] || "—"
-                const w = dims[1] || "—"
-                const itemCBM =
-                  dims.length === 3
-                    ? ((Number(dims[0]) * Number(dims[1]) * Number(dims[2])) / 1_000_000).toFixed(4)
-                    : "—"
-                const itemTotalCBM =
-                  dims.length === 3
-                    ? ((Number(dims[0]) * Number(dims[1]) * Number(dims[2])) / 1_000_000 * item.quantity).toFixed(4)
-                    : "—"
+                const dims = parseDimensions(item.dimensions)
+                const h = dims ? String(dims.h) : "—"
+                const l = dims ? String(dims.l) : "—"
+                const w = dims ? String(dims.w) : "—"
+                const itemCBM = dims
+                  ? ((dims.l * dims.w * dims.h) / 1_000_000).toFixed(4)
+                  : "—"
+                const itemTotalCBM = dims
+                  ? ((dims.l * dims.w * dims.h) / 1_000_000 * item.quantity).toFixed(4)
+                  : "—"
                 return (
                   <tr key={item.id} className={idx % 2 === 1 ? "pkl-row-alt" : ""}>
                     <td>{idx + 1}</td>

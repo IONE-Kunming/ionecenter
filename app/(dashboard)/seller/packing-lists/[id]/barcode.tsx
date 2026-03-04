@@ -7,16 +7,20 @@ export function BarcodeCanvas({ value, height = 50, width = 1.5 }: { value: stri
   const svgRef = useRef<SVGSVGElement>(null)
 
   useEffect(() => {
-    if (svgRef.current && value) {
-      JsBarcode(svgRef.current, value, {
-        format: "CODE128",
-        height,
-        width,
-        displayValue: true,
-        fontSize: 10,
-        margin: 0,
-        background: "transparent",
-      })
+    if (svgRef.current && value && value.length > 0) {
+      try {
+        JsBarcode(svgRef.current, value, {
+          format: "CODE128",
+          height,
+          width,
+          displayValue: true,
+          fontSize: 10,
+          margin: 0,
+          background: "transparent",
+        })
+      } catch {
+        // Silently handle invalid barcode values
+      }
     }
   }, [value, height, width])
 
