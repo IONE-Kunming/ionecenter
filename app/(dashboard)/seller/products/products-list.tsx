@@ -453,7 +453,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
             return (
               <Card key={product.id} className="group">
                 <CardContent className="p-0">
-                  <div className="aspect-square relative bg-white rounded-t-xl flex items-center justify-center overflow-hidden">
+                  <div className="aspect-square relative bg-card rounded-t-xl flex items-center justify-center overflow-hidden">
                     {product.image_url ? (
                       <Image
                         src={product.image_url}
