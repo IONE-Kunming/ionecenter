@@ -341,7 +341,9 @@ export interface PackingListItem {
   product_name: string | null
   quantity: number
   unit: string | null
-  dimensions: string | null
+  height: number | null
+  length: number | null
+  width: number | null
   net_weight: number
   gross_weight: number
   carton_number: string | null
