@@ -1250,7 +1250,8 @@
     "invoiceNumber": "انوائس نمبر",
     "date": "تاریخ",
     "buyerNameLabel": "خریدار",
-    "totalAmount": "کل"
+    "totalAmount": "کل",
+    "importFailed": "انوائس اشیاء درآمد کرنے میں ناکامی"
   },
   "packingLists": {
     "title": "پیکنگ لسٹ",

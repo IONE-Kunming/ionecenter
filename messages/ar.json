@@ -1250,7 +1250,8 @@
     "invoiceNumber": "رقم الفاتورة",
     "date": "التاريخ",
     "buyerNameLabel": "المشتري",
-    "totalAmount": "الإجمالي"
+    "totalAmount": "الإجمالي",
+    "importFailed": "فشل استيراد بنود الفاتورة"
   },
   "packingLists": {
     "title": "قوائم التعبئة",

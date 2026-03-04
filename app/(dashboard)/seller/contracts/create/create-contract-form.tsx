@@ -259,7 +259,7 @@ export function CreateContractForm() {
       setInvoiceId(invoice.id)
       addToast("success", t("invoiceImported"))
     } catch {
-      addToast("error", "Failed to import invoice items")
+      addToast("error", t("importFailed"))
     } finally {
       setImportLoading(false)
     }
@@ -507,9 +507,6 @@ export function CreateContractForm() {
                         <div>
                           <span className="text-xs text-muted-foreground font-mono">
                             {item.item_code || `RX${String(index + 1).padStart(3, "0")}`}
-                            {item.product_name && (
-                              <span className="ml-1 font-sans">{item.product_name}</span>
-                            )}
                           </span>
                           <Input
                             value={item.product_name}

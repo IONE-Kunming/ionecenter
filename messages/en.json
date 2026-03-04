@@ -1397,7 +1397,8 @@
     "invoiceNumber": "Invoice #",
     "date": "Date",
     "buyerNameLabel": "Buyer",
-    "totalAmount": "Total"
+    "totalAmount": "Total",
+    "importFailed": "Failed to import invoice items"
   },
   "packingLists": {
     "title": "Packing Lists",

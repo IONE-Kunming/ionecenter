@@ -1250,7 +1250,8 @@
     "invoiceNumber": "发票号",
     "date": "日期",
     "buyerNameLabel": "买方",
-    "totalAmount": "合计"
+    "totalAmount": "合计",
+    "importFailed": "发票项目导入失败"
   },
   "packingLists": {
     "title": "装箱单",
