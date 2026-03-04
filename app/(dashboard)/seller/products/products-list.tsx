@@ -453,13 +453,13 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
             return (
               <Card key={product.id} className="group">
                 <CardContent className="p-0">
-                  <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center overflow-hidden">
+                  <div className="aspect-square relative bg-white rounded-t-xl flex items-center justify-center overflow-hidden">
                     {product.image_url ? (
                       <Image
                         src={product.image_url}
                         alt={product.name}
                         fill
-                        className="object-cover"
+                        className="object-contain"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       />
                     ) : (

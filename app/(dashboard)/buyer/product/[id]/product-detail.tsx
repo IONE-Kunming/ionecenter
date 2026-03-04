@@ -81,13 +81,13 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
       <div className="grid md:grid-cols-2 gap-8">
         {/* Product Media */}
         <div className="space-y-3">
-          <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-xl flex items-center justify-center overflow-hidden">
+          <div className="aspect-square relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
             {currentMedia?.type === "image" ? (
               <Image
                 src={currentMedia.url}
                 alt={product.name}
                 fill
-                className="object-cover"
+                className="object-contain"
                 sizes="(max-width: 768px) 100vw, 50vw"
                 priority
               />
