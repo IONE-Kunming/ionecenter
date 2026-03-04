@@ -1388,7 +1388,17 @@
     "unit": "Unit",
     "unitPrice": "Unit Price",
     "total": "Total",
-    "addItem": "Add Item"
+    "addItem": "Add Item",
+    "item": "Item",
+    "importFromInvoice": "Import from Invoice",
+    "selectInvoiceToImport": "Select an invoice to import items",
+    "invoiceImported": "Invoice items imported successfully",
+    "noInvoicesFound": "No saved invoices found",
+    "invoiceNumber": "Invoice #",
+    "date": "Date",
+    "buyerNameLabel": "Buyer",
+    "totalAmount": "Total",
+    "importFailed": "Failed to import invoice items"
   },
   "packingLists": {
     "title": "Packing Lists",

@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Loader2, Save, Plus, Trash2 } from "lucide-react"
+import { ArrowLeft, Loader2, Save, Plus, Trash2, FileDown } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
-import { createContract, getNextContractNumber, getSellerOfflineInvoicesForLinking } from "@/lib/actions/contracts"
+import { createContract, getNextContractNumber, getSellerOfflineInvoicesForLinking, getSellerOfflineInvoicesForImport, getOfflineInvoiceItems } from "@/lib/actions/contracts"
 import { getSellerBankInfo, searchBuyers, searchBuyerByCode } from "@/lib/actions/invoices"
 
 interface BuyerResult {
@@ -26,6 +26,16 @@ interface InvoiceOption {
   invoice_number: string
   buyer_name: string | null
   buyer_email: string | null
+}
+
+interface ImportInvoice {
+  id: string
+  invoice_number: string
+  buyer_name: string | null
+  buyer_email: string | null
+  buyer_code: string | null
+  total: number
+  created_at: string
 }
 
 interface ContractItem {
@@ -74,6 +84,12 @@ export function CreateContractForm() {
   const [showBuyerDropdown, setShowBuyerDropdown] = useState(false)
   const buyerDropdownRef = useRef<HTMLDivElement>(null)
 
+  // Import from invoice
+  const [importInvoices, setImportInvoices] = useState<ImportInvoice[]>([])
+  const [showImportDropdown, setShowImportDropdown] = useState(false)
+  const [importLoading, setImportLoading] = useState(false)
+  const importDropdownRef = useRef<HTMLDivElement>(null)
+
   // Signature canvases
   const sellerCanvasRef = useRef<HTMLCanvasElement>(null)
   const buyerCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -83,10 +99,11 @@ export function CreateContractForm() {
   // Load initial data
   useEffect(() => {
     async function loadData() {
-      const [nextNumber, sellerInfo, invoiceList] = await Promise.all([
+      const [nextNumber, sellerInfo, invoiceList, importInvoiceList] = await Promise.all([
         getNextContractNumber(),
         getSellerBankInfo(),
         getSellerOfflineInvoicesForLinking(),
+        getSellerOfflineInvoicesForImport(),
       ])
       setContractNumber(nextNumber)
       if (sellerInfo) {
@@ -95,6 +112,7 @@ export function CreateContractForm() {
         setSellerEmail(sellerInfo.email || "")
       }
       setInvoices(invoiceList)
+      setImportInvoices(importInvoiceList)
 
       // Set default terms
       setTerms(t("defaultTerms"))
@@ -208,10 +226,44 @@ export function CreateContractForm() {
       if (buyerDropdownRef.current && !buyerDropdownRef.current.contains(e.target as Node)) {
         setShowBuyerDropdown(false)
       }
+      if (importDropdownRef.current && !importDropdownRef.current.contains(e.target as Node)) {
+        setShowImportDropdown(false)
+      }
     }
     document.addEventListener("mousedown", handleClick)
     return () => document.removeEventListener("mousedown", handleClick)
   }, [])
+
+  // Import from invoice
+  const handleImportFromInvoice = useCallback(async (invoice: ImportInvoice) => {
+    setImportLoading(true)
+    setShowImportDropdown(false)
+    try {
+      const invoiceItems = await getOfflineInvoiceItems(invoice.id)
+      if (invoiceItems.length > 0) {
+        const newItems: ContractItem[] = invoiceItems.map((item) => ({
+          item_code: item.item_code || "",
+          product_name: item.product_name || "",
+          description: item.description || "",
+          quantity: item.quantity,
+          unit: "pcs",
+          unit_price: item.unit_price,
+        }))
+        setItems(newItems)
+      }
+      // Auto-fill buyer info
+      if (invoice.buyer_name) setBuyerName(invoice.buyer_name)
+      if (invoice.buyer_email) setBuyerEmail(invoice.buyer_email)
+      if (invoice.buyer_code) setBuyerCode(invoice.buyer_code)
+      // Link the invoice
+      setInvoiceId(invoice.id)
+      addToast("success", t("invoiceImported"))
+    } catch {
+      addToast("error", t("importFailed"))
+    } finally {
+      setImportLoading(false)
+    }
+  }, [addToast, t])
 
   // Item management
   const addItem = () => setItems([...items, { ...emptyItem }])
@@ -376,97 +428,139 @@ export function CreateContractForm() {
           </div>
 
           {/* Contract Items Table */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold">{t("contractItems")}</h3>
-              <Button variant="outline" size="sm" onClick={addItem}>
-                <Plus className="h-4 w-4 mr-1" /> {t("addItem")}
-              </Button>
-            </div>
-            <div className="overflow-x-auto">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>{t("contractItems")}</CardTitle>
+              <div className="flex items-center gap-2">
+                <div className="relative" ref={importDropdownRef}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowImportDropdown(!showImportDropdown)}
+                    disabled={importLoading}
+                  >
+                    {importLoading ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <FileDown className="h-4 w-4 mr-1" />
+                    )}
+                    {t("importFromInvoice")}
+                  </Button>
+                  {showImportDropdown && (
+                    <div className="absolute right-0 z-20 mt-1 w-[400px] bg-background border rounded-md shadow-lg max-h-64 overflow-y-auto">
+                      {importInvoices.length === 0 ? (
+                        <div className="px-4 py-3 text-sm text-muted-foreground">{t("noInvoicesFound")}</div>
+                      ) : (
+                        <>
+                          <div className="px-4 py-2 text-xs font-medium text-muted-foreground border-b">
+                            {t("selectInvoiceToImport")}
+                          </div>
+                          {importInvoices.map((inv) => (
+                            <button
+                              key={inv.id}
+                              type="button"
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-accent cursor-pointer border-b last:border-b-0"
+                              onClick={() => handleImportFromInvoice(inv)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium">{inv.invoice_number}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(inv.created_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between mt-0.5">
+                                <span className="text-muted-foreground text-xs">
+                                  {inv.buyer_name || inv.buyer_email || "—"}
+                                </span>
+                                <span className="text-xs font-medium">
+                                  {inv.total.toFixed(2)}
+                                </span>
+                              </div>
+                            </button>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <Button variant="outline" size="sm" onClick={addItem}>
+                  <Plus className="h-4 w-4 mr-1" /> {t("addItem")}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[100px]">{t("itemCode")}</TableHead>
-                    <TableHead className="min-w-[150px]">{t("productName")}</TableHead>
-                    <TableHead className="min-w-[150px]">{t("description")}</TableHead>
-                    <TableHead className="min-w-[80px]">{t("quantity")}</TableHead>
-                    <TableHead className="min-w-[80px]">{t("unit")}</TableHead>
-                    <TableHead className="min-w-[100px]">{t("unitPrice")}</TableHead>
-                    <TableHead className="min-w-[100px]">{t("total")}</TableHead>
-                    <TableHead className="w-[60px]"></TableHead>
+                    <TableHead className="w-[260px]">{t("item")}</TableHead>
+                    <TableHead>{t("description")}</TableHead>
+                    <TableHead className="text-right w-[120px]">{t("unitPrice")}</TableHead>
+                    <TableHead className="text-right w-[90px]">{t("quantity")}</TableHead>
+                    <TableHead className="text-right w-[120px]">{t("total")}</TableHead>
+                    <TableHead className="w-[50px]" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {items.map((item, index) => (
                     <TableRow key={index}>
                       <TableCell>
-                        <Input
-                          value={item.item_code}
-                          onChange={(e) => updateItem(index, "item_code", e.target.value)}
-                          className="min-w-[90px]"
-                        />
+                        <div>
+                          <span className="text-xs text-muted-foreground font-mono">
+                            {item.item_code || `RX${String(index + 1).padStart(3, "0")}`}
+                          </span>
+                          <Input
+                            value={item.product_name}
+                            onChange={(e) => updateItem(index, "product_name", e.target.value)}
+                            placeholder={t("productName")}
+                            className="mt-1 text-sm"
+                          />
+                        </div>
                       </TableCell>
                       <TableCell>
-                        <Input
-                          value={item.product_name}
-                          onChange={(e) => updateItem(index, "product_name", e.target.value)}
-                          className="min-w-[140px]"
-                        />
+                        <span className="text-sm text-muted-foreground">
+                          {item.description || "—"}
+                        </span>
                       </TableCell>
-                      <TableCell>
-                        <Input
-                          value={item.description}
-                          onChange={(e) => updateItem(index, "description", e.target.value)}
-                          className="min-w-[140px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          min={1}
-                          value={item.quantity}
-                          onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
-                          className="min-w-[70px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={item.unit}
-                          onChange={(e) => updateItem(index, "unit", e.target.value)}
-                          placeholder="pcs"
-                          className="min-w-[70px]"
-                        />
-                      </TableCell>
-                      <TableCell>
+                      <TableCell className="text-right">
                         <Input
                           type="number"
                           min={0}
                           step={0.01}
-                          value={item.unit_price}
+                          value={item.unit_price || ""}
                           onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
-                          className="min-w-[90px]"
+                          className="w-24 ml-auto text-right"
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Input
+                          type="number"
+                          min={1}
+                          value={item.quantity}
+                          onChange={(e) => updateItem(index, "quantity", Math.max(1, parseInt(e.target.value, 10) || 1))}
+                          className="w-20 ml-auto text-right"
                         />
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {((Number(item.quantity) || 0) * (Number(item.unit_price) || 0)).toFixed(2)}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeItem(index)}
-                          disabled={items.length <= 1}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        {items.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeItem(index)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Terms & Conditions */}
           <div>

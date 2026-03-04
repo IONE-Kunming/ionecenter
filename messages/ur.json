@@ -1241,7 +1241,17 @@
     "unit": "اکائی",
     "unitPrice": "اکائی قیمت",
     "total": "کل",
-    "addItem": "آئٹم شامل کریں"
+    "addItem": "آئٹم شامل کریں",
+    "item": "آئٹم",
+    "importFromInvoice": "انوائس سے درآمد کریں",
+    "selectInvoiceToImport": "اشیاء درآمد کرنے کے لیے انوائس منتخب کریں",
+    "invoiceImported": "انوائس اشیاء کامیابی سے درآمد ہو گئیں",
+    "noInvoicesFound": "کوئی محفوظ انوائس نہیں ملی",
+    "invoiceNumber": "انوائس نمبر",
+    "date": "تاریخ",
+    "buyerNameLabel": "خریدار",
+    "totalAmount": "کل",
+    "importFailed": "انوائس اشیاء درآمد کرنے میں ناکامی"
   },
   "packingLists": {
     "title": "پیکنگ لسٹ",

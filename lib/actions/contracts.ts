@@ -235,3 +235,41 @@ export async function getSellerOfflineInvoicesForLinking() {
 
   return data ?? []
 }
+
+export async function getSellerOfflineInvoicesForImport() {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return []
+
+  const adminSupabase = createAdminClient()
+  const { data } = await adminSupabase
+    .from("offline_invoices")
+    .select("id, invoice_number, buyer_name, buyer_email, buyer_code, total, created_at")
+    .eq("seller_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(50)
+
+  return data ?? []
+}
+
+export async function getOfflineInvoiceItems(invoiceId: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return []
+
+  const adminSupabase = createAdminClient()
+
+  // Verify ownership
+  const { data: invoice } = await adminSupabase
+    .from("offline_invoices")
+    .select("seller_id")
+    .eq("id", invoiceId)
+    .single()
+
+  if (!invoice || invoice.seller_id !== user.id) return []
+
+  const { data: items } = await adminSupabase
+    .from("offline_invoice_items")
+    .select("item_code, product_name, description, unit_price, quantity")
+    .eq("invoice_id", invoiceId)
+
+  return items ?? []
+}

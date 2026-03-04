@@ -1241,7 +1241,17 @@
     "unit": "单位",
     "unitPrice": "单价",
     "total": "合计",
-    "addItem": "添加项目"
+    "addItem": "添加项目",
+    "item": "项目",
+    "importFromInvoice": "从发票导入",
+    "selectInvoiceToImport": "选择要导入项目的发票",
+    "invoiceImported": "发票项目导入成功",
+    "noInvoicesFound": "未找到已保存的发票",
+    "invoiceNumber": "发票号",
+    "date": "日期",
+    "buyerNameLabel": "买方",
+    "totalAmount": "合计",
+    "importFailed": "发票项目导入失败"
   },
   "packingLists": {
     "title": "装箱单",
