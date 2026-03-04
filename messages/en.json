@@ -1379,7 +1379,16 @@
     "active": "Active",
     "expired": "Expired",
     "clearSignature": "Clear",
-    "signHere": "Sign here"
+    "signHere": "Sign here",
+    "contractItems": "Contract Items",
+    "itemCode": "Item Code",
+    "productName": "Product Name",
+    "description": "Description",
+    "quantity": "Quantity",
+    "unit": "Unit",
+    "unitPrice": "Unit Price",
+    "total": "Total",
+    "addItem": "Add Item"
   },
   "packingLists": {
     "title": "Packing Lists",

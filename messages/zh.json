@@ -1232,7 +1232,16 @@
     "active": "有效",
     "expired": "已过期",
     "clearSignature": "清除",
-    "signHere": "在此签名"
+    "signHere": "在此签名",
+    "contractItems": "合同项目",
+    "itemCode": "商品编码",
+    "productName": "产品名称",
+    "description": "描述",
+    "quantity": "数量",
+    "unit": "单位",
+    "unitPrice": "单价",
+    "total": "合计",
+    "addItem": "添加项目"
   },
   "packingLists": {
     "title": "装箱单",

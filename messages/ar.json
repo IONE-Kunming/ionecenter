@@ -1232,7 +1232,16 @@
     "active": "نشط",
     "expired": "منتهي",
     "clearSignature": "مسح",
-    "signHere": "وقّع هنا"
+    "signHere": "وقّع هنا",
+    "contractItems": "بنود العقد",
+    "itemCode": "رمز الصنف",
+    "productName": "اسم المنتج",
+    "description": "الوصف",
+    "quantity": "الكمية",
+    "unit": "الوحدة",
+    "unitPrice": "سعر الوحدة",
+    "total": "الإجمالي",
+    "addItem": "إضافة صنف"
   },
   "packingLists": {
     "title": "قوائم التعبئة",

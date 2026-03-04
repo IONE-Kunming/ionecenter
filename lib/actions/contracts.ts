@@ -2,7 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
-import type { Contract } from "@/types/database"
+import type { Contract, ContractItem } from "@/types/database"
 
 export async function getNextContractNumber(): Promise<string> {
   const user = await getCurrentUser()
@@ -28,6 +28,15 @@ export async function getNextContractNumber(): Promise<string> {
   return `CNT-${String(next).padStart(4, "0")}`
 }
 
+export interface ContractItemInput {
+  item_code: string
+  product_name: string
+  description: string
+  quantity: number
+  unit: string
+  unit_price: number
+}
+
 export interface ContractInput {
   buyer_name: string
   buyer_email: string
@@ -38,6 +47,7 @@ export interface ContractInput {
   seller_signature?: string
   buyer_signature?: string
   expiry_date?: string
+  items?: ContractItemInput[]
 }
 
 export async function createContract(input: ContractInput) {
@@ -85,6 +95,26 @@ export async function createContract(input: ContractInput) {
     return { error: contractError?.message ?? "Failed to create contract" }
   }
 
+  // Create contract items
+  if (input.items && input.items.length > 0) {
+    const contractItems = input.items.map((item) => ({
+      contract_id: contract.id,
+      item_code: item.item_code || null,
+      product_name: item.product_name,
+      description: item.description || null,
+      quantity: Number(item.quantity) || 1,
+      unit: item.unit || null,
+      unit_price: Number(item.unit_price) || 0,
+      total: Number(item.unit_price) * Number(item.quantity),
+    }))
+
+    const { error: itemsError } = await adminSupabase
+      .from("contract_items")
+      .insert(contractItems)
+
+    if (itemsError) return { error: itemsError.message }
+  }
+
   return { success: true, contract }
 }
 
@@ -126,7 +156,7 @@ export async function getBuyerContracts(): Promise<Contract[]> {
   return (data ?? []) as Contract[]
 }
 
-export async function getContract(contractId: string): Promise<(Omit<Contract, "seller"> & { seller: Record<string, string | null> | null }) | null> {
+export async function getContract(contractId: string): Promise<(Omit<Contract, "seller" | "items"> & { items: ContractItem[]; seller: Record<string, string | null> | null }) | null> {
   const user = await getCurrentUser()
   if (!user) return null
 
@@ -144,6 +174,13 @@ export async function getContract(contractId: string): Promise<(Omit<Contract, "
     return null
   }
 
+  // Fetch contract items
+  const { data: items } = await adminSupabase
+    .from("contract_items")
+    .select("*")
+    .eq("contract_id", contractId)
+    .order("created_at")
+
   // Fetch seller info
   const { data: seller } = await adminSupabase
     .from("users")
@@ -153,6 +190,7 @@ export async function getContract(contractId: string): Promise<(Omit<Contract, "
 
   return {
     ...(contract as Contract),
+    items: (items ?? []) as ContractItem[],
     seller: seller ?? null,
   }
 }

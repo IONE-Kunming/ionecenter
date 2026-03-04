@@ -1232,7 +1232,16 @@
     "active": "فعال",
     "expired": "ختم شدہ",
     "clearSignature": "صاف کریں",
-    "signHere": "یہاں دستخط کریں"
+    "signHere": "یہاں دستخط کریں",
+    "contractItems": "معاہدے کی اشیاء",
+    "itemCode": "آئٹم کوڈ",
+    "productName": "مصنوعات کا نام",
+    "description": "تفصیل",
+    "quantity": "مقدار",
+    "unit": "اکائی",
+    "unitPrice": "اکائی قیمت",
+    "total": "کل",
+    "addItem": "آئٹم شامل کریں"
   },
   "packingLists": {
     "title": "پیکنگ لسٹ",
