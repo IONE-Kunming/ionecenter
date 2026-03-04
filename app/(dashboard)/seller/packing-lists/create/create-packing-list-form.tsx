@@ -35,7 +35,9 @@ interface PackingItem {
   product_name: string
   quantity: number
   unit: string
-  dimensions: string
+  h: number
+  l: number
+  w: number
   net_weight: number
   gross_weight: number
   carton_number: string
@@ -51,7 +53,9 @@ const emptyItem: PackingItem = {
   product_name: "",
   quantity: 1,
   unit: "pcs",
-  dimensions: "",
+  h: 0,
+  l: 0,
+  w: 0,
   net_weight: 0,
   gross_weight: 0,
   carton_number: "",
@@ -217,8 +221,12 @@ export function CreatePackingListForm() {
 
   // Totals
   const totalPackages = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)
-  const totalNetWeight = items.reduce((sum, item) => sum + (Number(item.net_weight) || 0), 0)
+  const totalWeight = items.reduce((sum, item) => sum + ((Number(item.net_weight) || 0) * (Number(item.quantity) || 0)), 0)
   const totalGrossWeight = items.reduce((sum, item) => sum + (Number(item.gross_weight) || 0), 0)
+  const totalCBM = items.reduce((sum, item) => {
+    const cbm = (item.h && item.l && item.w) ? (item.h * item.l * item.w) / 1_000_000 : 0
+    return sum + cbm * (Number(item.quantity) || 0)
+  }, 0)
 
   const handleSubmit = async () => {
     if (!buyerName || !buyerEmail) {
@@ -240,10 +248,14 @@ export function CreatePackingListForm() {
         invoice_id: invoiceId || undefined,
         date: packingDate,
         items: items.map((item) => ({
-          ...item,
+          item_code: item.item_code,
+          product_name: item.product_name,
           quantity: Number(item.quantity) || 1,
+          unit: item.unit,
+          dimensions: (item.l && item.w && item.h) ? `${item.l}x${item.w}x${item.h}` : "",
           net_weight: Number(item.net_weight) || 0,
           gross_weight: Number(item.gross_weight) || 0,
+          carton_number: item.carton_number,
         })),
       })
 
@@ -373,20 +385,28 @@ export function CreatePackingListForm() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[100px]">{t("itemCode")}</TableHead>
-                    <TableHead className="min-w-[150px]">{t("productName")}</TableHead>
-                    <TableHead className="min-w-[80px]">{t("quantity")}</TableHead>
-                    <TableHead className="min-w-[80px]">{t("unit")}</TableHead>
-                    <TableHead className="min-w-[140px]">{t("dimensions")}</TableHead>
-                    <TableHead className="min-w-[100px]">{t("netWeight")}</TableHead>
-                    <TableHead className="min-w-[100px]">{t("grossWeight")}</TableHead>
-                    <TableHead className="min-w-[100px]">{t("cartonNumber")}</TableHead>
-                    <TableHead className="w-[60px]"></TableHead>
+                    <TableHead className="w-[50px]">NO</TableHead>
+                    <TableHead className="min-w-[100px]">SKU</TableHead>
+                    <TableHead className="min-w-[70px]">H</TableHead>
+                    <TableHead className="min-w-[70px]">L</TableHead>
+                    <TableHead className="min-w-[70px]">W</TableHead>
+                    <TableHead className="min-w-[70px]">QTY</TableHead>
+                    <TableHead className="min-w-[80px]">WEIGHT</TableHead>
+                    <TableHead className="min-w-[90px]">TOTAL WEIGHT</TableHead>
+                    <TableHead className="min-w-[90px]">GROSS WEIGHT</TableHead>
+                    <TableHead className="min-w-[80px]">CBM</TableHead>
+                    <TableHead className="min-w-[90px]">TOTAL CBM</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item, index) => (
+                  {items.map((item, index) => {
+                    const cbm = (item.h && item.l && item.w) ? (item.h * item.l * item.w) / 1_000_000 : 0
+                    const totalWeight = (Number(item.quantity) || 0) * (Number(item.net_weight) || 0)
+                    const totalCbm = cbm * (Number(item.quantity) || 0)
+                    return (
                     <TableRow key={index}>
+                      <TableCell className="text-center font-medium">{index + 1}</TableCell>
                       <TableCell>
                         <div className="relative" ref={(el) => { productDropdownRefs.current[index] = el }}>
                           <Input
@@ -422,9 +442,32 @@ export function CreatePackingListForm() {
                       </TableCell>
                       <TableCell>
                         <Input
-                          value={item.product_name}
-                          onChange={(e) => updateItem(index, "product_name", e.target.value)}
-                          className="min-w-[140px]"
+                          type="number"
+                          min={0}
+                          step={0.1}
+                          value={item.h || ""}
+                          onChange={(e) => updateItem(index, "h", parseFloat(e.target.value) || 0)}
+                          className="min-w-[60px]"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.1}
+                          value={item.l || ""}
+                          onChange={(e) => updateItem(index, "l", parseFloat(e.target.value) || 0)}
+                          className="min-w-[60px]"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.1}
+                          value={item.w || ""}
+                          onChange={(e) => updateItem(index, "w", parseFloat(e.target.value) || 0)}
+                          className="min-w-[60px]"
                         />
                       </TableCell>
                       <TableCell>
@@ -433,23 +476,7 @@ export function CreatePackingListForm() {
                           min={1}
                           value={item.quantity}
                           onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
-                          className="min-w-[70px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={item.unit}
-                          onChange={(e) => updateItem(index, "unit", e.target.value)}
-                          placeholder="pcs"
-                          className="min-w-[70px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={item.dimensions}
-                          onChange={(e) => updateItem(index, "dimensions", e.target.value)}
-                          placeholder="L×W×H"
-                          className="min-w-[130px]"
+                          className="min-w-[60px]"
                         />
                       </TableCell>
                       <TableCell>
@@ -457,27 +484,29 @@ export function CreatePackingListForm() {
                           type="number"
                           min={0}
                           step={0.01}
-                          value={item.net_weight}
+                          value={item.net_weight || ""}
                           onChange={(e) => updateItem(index, "net_weight", parseFloat(e.target.value) || 0)}
-                          className="min-w-[90px]"
+                          className="min-w-[70px]"
                         />
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm font-medium">{totalWeight.toFixed(2)}</span>
                       </TableCell>
                       <TableCell>
                         <Input
                           type="number"
                           min={0}
                           step={0.01}
-                          value={item.gross_weight}
+                          value={item.gross_weight || ""}
                           onChange={(e) => updateItem(index, "gross_weight", parseFloat(e.target.value) || 0)}
-                          className="min-w-[90px]"
+                          className="min-w-[70px]"
                         />
                       </TableCell>
                       <TableCell>
-                        <Input
-                          value={item.carton_number}
-                          onChange={(e) => updateItem(index, "carton_number", e.target.value)}
-                          className="min-w-[90px]"
-                        />
+                        <span className="text-sm font-medium">{cbm.toFixed(4)}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm font-medium">{totalCbm.toFixed(4)}</span>
                       </TableCell>
                       <TableCell>
                         <Button
@@ -490,7 +519,8 @@ export function CreatePackingListForm() {
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    )
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -500,18 +530,22 @@ export function CreatePackingListForm() {
           <Card>
             <CardContent className="pt-6">
               <h3 className="text-sm font-semibold mb-3">{t("summary")}</h3>
-              <div className="grid grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">{t("totalPackages")}:</span>
                   <span className="ml-2 font-medium">{totalPackages}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">{t("totalNetWeight")}:</span>
-                  <span className="ml-2 font-medium">{totalNetWeight.toFixed(2)} kg</span>
+                  <span className="text-muted-foreground">Total Weight:</span>
+                  <span className="ml-2 font-medium">{totalWeight.toFixed(2)} kg</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">{t("totalGrossWeight")}:</span>
                   <span className="ml-2 font-medium">{totalGrossWeight.toFixed(2)} kg</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Total CBM:</span>
+                  <span className="ml-2 font-medium">{totalCBM.toFixed(4)}</span>
                 </div>
               </div>
             </CardContent>

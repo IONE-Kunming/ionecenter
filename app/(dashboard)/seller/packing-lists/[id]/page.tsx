@@ -116,34 +116,55 @@ export default async function PackingListDetailPage({ params, searchParams }: { 
         {items.length > 0 && (
           <Card>
             <CardContent className="pt-6">
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("itemCode")}</TableHead>
-                    <TableHead>{t("productName")}</TableHead>
-                    <TableHead className="text-right">{t("quantity")}</TableHead>
-                    <TableHead>{t("unit")}</TableHead>
-                    <TableHead>{t("dimensions")}</TableHead>
-                    <TableHead className="text-right">{t("netWeight")}</TableHead>
-                    <TableHead className="text-right">{t("grossWeight")}</TableHead>
-                    <TableHead>{t("cartonNumber")}</TableHead>
+                    <TableHead>NO</TableHead>
+                    <TableHead>SKU</TableHead>
+                    <TableHead>H</TableHead>
+                    <TableHead>L</TableHead>
+                    <TableHead>W</TableHead>
+                    <TableHead className="text-right">QTY</TableHead>
+                    <TableHead className="text-right">WEIGHT</TableHead>
+                    <TableHead className="text-right">TOTAL WEIGHT</TableHead>
+                    <TableHead className="text-right">GROSS WEIGHT</TableHead>
+                    <TableHead className="text-right">CBM</TableHead>
+                    <TableHead className="text-right">TOTAL CBM</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item) => (
+                  {items.map((item, idx) => {
+                    const dims = parseDimensions(item.dimensions)
+                    const h = dims ? String(dims.h) : "—"
+                    const l = dims ? String(dims.l) : "—"
+                    const w = dims ? String(dims.w) : "—"
+                    const totalWeight = (item.net_weight * item.quantity).toFixed(2)
+                    const itemCBM = dims
+                      ? ((dims.l * dims.w * dims.h) / 1_000_000).toFixed(4)
+                      : "—"
+                    const itemTotalCBM = dims
+                      ? ((dims.l * dims.w * dims.h) / 1_000_000 * item.quantity).toFixed(4)
+                      : "—"
+                    return (
                     <TableRow key={item.id}>
+                      <TableCell className="text-foreground">{idx + 1}</TableCell>
                       <TableCell className="font-mono text-sm text-foreground">{item.item_code || "—"}</TableCell>
-                      <TableCell className="text-foreground">{item.product_name || "—"}</TableCell>
+                      <TableCell className="text-foreground">{h}</TableCell>
+                      <TableCell className="text-foreground">{l}</TableCell>
+                      <TableCell className="text-foreground">{w}</TableCell>
                       <TableCell className="text-right text-foreground">{item.quantity}</TableCell>
-                      <TableCell className="text-foreground">{item.unit || "—"}</TableCell>
-                      <TableCell className="text-foreground">{item.dimensions || "—"}</TableCell>
-                      <TableCell className="text-right text-foreground">{item.net_weight} kg</TableCell>
-                      <TableCell className="text-right text-foreground">{item.gross_weight} kg</TableCell>
-                      <TableCell className="text-foreground">{item.carton_number || "—"}</TableCell>
+                      <TableCell className="text-right text-foreground">{item.net_weight}</TableCell>
+                      <TableCell className="text-right text-foreground">{totalWeight}</TableCell>
+                      <TableCell className="text-right text-foreground">{item.gross_weight}</TableCell>
+                      <TableCell className="text-right text-foreground">{itemCBM}</TableCell>
+                      <TableCell className="text-right text-foreground">{itemTotalCBM}</TableCell>
                     </TableRow>
-                  ))}
+                    )
+                  })}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         )}
