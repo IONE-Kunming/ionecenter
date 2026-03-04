@@ -84,7 +84,6 @@ export default async function BuyerContractDetailPage({ params, searchParams }: 
                     <TableHead>{t("productName")}</TableHead>
                     <TableHead>{t("description")}</TableHead>
                     <TableHead className="text-right">{t("quantity")}</TableHead>
-                    <TableHead>{t("unit")}</TableHead>
                     <TableHead className="text-right">{t("unitPrice")}</TableHead>
                     <TableHead className="text-right">{t("total")}</TableHead>
                   </TableRow>
@@ -96,7 +95,6 @@ export default async function BuyerContractDetailPage({ params, searchParams }: 
                       <TableCell className="text-foreground">{item.product_name || "—"}</TableCell>
                       <TableCell className="text-foreground">{item.description || "—"}</TableCell>
                       <TableCell className="text-right text-foreground">{item.quantity}</TableCell>
-                      <TableCell className="text-foreground">{item.unit || "—"}</TableCell>
                       <TableCell className="text-right text-foreground">{item.unit_price}</TableCell>
                       <TableCell className="text-right text-foreground">{item.total}</TableCell>
                     </TableRow>
