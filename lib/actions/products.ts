@@ -263,6 +263,31 @@ export async function getProductFilePublicUrl(
   }
 }
 
+/** Search seller's products by model_number for packing-list auto-fill. */
+export async function searchProductsByModelNumber(
+  query: string
+): Promise<{ model_number: string; name: string }[]> {
+  if (!query || query.length < 1) return []
+
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return []
+
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .from("products")
+    .select("model_number, name")
+    .eq("seller_id", user.id)
+    .ilike("model_number", `%${query}%`)
+    .limit(10)
+
+  if (error) {
+    console.error("[searchProductsByModelNumber] error:", error.message)
+    return []
+  }
+
+  return data ?? []
+}
+
 /** Upload a product video and return its public URL. */
 export async function uploadProductVideo(formData: FormData): Promise<{ url?: string; error?: string }> {
   try {
