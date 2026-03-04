@@ -102,7 +102,7 @@ export function AllProductsList({ products, initialSearch = "", categoryData, wi
               <Card key={product.id} className="group hover:shadow-md transition-all">
                 <CardContent className="p-0">
                   <Link href={`/buyer/product/${product.id}`}>
-                    <div className="aspect-square relative bg-white rounded-t-xl flex items-center justify-center overflow-hidden">
+                    <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center overflow-hidden">
                       {product.image_url ? (
                         <Image
                           src={product.image_url}
