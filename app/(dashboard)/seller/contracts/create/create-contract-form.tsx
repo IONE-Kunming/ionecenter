@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react"
-import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Loader2, Save, Printer } from "lucide-react"
+import { ArrowLeft, Globe, Loader2, Save, Printer } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -103,9 +102,102 @@ function SealStamp() {
   )
 }
 
+/* ── Local contract translations ── */
+type ContractLocale = "en" | "ar" | "zh"
+
+const contractTranslations: Record<ContractLocale, Record<string, string>> = {
+  en: {
+    contract: "CONTRACT",
+    contractNumber: "Contract #",
+    contractDate: "Contract Date",
+    expiryDate: "Expiry Date",
+    sellerInformation: "Seller Information",
+    buyerInformation: "Buyer Information",
+    name: "Name",
+    company: "Company",
+    email: "Email",
+    termsAndConditions: "Terms & Conditions",
+    sellerSignature: "Seller Signature",
+    buyerSignature: "Buyer Signature",
+    year: "Year",
+    month: "Month",
+    day: "Day",
+    electronicSignatures: "Electronic Signatures",
+    clearSignature: "Clear",
+    signHere: "Sign here",
+    save: "Save",
+    cancel: "Cancel",
+    printContract: "Print Contract",
+    backToContracts: "Back to Contracts",
+    searchBuyer: "Search Buyer",
+    searchPlaceholder: "Search by name, email or code...",
+    contractCreated: "Contract created successfully",
+    defaultTerms:
+      "This contract is entered into by the Seller and the Buyer under the following terms and conditions:\n\n1. The Seller agrees to deliver goods/services as described in the linked invoice.\n2. Payment shall be made according to the agreed terms.\n3. Both parties agree to resolve disputes amicably.\n4. This contract is governed by applicable trade laws.",
+  },
+  ar: {
+    contract: "عقد",
+    contractNumber: "رقم العقد",
+    contractDate: "تاريخ العقد",
+    expiryDate: "تاريخ الانتهاء",
+    sellerInformation: "معلومات البائع",
+    buyerInformation: "معلومات المشتري",
+    name: "الاسم",
+    company: "الشركة",
+    email: "البريد الإلكتروني",
+    termsAndConditions: "الشروط والأحكام",
+    sellerSignature: "توقيع البائع",
+    buyerSignature: "توقيع المشتري",
+    year: "السنة",
+    month: "الشهر",
+    day: "اليوم",
+    electronicSignatures: "التوقيعات الإلكترونية",
+    clearSignature: "مسح",
+    signHere: "وقّع هنا",
+    save: "حفظ",
+    cancel: "إلغاء",
+    printContract: "طباعة العقد",
+    backToContracts: "العودة إلى العقود",
+    searchBuyer: "البحث عن المشتري",
+    searchPlaceholder: "البحث بالاسم أو البريد أو الرمز...",
+    contractCreated: "تم إنشاء العقد بنجاح",
+    defaultTerms:
+      "يتم إبرام هذا العقد بين البائع والمشتري وفقاً للشروط والأحكام التالية:\n\n1. يوافق البائع على تسليم البضائع/الخدمات كما هو موصوف في الفاتورة المرتبطة.\n2. يتم الدفع وفقاً للشروط المتفق عليها.\n3. يوافق الطرفان على حل النزاعات ودياً.\n4. يخضع هذا العقد للقوانين التجارية المعمول بها.",
+  },
+  zh: {
+    contract: "合同",
+    contractNumber: "合同编号",
+    contractDate: "合同日期",
+    expiryDate: "到期日期",
+    sellerInformation: "卖方信息",
+    buyerInformation: "买方信息",
+    name: "姓名",
+    company: "公司",
+    email: "电子邮件",
+    termsAndConditions: "条款和条件",
+    sellerSignature: "卖方签名",
+    buyerSignature: "买方签名",
+    year: "年",
+    month: "月",
+    day: "日",
+    electronicSignatures: "电子签名",
+    clearSignature: "清除",
+    signHere: "在此签名",
+    save: "保存",
+    cancel: "取消",
+    printContract: "打印合同",
+    backToContracts: "返回合同列表",
+    searchBuyer: "搜索买方",
+    searchPlaceholder: "按姓名、邮箱或代码搜索...",
+    contractCreated: "合同创建成功",
+    defaultTerms:
+      "本合同由卖方和买方在以下条款和条件下签订：\n\n1. 卖方同意按照关联发票中描述的内容交付货物/服务。\n2. 付款应按照约定条款进行。\n3. 双方同意友好协商解决争议。\n4. 本合同受适用贸易法律管辖。",
+  },
+}
+
+const allDefaultTerms = Object.values(contractTranslations).map((tr) => tr.defaultTerms)
+
 export function CreateContractForm() {
-  const t = useTranslations("contracts")
-  const tCommon = useTranslations("common")
   const router = useRouter()
   const { addToast } = useToast()
 
@@ -117,6 +209,12 @@ export function CreateContractForm() {
   const [buyerCompany, setBuyerCompany] = useState("")
   const [buyerEmail, setBuyerEmail] = useState("")
   const [terms, setTerms] = useState("")
+  // Contract language selector
+  const [contractLocale, setContractLocale] = useState<ContractLocale>("en")
+  const ct = useCallback(
+    (key: string): string => contractTranslations[contractLocale]?.[key] ?? key,
+    [contractLocale],
+  )
   // Seller info
   const [sellerName, setSellerName] = useState("")
   const [sellerCompany, setSellerCompany] = useState("")
@@ -166,10 +264,20 @@ export function CreateContractForm() {
       }
 
       // Set default terms
-      setTerms(t("defaultTerms"))
+      setTerms(contractTranslations.en.defaultTerms)
     }
     loadData()
-  }, [t])
+  }, [])
+
+  // Update terms when contract locale changes (only if terms match a default)
+  useEffect(() => {
+    setTerms((prev) => {
+      if (allDefaultTerms.includes(prev) || prev === "") {
+        return contractTranslations[contractLocale].defaultTerms
+      }
+      return prev
+    })
+  }, [contractLocale])
 
   // Setup canvas for signatures
   useEffect(() => {
@@ -296,7 +404,7 @@ export function CreateContractForm() {
       if (result.error) {
         addToast("error", result.error)
       } else {
-        addToast("success", t("contractCreated"))
+        addToast("success", ct("contractCreated"))
         router.push("/seller/contracts")
       }
     } catch {
@@ -311,14 +419,14 @@ export function CreateContractForm() {
       {/* Back link — hidden when printing */}
       <div className="print:hidden flex items-center justify-between">
         <Link href="/seller/contracts" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" /> {t("backToContracts")}
+          <ArrowLeft className="h-4 w-4" /> {ct("backToContracts")}
         </Link>
         <Button variant="outline" size="sm" onClick={() => window.print()} className="print:hidden">
-          <Printer className="h-4 w-4 mr-2" /> {t("printContract")}
+          <Printer className="h-4 w-4 mr-2" /> {ct("printContract")}
         </Button>
       </div>
 
-      <div className="contract-print-area">
+      <div className="contract-print-area" dir={contractLocale === "ar" ? "rtl" : "ltr"}>
         {/* ═══════ Professional Header ═══════ */}
         <div className="cnt-header">
           <div className="cnt-header-inner">
@@ -332,7 +440,7 @@ export function CreateContractForm() {
             </div>
             {/* Right: Red side with CONTRACT title */}
             <div className="cnt-header-right">
-              <span className="cnt-header-title">CONTRACT</span>
+              <span className="cnt-header-title">{ct("contract")}</span>
             </div>
             {/* Far right: Barcode */}
             <div className="cnt-header-barcode">
@@ -347,20 +455,20 @@ export function CreateContractForm() {
         <div className="cnt-date-row">
           <div className="cnt-date-boxes">
             <div className="cnt-date-box">
-              <span className="cnt-date-label">{t("year")}</span>
+              <span className="cnt-date-label">{ct("year")}</span>
               <span className="cnt-date-value">{dateParts.year}</span>
             </div>
             <div className="cnt-date-box">
-              <span className="cnt-date-label">{t("month")}</span>
+              <span className="cnt-date-label">{ct("month")}</span>
               <span className="cnt-date-value">{dateParts.month}</span>
             </div>
             <div className="cnt-date-box">
-              <span className="cnt-date-label">{t("day")}</span>
+              <span className="cnt-date-label">{ct("day")}</span>
               <span className="cnt-date-value">{dateParts.day}</span>
             </div>
           </div>
           <div className="cnt-contract-no">
-            <span className="cnt-contract-no-label">{t("contractNumber")}</span>
+            <span className="cnt-contract-no-label">{ct("contractNumber")}</span>
             <span className="cnt-contract-no-value">{contractNumber}</span>
           </div>
         </div>
@@ -371,33 +479,33 @@ export function CreateContractForm() {
             {/* Contract Number, Date, Expiry */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label>{t("contractNumber")}</Label>
+                <Label>{ct("contractNumber")}</Label>
                 <Input value={contractNumber} readOnly className="bg-muted" />
               </div>
               <div>
-                <Label>{t("contractDate")}</Label>
+                <Label>{ct("contractDate")}</Label>
                 <Input type="date" value={contractDate} onChange={(e) => setContractDate(e.target.value)} />
               </div>
               <div>
-                <Label>{t("expiryDate")}</Label>
+                <Label>{ct("expiryDate")}</Label>
                 <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} />
               </div>
             </div>
 
             {/* Seller Information (auto-filled, read only) */}
             <div>
-              <h3 className="text-sm font-semibold mb-2">{t("sellerInformation")}</h3>
+              <h3 className="text-sm font-semibold mb-2">{ct("sellerInformation")}</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label>{t("sellerName")}</Label>
+                  <Label>{ct("name")}</Label>
                   <Input value={sellerName} readOnly className="bg-muted" />
                 </div>
                 <div>
-                  <Label>{t("companyName")}</Label>
+                  <Label>{ct("company")}</Label>
                   <Input value={sellerCompany} readOnly className="bg-muted" />
                 </div>
                 <div>
-                  <Label>{t("sellerEmail")}</Label>
+                  <Label>{ct("email")}</Label>
                   <Input value={sellerEmail} readOnly className="bg-muted" />
                 </div>
               </div>
@@ -405,13 +513,13 @@ export function CreateContractForm() {
 
             {/* Buyer Information (editable) */}
             <div>
-              <h3 className="text-sm font-semibold mb-2">{t("buyerInformation")}</h3>
+              <h3 className="text-sm font-semibold mb-2">{ct("buyerInformation")}</h3>
               <div className="mb-3 relative" ref={buyerDropdownRef}>
-                <Label>Search Buyer</Label>
+                <Label>{ct("searchBuyer")}</Label>
                 <Input
                   value={buyerSearch}
                   onChange={(e) => handleBuyerSearch(e.target.value)}
-                  placeholder="Search by name, email or code..."
+                  placeholder={ct("searchPlaceholder")}
                 />
                 {showBuyerDropdown && (
                   <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-auto">
@@ -431,15 +539,15 @@ export function CreateContractForm() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label>{t("buyerName")}</Label>
+                  <Label>{ct("name")}</Label>
                   <Input value={buyerName} onChange={(e) => setBuyerName(e.target.value)} />
                 </div>
                 <div>
-                  <Label>{t("companyName")}</Label>
+                  <Label>{ct("company")}</Label>
                   <Input value={buyerCompany} onChange={(e) => setBuyerCompany(e.target.value)} />
                 </div>
                 <div>
-                  <Label>{t("buyerEmail")}</Label>
+                  <Label>{ct("email")}</Label>
                   <Input value={buyerEmail} onChange={(e) => setBuyerEmail(e.target.value)} />
                 </div>
               </div>
@@ -447,7 +555,7 @@ export function CreateContractForm() {
 
             {/* Terms & Conditions */}
             <div>
-              <Label>{t("termsAndConditions")}</Label>
+              <Label>{ct("termsAndConditions")}</Label>
               <textarea
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[200px]"
                 value={terms}
@@ -457,14 +565,14 @@ export function CreateContractForm() {
 
             {/* Electronic Signatures */}
             <div>
-              <h3 className="text-sm font-semibold mb-4">{t("electronicSignatures")}</h3>
+              <h3 className="text-sm font-semibold mb-4">{ct("electronicSignatures")}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Seller Signature */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <Label>{t("sellerSignature")}</Label>
+                    <Label>{ct("sellerSignature")}</Label>
                     <Button variant="ghost" size="sm" onClick={() => clearCanvas(sellerCanvasRef)} className="print:hidden">
-                      {t("clearSignature")}
+                      {ct("clearSignature")}
                     </Button>
                   </div>
                   <div className="border rounded-md bg-white relative" style={{ height: "150px" }}>
@@ -480,7 +588,7 @@ export function CreateContractForm() {
                       onTouchEnd={() => stopDrawing(setIsDrawingSeller)}
                     />
                     <span className="absolute bottom-2 left-2 text-xs text-muted-foreground pointer-events-none">
-                      {t("signHere")}
+                      {ct("signHere")}
                     </span>
                   </div>
                 </div>
@@ -488,9 +596,9 @@ export function CreateContractForm() {
                 {/* Buyer Signature */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <Label>{t("buyerSignature")}</Label>
+                    <Label>{ct("buyerSignature")}</Label>
                     <Button variant="ghost" size="sm" onClick={() => clearCanvas(buyerCanvasRef)} className="print:hidden">
-                      {t("clearSignature")}
+                      {ct("clearSignature")}
                     </Button>
                   </div>
                   <div className="border rounded-md bg-white relative" style={{ height: "150px" }}>
@@ -506,7 +614,7 @@ export function CreateContractForm() {
                       onTouchEnd={() => stopDrawing(setIsDrawingBuyer)}
                     />
                     <span className="absolute bottom-2 left-2 text-xs text-muted-foreground pointer-events-none">
-                      {t("signHere")}
+                      {ct("signHere")}
                     </span>
                   </div>
                 </div>
@@ -516,15 +624,29 @@ export function CreateContractForm() {
             {/* Submit — hidden when printing */}
             <div className="flex justify-end gap-3 print:hidden">
               <Link href="/seller/contracts">
-                <Button variant="outline">{tCommon("cancel")}</Button>
+                <Button variant="outline">{ct("cancel")}</Button>
               </Link>
               <Button onClick={handleSubmit} disabled={loading}>
                 {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                {tCommon("save")}
+                {ct("save")}
               </Button>
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Language selector — hidden when printing */}
+      <div className="flex items-center justify-center gap-2 mt-6 print:hidden">
+        <Globe className="h-5 w-5 text-muted-foreground" />
+        <select
+          value={contractLocale}
+          onChange={(e) => setContractLocale(e.target.value as ContractLocale)}
+          className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+        >
+          <option value="en">English</option>
+          <option value="ar">عربي (Arabic)</option>
+          <option value="zh">中文 (Chinese)</option>
+        </select>
       </div>
     </div>
   )
