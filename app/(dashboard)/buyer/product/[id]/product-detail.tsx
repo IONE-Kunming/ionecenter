@@ -46,7 +46,7 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
 
   function handleChatWithSeller() {
     startChat(async () => {
-      const conversation = await getOrCreateConversation(product.id, product.seller_id)
+      const conversation = await getOrCreateConversation(product.seller_id)
       if (conversation) {
         window.location.href = `/buyer/chats?id=${conversation.id}`
       }
