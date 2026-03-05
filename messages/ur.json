@@ -1296,6 +1296,23 @@
     "totalNetWeight": "کل خالص وزن",
     "totalGrossWeight": "کل مجموعی وزن",
     "summary": "خلاصہ",
-    "packingItems": "پیکنگ آئٹمز"
+    "packingItems": "پیکنگ آئٹمز",
+    "searchBuyer": "خریدار تلاش کریں",
+    "searchBuyerPlaceholder": "نام، ای میل یا کوڈ سے تلاش کریں...",
+    "addRow": "قطار شامل کریں",
+    "columnNo": "نمبر",
+    "columnSku": "SKU",
+    "columnH": "ا",
+    "columnL": "ل",
+    "columnW": "چ",
+    "columnQty": "مقدار",
+    "columnWeight": "وزن",
+    "columnTotalWeight": "کل وزن",
+    "columnGrossWeight": "مجموعی وزن",
+    "columnCbm": "CBM",
+    "columnTotalCbm": "کل CBM",
+    "totalWeight": "کل وزن",
+    "totalCBM": "کل CBM",
+    "noProductsFound": "کوئی پروڈکٹ نہیں ملی"
   }
 }

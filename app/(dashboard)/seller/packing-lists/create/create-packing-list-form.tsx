@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Loader2, Save, Plus, Trash2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -64,6 +64,8 @@ const emptyItem: PackingItem = {
 export function CreatePackingListForm() {
   const t = useTranslations("packingLists")
   const tCommon = useTranslations("common")
+  const locale = useLocale()
+  const isRtl = locale === "ar" || locale === "ur"
   const router = useRouter()
   const { addToast } = useToast()
 
@@ -275,7 +277,7 @@ export function CreatePackingListForm() {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-6 max-w-6xl" dir={isRtl ? "rtl" : "ltr"}>
       <div className="print:hidden flex items-center justify-between">
         <Link href="/seller/packing-lists" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> {t("backToPackingLists")}
@@ -337,11 +339,11 @@ export function CreatePackingListForm() {
           <div>
             <h3 className="text-sm font-semibold mb-2">{t("buyerInformation")}</h3>
             <div className="mb-3 relative" ref={buyerDropdownRef}>
-              <Label>Search Buyer</Label>
+              <Label>{t("searchBuyer")}</Label>
               <Input
                 value={buyerSearch}
                 onChange={(e) => handleBuyerSearch(e.target.value)}
-                placeholder="Search by name, email or code..."
+                placeholder={t("searchBuyerPlaceholder")}
               />
               {showBuyerDropdown && (
                 <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-auto">
@@ -380,24 +382,24 @@ export function CreatePackingListForm() {
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold">{t("packingItems")}</h3>
               <Button variant="outline" size="sm" onClick={addItem}>
-                <Plus className="h-4 w-4 mr-1" /> {t("addItem")}
+                <Plus className="h-4 w-4 mr-1" /> {t("addRow")}
               </Button>
             </div>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50px]">NO</TableHead>
-                    <TableHead className="min-w-[100px]">SKU</TableHead>
-                    <TableHead className="min-w-[70px]">H</TableHead>
-                    <TableHead className="min-w-[70px]">L</TableHead>
-                    <TableHead className="min-w-[70px]">W</TableHead>
-                    <TableHead className="min-w-[70px]">QTY</TableHead>
-                    <TableHead className="min-w-[80px]">WEIGHT</TableHead>
-                    <TableHead className="min-w-[90px]">TOTAL WEIGHT</TableHead>
-                    <TableHead className="min-w-[90px]">GROSS WEIGHT</TableHead>
-                    <TableHead className="min-w-[80px]">CBM</TableHead>
-                    <TableHead className="min-w-[90px]">TOTAL CBM</TableHead>
+                    <TableHead className="w-[50px]">{t("columnNo")}</TableHead>
+                    <TableHead className="min-w-[100px]">{t("columnSku")}</TableHead>
+                    <TableHead className="min-w-[70px]">{t("columnH")}</TableHead>
+                    <TableHead className="min-w-[70px]">{t("columnL")}</TableHead>
+                    <TableHead className="min-w-[70px]">{t("columnW")}</TableHead>
+                    <TableHead className="min-w-[70px]">{t("columnQty")}</TableHead>
+                    <TableHead className="min-w-[80px]">{t("columnWeight")}</TableHead>
+                    <TableHead className="min-w-[90px]">{t("columnTotalWeight")}</TableHead>
+                    <TableHead className="min-w-[90px]">{t("columnGrossWeight")}</TableHead>
+                    <TableHead className="min-w-[80px]">{t("columnCbm")}</TableHead>
+                    <TableHead className="min-w-[90px]">{t("columnTotalCbm")}</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -436,7 +438,7 @@ export function CreatePackingListForm() {
                                   </button>
                                 ))
                               ) : (
-                                <div className="px-3 py-2 text-sm text-muted-foreground">No products found</div>
+                                <div className="px-3 py-2 text-sm text-muted-foreground">{t("noProductsFound")}</div>
                               )}
                             </div>
                           )}
@@ -538,7 +540,7 @@ export function CreatePackingListForm() {
                   <span className="ml-2 font-medium">{totalPackages}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Total Weight:</span>
+                  <span className="text-muted-foreground">{t("totalWeight")}:</span>
                   <span className="ml-2 font-medium">{totalWeight.toFixed(2)} kg</span>
                 </div>
                 <div>
@@ -546,7 +548,7 @@ export function CreatePackingListForm() {
                   <span className="ml-2 font-medium">{totalGrossWeight.toFixed(2)} kg</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Total CBM:</span>
+                  <span className="text-muted-foreground">{t("totalCBM")}:</span>
                   <span className="ml-2 font-medium">{totalCBM.toFixed(4)}</span>
                 </div>
               </div>
