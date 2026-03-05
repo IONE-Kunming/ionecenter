@@ -1364,29 +1364,42 @@ h1, h2, h3, h4, h5, h6 {
   .cnt-header-left {
     background: #000000 !important;
     clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .cnt-header-logo {
-    filter: brightness(0) invert(1) !important;
+    color: #cc0000 !important;
+    filter: none !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .cnt-header-seal {
     background: transparent !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .cnt-header-seal svg path,
   .cnt-header-seal svg circle,
   .cnt-header-seal svg line {
     stroke: #2a7a8a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .cnt-header-seal svg text {
     fill: #2a7a8a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .cnt-header-right {
     background: #e20028 !important;
     clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .cnt-header-title {
@@ -1394,10 +1407,14 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 28px !important;
     font-weight: 900 !important;
     letter-spacing: 0.15em !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .cnt-header-barcode {
     background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .cnt-header-barcode svg {
@@ -1421,24 +1438,34 @@ h1, h2, h3, h4, h5, h6 {
   .cnt-date-box {
     background: #222222 !important;
     border: 1px solid #444 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .cnt-date-label {
     color: #999999 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .cnt-date-value {
     color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .cnt-contract-no-label {
-    color: #cccccc !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .cnt-contract-no-value {
     color: #ffffff !important;
     background: #222222 !important;
     border: 1px solid #444 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   /* Card — remove shadow/bg in contract print */
