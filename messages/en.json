@@ -1404,7 +1404,11 @@
     "companyName": "Company Name",
     "year": "Year",
     "month": "Month",
-    "day": "Day"
+    "day": "Day",
+    "contractLabel": "CONTRACT",
+    "name": "Name",
+    "company": "Company",
+    "email": "Email"
   },
   "packingLists": {
     "title": "Packing Lists",

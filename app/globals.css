@@ -774,6 +774,94 @@ h1, h2, h3, h4, h5, h6 {
   font-family: monospace;
 }
 
+/* CONTRACT – Screen Styles for Body (Saved Contract View) */
+
+.contract-print-body {
+  margin-top: 16px;
+}
+
+.cnt-print-parties {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.cnt-print-party-box {
+  flex: 1;
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.cnt-print-party-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+.cnt-print-party-box p {
+  margin: 3px 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.cnt-print-terms {
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+}
+
+.cnt-print-terms-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+.cnt-print-terms-text {
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.cnt-print-signatures {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.cnt-print-sig-box {
+  flex: 1;
+  border: 1px solid #ccc;
+  padding: 8px 12px 20px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.cnt-print-sig-label {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.cnt-print-sig-line {
+  border-top: 1px solid #999;
+  width: 80%;
+  margin: 0 auto;
+}
+
 /* Print styles for invoice */
 @media print {
   /* Hide URL and page numbers by removing page margins (browser renders
