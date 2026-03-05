@@ -1363,11 +1363,13 @@ h1, h2, h3, h4, h5, h6 {
 
   .cnt-header-left {
     background: #000000 !important;
-    clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%) !important;
+    clip-path: none !important;
+    border: 2px solid #333333 !important;
   }
 
   .cnt-header-logo {
-    filter: brightness(0) invert(1) !important;
+    /* Recolor logo to red #cc0000 so it is visible on white paper */
+    filter: brightness(0) invert(11%) sepia(95%) saturate(7460%) hue-rotate(4deg) brightness(93%) contrast(118%) !important;
   }
 
   .cnt-header-seal {
@@ -1386,11 +1388,12 @@ h1, h2, h3, h4, h5, h6 {
 
   .cnt-header-right {
     background: #e20028 !important;
-    clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%) !important;
+    clip-path: none !important;
+    border: 2px solid #333333 !important;
   }
 
   .cnt-header-title {
-    color: #ffffff !important;
+    color: #cc0000 !important;
     font-size: 28px !important;
     font-weight: 900 !important;
     letter-spacing: 0.15em !important;
@@ -1398,6 +1401,7 @@ h1, h2, h3, h4, h5, h6 {
 
   .cnt-header-barcode {
     background: #ffffff !important;
+    border: 1px solid #333333 !important;
   }
 
   .cnt-header-barcode svg {
@@ -1410,6 +1414,7 @@ h1, h2, h3, h4, h5, h6 {
     background: #111111 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    border: 2px solid #333333 !important;
   }
 
   .cnt-date-row,
@@ -1420,25 +1425,25 @@ h1, h2, h3, h4, h5, h6 {
 
   .cnt-date-box {
     background: #222222 !important;
-    border: 1px solid #444 !important;
+    border: 1px solid #333333 !important;
   }
 
   .cnt-date-label {
-    color: #999999 !important;
+    color: #000000 !important;
   }
 
   .cnt-date-value {
-    color: #ffffff !important;
+    color: #000000 !important;
   }
 
   .cnt-contract-no-label {
-    color: #cccccc !important;
+    color: #000000 !important;
   }
 
   .cnt-contract-no-value {
-    color: #ffffff !important;
+    color: #000000 !important;
     background: #222222 !important;
-    border: 1px solid #444 !important;
+    border: 1px solid #333333 !important;
   }
 
   /* Reduce body padding for contract to fit on one page */
@@ -1549,6 +1554,7 @@ h1, h2, h3, h4, h5, h6 {
   /* ---- Compact header for single-page fit ---- */
   .contract-print-area .cnt-header {
     margin-bottom: 0 !important;
+    border: 2px solid #333333 !important;
   }
 
   .contract-print-area .cnt-header-inner {
@@ -1557,13 +1563,11 @@ h1, h2, h3, h4, h5, h6 {
 
   .contract-print-area .cnt-header-left {
     padding: 10px 18px !important;
-    padding-right: 36px !important;
     min-height: 60px !important;
   }
 
   .contract-print-area .cnt-header-right {
     padding: 10px 18px !important;
-    padding-left: 36px !important;
     min-height: 60px !important;
   }
 
