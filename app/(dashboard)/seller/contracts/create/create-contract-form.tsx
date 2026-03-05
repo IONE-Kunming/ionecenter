@@ -21,65 +21,7 @@ interface BuyerResult {
   company: string | null
 }
 
-/* ── Simple Code128B barcode SVG generator ── */
-function generateBarcodeSVG(text: string): string {
-  const CODE128B_START = 104
-  const CODE128_STOP = 106
-  const PATTERNS: number[][] = [
-    [2,1,2,2,2,2],[2,2,2,1,2,2],[2,2,2,2,2,1],[1,2,1,2,2,3],[1,2,1,3,2,2],
-    [1,3,1,2,2,2],[1,2,2,2,1,3],[1,2,2,3,1,2],[1,3,2,2,1,2],[2,2,1,2,1,3],
-    [2,2,1,3,1,2],[2,3,1,2,1,2],[1,1,2,2,3,2],[1,2,2,1,3,2],[1,2,2,2,3,1],
-    [1,1,3,2,2,2],[1,2,3,1,2,2],[1,2,3,2,2,1],[2,2,3,2,1,1],[2,2,1,1,3,2],
-    [2,2,1,2,3,1],[2,1,3,2,1,2],[2,2,3,1,1,2],[3,1,2,1,3,1],[3,1,1,2,2,2],
-    [3,2,1,1,2,2],[3,2,1,2,2,1],[3,1,2,2,1,2],[3,2,2,1,1,2],[3,2,2,2,1,1],
-    [2,1,2,1,2,3],[2,1,2,3,2,1],[2,3,2,1,2,1],[1,1,1,3,2,3],[1,3,1,1,2,3],
-    [1,3,1,3,2,1],[1,1,2,3,1,3],[1,3,2,1,1,3],[1,3,2,3,1,1],[2,1,1,3,1,3],
-    [2,3,1,1,1,3],[2,3,1,3,1,1],[1,1,2,1,3,3],[1,1,2,3,3,1],[1,3,2,1,3,1],
-    [1,1,3,1,2,3],[1,1,3,3,2,1],[1,3,3,1,2,1],[3,1,3,1,2,1],[2,1,1,3,3,1],
-    [2,3,1,1,3,1],[2,1,3,1,1,3],[2,1,3,3,1,1],[2,1,3,1,3,1],[3,1,1,1,2,3],
-    [3,1,1,3,2,1],[3,3,1,1,2,1],[3,1,2,1,1,3],[3,1,2,3,1,1],[3,3,2,1,1,1],
-    [3,1,4,1,1,1],[2,2,1,4,1,1],[4,3,1,1,1,1],[1,1,1,2,2,4],[1,1,1,4,2,2],
-    [1,2,1,1,2,4],[1,2,1,4,2,1],[1,4,1,1,2,2],[1,4,1,2,2,1],[1,1,2,2,1,4],
-    [1,1,2,4,1,2],[1,2,2,1,1,4],[1,2,2,4,1,1],[1,4,2,1,1,2],[1,4,2,2,1,1],
-    [2,4,1,2,1,1],[2,2,1,1,1,4],[4,1,3,1,1,1],[2,4,1,1,1,2],[1,3,4,1,1,1],
-    [1,1,1,2,4,2],[1,2,1,1,4,2],[1,2,1,2,4,1],[1,1,4,2,1,2],[1,2,4,1,1,2],
-    [1,2,4,2,1,1],[4,1,1,2,1,2],[4,2,1,1,1,2],[4,2,1,2,1,1],[2,1,2,1,4,1],
-    [2,1,4,1,2,1],[4,1,2,1,2,1],[1,1,1,1,4,3],[1,1,1,3,4,1],[1,3,1,1,4,1],
-    [1,1,4,1,1,3],[1,1,4,3,1,1],[4,1,1,1,1,3],[4,1,1,3,1,1],[1,1,3,1,4,1],
-    [1,1,4,1,3,1],[3,1,1,1,4,1],[4,1,1,1,3,1],[2,1,1,4,1,2],[2,1,1,2,1,4],
-    [2,1,1,2,3,2],[2,3,3,1,1,1,2],
-  ]
 
-  const codes: number[] = [CODE128B_START]
-  let checksum = CODE128B_START
-  for (let i = 0; i < text.length; i++) {
-    const code = text.charCodeAt(i) - 32
-    codes.push(code)
-    checksum += code * (i + 1)
-  }
-  codes.push(checksum % 103)
-  codes.push(CODE128_STOP)
-
-  let bars = ""
-  let x = 10
-  const barHeight = 50
-  for (const code of codes) {
-    const pattern = PATTERNS[code]
-    for (let j = 0; j < pattern.length; j++) {
-      const w = pattern[j]
-      if (j % 2 === 0) {
-        bars += `<rect x="${x}" y="0" width="${w}" height="${barHeight}" fill="#000"/>`
-      }
-      x += w
-    }
-  }
-  const totalWidth = x + 10
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} ${barHeight + 14}" width="${totalWidth}" height="${barHeight + 14}">
-    <rect width="${totalWidth}" height="${barHeight + 14}" fill="white"/>
-    ${bars}
-    <text x="${totalWidth / 2}" y="${barHeight + 12}" text-anchor="middle" font-size="10" font-family="monospace" fill="#000">${text}</text>
-  </svg>`
-}
 
 /* ── Stamp/Seal SVG component (notary-style) ── */
 function SealStamp() {
@@ -275,11 +217,7 @@ export function CreateContractForm() {
     }
   }, [contractDate])
 
-  // Generate barcode SVG from contract number
-  const barcodeSVG = useMemo(() => {
-    if (!contractNumber) return ""
-    return generateBarcodeSVG(contractNumber)
-  }, [contractNumber])
+
 
   // Load initial data
   useEffect(() => {
@@ -476,11 +414,9 @@ export function CreateContractForm() {
             <div className="cnt-header-right">
               <span className="cnt-header-title">{ct("contract")}</span>
             </div>
-            {/* Far right: Barcode */}
+            {/* Far right: Contract number */}
             <div className="cnt-header-barcode">
-              {barcodeSVG && (
-                <div dangerouslySetInnerHTML={{ __html: barcodeSVG }} />
-              )}
+              <span className="cnt-header-barcode-text">{contractNumber}</span>
             </div>
           </div>
         </div>
