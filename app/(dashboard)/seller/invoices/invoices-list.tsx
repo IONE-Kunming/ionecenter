@@ -146,11 +146,11 @@ export function SellerInvoicesList({
     <div className={`space-y-8${printInvoice ? " print:hidden" : ""}`}>
       <div className="flex items-center justify-between gap-4">
         <div className="relative max-w-md flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchInvoices")} className="pl-9" />
+          <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchInvoices")} className="ps-9" />
         </div>
         <Link href="/seller/invoices/create">
-          <Button><Plus className="h-4 w-4 mr-2" /> {t("createInvoice")}</Button>
+          <Button><Plus className="h-4 w-4 me-2" /> {t("createInvoice")}</Button>
         </Link>
       </div>
 
@@ -236,7 +236,7 @@ export function SellerInvoicesList({
                     <TableCell>{formatCurrency(inv.total)}</TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${inv.status === "paid" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
-                        {inv.status}
+                        {tCommon(inv.status)}
                       </span>
                     </TableCell>
                     <TableCell>

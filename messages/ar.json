@@ -312,7 +312,8 @@
     "printInvoice": "طباعة الفاتورة",
     "deleteInvoice": "حذف الفاتورة",
     "deleteInvoiceConfirm": "هل أنت متأكد أنك تريد حذف هذه الفاتورة؟ لا يمكن التراجع عن هذا الإجراء.",
-    "editInvoice": "تعديل الفاتورة"
+    "editInvoice": "تعديل الفاتورة",
+    "issued": "صادرة"
   },
   "notifications": {
     "unread": "{count} غير مقروءة",
