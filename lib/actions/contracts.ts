@@ -15,9 +15,10 @@ export async function getNextContractNumber(): Promise<string> {
     .order("created_at", { ascending: false })
     .limit(1)
 
-  const lastNumber = data?.[0]?.contract_number
+  const parsed = data?.[0]?.contract_number
     ? parseInt((data[0].contract_number as string).replace("CNT-", ""))
     : 0
+  const lastNumber = isNaN(parsed) ? 0 : parsed
   const newNumber = `CNT-${String(lastNumber + 1).padStart(4, "0")}`
   return newNumber
 }
@@ -51,9 +52,10 @@ export async function createContract(input: ContractInput) {
       .order("created_at", { ascending: false })
       .limit(1)
 
-    const lastNumber = data?.[0]?.contract_number
+    const parsed = data?.[0]?.contract_number
       ? parseInt((data[0].contract_number as string).replace("CNT-", ""))
       : 0
+    const lastNumber = isNaN(parsed) ? 0 : parsed
     const contractNumber = `CNT-${String(lastNumber + 1).padStart(4, "0")}`
 
     const { data: contract, error: contractError } = await adminSupabase
@@ -80,7 +82,7 @@ export async function createContract(input: ContractInput) {
     }
 
     // If it's a duplicate key error, retry with a new number
-    if (contractError?.message?.includes("duplicate") || contractError?.code === "23505") {
+    if (contractError?.code === "23505") {
       continue
     }
 
