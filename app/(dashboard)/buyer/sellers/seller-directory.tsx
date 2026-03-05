@@ -24,7 +24,7 @@ export function SellerDirectory({ sellers }: { sellers: SellerRow[] }) {
 
   function handleMessage(sellerId: string) {
     startChat(async () => {
-      const conversation = await getOrCreateConversation(null, sellerId)
+      const conversation = await getOrCreateConversation(sellerId)
       if (conversation) {
         window.location.href = `/buyer/chats?id=${conversation.id}`
       }

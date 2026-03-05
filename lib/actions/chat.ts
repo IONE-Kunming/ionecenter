@@ -37,7 +37,6 @@ export async function getConversations(): Promise<ConversationWithParties[]> {
 }
 
 export async function getOrCreateConversation(
-  _productId: string | null,
   otherUserId: string
 ): Promise<Conversation | null> {
   const user = await getCurrentUser()
@@ -61,7 +60,6 @@ export async function getOrCreateConversation(
   const { data: conversation, error } = await supabase
     .from("conversations")
     .insert({
-      listing_id: null,
       buyer_id: user.id,
       seller_id: otherUserId,
     })
