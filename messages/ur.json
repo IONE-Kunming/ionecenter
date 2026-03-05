@@ -1251,7 +1251,9 @@
     "date": "تاریخ",
     "buyerNameLabel": "خریدار",
     "totalAmount": "کل",
-    "importFailed": "انوائس اشیاء درآمد کرنے میں ناکامی"
+    "importFailed": "انوائس اشیاء درآمد کرنے میں ناکامی",
+    "orderInvoiceTag": "آرڈر انوائس",
+    "buyerInvoiceTag": "خریدار انوائس"
   },
   "packingLists": {
     "title": "پیکنگ لسٹ",

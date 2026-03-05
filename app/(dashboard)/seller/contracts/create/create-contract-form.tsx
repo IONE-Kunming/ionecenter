@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
-import { createContract, getNextContractNumber, getSellerOfflineInvoicesForLinking, getSellerOfflineInvoicesForImport, getOfflineInvoiceItems } from "@/lib/actions/contracts"
+import { createContract, getNextContractNumber, getSellerOfflineInvoicesForLinking, getSellerAllInvoicesForImport, getImportInvoiceItems } from "@/lib/actions/contracts"
 import { getSellerBankInfo, searchBuyers, searchBuyerByCode } from "@/lib/actions/invoices"
 
 interface BuyerResult {
@@ -36,6 +36,7 @@ interface ImportInvoice {
   buyer_code: string | null
   total: number
   created_at: string
+  source: "order" | "offline"
 }
 
 interface ContractItem {
@@ -101,7 +102,7 @@ export function CreateContractForm() {
         getNextContractNumber(),
         getSellerBankInfo(),
         getSellerOfflineInvoicesForLinking(),
-        getSellerOfflineInvoicesForImport(),
+        getSellerAllInvoicesForImport(),
       ])
       setContractNumber(nextNumber)
       if (sellerInfo) {
@@ -237,7 +238,7 @@ export function CreateContractForm() {
     setImportLoading(true)
     setShowImportDropdown(false)
     try {
-      const invoiceItems = await getOfflineInvoiceItems(invoice.id)
+      const invoiceItems = await getImportInvoiceItems(invoice.id, invoice.source)
       if (invoiceItems.length > 0) {
         const newItems: ContractItem[] = invoiceItems.map((item) => ({
           item_code: item.item_code || "",
@@ -454,13 +455,22 @@ export function CreateContractForm() {
                           </div>
                           {importInvoices.map((inv) => (
                             <button
-                              key={inv.id}
+                              key={`${inv.source}-${inv.id}`}
                               type="button"
                               className="w-full text-left px-4 py-2 text-sm hover:bg-accent cursor-pointer border-b last:border-b-0"
                               onClick={() => handleImportFromInvoice(inv)}
                             >
                               <div className="flex items-center justify-between">
-                                <span className="font-medium">{inv.invoice_number}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{inv.invoice_number}</span>
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                                    inv.source === "order"
+                                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                                      : "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
+                                  }`}>
+                                    {inv.source === "order" ? t("orderInvoiceTag") : t("buyerInvoiceTag")}
+                                  </span>
+                                </div>
                                 <span className="text-xs text-muted-foreground">
                                   {new Date(inv.created_at).toLocaleDateString()}
                                 </span>

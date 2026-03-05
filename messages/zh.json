@@ -1251,7 +1251,9 @@
     "date": "日期",
     "buyerNameLabel": "买方",
     "totalAmount": "合计",
-    "importFailed": "发票项目导入失败"
+    "importFailed": "发票项目导入失败",
+    "orderInvoiceTag": "订单发票",
+    "buyerInvoiceTag": "买方发票"
   },
   "packingLists": {
     "title": "装箱单",
