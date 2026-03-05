@@ -1296,6 +1296,23 @@
     "totalNetWeight": "إجمالي الوزن الصافي",
     "totalGrossWeight": "إجمالي الوزن الإجمالي",
     "summary": "الملخص",
-    "packingItems": "أصناف التعبئة"
+    "packingItems": "أصناف التعبئة",
+    "searchBuyer": "البحث عن مشتري",
+    "searchBuyerPlaceholder": "البحث بالاسم أو البريد أو الرمز...",
+    "addRow": "إضافة صف",
+    "columnNo": "رقم",
+    "columnSku": "رمز المنتج",
+    "columnH": "ارتفاع",
+    "columnL": "طول",
+    "columnW": "عرض",
+    "columnQty": "الكمية",
+    "columnWeight": "الوزن",
+    "columnTotalWeight": "الوزن الكلي",
+    "columnGrossWeight": "الوزن الإجمالي",
+    "columnCbm": "CBM",
+    "columnTotalCbm": "إجمالي CBM",
+    "totalWeight": "إجمالي الوزن",
+    "totalCBM": "إجمالي الحجم",
+    "noProductsFound": "لم يتم العثور على منتجات"
   }
 }

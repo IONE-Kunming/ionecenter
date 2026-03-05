@@ -1296,6 +1296,23 @@
     "totalNetWeight": "总净重",
     "totalGrossWeight": "总毛重",
     "summary": "摘要",
-    "packingItems": "装箱物品"
+    "packingItems": "装箱物品",
+    "searchBuyer": "搜索买方",
+    "searchBuyerPlaceholder": "按名称、邮箱或代码搜索...",
+    "addRow": "添加行",
+    "columnNo": "序号",
+    "columnSku": "SKU",
+    "columnH": "高",
+    "columnL": "长",
+    "columnW": "宽",
+    "columnQty": "数量",
+    "columnWeight": "重量",
+    "columnTotalWeight": "总重量",
+    "columnGrossWeight": "毛重",
+    "columnCbm": "CBM",
+    "columnTotalCbm": "总CBM",
+    "totalWeight": "总重量",
+    "totalCBM": "总CBM",
+    "noProductsFound": "未找到产品"
   }
 }

@@ -1443,6 +1443,23 @@
     "totalNetWeight": "Total Net Weight",
     "totalGrossWeight": "Total Gross Weight",
     "summary": "Summary",
-    "packingItems": "Packing Items"
+    "packingItems": "Packing Items",
+    "searchBuyer": "Search Buyer",
+    "searchBuyerPlaceholder": "Search by name, email or code...",
+    "addRow": "Add Row",
+    "columnNo": "NO",
+    "columnSku": "SKU",
+    "columnH": "H",
+    "columnL": "L",
+    "columnW": "W",
+    "columnQty": "QTY",
+    "columnWeight": "WEIGHT",
+    "columnTotalWeight": "TOTAL WEIGHT",
+    "columnGrossWeight": "GROSS WEIGHT",
+    "columnCbm": "CBM",
+    "columnTotalCbm": "TOTAL CBM",
+    "totalWeight": "Total Weight",
+    "totalCBM": "Total CBM",
+    "noProductsFound": "No products found"
   }
 }
