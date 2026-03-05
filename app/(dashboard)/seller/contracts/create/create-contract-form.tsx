@@ -195,6 +195,8 @@ const contractTranslations: Record<ContractLocale, Record<string, string>> = {
   },
 }
 
+const allDefaultTerms = Object.values(contractTranslations).map((tr) => tr.defaultTerms)
+
 export function CreateContractForm() {
   const router = useRouter()
   const { addToast } = useToast()
@@ -209,7 +211,10 @@ export function CreateContractForm() {
   const [terms, setTerms] = useState("")
   // Contract language selector
   const [contractLocale, setContractLocale] = useState<ContractLocale>("en")
-  const ct = (key: string): string => contractTranslations[contractLocale]?.[key] ?? key
+  const ct = useCallback(
+    (key: string): string => contractTranslations[contractLocale]?.[key] ?? key,
+    [contractLocale],
+  )
   // Seller info
   const [sellerName, setSellerName] = useState("")
   const [sellerCompany, setSellerCompany] = useState("")
@@ -267,8 +272,7 @@ export function CreateContractForm() {
   // Update terms when contract locale changes (only if terms match a default)
   useEffect(() => {
     setTerms((prev) => {
-      const allDefaults = Object.values(contractTranslations).map((tr) => tr.defaultTerms)
-      if (allDefaults.includes(prev) || prev === "") {
+      if (allDefaultTerms.includes(prev) || prev === "") {
         return contractTranslations[contractLocale].defaultTerms
       }
       return prev
