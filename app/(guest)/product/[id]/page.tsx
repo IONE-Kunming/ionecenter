@@ -1,5 +1,4 @@
 import Link from "@/components/ui/link"
-import Image from "next/image"
 import { ArrowLeft, Package, ShoppingCart, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,6 +7,7 @@ import { formatDualPrice, getStockStatus, getIntlLocale } from "@/lib/utils"
 import { getProduct } from "@/lib/actions/products"
 import { getExchangeRate } from "@/lib/exchange-rate"
 import { getLocale, getTranslations } from "next-intl/server"
+import { ProductDetailGallery } from "@/components/catalog/product-detail-gallery"
 
 export default async function GuestProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -36,6 +36,15 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
 
   const stockStatus = getStockStatus(product.stock)
 
+  // Build media list from product_images or fallback
+  const imageMedia = product.images && product.images.length > 0
+    ? product.images.map((img) => ({ type: "image" as const, url: img.image_url }))
+    : product.image_url
+      ? [{ type: "image" as const, url: product.image_url }]
+      : []
+  const videoMedia = (product.video_urls ?? []).map((u) => ({ type: "video" as const, url: u }))
+  const allMedia = [...imageMedia, ...videoMedia]
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Link href="/guest/catalog" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
@@ -44,21 +53,8 @@ export default async function GuestProductDetailPage({ params }: { params: Promi
       </Link>
 
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Product Image */}
-        <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-xl flex items-center justify-center overflow-hidden">
-          {product.image_url ? (
-            <Image
-              src={product.image_url}
-              alt={product.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority
-            />
-          ) : (
-            <Package className="h-24 w-24 text-muted-foreground/20" />
-          )}
-        </div>
+        {/* Product Image Gallery */}
+        <ProductDetailGallery media={allMedia} alt={product.name} />
 
         {/* Product Info */}
         <div>

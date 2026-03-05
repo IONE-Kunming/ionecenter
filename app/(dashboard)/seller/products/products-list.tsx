@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import Image from "next/image"
-import { Package, Plus, Search, Upload, Download, Pencil, Trash2, FileSpreadsheet } from "lucide-react"
+import { Package, Plus, Search, Upload, Download, Pencil, Trash2, FileSpreadsheet, Star, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import readXlsxFile from "read-excel-file"
 import { Card, CardContent } from "@/components/ui/card"
@@ -15,8 +15,9 @@ import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
+import { ProductImageGallery } from "@/components/catalog/product-image-gallery"
 import { formatDualPrice, getStockStatus } from "@/lib/utils"
-import { createProduct, updateProduct, deleteProduct, bulkImportProducts, uploadProductImage, createProductImageSignedUploadUrl, getProductFilePublicUrl } from "@/lib/actions/products"
+import { createProduct, updateProduct, deleteProduct, bulkImportProducts, uploadProductImage, createProductImageSignedUploadUrl, getProductFilePublicUrl, saveProductImages } from "@/lib/actions/products"
 import { createClient } from "@/lib/supabase/client"
 import { ImportPreview } from "@/components/bulk-edit/import-preview"
 import type { ImportRow } from "@/components/bulk-edit/bulk-edit-table"
@@ -144,13 +145,13 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
     stock: 0,
     description: "",
   })
-  const [newProductImage, setNewProductImage] = useState<File | null>(null)
+  const [newProductImages, setNewProductImages] = useState<{ file: File; preview: string; isPrimary: boolean }[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Edit modal state
   const [editProduct, setEditProduct] = useState<Product | null>(null)
   const [editForm, setEditForm] = useState({ name: "", model_number: "", main_category: "", category: "", price_per_meter: 0, pricing_type: "standard" as PricingType, price_cny: 0, stock: 0, description: "" })
-  const [editImage, setEditImage] = useState<File | null>(null)
+  const [editImages, setEditImages] = useState<{ url: string; isPrimary: boolean; isNew: boolean; file?: File }[]>([])
   const [editSaving, setEditSaving] = useState(false)
   const [editCategory, setEditCategory] = useState("")
 
@@ -172,17 +173,36 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
       description: product.description || "",
     })
     setEditCategory(product.main_category)
-    setEditImage(null)
+    const existingImages: { url: string; isPrimary: boolean; isNew: boolean }[] = []
+    if (product.images && product.images.length > 0) {
+      product.images.forEach((img) => {
+        existingImages.push({ url: img.image_url, isPrimary: img.is_primary, isNew: false })
+      })
+    } else if (product.image_url) {
+      existingImages.push({ url: product.image_url, isPrimary: true, isNew: false })
+    }
+    setEditImages(existingImages)
   }
 
   const handleEditSave = async () => {
     if (!editProduct) return
     setEditSaving(true)
     try {
-      let imageUrl: string | undefined
-      if (editImage) {
-        imageUrl = await uploadProductImageDirect(editImage) ?? undefined
+      // Upload any new images
+      const finalImages: { image_url: string; is_primary: boolean; sort_order: number }[] = []
+      for (let i = 0; i < editImages.length; i++) {
+        const img = editImages[i]
+        if (img.isNew && img.file) {
+          const uploadedUrl = await uploadProductImageDirect(img.file)
+          if (uploadedUrl) {
+            finalImages.push({ image_url: uploadedUrl, is_primary: img.isPrimary, sort_order: i })
+          }
+        } else {
+          finalImages.push({ image_url: img.url, is_primary: img.isPrimary, sort_order: i })
+        }
       }
+
+      const primaryImage = finalImages.find((img) => img.is_primary)
       const updates: Partial<Product> = {
         name: editForm.name,
         model_number: editForm.model_number,
@@ -195,10 +215,13 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
         stock: editForm.stock,
         description: editForm.description || null,
       }
-      if (imageUrl) updates.image_url = imageUrl
+      if (primaryImage) updates.image_url = primaryImage.image_url
       const result = await updateProduct(editProduct.id, updates)
       if (!result.error) {
-        setProducts((prev) => prev.map((p) => p.id === editProduct.id ? { ...p, ...updates, image_url: imageUrl ?? p.image_url } : p))
+        if (finalImages.length > 0) {
+          await saveProductImages(editProduct.id, finalImages)
+        }
+        setProducts((prev) => prev.map((p) => p.id === editProduct.id ? { ...p, ...updates, image_url: primaryImage?.image_url ?? p.image_url } : p))
         setEditProduct(null)
       }
     } catch {
@@ -225,7 +248,8 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
 
   const resetAddForm = () => {
     setNewProduct({ name: "", model_number: "", main_category: "", category: "", price_per_meter: 0, pricing_type: "standard", price_cny: 0, stock: 0, description: "" })
-    setNewProductImage(null)
+    newProductImages.forEach((img) => URL.revokeObjectURL(img.preview))
+    setNewProductImages([])
     setSelectedCategory("")
     setAddProductError(null)
   }
@@ -235,10 +259,17 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
     setAddingProduct(true)
     setAddProductError(null)
     try {
-      let imageUrl: string | null = null
-      if (newProductImage) {
-        imageUrl = await uploadProductImageDirect(newProductImage)
+      // Upload all images
+      const uploadedImages: { image_url: string; is_primary: boolean; sort_order: number }[] = []
+      for (let i = 0; i < newProductImages.length; i++) {
+        const img = newProductImages[i]
+        const uploadedUrl = await uploadProductImageDirect(img.file)
+        if (uploadedUrl) {
+          uploadedImages.push({ image_url: uploadedUrl, is_primary: img.isPrimary, sort_order: i })
+        }
       }
+
+      const primaryImage = uploadedImages.find((img) => img.is_primary)
       const result = await createProduct({
         name: newProduct.name,
         model_number: newProduct.model_number,
@@ -251,11 +282,14 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
         price_cny: newProduct.price_cny || null,
         stock: newProduct.stock,
         description: newProduct.description || null,
-        image_url: imageUrl,
+        image_url: primaryImage?.image_url ?? null,
         additional_images: null,
         is_active: true,
       })
       if (result.data) {
+        if (uploadedImages.length > 0) {
+          await saveProductImages(result.data.id, uploadedImages)
+        }
         setProducts((prev) => [result.data as Product, ...prev])
         setShowAddModal(false)
         resetAddForm()
@@ -454,17 +488,22 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
               <Card key={product.id} className="group">
                 <CardContent className="p-0">
                   <div className="aspect-square relative bg-card rounded-t-xl flex items-center justify-center overflow-hidden">
-                    {product.image_url ? (
-                      <Image
-                        src={product.image_url}
-                        alt={product.name}
-                        fill
-                        className="object-contain"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      />
-                    ) : (
-                      <Package className="h-12 w-12 text-muted-foreground/30" />
-                    )}
+                    {(() => {
+                      const imageList = product.images && product.images.length > 0
+                        ? product.images.map((img) => img.image_url)
+                        : product.image_url ? [product.image_url] : []
+                      return imageList.length > 0 ? (
+                        <ProductImageGallery
+                          images={imageList}
+                          alt={product.name}
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                          showDots={imageList.length > 1}
+                          showArrows={imageList.length > 1}
+                        />
+                      ) : (
+                        <Package className="h-12 w-12 text-muted-foreground/30" />
+                      )
+                    })()}
                   </div>
                   <div className="p-4">
                     <Badge variant="secondary" className="text-xs mb-2">{product.category}</Badge>
@@ -545,7 +584,67 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
               <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" placeholder="0" value={newProduct.stock || ""} onChange={(e) => setNewProduct((p) => ({ ...p, stock: Number(e.target.value) }))} /></div>
             </div>
             <div className="space-y-2"><Label>{t("description")}</Label><Textarea placeholder={t("descriptionPlaceholder")} rows={3} value={newProduct.description} onChange={(e) => setNewProduct((p) => ({ ...p, description: e.target.value }))} /></div>
-            <div className="space-y-2"><Label>{t("productImage")}</Label><Input type="file" accept="image/*" onChange={(e) => setNewProductImage(e.target.files?.[0] || null)} /></div>
+            <div className="space-y-2">
+              <Label>{t("productImage")} ({newProductImages.length}/10)</Label>
+              {newProductImages.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {newProductImages.map((img, idx) => (
+                    <div key={idx} className="relative w-20 h-20 rounded border overflow-hidden group/thumb">
+                      <Image src={img.preview} alt={newProduct.name ? `${newProduct.name} - Image ${idx + 1}` : `Product image ${idx + 1}`} fill className="object-cover" sizes="80px" />
+                      <div className="absolute top-0 right-0 flex gap-0.5 opacity-0 group-hover/thumb:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          className={`p-0.5 rounded-bl text-xs ${img.isPrimary ? "bg-yellow-400 text-yellow-900" : "bg-black/50 text-white hover:bg-yellow-400 hover:text-yellow-900"}`}
+                          title="Set as primary"
+                          onClick={() => setNewProductImages((prev) => prev.map((p, i) => ({ ...p, isPrimary: i === idx })))}
+                        >
+                          <Star className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
+                          className="p-0.5 bg-black/50 text-white rounded-bl text-xs hover:bg-red-500"
+                          title="Remove"
+                          onClick={() => {
+                            URL.revokeObjectURL(img.preview)
+                            setNewProductImages((prev) => {
+                              const next = prev.filter((_, i) => i !== idx)
+                              if (next.length > 0 && !next.some((p) => p.isPrimary)) {
+                                next[0].isPrimary = true
+                              }
+                              return next
+                            })
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                      {img.isPrimary && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-yellow-400/90 text-yellow-900 text-[10px] text-center font-medium">Primary</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                multiple
+                disabled={newProductImages.length >= 10}
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || [])
+                  const remaining = 10 - newProductImages.length
+                  const toAdd = files.slice(0, remaining)
+                  if (toAdd.length === 0) return
+                  const newEntries = toAdd.map((file, i) => ({
+                    file,
+                    preview: URL.createObjectURL(file),
+                    isPrimary: newProductImages.length === 0 && i === 0,
+                  }))
+                  setNewProductImages((prev) => [...prev, ...newEntries])
+                  e.target.value = ""
+                }}
+              />
+            </div>
           </div>
           <DialogFooter>
             {addProductError && (
@@ -622,7 +721,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
       />
 
       {/* Edit Product Modal */}
-      <Dialog open={!!editProduct} onOpenChange={(v) => { if (!v) setEditProduct(null) }}>
+      <Dialog open={!!editProduct} onOpenChange={(v) => { if (!v) { editImages.forEach((img) => { if (img.isNew) URL.revokeObjectURL(img.url) }); setEditProduct(null) } }}>
         <DialogContent>
           <DialogHeader><DialogTitle>{t("editProduct")}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4 overflow-y-auto min-h-0 flex-1">
@@ -678,20 +777,70 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
             </div>
             <div className="space-y-2"><Label>{t("description")}</Label><Textarea rows={3} value={editForm.description} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} /></div>
             <div className="space-y-2">
-              <Label>{t("productImage")}</Label>
-              {editProduct?.image_url && !editImage && (
-                <div className="relative w-20 h-20 rounded border overflow-hidden mb-2">
-                  <Image src={editProduct.image_url} alt={editProduct.name} fill className="object-cover" sizes="80px" />
+              <Label>{t("productImage")} ({editImages.length}/10)</Label>
+              {editImages.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {editImages.map((img, idx) => (
+                    <div key={idx} className="relative w-20 h-20 rounded border overflow-hidden group/thumb">
+                      <Image src={img.url} alt={editProduct?.name ? `${editProduct.name} - Image ${idx + 1}` : `Product image ${idx + 1}`} fill className="object-cover" sizes="80px" />
+                      <div className="absolute top-0 right-0 flex gap-0.5 opacity-0 group-hover/thumb:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          className={`p-0.5 rounded-bl text-xs ${img.isPrimary ? "bg-yellow-400 text-yellow-900" : "bg-black/50 text-white hover:bg-yellow-400 hover:text-yellow-900"}`}
+                          title="Set as primary"
+                          onClick={() => setEditImages((prev) => prev.map((p, i) => ({ ...p, isPrimary: i === idx })))}
+                        >
+                          <Star className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
+                          className="p-0.5 bg-black/50 text-white rounded-bl text-xs hover:bg-red-500"
+                          title="Remove"
+                          onClick={() => {
+                            if (img.isNew) URL.revokeObjectURL(img.url)
+                            setEditImages((prev) => {
+                              const next = prev.filter((_, i) => i !== idx)
+                              if (next.length > 0 && !next.some((p) => p.isPrimary)) {
+                                next[0].isPrimary = true
+                              }
+                              return next
+                            })
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                      {img.isPrimary && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-yellow-400/90 text-yellow-900 text-[10px] text-center font-medium">Primary</div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
-              {editImage && (
-                <p className="text-sm text-muted-foreground mb-2">{editImage.name}</p>
-              )}
-              <Input type="file" accept="image/*" onChange={(e) => setEditImage(e.target.files?.[0] || null)} />
+              <Input
+                type="file"
+                accept="image/*"
+                multiple
+                disabled={editImages.length >= 10}
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || [])
+                  const remaining = 10 - editImages.length
+                  const toAdd = files.slice(0, remaining)
+                  if (toAdd.length === 0) return
+                  const newEntries = toAdd.map((file) => ({
+                    url: URL.createObjectURL(file),
+                    isPrimary: false,
+                    isNew: true,
+                    file,
+                  }))
+                  setEditImages((prev) => [...prev, ...newEntries])
+                  e.target.value = ""
+                }}
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditProduct(null)}>{tCommon("cancel")}</Button>
+            <Button variant="outline" onClick={() => { editImages.forEach((img) => { if (img.isNew) URL.revokeObjectURL(img.url) }); setEditProduct(null) }}>{tCommon("cancel")}</Button>
             <Button onClick={handleEditSave} disabled={editSaving || !editForm.name}>
               {editSaving ? tCommon("saving") : t("saveChanges")}
             </Button>

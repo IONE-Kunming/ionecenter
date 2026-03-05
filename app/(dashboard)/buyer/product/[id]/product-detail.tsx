@@ -34,13 +34,15 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
   const [showSellerModal, setShowSellerModal] = useState(false)
   const stockStatus = getStockStatus(product.stock)
 
-  // Build unified media list: images first, then videos
-  const allImages = [
-    ...(product.image_url ? [{ type: "image" as const, url: product.image_url }] : []),
-    ...(product.additional_images ?? []).map((u) => ({ type: "image" as const, url: u })),
-  ]
+  // Build unified media list: images first (prefer product_images table), then videos
+  const imageEntries = product.images && product.images.length > 0
+    ? product.images.map((img) => ({ type: "image" as const, url: img.image_url }))
+    : [
+        ...(product.image_url ? [{ type: "image" as const, url: product.image_url }] : []),
+        ...(product.additional_images ?? []).map((u) => ({ type: "image" as const, url: u })),
+      ]
   const allVideos = (product.video_urls ?? []).map((u) => ({ type: "video" as const, url: u }))
-  const allMedia = [...allImages, ...allVideos]
+  const allMedia = [...imageEntries, ...allVideos]
   const [mediaIndex, setMediaIndex] = useState(0)
   const currentMedia = allMedia[mediaIndex] ?? null
 
