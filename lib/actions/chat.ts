@@ -26,12 +26,13 @@ export async function getConversations(): Promise<ConversationWithParties[]> {
     seller: c.seller as unknown as ConversationWithParties["seller"],
   }))
 
-  // Deduplicate: keep only one conversation per other-user (the most recent one)
+  // Deduplicate: keep only one conversation per unique buyer-seller pair (the most recent one).
+  // Normalize the pair key so (A,B) and (B,A) are treated as the same pair.
   const seen = new Set<string>()
   return conversations.filter((c) => {
-    const otherUserId = c.buyer_id === user.id ? c.seller_id : c.buyer_id
-    if (seen.has(otherUserId)) return false
-    seen.add(otherUserId)
+    const pairKey = [c.buyer_id, c.seller_id].sort().join("|")
+    if (seen.has(pairKey)) return false
+    seen.add(pairKey)
     return true
   })
 }
@@ -67,6 +68,19 @@ export async function getOrCreateConversation(
     .single()
 
   if (error) {
+    // Handle race condition: if a concurrent request already created the conversation
+    // (unique constraint violation code 23505), retry the lookup instead of failing.
+    if (error.code === "23505") {
+      const { data: retry } = await supabase
+        .from("conversations")
+        .select("*")
+        .or(
+          `and(buyer_id.eq.${user.id},seller_id.eq.${otherUserId}),and(buyer_id.eq.${otherUserId},seller_id.eq.${user.id})`
+        )
+        .order("last_message_at", { ascending: false, nullsFirst: false })
+        .limit(1)
+      if (retry && retry.length > 0) return retry[0]
+    }
     console.error("Failed to create conversation:", error)
     return null
   }
