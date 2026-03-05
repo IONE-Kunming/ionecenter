@@ -18,6 +18,7 @@ import { useToast } from "@/components/ui/toaster"
 import { formatDualPrice } from "@/lib/utils"
 import { useExchangeRate } from "@/lib/use-exchange-rate"
 import { addToCart } from "@/lib/actions/cart"
+import { getOrCreateConversation } from "@/lib/actions/chat"
 import type { CategoryData } from "@/lib/categories"
 import { toCategoryKey } from "@/lib/categories"
 import type { PricingType } from "@/types/database"
@@ -34,6 +35,7 @@ interface CatalogProduct {
   pricing_type?: PricingType
   price_cny?: number | null
   stock: number
+  seller_id: string
   seller_name: string
   image_url: string | null
 }
@@ -53,6 +55,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
   const { rate } = useExchangeRate()
   const { addToast } = useToast()
   const [, startTransition] = useTransition()
+  const [chattingIds, setChattingIds] = useState<Set<string>>(new Set())
 
   const translateCat = (name: string): string => {
     const key = toCategoryKey(name)
@@ -69,6 +72,31 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
   const [cartCount, setCartCount] = useState(0)
   const [showCategoryNumbers, setShowCategoryNumbers] = useState(true)
+
+  const handleChatWithSeller = (e: React.MouseEvent, product: CatalogProduct) => {
+    e.stopPropagation()
+    e.preventDefault()
+    if (chattingIds.has(product.id)) return
+    setChattingIds((prev) => new Set(prev).add(product.id))
+    startTransition(async () => {
+      try {
+        const conversation = await getOrCreateConversation(product.seller_id)
+        if (conversation) {
+          window.location.href = `/buyer/chats?id=${conversation.id}`
+        } else {
+          addToast("error", tChat("chatWithSeller"))
+        }
+      } catch {
+        addToast("error", tChat("chatWithSeller"))
+      } finally {
+        setChattingIds((prev) => {
+          const next = new Set(prev)
+          next.delete(product.id)
+          return next
+        })
+      }
+    })
+  }
 
   const handleAddToCart = (productId: string) => {
     if (addingIds.has(productId)) return
@@ -300,9 +328,9 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                         <p className="font-bold text-primary mt-3">{formatDualPrice(product.price_per_meter, product.price_cny ?? null, product.pricing_type ?? "standard", rate)}</p>
                         <div className="flex items-center gap-1.5 mt-2">
                           <WishlistButton productId={product.id} initialLiked={wishlistedIds.includes(product.id)} />
-                          <Link href={`/buyer/product/${product.id}`}>
-                            <Button size="sm" variant="ghost" title={tChat("chatWithSeller")}><MessageSquare className="h-3.5 w-3.5" /></Button>
-                          </Link>
+                          <Button size="sm" variant="ghost" title={tChat("chatWithSeller")} onClick={(e) => handleChatWithSeller(e, product)} disabled={chattingIds.has(product.id)}>
+                            {chattingIds.has(product.id) ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MessageSquare className="h-3.5 w-3.5" />}
+                          </Button>
                           <Button
                             size="sm"
                             variant={addedIds.has(product.id) ? "default" : "outline"}
