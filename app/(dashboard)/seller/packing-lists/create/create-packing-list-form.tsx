@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
 import { createPackingList, getNextPackingListNumber } from "@/lib/actions/packing-lists"
-import { getSellerOfflineInvoicesForLinking } from "@/lib/actions/contracts"
+import { getSellerOfflineInvoicesForLinking } from "@/lib/actions/invoices"
 import { getSellerBankInfo, searchBuyers, searchBuyerByCode } from "@/lib/actions/invoices"
 import { searchProductsByModelNumber } from "@/lib/actions/products"
 

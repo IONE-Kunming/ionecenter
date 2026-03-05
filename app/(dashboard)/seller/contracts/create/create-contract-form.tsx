@@ -427,6 +427,8 @@ export function CreateContractForm() {
         contract_number: contractNumber,
         buyer_name: buyerName,
         buyer_email: buyerEmail,
+        buyer_company_name: buyerCompany || undefined,
+        seller_company_name: sellerCompany || undefined,
         terms,
         seller_signature: sellerSignature || undefined,
         buyer_signature: buyerSignature || undefined,
