@@ -1251,7 +1251,9 @@
     "date": "التاريخ",
     "buyerNameLabel": "المشتري",
     "totalAmount": "الإجمالي",
-    "importFailed": "فشل استيراد بنود الفاتورة"
+    "importFailed": "فشل استيراد بنود الفاتورة",
+    "orderInvoiceTag": "فاتورة الطلب",
+    "buyerInvoiceTag": "فاتورة المشتري"
   },
   "packingLists": {
     "title": "قوائم التعبئة",

@@ -234,30 +234,85 @@ export async function getSellerOfflineInvoicesForLinking() {
   return data ?? []
 }
 
-export async function getSellerOfflineInvoicesForImport() {
+export async function getSellerAllInvoicesForImport() {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return []
 
   const adminSupabase = createAdminClient()
-  const { data } = await adminSupabase
+
+  // Fetch from offline_invoices (Buyer Invoices)
+  const { data: offlineData } = await adminSupabase
     .from("offline_invoices")
     .select("id, invoice_number, buyer_name, buyer_email, buyer_code, total, created_at")
     .eq("seller_id", user.id)
     .order("created_at", { ascending: false })
     .limit(50)
 
-  return data ?? []
+  const offlineInvoices = (offlineData ?? []).map((inv) => ({
+    ...inv,
+    source: "offline" as const,
+  }))
+
+  // Fetch from invoices (Order Invoices) with buyer info from users table
+  const { data: orderData } = await adminSupabase
+    .from("invoices")
+    .select("id, invoice_number, buyer_name, buyer_email, total, created_at, buyer:users!buyer_id(user_code)")
+    .eq("seller_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(50)
+
+  const orderInvoices = (orderData ?? []).map((inv) => ({
+    id: inv.id,
+    invoice_number: inv.invoice_number,
+    buyer_name: inv.buyer_name,
+    buyer_email: inv.buyer_email,
+    buyer_code: (inv.buyer as unknown as { user_code: string | null })?.user_code ?? null,
+    total: inv.total,
+    created_at: inv.created_at,
+    source: "order" as const,
+  }))
+
+  // Combine and sort by created_at descending, limit to 50 total
+  const combined = [...offlineInvoices, ...orderInvoices]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 50)
+
+  return combined
 }
 
-export async function getOfflineInvoiceItems(invoiceId: string) {
+export async function getImportInvoiceItems(invoiceId: string, source: "order" | "offline") {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return []
 
   const adminSupabase = createAdminClient()
 
-  // Verify ownership
+  if (source === "offline") {
+    // Verify ownership
+    const { data: invoice } = await adminSupabase
+      .from("offline_invoices")
+      .select("seller_id")
+      .eq("id", invoiceId)
+      .single()
+
+    if (!invoice || invoice.seller_id !== user.id) return []
+
+    const { data: items } = await adminSupabase
+      .from("offline_invoice_items")
+      .select("item_code, product_name, description, unit_price, quantity")
+      .eq("invoice_id", invoiceId)
+
+    return (items ?? []).map((item) => ({
+      item_code: item.item_code || "",
+      product_name: item.product_name || "",
+      description: item.description || "",
+      unit_price: item.unit_price,
+      quantity: item.quantity,
+    }))
+  }
+
+  // source === "order"
   const { data: invoice } = await adminSupabase
-    .from("offline_invoices")
+    .from("invoices")
     .select("seller_id")
     .eq("id", invoiceId)
     .single()
@@ -265,9 +320,15 @@ export async function getOfflineInvoiceItems(invoiceId: string) {
   if (!invoice || invoice.seller_id !== user.id) return []
 
   const { data: items } = await adminSupabase
-    .from("offline_invoice_items")
-    .select("item_code, product_name, description, unit_price, quantity")
+    .from("invoice_items")
+    .select("name, description, price, quantity")
     .eq("invoice_id", invoiceId)
 
-  return items ?? []
+  return (items ?? []).map((item) => ({
+    item_code: "",
+    product_name: item.name || "",
+    description: item.description || "",
+    unit_price: item.price,
+    quantity: item.quantity,
+  }))
 }
