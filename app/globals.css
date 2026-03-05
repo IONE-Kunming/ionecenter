@@ -659,13 +659,12 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+  background: transparent;
   border-radius: 50%;
-  width: 90px;
-  height: 90px;
+  width: 100px;
+  height: 100px;
   margin: -5px -10px;
   z-index: 2;
-  border: 3px solid #e20028;
   flex-shrink: 0;
 }
 
@@ -1367,19 +1366,17 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .cnt-header-seal {
-    background: linear-gradient(135deg, #1a1a1a 0%, #333 100%) !important;
-    border: 3px solid #e20028 !important;
+    background: transparent !important;
   }
 
-  .cnt-header-seal svg text,
-  .cnt-header-seal svg line,
-  .cnt-header-seal svg circle {
-    stroke: #ffffff !important;
-    fill: none !important;
+  .cnt-header-seal svg path,
+  .cnt-header-seal svg circle,
+  .cnt-header-seal svg line {
+    stroke: #2a7a8a !important;
   }
 
   .cnt-header-seal svg text {
-    fill: #ffffff !important;
+    fill: #2a7a8a !important;
   }
 
   .cnt-header-right {
