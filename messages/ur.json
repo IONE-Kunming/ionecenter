@@ -1254,7 +1254,10 @@
     "importFailed": "انوائس اشیاء درآمد کرنے میں ناکامی",
     "orderInvoiceTag": "آرڈر انوائس",
     "buyerInvoiceTag": "خریدار انوائس",
-    "companyName": "کمپنی کا نام"
+    "companyName": "کمپنی کا نام",
+    "year": "سال",
+    "month": "مہینہ",
+    "day": "دن"
   },
   "packingLists": {
     "title": "پیکنگ لسٹ",

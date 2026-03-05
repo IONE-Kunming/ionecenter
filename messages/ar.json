@@ -1254,7 +1254,10 @@
     "importFailed": "فشل استيراد بنود الفاتورة",
     "orderInvoiceTag": "فاتورة الطلب",
     "buyerInvoiceTag": "فاتورة المشتري",
-    "companyName": "اسم الشركة"
+    "companyName": "اسم الشركة",
+    "year": "السنة",
+    "month": "الشهر",
+    "day": "اليوم"
   },
   "packingLists": {
     "title": "قوائم التعبئة",

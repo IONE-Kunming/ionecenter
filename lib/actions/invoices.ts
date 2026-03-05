@@ -207,7 +207,7 @@ export async function searchBuyers(query: string) {
   const adminSupabase = createAdminClient()
   const { data } = await adminSupabase
     .from("users")
-    .select("id, display_name, email, user_code")
+    .select("id, display_name, email, user_code, company")
     .eq("role", "buyer")
     .or(`display_name.ilike.%${safe}%,email.ilike.%${safe}%,user_code.ilike.%${safe}%`)
     .limit(10)

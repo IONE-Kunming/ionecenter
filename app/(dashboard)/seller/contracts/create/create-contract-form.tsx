@@ -19,6 +19,7 @@ interface BuyerResult {
   display_name: string
   email: string
   user_code: string | null
+  company: string | null
 }
 
 /* ── Simple Code128B barcode SVG generator ── */
@@ -254,6 +255,7 @@ export function CreateContractForm() {
 
   const selectBuyer = (buyer: BuyerResult) => {
     setBuyerName(buyer.display_name)
+    setBuyerCompany(buyer.company || "")
     setBuyerEmail(buyer.email)
     setBuyerSearch("")
     setShowBuyerDropdown(false)
@@ -345,20 +347,20 @@ export function CreateContractForm() {
         <div className="cnt-date-row">
           <div className="cnt-date-boxes">
             <div className="cnt-date-box">
-              <span className="cnt-date-label">Year</span>
+              <span className="cnt-date-label">{t("year")}</span>
               <span className="cnt-date-value">{dateParts.year}</span>
             </div>
             <div className="cnt-date-box">
-              <span className="cnt-date-label">Month</span>
+              <span className="cnt-date-label">{t("month")}</span>
               <span className="cnt-date-value">{dateParts.month}</span>
             </div>
             <div className="cnt-date-box">
-              <span className="cnt-date-label">Day</span>
+              <span className="cnt-date-label">{t("day")}</span>
               <span className="cnt-date-value">{dateParts.day}</span>
             </div>
           </div>
           <div className="cnt-contract-no">
-            <span className="cnt-contract-no-label">Contract No.</span>
+            <span className="cnt-contract-no-label">{t("contractNumber")}</span>
             <span className="cnt-contract-no-value">{contractNumber}</span>
           </div>
         </div>
