@@ -297,30 +297,29 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                         </Link>
                         <p className="text-xs text-muted-foreground mt-1">{product.model_number}</p>
                         <p className="text-xs text-muted-foreground">{product.seller_name}</p>
-                        <div className="flex items-center justify-between mt-3">
-                          <span className="font-bold text-primary">{formatDualPrice(product.price_per_meter, product.price_cny ?? null, product.pricing_type ?? "standard", rate)}</span>
-                          <div className="flex gap-1 items-center">
-                            <WishlistButton productId={product.id} initialLiked={wishlistedIds.includes(product.id)} />
-                            <Link href={`/buyer/product/${product.id}`}>
-                              <Button size="sm" variant="ghost" title={tChat("chatWithSeller")}><MessageSquare className="h-3.5 w-3.5" /></Button>
-                            </Link>
-                            <Button
-                              size="sm"
-                              variant={addedIds.has(product.id) ? "default" : "outline"}
-                              onClick={() => handleAddToCart(product.id)}
-                              disabled={addingIds.has(product.id) || product.stock <= 0}
-                            >
-                              {addingIds.has(product.id) ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : product.stock <= 0 ? (
-                                tCart("outOfStock")
-                              ) : addedIds.has(product.id) ? (
-                                <><Check className="h-3.5 w-3.5 mr-1" /> {tCart("addedToCart")}</>
-                              ) : (
-                                <><ShoppingCart className="h-3.5 w-3.5 mr-1" /> {tCart("addToCart")}</>
-                              )}
-                            </Button>
-                          </div>
+                        <p className="font-bold text-primary mt-3">{formatDualPrice(product.price_per_meter, product.price_cny ?? null, product.pricing_type ?? "standard", rate)}</p>
+                        <div className="flex items-center gap-1.5 mt-2">
+                          <WishlistButton productId={product.id} initialLiked={wishlistedIds.includes(product.id)} />
+                          <Link href={`/buyer/product/${product.id}`}>
+                            <Button size="sm" variant="ghost" title={tChat("chatWithSeller")}><MessageSquare className="h-3.5 w-3.5" /></Button>
+                          </Link>
+                          <Button
+                            size="sm"
+                            variant={addedIds.has(product.id) ? "default" : "outline"}
+                            className="ml-auto"
+                            onClick={() => handleAddToCart(product.id)}
+                            disabled={addingIds.has(product.id) || product.stock <= 0}
+                          >
+                            {addingIds.has(product.id) ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : product.stock <= 0 ? (
+                              tCart("outOfStock")
+                            ) : addedIds.has(product.id) ? (
+                              <><Check className="h-3.5 w-3.5 mr-1" /> {tCart("addedToCart")}</>
+                            ) : (
+                              <><ShoppingCart className="h-3.5 w-3.5 mr-1" /> {tCart("addToCart")}</>
+                            )}
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
