@@ -1361,6 +1361,8 @@
     "sellerCode": "Seller Code",
     "sellerName": "Seller Name",
     "sellerEmail": "Seller Email",
+    "sellerCompanyName": "Seller Company Name",
+    "buyerCompanyName": "Buyer Company Name",
     "termsAndConditions": "Terms & Conditions",
     "defaultTerms": "This contract is entered into by the Seller and the Buyer under the following terms and conditions:\n\n1. The Seller agrees to deliver goods/services as described in the linked invoice.\n2. Payment shall be made according to the agreed terms.\n3. Both parties agree to resolve disputes amicably.\n4. This contract is governed by applicable trade laws.",
     "sellerSignature": "Seller Signature",

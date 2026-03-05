@@ -1214,6 +1214,8 @@
     "sellerCode": "بیچنے والے کا کوڈ",
     "sellerName": "بیچنے والے کا نام",
     "sellerEmail": "بیچنے والے کا ای میل",
+    "sellerCompanyName": "بیچنے والے کی کمپنی کا نام",
+    "buyerCompanyName": "خریدار کی کمپنی کا نام",
     "termsAndConditions": "شرائط و ضوابط",
     "defaultTerms": "یہ معاہدہ بیچنے والے اور خریدار کے درمیان مندرجہ ذیل شرائط و ضوابط کے تحت ہے",
     "sellerSignature": "بیچنے والے کا دستخط",

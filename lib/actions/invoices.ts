@@ -724,3 +724,18 @@ export async function deleteOfflineInvoice(invoiceId: string) {
 
   return { success: true }
 }
+
+export async function getSellerOfflineInvoicesForLinking() {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return []
+
+  const adminSupabase = createAdminClient()
+  const { data } = await adminSupabase
+    .from("offline_invoices")
+    .select("id, invoice_number, buyer_name, buyer_email")
+    .eq("seller_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(50)
+
+  return data ?? []
+}

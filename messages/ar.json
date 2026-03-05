@@ -1214,6 +1214,8 @@
     "sellerCode": "رمز البائع",
     "sellerName": "اسم البائع",
     "sellerEmail": "بريد البائع",
+    "sellerCompanyName": "اسم شركة البائع",
+    "buyerCompanyName": "اسم شركة المشتري",
     "termsAndConditions": "الشروط والأحكام",
     "defaultTerms": "يتم إبرام هذا العقد بين البائع والمشتري وفقاً للشروط والأحكام التالية",
     "sellerSignature": "توقيع البائع",

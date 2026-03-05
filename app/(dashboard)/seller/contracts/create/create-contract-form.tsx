@@ -3,15 +3,14 @@
 import { useState, useCallback, useRef, useEffect } from "react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Loader2, Save, Plus, Trash2, FileDown } from "lucide-react"
+import { ArrowLeft, Loader2, Save } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/components/ui/toaster"
 import Link from "@/components/ui/link"
-import { createContract, getNextContractNumber, getSellerOfflineInvoicesForLinking, getSellerAllInvoicesForImport, getImportInvoiceItems } from "@/lib/actions/contracts"
+import { createContract, getNextContractNumber } from "@/lib/actions/contracts"
 import { getSellerBankInfo, searchBuyers, searchBuyerByCode } from "@/lib/actions/invoices"
 
 interface BuyerResult {
@@ -19,40 +18,6 @@ interface BuyerResult {
   display_name: string
   email: string
   user_code: string | null
-}
-
-interface InvoiceOption {
-  id: string
-  invoice_number: string
-  buyer_name: string | null
-  buyer_email: string | null
-}
-
-interface ImportInvoice {
-  id: string
-  invoice_number: string
-  buyer_name: string | null
-  buyer_email: string | null
-  buyer_code: string | null
-  total: number
-  created_at: string
-  source: "order" | "offline"
-}
-
-interface ContractItem {
-  item_code: string
-  product_name: string
-  description: string
-  quantity: number
-  unit_price: number
-}
-
-const emptyItem: ContractItem = {
-  item_code: "",
-  product_name: "",
-  description: "",
-  quantity: 1,
-  unit_price: 0,
 }
 
 export function CreateContractForm() {
@@ -68,10 +33,9 @@ export function CreateContractForm() {
   const [buyerCode, setBuyerCode] = useState("")
   const [buyerName, setBuyerName] = useState("")
   const [buyerEmail, setBuyerEmail] = useState("")
+  const [buyerCompanyName, setBuyerCompanyName] = useState("")
+  const [sellerCompanyName, setSellerCompanyName] = useState("")
   const [terms, setTerms] = useState("")
-  const [invoiceId, setInvoiceId] = useState("")
-  const [invoices, setInvoices] = useState<InvoiceOption[]>([])
-  const [items, setItems] = useState<ContractItem[]>([{ ...emptyItem }])
   // Seller info
   const [sellerName, setSellerName] = useState("")
   const [sellerCode, setSellerCode] = useState("")
@@ -83,12 +47,6 @@ export function CreateContractForm() {
   const [showBuyerDropdown, setShowBuyerDropdown] = useState(false)
   const buyerDropdownRef = useRef<HTMLDivElement>(null)
 
-  // Import from invoice
-  const [importInvoices, setImportInvoices] = useState<ImportInvoice[]>([])
-  const [showImportDropdown, setShowImportDropdown] = useState(false)
-  const [importLoading, setImportLoading] = useState(false)
-  const importDropdownRef = useRef<HTMLDivElement>(null)
-
   // Signature canvases
   const sellerCanvasRef = useRef<HTMLCanvasElement>(null)
   const buyerCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -98,20 +56,17 @@ export function CreateContractForm() {
   // Load initial data
   useEffect(() => {
     async function loadData() {
-      const [nextNumber, sellerInfo, invoiceList, importInvoiceList] = await Promise.all([
+      const [nextNumber, sellerInfo] = await Promise.all([
         getNextContractNumber(),
         getSellerBankInfo(),
-        getSellerOfflineInvoicesForLinking(),
-        getSellerAllInvoicesForImport(),
       ])
       setContractNumber(nextNumber)
       if (sellerInfo) {
         setSellerName(sellerInfo.display_name || "")
         setSellerCode(sellerInfo.user_code || "")
         setSellerEmail(sellerInfo.email || "")
+        setSellerCompanyName(sellerInfo.company || "")
       }
-      setInvoices(invoiceList)
-      setImportInvoices(importInvoiceList)
 
       // Set default terms
       setTerms(t("defaultTerms"))
@@ -225,57 +180,10 @@ export function CreateContractForm() {
       if (buyerDropdownRef.current && !buyerDropdownRef.current.contains(e.target as Node)) {
         setShowBuyerDropdown(false)
       }
-      if (importDropdownRef.current && !importDropdownRef.current.contains(e.target as Node)) {
-        setShowImportDropdown(false)
-      }
     }
     document.addEventListener("mousedown", handleClick)
     return () => document.removeEventListener("mousedown", handleClick)
   }, [])
-
-  // Import from invoice
-  const handleImportFromInvoice = useCallback(async (invoice: ImportInvoice) => {
-    setImportLoading(true)
-    setShowImportDropdown(false)
-    try {
-      const invoiceItems = await getImportInvoiceItems(invoice.id, invoice.source)
-      if (invoiceItems.length > 0) {
-        const newItems: ContractItem[] = invoiceItems.map((item) => ({
-          item_code: item.item_code || "",
-          product_name: item.product_name || "",
-          description: item.description || "",
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-        }))
-        setItems(newItems)
-      }
-      // Auto-fill buyer info
-      if (invoice.buyer_name) setBuyerName(invoice.buyer_name)
-      if (invoice.buyer_email) setBuyerEmail(invoice.buyer_email)
-      if (invoice.buyer_code) setBuyerCode(invoice.buyer_code)
-      // Link the invoice
-      setInvoiceId(invoice.id)
-      addToast("success", t("invoiceImported"))
-    } catch {
-      addToast("error", t("importFailed"))
-    } finally {
-      setImportLoading(false)
-    }
-  }, [addToast, t])
-
-  // Item management
-  const addItem = () => setItems([...items, { ...emptyItem }])
-
-  const removeItem = (index: number) => {
-    if (items.length <= 1) return
-    setItems(items.filter((_, i) => i !== index))
-  }
-
-  const updateItem = (index: number, field: keyof ContractItem, value: string | number) => {
-    const updated = [...items]
-    updated[index] = { ...updated[index], [field]: value }
-    setItems(updated)
-  }
 
   const handleSubmit = async () => {
     if (!buyerName || !buyerEmail) {
@@ -293,16 +201,12 @@ export function CreateContractForm() {
         buyer_name: buyerName,
         buyer_email: buyerEmail,
         buyer_code: buyerCode || undefined,
-        invoice_id: invoiceId || undefined,
+        buyer_company_name: buyerCompanyName || undefined,
+        seller_company_name: sellerCompanyName || undefined,
         terms,
         seller_signature: sellerSignature || undefined,
         buyer_signature: buyerSignature || undefined,
         expiry_date: expiryDate || undefined,
-        items: items.filter((item) => item.product_name).map((item) => ({
-          ...item,
-          quantity: Number(item.quantity) || 1,
-          unit_price: Number(item.unit_price) || 0,
-        })),
       })
 
       if (result.error) {
@@ -347,23 +251,6 @@ export function CreateContractForm() {
             </div>
           </div>
 
-          {/* Link to Invoice */}
-          <div>
-            <Label>{t("linkToInvoice")}</Label>
-            <select
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={invoiceId}
-              onChange={(e) => setInvoiceId(e.target.value)}
-            >
-              <option value="">{t("selectInvoice")}</option>
-              {invoices.map((inv) => (
-                <option key={inv.id} value={inv.id}>
-                  {inv.invoice_number} — {inv.buyer_name || inv.buyer_email}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Seller Information (auto-filled) */}
           <div>
             <h3 className="text-sm font-semibold mb-2">{t("sellerInformation")}</h3>
@@ -379,6 +266,12 @@ export function CreateContractForm() {
               <div>
                 <Label>{t("sellerEmail")}</Label>
                 <Input value={sellerEmail} disabled />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div>
+                <Label>{t("sellerCompanyName")}</Label>
+                <Input value={sellerCompanyName} onChange={(e) => setSellerCompanyName(e.target.value)} />
               </div>
             </div>
           </div>
@@ -423,151 +316,13 @@ export function CreateContractForm() {
                 <Input value={buyerEmail} onChange={(e) => setBuyerEmail(e.target.value)} />
               </div>
             </div>
-          </div>
-
-          {/* Contract Items Table */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>{t("contractItems")}</CardTitle>
-              <div className="flex items-center gap-2">
-                <div className="relative" ref={importDropdownRef}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowImportDropdown(!showImportDropdown)}
-                    disabled={importLoading}
-                  >
-                    {importLoading ? (
-                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                    ) : (
-                      <FileDown className="h-4 w-4 mr-1" />
-                    )}
-                    {t("importFromInvoice")}
-                  </Button>
-                  {showImportDropdown && (
-                    <div className="absolute right-0 z-20 mt-1 w-[400px] bg-background border rounded-md shadow-lg max-h-64 overflow-y-auto">
-                      {importInvoices.length === 0 ? (
-                        <div className="px-4 py-3 text-sm text-muted-foreground">{t("noInvoicesFound")}</div>
-                      ) : (
-                        <>
-                          <div className="px-4 py-2 text-xs font-medium text-muted-foreground border-b">
-                            {t("selectInvoiceToImport")}
-                          </div>
-                          {importInvoices.map((inv) => (
-                            <button
-                              key={`${inv.source}-${inv.id}`}
-                              type="button"
-                              className="w-full text-left px-4 py-2 text-sm hover:bg-accent cursor-pointer border-b last:border-b-0"
-                              onClick={() => handleImportFromInvoice(inv)}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium">{inv.invoice_number}</span>
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                                    inv.source === "order"
-                                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                                      : "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
-                                  }`}>
-                                    {inv.source === "order" ? t("orderInvoiceTag") : t("buyerInvoiceTag")}
-                                  </span>
-                                </div>
-                                <span className="text-xs text-muted-foreground">
-                                  {new Date(inv.created_at).toLocaleDateString()}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between mt-0.5">
-                                <span className="text-muted-foreground text-xs">
-                                  {inv.buyer_name || inv.buyer_email || "—"}
-                                </span>
-                                <span className="text-xs font-medium">
-                                  {inv.total.toFixed(2)}
-                                </span>
-                              </div>
-                            </button>
-                          ))}
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <Button variant="outline" size="sm" onClick={addItem}>
-                  <Plus className="h-4 w-4 mr-1" /> {t("addItem")}
-                </Button>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div>
+                <Label>{t("buyerCompanyName")}</Label>
+                <Input value={buyerCompanyName} onChange={(e) => setBuyerCompanyName(e.target.value)} />
               </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[260px]">{t("item")}</TableHead>
-                    <TableHead>{t("description")}</TableHead>
-                    <TableHead className="text-right w-[120px]">{t("unitPrice")}</TableHead>
-                    <TableHead className="text-right w-[90px]">{t("quantity")}</TableHead>
-                    <TableHead className="text-right w-[120px]">{t("total")}</TableHead>
-                    <TableHead className="w-[50px]" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <div>
-                          <span className="text-xs text-muted-foreground font-mono">
-                            {item.item_code || `RX${String(index + 1).padStart(3, "0")}`}
-                          </span>
-                          <Input
-                            value={item.product_name}
-                            onChange={(e) => updateItem(index, "product_name", e.target.value)}
-                            placeholder={t("productName")}
-                            className="mt-1 text-sm"
-                          />
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {item.description || "—"}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Input
-                          type="number"
-                          min={0}
-                          step={0.01}
-                          value={item.unit_price || ""}
-                          onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
-                          className="w-24 ml-auto text-right"
-                        />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Input
-                          type="number"
-                          min={1}
-                          value={item.quantity}
-                          onChange={(e) => updateItem(index, "quantity", Math.max(1, parseInt(e.target.value, 10) || 1))}
-                          className="w-20 ml-auto text-right"
-                        />
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {((Number(item.quantity) || 0) * (Number(item.unit_price) || 0)).toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        {items.length > 1 && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeItem(index)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Terms & Conditions */}
           <div>

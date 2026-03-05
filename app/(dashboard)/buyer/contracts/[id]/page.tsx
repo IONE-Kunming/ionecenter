@@ -2,8 +2,6 @@ import { notFound } from "next/navigation"
 import Link from "@/components/ui/link"
 import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { formatDate, getIntlLocale } from "@/lib/utils"
 import { getContract } from "@/lib/actions/contracts"
 import { getTranslations, getLocale } from "next-intl/server"
@@ -59,6 +57,9 @@ export default async function BuyerContractDetailPage({ params, searchParams }: 
             <p className="text-foreground"><strong>{t("sellerCode")}:</strong> {contract.seller?.user_code || "—"}</p>
             <p className="text-foreground"><strong>{t("sellerName")}:</strong> {contract.seller?.display_name || "—"}</p>
             <p className="text-foreground"><strong>{t("sellerEmail")}:</strong> {contract.seller?.email || "—"}</p>
+            {contract.seller_company_name && (
+              <p className="text-foreground"><strong>{t("sellerCompanyName")}:</strong> {contract.seller_company_name}</p>
+            )}
           </div>
         </div>
 
@@ -69,41 +70,11 @@ export default async function BuyerContractDetailPage({ params, searchParams }: 
             <p className="text-foreground"><strong>{t("buyerCode")}:</strong> {contract.buyer_code || "—"}</p>
             <p className="text-foreground"><strong>{t("buyerName")}:</strong> {contract.buyer_name || "—"}</p>
             <p className="text-foreground"><strong>{t("buyerEmail")}:</strong> {contract.buyer_email || "—"}</p>
+            {contract.buyer_company_name && (
+              <p className="text-foreground"><strong>{t("buyerCompanyName")}:</strong> {contract.buyer_company_name}</p>
+            )}
           </div>
         </div>
-
-        {/* Contract Items */}
-        {contract.items && contract.items.length > 0 && (
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="text-sm font-semibold mb-3 text-foreground">{t("contractItems")}</h3>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("itemCode")}</TableHead>
-                    <TableHead>{t("productName")}</TableHead>
-                    <TableHead>{t("description")}</TableHead>
-                    <TableHead className="text-right">{t("quantity")}</TableHead>
-                    <TableHead className="text-right">{t("unitPrice")}</TableHead>
-                    <TableHead className="text-right">{t("total")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {contract.items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-mono text-sm text-foreground">{item.item_code || "—"}</TableCell>
-                      <TableCell className="text-foreground">{item.product_name || "—"}</TableCell>
-                      <TableCell className="text-foreground">{item.description || "—"}</TableCell>
-                      <TableCell className="text-right text-foreground">{item.quantity}</TableCell>
-                      <TableCell className="text-right text-foreground">{item.unit_price}</TableCell>
-                      <TableCell className="text-right text-foreground">{item.total}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Terms & Conditions */}
         {contract.terms && (
