@@ -68,6 +68,8 @@ export interface Product {
   is_active: boolean
   created_at: string
   updated_at: string
+  // Joined from product_images table
+  images?: ProductImage[]
 }
 
 export interface Order {
@@ -333,6 +335,15 @@ export interface PackingListItem {
   net_weight: number
   gross_weight: number
   carton_number: string | null
+  created_at: string
+}
+
+export interface ProductImage {
+  id: string
+  product_id: string
+  image_url: string
+  is_primary: boolean
+  sort_order: number
   created_at: string
 }
 
