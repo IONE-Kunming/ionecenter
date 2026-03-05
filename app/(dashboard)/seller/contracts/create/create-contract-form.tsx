@@ -507,8 +507,45 @@ export function CreateContractForm() {
           </div>
         </div>
 
-        {/* ═══════ Form Fields ═══════ */}
-        <Card className="border-0 shadow-none">
+        {/* ═══════ Print-only body (hidden on screen) ═══════ */}
+        <div className="contract-print-body hidden print:block">
+          {/* Seller & Buyer side by side */}
+          <div className="cnt-print-parties">
+            <div className="cnt-print-party-box">
+              <h4 className="cnt-print-party-title">{ct("sellerInformation")}</h4>
+              <p><strong>{ct("name")}:</strong> {sellerName}</p>
+              <p><strong>{ct("company")}:</strong> {sellerCompany}</p>
+              <p><strong>{ct("email")}:</strong> {sellerEmail}</p>
+            </div>
+            <div className="cnt-print-party-box">
+              <h4 className="cnt-print-party-title">{ct("buyerInformation")}</h4>
+              <p><strong>{ct("name")}:</strong> {buyerName}</p>
+              <p><strong>{ct("company")}:</strong> {buyerCompany}</p>
+              <p><strong>{ct("email")}:</strong> {buyerEmail}</p>
+            </div>
+          </div>
+
+          {/* Terms & Conditions */}
+          <div className="cnt-print-terms">
+            <h4 className="cnt-print-terms-title">{ct("termsAndConditions")}</h4>
+            <p className="cnt-print-terms-text">{terms}</p>
+          </div>
+
+          {/* Signatures side by side */}
+          <div className="cnt-print-signatures">
+            <div className="cnt-print-sig-box">
+              <span className="cnt-print-sig-label">{ct("sellerSignature")}</span>
+              <div className="cnt-print-sig-line" />
+            </div>
+            <div className="cnt-print-sig-box">
+              <span className="cnt-print-sig-label">{ct("buyerSignature")}</span>
+              <div className="cnt-print-sig-line" />
+            </div>
+          </div>
+        </div>
+
+        {/* ═══════ Form Fields (hidden when printing) ═══════ */}
+        <Card className="border-0 shadow-none print:hidden">
           <CardContent className="space-y-6 pt-6">
             {/* Contract Number, Date, Expiry */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
