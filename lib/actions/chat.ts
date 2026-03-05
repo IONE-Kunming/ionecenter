@@ -20,15 +20,24 @@ export async function getConversations(): Promise<ConversationWithParties[]> {
     .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
     .order("last_message_at", { ascending: false, nullsFirst: false })
 
-  return (data ?? []).map((c) => ({
+  const conversations = (data ?? []).map((c) => ({
     ...c,
     buyer: c.buyer as unknown as ConversationWithParties["buyer"],
     seller: c.seller as unknown as ConversationWithParties["seller"],
   }))
+
+  // Deduplicate: keep only one conversation per other-user (the most recent one)
+  const seen = new Set<string>()
+  return conversations.filter((c) => {
+    const otherUserId = c.buyer_id === user.id ? c.seller_id : c.buyer_id
+    if (seen.has(otherUserId)) return false
+    seen.add(otherUserId)
+    return true
+  })
 }
 
 export async function getOrCreateConversation(
-  productId: string | null,
+  _productId: string | null,
   otherUserId: string
 ): Promise<Conversation | null> {
   const user = await getCurrentUser()
@@ -36,29 +45,23 @@ export async function getOrCreateConversation(
 
   const supabase = createAdminClient()
 
-  // Try to find existing conversation
-  let query = supabase
+  // Find any existing conversation between these two users regardless of listing_id or who started it
+  const { data: existing } = await supabase
     .from("conversations")
     .select("*")
     .or(
       `and(buyer_id.eq.${user.id},seller_id.eq.${otherUserId}),and(buyer_id.eq.${otherUserId},seller_id.eq.${user.id})`
     )
+    .order("last_message_at", { ascending: false, nullsFirst: true })
+    .limit(1)
 
-  if (productId) {
-    query = query.eq("listing_id", productId)
-  } else {
-    query = query.is("listing_id", null)
-  }
-
-  const { data: existing } = await query.maybeSingle()
-
-  if (existing) return existing
+  if (existing && existing.length > 0) return existing[0]
 
   // Create new conversation
   const { data: conversation, error } = await supabase
     .from("conversations")
     .insert({
-      listing_id: productId,
+      listing_id: null,
       buyer_id: user.id,
       seller_id: otherUserId,
     })
