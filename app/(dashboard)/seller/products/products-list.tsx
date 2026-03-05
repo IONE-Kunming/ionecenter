@@ -470,13 +470,11 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                     <Badge variant="secondary" className="text-xs mb-2">{product.category}</Badge>
                     <h3 className="font-semibold text-sm">{product.name}</h3>
                     <p className="text-xs text-muted-foreground">{product.model_number}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="font-bold text-primary text-sm">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, exchangeRate)}</span>
-                      <Badge variant={stockInfo.color === "green" ? "success" : stockInfo.color === "yellow" ? "warning" : "destructive"} className="text-xs">
-                        {stockInfo.label} ({product.stock})
-                      </Badge>
-                    </div>
-                    <div className="flex gap-2 mt-3">
+                    <p className="font-bold text-primary text-sm mt-2">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, exchangeRate)}</p>
+                    <Badge variant={stockInfo.color === "green" ? "success" : stockInfo.color === "yellow" ? "warning" : "destructive"} className="text-xs mt-1">
+                      {stockInfo.label} ({product.stock})
+                    </Badge>
+                    <div className="flex items-center gap-2 mt-3">
                       <Button variant="outline" size="sm" className="flex-1 gap-1" onClick={() => openEdit(product)}><Pencil className="h-3 w-3" /> {tCommon("edit")}</Button>
                       <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(product)}><Trash2 className="h-3 w-3" /></Button>
                       <WishlistButton productId={product.id} initialLiked={wishlistedIds.includes(product.id)} />
