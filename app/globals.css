@@ -1411,7 +1411,8 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .cnt-header-title {
-    color: #ffffff !important;
+    color: #cc0000 !important;
+    background: transparent !important;
     font-size: 28px !important;
     font-weight: 900 !important;
     letter-spacing: 0.15em !important;
@@ -1457,6 +1458,7 @@ h1, h2, h3, h4, h5, h6 {
 
   .cnt-date-label {
     color: #999999 !important;
+    background: transparent !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
@@ -1464,6 +1466,7 @@ h1, h2, h3, h4, h5, h6 {
 
   .cnt-date-value {
     color: #ffffff !important;
+    background: transparent !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
@@ -1471,6 +1474,7 @@ h1, h2, h3, h4, h5, h6 {
 
   .cnt-contract-no-label {
     color: #ffffff !important;
+    background: transparent !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
