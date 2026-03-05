@@ -5,7 +5,7 @@ import { getCurrentUser } from "./users"
 import { generateSKU } from "@/lib/sku"
 import { getSiteCategories } from "./site-settings"
 import { buildCategoryData } from "@/lib/categories"
-import type { Product, ProductImage } from "@/types/database"
+import type { Product } from "@/types/database"
 
 export async function getProducts(filters?: {
   category?: string
@@ -15,7 +15,7 @@ export async function getProducts(filters?: {
   const supabase = createAdminClient()
   let query = supabase
     .from("products")
-    .select("*, seller:users!seller_id(display_name), product_images(id, product_id, image_url, is_primary, sort_order, created_at)")
+    .select("*, seller:users!seller_id(display_name)")
     .eq("is_active", true)
     .order("created_at", { ascending: false })
 
@@ -45,7 +45,6 @@ export async function getProducts(filters?: {
     .map((p) => ({
       ...p,
       seller_name: (p.seller as unknown as { display_name: string })?.display_name,
-      images: ((p.product_images as unknown as ProductImage[]) ?? []).sort((a, b) => a.sort_order - b.sort_order),
     }))
 }
 
@@ -53,7 +52,7 @@ export async function getProduct(id: string): Promise<Product | null> {
   const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("products")
-    .select("*, seller:users!seller_id(display_name, company, city, country, is_active), product_images(id, product_id, image_url, is_primary, sort_order, created_at)")
+    .select("*, seller:users!seller_id(display_name, company, city, country, is_active)")
     .eq("id", id)
     .single()
 
@@ -71,7 +70,6 @@ export async function getProduct(id: string): Promise<Product | null> {
   return {
     ...data,
     seller_name: seller?.display_name,
-    images: ((data.product_images as unknown as ProductImage[]) ?? []).sort((a, b) => a.sort_order - b.sort_order),
   }
 }
 
@@ -82,13 +80,12 @@ export async function getSellerProducts(): Promise<Product[]> {
   const supabase = createAdminClient()
   const { data } = await supabase
     .from("products")
-    .select("*, product_images(id, product_id, image_url, is_primary, sort_order, created_at)")
+    .select("*")
     .eq("seller_id", user.id)
     .order("created_at", { ascending: false })
 
   return (data ?? []).map((p) => ({
     ...p,
-    images: ((p.product_images as unknown as ProductImage[]) ?? []).sort((a, b) => a.sort_order - b.sort_order),
   }))
 }
 
@@ -323,87 +320,4 @@ export async function uploadProductVideo(formData: FormData): Promise<{ url?: st
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Upload failed" }
   }
-}
-
-/** Get all images for a product. */
-export async function getProductImages(productId: string): Promise<ProductImage[]> {
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from("product_images")
-    .select("*")
-    .eq("product_id", productId)
-    .order("sort_order", { ascending: true })
-
-  if (error) {
-    console.error("[getProductImages] error:", error.message)
-    return []
-  }
-  return data ?? []
-}
-
-/** Save product images (replace all images for a product). */
-export async function saveProductImages(
-  productId: string,
-  images: { id?: string; image_url: string; is_primary: boolean; sort_order: number }[]
-): Promise<{ error?: string }> {
-  const user = await getCurrentUser()
-  if (!user || user.role !== "seller") return { error: "Not authorized" }
-
-  const supabase = createAdminClient()
-
-  // Verify product ownership
-  const { data: product } = await supabase
-    .from("products")
-    .select("id")
-    .eq("id", productId)
-    .eq("seller_id", user.id)
-    .single()
-
-  if (!product) return { error: "Product not found or not owned by seller" }
-
-  // Delete all existing images for this product and re-insert
-  const { error: deleteError } = await supabase
-    .from("product_images")
-    .delete()
-    .eq("product_id", productId)
-
-  if (deleteError) return { error: deleteError.message }
-
-  if (images.length === 0) {
-    // Clear product image_url too
-    await supabase
-      .from("products")
-      .update({ image_url: null, additional_images: null })
-      .eq("id", productId)
-      .eq("seller_id", user.id)
-    return {}
-  }
-
-  const rows = images.map((img, i) => ({
-    product_id: productId,
-    image_url: img.image_url,
-    is_primary: img.is_primary,
-    sort_order: img.sort_order ?? i,
-  }))
-
-  const { error: insertError } = await supabase
-    .from("product_images")
-    .insert(rows)
-
-  if (insertError) return { error: insertError.message }
-
-  // Also update the product's image_url to the primary image for backward compatibility
-  const primaryImage = images.find((img) => img.is_primary) ?? images[0]
-  if (primaryImage) {
-    await supabase
-      .from("products")
-      .update({
-        image_url: primaryImage.image_url,
-        additional_images: images.filter((img) => !img.is_primary).map((img) => img.image_url),
-      })
-      .eq("id", productId)
-      .eq("seller_id", user.id)
-  }
-
-  return {}
 }

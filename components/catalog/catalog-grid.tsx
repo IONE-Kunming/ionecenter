@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import Link from "@/components/ui/link"
+import Image from "next/image"
 import { useSearchParams } from "next/navigation"
 import { Search, Package } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
@@ -12,12 +13,11 @@ import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
 import { Select } from "@/components/ui/select"
 import { EmptyState } from "@/components/ui/empty-state"
-import { ProductImageGallery } from "@/components/catalog/product-image-gallery"
 import { formatDualPrice } from "@/lib/utils"
 import { useExchangeRate } from "@/lib/use-exchange-rate"
 import type { CategoryData } from "@/lib/categories"
 import { toCategoryKey } from "@/lib/categories"
-import type { PricingType, ProductImage } from "@/types/database"
+import type { PricingType } from "@/types/database"
 
 interface CatalogProduct {
   id: string
@@ -30,7 +30,6 @@ interface CatalogProduct {
   price_cny?: number | null
   stock: number
   image_url: string | null
-  images?: ProductImage[]
 }
 
 const ITEMS_PER_PAGE = 12
@@ -106,23 +105,22 @@ export function CatalogGrid({
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {paginatedProducts.map((product) => {
-              // Build image list: prefer product_images table, fall back to image_url
-              const allImages = product.images && product.images.length > 0
-                ? product.images.map((img) => img.image_url)
-                : product.image_url
-                  ? [product.image_url]
-                  : []
-
               return (
                 <Link key={product.id} href={`${basePath}/${product.id}`}>
                   <Card className="group hover:shadow-md transition-all cursor-pointer h-full">
                     <CardContent className="p-0">
                       <div className="aspect-square relative bg-gradient-to-br from-muted to-muted/50 rounded-t-xl flex items-center justify-center overflow-hidden">
-                        <ProductImageGallery
-                          images={allImages}
-                          alt={product.name}
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                        />
+                        {product.image_url ? (
+                          <Image
+                            src={product.image_url}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                          />
+                        ) : (
+                          <Package className="h-12 w-12 text-muted-foreground/30" />
+                        )}
                       </div>
                       <div className="p-4">
                         <Badge variant="secondary" className="text-xs mb-2">
