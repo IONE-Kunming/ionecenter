@@ -1253,7 +1253,8 @@
     "totalAmount": "کل",
     "importFailed": "انوائس اشیاء درآمد کرنے میں ناکامی",
     "orderInvoiceTag": "آرڈر انوائس",
-    "buyerInvoiceTag": "خریدار انوائس"
+    "buyerInvoiceTag": "خریدار انوائس",
+    "companyName": "کمپنی کا نام"
   },
   "packingLists": {
     "title": "پیکنگ لسٹ",

@@ -1400,7 +1400,8 @@
     "totalAmount": "Total",
     "importFailed": "Failed to import invoice items",
     "orderInvoiceTag": "Order Invoice",
-    "buyerInvoiceTag": "Buyer Invoice"
+    "buyerInvoiceTag": "Buyer Invoice",
+    "companyName": "Company Name"
   },
   "packingLists": {
     "title": "Packing Lists",
