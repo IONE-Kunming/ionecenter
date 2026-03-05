@@ -1351,6 +1351,10 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   /* Header keeps its colors */
+  .cnt-header {
+    background: #000000 !important;
+  }
+
   .cnt-header,
   .cnt-header * {
     -webkit-print-color-adjust: exact !important;
@@ -1361,6 +1365,10 @@ h1, h2, h3, h4, h5, h6 {
   .cnt-header-inner {
     display: flex !important;
     align-items: center !important;
+    background: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-header-left {
@@ -1380,7 +1388,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .cnt-header-seal {
-    background: transparent !important;
+    background: #000000 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
@@ -1403,7 +1411,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .cnt-header-right {
-    background: #e20028 !important;
+    background: #cc0000 !important;
     clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -1411,8 +1419,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .cnt-header-title {
-    color: #cc0000 !important;
-    background: transparent !important;
+    color: #000000 !important;
     font-size: 28px !important;
     font-weight: 900 !important;
     letter-spacing: 0.15em !important;
@@ -1428,6 +1435,13 @@ h1, h2, h3, h4, h5, h6 {
     color-adjust: exact !important;
   }
 
+  .cnt-header-barcode-text {
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
   .cnt-header-barcode svg {
     height: 48px !important;
     width: auto !important;
@@ -1435,7 +1449,7 @@ h1, h2, h3, h4, h5, h6 {
 
   /* Date row keeps its dark background */
   .cnt-date-row {
-    background: #111111 !important;
+    background: #000000 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
@@ -1449,7 +1463,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .cnt-date-box {
-    background: #222222 !important;
+    background: #000000 !important;
     border: 1px solid #444 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -1457,8 +1471,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .cnt-date-label {
-    color: #999999 !important;
-    background: transparent !important;
+    color: #ffffff !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
@@ -1466,7 +1479,6 @@ h1, h2, h3, h4, h5, h6 {
 
   .cnt-date-value {
     color: #ffffff !important;
-    background: transparent !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
@@ -1474,7 +1486,6 @@ h1, h2, h3, h4, h5, h6 {
 
   .cnt-contract-no-label {
     color: #ffffff !important;
-    background: transparent !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
@@ -1482,7 +1493,7 @@ h1, h2, h3, h4, h5, h6 {
 
   .cnt-contract-no-value {
     color: #ffffff !important;
-    background: #222222 !important;
+    background: #000000 !important;
     border: 1px solid #444 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
