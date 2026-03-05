@@ -469,7 +469,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                         src={product.image_url}
                         alt={product.name}
                         fill
-                        className="object-cover"
+                        className="object-contain"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       />
                     ) : (
