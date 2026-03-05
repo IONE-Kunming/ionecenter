@@ -47,21 +47,43 @@ export async function createContract(input: ContractInput) {
 
   const adminSupabase = createAdminClient()
 
-  let contractNumber: string
-  if (input.contract_number) {
-    const { data: existing } = await adminSupabase
-      .from("contracts")
-      .select("id")
-      .eq("contract_number", input.contract_number)
-      .limit(1)
+  // Always generate a fresh unique contract number right before insert
+  // Fetch all existing contract numbers for this seller
+  const { data: existingContracts, error: fetchError } = await adminSupabase
+    .from("contracts")
+    .select("contract_number")
+    .eq("seller_id", user.id)
+    .like("contract_number", "CNT-%")
 
-    if (existing && existing.length > 0) {
-      contractNumber = await getNextContractNumber()
-    } else {
-      contractNumber = input.contract_number
+  if (fetchError) {
+    return { error: "Failed to check existing contract numbers" }
+  }
+
+  const existingNumbers = new Set<string>()
+  let maxNum = 0
+  for (const row of existingContracts ?? []) {
+    const cn = row.contract_number as string | null
+    if (cn) {
+      existingNumbers.add(cn)
+      const match = cn.match(/^CNT-(\d+)$/)
+      if (match) {
+        const n = parseInt(match[1], 10)
+        if (n > maxNum) maxNum = n
+      }
     }
-  } else {
-    contractNumber = await getNextContractNumber()
+  }
+
+  // Find the next number that does not already exist
+  let next = maxNum + 1
+  let contractNumber = `CNT-${String(next).padStart(4, "0")}`
+  const maxAttempts = 100
+  let attempts = 0
+  while (existingNumbers.has(contractNumber)) {
+    if (++attempts >= maxAttempts) {
+      return { error: "Failed to generate unique contract number" }
+    }
+    next++
+    contractNumber = `CNT-${String(next).padStart(4, "0")}`
   }
 
   const { data: contract, error: contractError } = await adminSupabase
