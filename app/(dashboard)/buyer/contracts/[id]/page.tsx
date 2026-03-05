@@ -2,9 +2,9 @@ import { notFound } from "next/navigation"
 import Link from "@/components/ui/link"
 import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
-import { formatDate, getIntlLocale } from "@/lib/utils"
 import { getContract } from "@/lib/actions/contracts"
-import { getTranslations, getLocale } from "next-intl/server"
+import { getTranslations } from "next-intl/server"
+import { SealStamp } from "@/components/contracts/seal-stamp"
 import { PrintTrigger } from "./print-trigger"
 import { PrintButton } from "./print-button"
 
@@ -16,9 +16,14 @@ export default async function BuyerContractDetailPage({ params, searchParams }: 
   if (!contract) notFound()
 
   const t = await getTranslations("contracts")
-  const tCommon = await getTranslations("common")
-  const locale = await getLocale()
-  const intlLocale = getIntlLocale(locale)
+
+  // Parse date parts for header display
+  const d = new Date(contract.created_at)
+  const dateParts = {
+    year: String(d.getFullYear()),
+    month: String(d.getMonth() + 1).padStart(2, "0"),
+    day: String(d.getDate()).padStart(2, "0"),
+  }
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -31,86 +36,96 @@ export default async function BuyerContractDetailPage({ params, searchParams }: 
 
       {print === "true" && <PrintTrigger />}
 
-      <div className="space-y-6 invoice-print-area">
-        {/* Logo centered at top */}
-        <div className="invoice-detail-header invoice-print-header">
-          <Image src="/logo.svg" alt="IONE Center" width={140} height={46} style={{ margin: "0 auto" }} />
-        </div>
-
-        {/* Contract Number, Date, and Expiry Date on same row */}
-        <div className="invoice-detail-info-row invoice-info-row">
-          <div>
-            <p className="text-foreground"><strong>{t("contractNumber")}:</strong> {contract.contract_number}</p>
-            <p className="text-foreground"><strong>{t("contractDate")}:</strong> {formatDate(contract.created_at, intlLocale)}</p>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            {contract.expiry_date && (
-              <p className="text-foreground"><strong>{t("expiryDate")}:</strong> {formatDate(contract.expiry_date, intlLocale)}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Seller Information */}
-        <div className="invoice-detail-section invoice-print-section">
-          <h3 className="invoice-detail-section-title invoice-print-section-title text-foreground">{t("sellerInformation")}</h3>
-          <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
-            <p className="text-foreground"><strong>{t("sellerCode")}:</strong> {contract.seller?.user_code || "—"}</p>
-            <p className="text-foreground"><strong>{t("sellerName")}:</strong> {contract.seller?.display_name || "—"}</p>
-            <p className="text-foreground"><strong>{t("sellerEmail")}:</strong> {contract.seller?.email || "—"}</p>
-            {contract.seller_company_name && (
-              <p className="text-foreground"><strong>{t("companyName")}:</strong> {contract.seller_company_name}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Buyer Information */}
-        <div className="invoice-detail-section invoice-print-section">
-          <h3 className="invoice-detail-section-title invoice-print-section-title text-foreground">{t("buyerInformation")}</h3>
-          <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
-            <p className="text-foreground"><strong>{t("buyerCode")}:</strong> {contract.buyer_code || "—"}</p>
-            <p className="text-foreground"><strong>{t("buyerName")}:</strong> {contract.buyer_name || "—"}</p>
-            <p className="text-foreground"><strong>{t("buyerEmail")}:</strong> {contract.buyer_email || "—"}</p>
-            {contract.buyer_company_name && (
-              <p className="text-foreground"><strong>{t("companyName")}:</strong> {contract.buyer_company_name}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Terms & Conditions */}
-        {contract.terms && (
-          <div className="invoice-detail-section invoice-print-section">
-            <h3 className="invoice-detail-section-title invoice-print-section-title text-foreground">{t("termsAndConditions")}</h3>
-            <div style={{ fontSize: "13px", lineHeight: "1.8", whiteSpace: "pre-wrap" }} className="text-foreground">
-              {contract.terms}
+      <div className="contract-print-area">
+        {/* ═══════ Professional Header ═══════ */}
+        <div className="cnt-header">
+          <div className="cnt-header-inner">
+            {/* Left: Black side with logo */}
+            <div className="cnt-header-left">
+              <Image src="/logo.svg" alt="IONE" width={100} height={33} className="cnt-header-logo" />
+            </div>
+            {/* Center: Seal/stamp */}
+            <div className="cnt-header-seal">
+              <SealStamp />
+            </div>
+            {/* Right: Red side with CONTRACT title */}
+            <div className="cnt-header-right">
+              <span className="cnt-header-title">{t("contractLabel")}</span>
+            </div>
+            {/* Far right: Contract number */}
+            <div className="cnt-header-barcode">
+              <span className="cnt-header-barcode-text">{contract.contract_number}</span>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Electronic Signatures */}
-        <div className="invoice-detail-section invoice-print-section">
-          <h3 className="invoice-detail-section-title invoice-print-section-title text-foreground">{t("electronicSignatures")}</h3>
-          <div className="grid grid-cols-2 gap-8 mt-4">
-            <div>
-              <p className="text-sm font-semibold text-foreground mb-2">{t("sellerSignature")}</p>
-              <div className="border rounded-md p-2 min-h-[100px] bg-white">
-                {contract.seller_signature ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={contract.seller_signature} alt="Seller Signature" className="max-h-[90px]" />
-                ) : (
-                  <p className="text-muted-foreground text-sm">—</p>
-                )}
-              </div>
+        {/* ═══════ Second row: Date boxes + Contract No. ═══════ */}
+        <div className="cnt-date-row">
+          <div className="cnt-date-boxes">
+            <div className="cnt-date-box">
+              <span className="cnt-date-label">{t("year")}</span>
+              <span className="cnt-date-value">{dateParts.year}</span>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground mb-2">{t("buyerSignature")}</p>
-              <div className="border rounded-md p-2 min-h-[100px] bg-white">
-                {contract.buyer_signature ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={contract.buyer_signature} alt="Buyer Signature" className="max-h-[90px]" />
-                ) : (
-                  <p className="text-muted-foreground text-sm">—</p>
-                )}
-              </div>
+            <div className="cnt-date-box">
+              <span className="cnt-date-label">{t("month")}</span>
+              <span className="cnt-date-value">{dateParts.month}</span>
+            </div>
+            <div className="cnt-date-box">
+              <span className="cnt-date-label">{t("day")}</span>
+              <span className="cnt-date-value">{dateParts.day}</span>
+            </div>
+          </div>
+          <div className="cnt-contract-no">
+            <span className="cnt-contract-no-label">{t("contractNumber")}</span>
+            <span className="cnt-contract-no-value">{contract.contract_number}</span>
+          </div>
+        </div>
+
+        {/* ═══════ Body: Parties, Terms, Signatures ═══════ */}
+        <div className="contract-print-body">
+          {/* Seller & Buyer side by side */}
+          <div className="cnt-print-parties">
+            <div className="cnt-print-party-box">
+              <h4 className="cnt-print-party-title">{t("sellerInformation")}</h4>
+              <p><strong>{t("name")}:</strong> {contract.seller?.display_name || "—"}</p>
+              {contract.seller_company_name && <p><strong>{t("company")}:</strong> {contract.seller_company_name}</p>}
+              <p><strong>{t("email")}:</strong> {contract.seller?.email || "—"}</p>
+            </div>
+            <div className="cnt-print-party-box">
+              <h4 className="cnt-print-party-title">{t("buyerInformation")}</h4>
+              <p><strong>{t("name")}:</strong> {contract.buyer_name || "—"}</p>
+              {contract.buyer_company_name && <p><strong>{t("company")}:</strong> {contract.buyer_company_name}</p>}
+              <p><strong>{t("email")}:</strong> {contract.buyer_email || "—"}</p>
+            </div>
+          </div>
+
+          {/* Terms & Conditions */}
+          {contract.terms && (
+            <div className="cnt-print-terms">
+              <h4 className="cnt-print-terms-title">{t("termsAndConditions")}</h4>
+              <p className="cnt-print-terms-text">{contract.terms}</p>
+            </div>
+          )}
+
+          {/* Signatures side by side */}
+          <div className="cnt-print-signatures">
+            <div className="cnt-print-sig-box">
+              <span className="cnt-print-sig-label">{t("sellerSignature")}</span>
+              {contract.seller_signature ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={contract.seller_signature} alt="Seller Signature" style={{ maxHeight: "60px", margin: "0 auto" }} />
+              ) : (
+                <div className="cnt-print-sig-line" />
+              )}
+            </div>
+            <div className="cnt-print-sig-box">
+              <span className="cnt-print-sig-label">{t("buyerSignature")}</span>
+              {contract.buyer_signature ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={contract.buyer_signature} alt="Buyer Signature" style={{ maxHeight: "60px", margin: "0 auto" }} />
+              ) : (
+                <div className="cnt-print-sig-line" />
+              )}
             </div>
           </div>
         </div>

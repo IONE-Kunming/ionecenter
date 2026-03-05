@@ -1257,7 +1257,11 @@
     "companyName": "کمپنی کا نام",
     "year": "سال",
     "month": "مہینہ",
-    "day": "دن"
+    "day": "دن",
+    "contractLabel": "معاہدہ",
+    "name": "نام",
+    "company": "کمپنی",
+    "email": "ای میل"
   },
   "packingLists": {
     "title": "پیکنگ لسٹ",

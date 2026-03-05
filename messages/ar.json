@@ -1258,7 +1258,11 @@
     "companyName": "اسم الشركة",
     "year": "السنة",
     "month": "الشهر",
-    "day": "اليوم"
+    "day": "اليوم",
+    "contractLabel": "عقد",
+    "name": "الاسم",
+    "company": "الشركة",
+    "email": "البريد الإلكتروني"
   },
   "packingLists": {
     "title": "قوائم التعبئة",

@@ -1257,7 +1257,11 @@
     "companyName": "公司名称",
     "year": "年",
     "month": "月",
-    "day": "日"
+    "day": "日",
+    "contractLabel": "合同",
+    "name": "姓名",
+    "company": "公司",
+    "email": "电子邮件"
   },
   "packingLists": {
     "title": "装箱单",
