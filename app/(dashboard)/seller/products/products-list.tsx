@@ -590,7 +590,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                 <div className="flex flex-wrap gap-2 mb-2">
                   {newProductImages.map((img, idx) => (
                     <div key={idx} className="relative w-20 h-20 rounded border overflow-hidden group/thumb">
-                      <Image src={img.preview} alt={`Preview ${idx + 1}`} fill className="object-cover" sizes="80px" />
+                      <Image src={img.preview} alt={newProduct.name ? `${newProduct.name} - Image ${idx + 1}` : `Product image ${idx + 1}`} fill className="object-cover" sizes="80px" />
                       <div className="absolute top-0 right-0 flex gap-0.5 opacity-0 group-hover/thumb:opacity-100 transition-opacity">
                         <button
                           type="button"
@@ -782,7 +782,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                 <div className="flex flex-wrap gap-2 mb-2">
                   {editImages.map((img, idx) => (
                     <div key={idx} className="relative w-20 h-20 rounded border overflow-hidden group/thumb">
-                      <Image src={img.url} alt={`Image ${idx + 1}`} fill className="object-cover" sizes="80px" />
+                      <Image src={img.url} alt={editProduct?.name ? `${editProduct.name} - Image ${idx + 1}` : `Product image ${idx + 1}`} fill className="object-cover" sizes="80px" />
                       <div className="absolute top-0 right-0 flex gap-0.5 opacity-0 group-hover/thumb:opacity-100 transition-opacity">
                         <button
                           type="button"

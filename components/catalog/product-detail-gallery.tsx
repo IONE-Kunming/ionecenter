@@ -68,7 +68,7 @@ export function ProductDetailGallery({ media, alt }: ProductDetailGalleryProps) 
               className={`relative flex-shrink-0 w-16 h-16 rounded-lg border-2 overflow-hidden transition-colors ${i === currentIndex ? "border-primary" : "border-transparent"}`}
             >
               {m.type === "image" ? (
-                <Image src={m.url} alt="" fill className="object-cover" sizes="64px" unoptimized />
+                <Image src={m.url} alt={`${alt} - Thumbnail ${i + 1}`} fill className="object-cover" sizes="64px" unoptimized />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-muted">
                   <PlayCircle className="h-6 w-6 text-muted-foreground" />
