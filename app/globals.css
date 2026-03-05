@@ -1441,38 +1441,135 @@ h1, h2, h3, h4, h5, h6 {
     border: 1px solid #444 !important;
   }
 
-  /* Card — remove shadow/bg in contract print */
-  .contract-print-area [class*="CardContent"],
-  .contract-print-area [class*="Card"] {
-    border: none !important;
-    box-shadow: none !important;
-    background: transparent !important;
+  /* Reduce body padding for contract to fit on one page */
+  .contract-print-area {
+    font-size: 11px !important;
   }
 
-  /* Inputs shown as plain text */
-  .contract-print-area input {
-    border: none !important;
-    padding: 0 !important;
-    box-shadow: none !important;
-    background: transparent !important;
-    font-size: 13px !important;
+  /* Show the print-only body */
+  .contract-print-body {
+    display: block !important;
+  }
+
+  /* ---- Seller & Buyer side by side ---- */
+  .cnt-print-parties {
+    display: flex !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .cnt-print-party-box {
+    flex: 1 !important;
+    border: 1px solid #000000 !important;
+    padding: 8px 12px !important;
+    background: #ffffff !important;
+  }
+
+  .cnt-print-party-title {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    border-bottom: 1px solid #cccccc !important;
+    padding-bottom: 4px !important;
+    margin-bottom: 6px !important;
     color: #000000 !important;
   }
 
-  /* Textarea as plain text */
-  .contract-print-area textarea {
-    border: none !important;
-    padding: 0 !important;
-    box-shadow: none !important;
-    background: transparent !important;
-    font-size: 13px !important;
+  .cnt-print-party-box p {
+    margin: 3px 0 !important;
+    font-size: 11px !important;
     color: #000000 !important;
-    resize: none !important;
+    line-height: 1.4 !important;
   }
 
-  /* Hide all buttons in print */
-  .contract-print-area button {
-    display: none !important;
+  .cnt-print-party-box strong {
+    font-weight: 700 !important;
+    color: #000000 !important;
+  }
+
+  /* ---- Terms & Conditions ---- */
+  .cnt-print-terms {
+    border: 1px solid #000000 !important;
+    padding: 8px 12px !important;
+    margin-bottom: 10px !important;
+    background: #ffffff !important;
+  }
+
+  .cnt-print-terms-title {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    border-bottom: 1px solid #cccccc !important;
+    padding-bottom: 4px !important;
+    margin-bottom: 6px !important;
+    color: #000000 !important;
+  }
+
+  .cnt-print-terms-text {
+    font-size: 10px !important;
+    line-height: 1.5 !important;
+    white-space: pre-wrap !important;
+    color: #000000 !important;
+    margin: 0 !important;
+  }
+
+  /* ---- Signatures side by side ---- */
+  .cnt-print-signatures {
+    display: flex !important;
+    gap: 10px !important;
+    margin-top: 10px !important;
+  }
+
+  .cnt-print-sig-box {
+    flex: 1 !important;
+    border: 1px solid #000000 !important;
+    padding: 8px 12px 20px !important;
+    background: #ffffff !important;
+    text-align: center !important;
+  }
+
+  .cnt-print-sig-label {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: #000000 !important;
+    display: block !important;
+    margin-bottom: 24px !important;
+  }
+
+  .cnt-print-sig-line {
+    border-top: 1px solid #000000 !important;
+    width: 80% !important;
+    margin: 0 auto !important;
+  }
+
+  /* ---- Compact header for single-page fit ---- */
+  .contract-print-area .cnt-header {
+    margin-bottom: 0 !important;
+  }
+
+  .contract-print-area .cnt-header-inner {
+    min-height: 60px !important;
+  }
+
+  .contract-print-area .cnt-header-left {
+    padding: 10px 18px !important;
+    padding-right: 36px !important;
+    min-height: 60px !important;
+  }
+
+  .contract-print-area .cnt-header-right {
+    padding: 10px 18px !important;
+    padding-left: 36px !important;
+    min-height: 60px !important;
+  }
+
+  .contract-print-area .cnt-date-row {
+    padding: 6px 16px !important;
+    margin-bottom: 10px !important;
   }
 }
 
