@@ -1341,6 +1341,7 @@ h1, h2, h3, h4, h5, h6 {
   .contract-print-area {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   /* All text in contract is black except header */
@@ -1354,6 +1355,7 @@ h1, h2, h3, h4, h5, h6 {
   .cnt-header * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-header-inner {
@@ -1366,6 +1368,7 @@ h1, h2, h3, h4, h5, h6 {
     clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-header-logo {
@@ -1373,12 +1376,14 @@ h1, h2, h3, h4, h5, h6 {
     filter: none !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-header-seal {
     background: transparent !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-header-seal svg path,
@@ -1387,12 +1392,14 @@ h1, h2, h3, h4, h5, h6 {
     stroke: #2a7a8a !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-header-seal svg text {
     fill: #2a7a8a !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-header-right {
@@ -1400,6 +1407,7 @@ h1, h2, h3, h4, h5, h6 {
     clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-header-title {
@@ -1409,12 +1417,14 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: 0.15em !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-header-barcode {
     background: #ffffff !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-header-barcode svg {
@@ -1427,12 +1437,14 @@ h1, h2, h3, h4, h5, h6 {
     background: #111111 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-date-row,
   .cnt-date-row * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-date-box {
@@ -1440,24 +1452,28 @@ h1, h2, h3, h4, h5, h6 {
     border: 1px solid #444 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-date-label {
     color: #999999 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-date-value {
     color: #ffffff !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-contract-no-label {
     color: #ffffff !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .cnt-contract-no-value {
@@ -1466,6 +1482,7 @@ h1, h2, h3, h4, h5, h6 {
     border: 1px solid #444 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   /* Reduce body padding for contract to fit on one page */
