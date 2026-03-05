@@ -272,10 +272,10 @@ export async function getSellerAllInvoicesForImport() {
     source: "order" as const,
   }))
 
-  // Combine and sort by created_at descending
-  const combined = [...offlineInvoices, ...orderInvoices].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  )
+  // Combine and sort by created_at descending, limit to 50 total
+  const combined = [...offlineInvoices, ...orderInvoices]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 50)
 
   return combined
 }
