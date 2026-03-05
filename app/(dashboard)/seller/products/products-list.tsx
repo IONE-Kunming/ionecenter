@@ -721,7 +721,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
       />
 
       {/* Edit Product Modal */}
-      <Dialog open={!!editProduct} onOpenChange={(v) => { if (!v) setEditProduct(null) }}>
+      <Dialog open={!!editProduct} onOpenChange={(v) => { if (!v) { editImages.forEach((img) => { if (img.isNew) URL.revokeObjectURL(img.url) }); setEditProduct(null) } }}>
         <DialogContent>
           <DialogHeader><DialogTitle>{t("editProduct")}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4 overflow-y-auto min-h-0 flex-1">
@@ -782,7 +782,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                 <div className="flex flex-wrap gap-2 mb-2">
                   {editImages.map((img, idx) => (
                     <div key={idx} className="relative w-20 h-20 rounded border overflow-hidden group/thumb">
-                      <Image src={img.isNew && img.file ? URL.createObjectURL(img.file) : img.url} alt={`Image ${idx + 1}`} fill className="object-cover" sizes="80px" />
+                      <Image src={img.url} alt={`Image ${idx + 1}`} fill className="object-cover" sizes="80px" />
                       <div className="absolute top-0 right-0 flex gap-0.5 opacity-0 group-hover/thumb:opacity-100 transition-opacity">
                         <button
                           type="button"
@@ -797,6 +797,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                           className="p-0.5 bg-black/50 text-white rounded-bl text-xs hover:bg-red-500"
                           title="Remove"
                           onClick={() => {
+                            if (img.isNew) URL.revokeObjectURL(img.url)
                             setEditImages((prev) => {
                               const next = prev.filter((_, i) => i !== idx)
                               if (next.length > 0 && !next.some((p) => p.isPrimary)) {
@@ -839,7 +840,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditProduct(null)}>{tCommon("cancel")}</Button>
+            <Button variant="outline" onClick={() => { editImages.forEach((img) => { if (img.isNew) URL.revokeObjectURL(img.url) }); setEditProduct(null) }}>{tCommon("cancel")}</Button>
             <Button onClick={handleEditSave} disabled={editSaving || !editForm.name}>
               {editSaving ? tCommon("saving") : t("saveChanges")}
             </Button>
