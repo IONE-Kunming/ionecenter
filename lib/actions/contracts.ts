@@ -12,20 +12,15 @@ export async function getNextContractNumber(): Promise<string> {
   const { data } = await adminSupabase
     .from("contracts")
     .select("contract_number")
-    .eq("seller_id", user.id)
-    .like("contract_number", "CNT-%")
+    .order("created_at", { ascending: false })
+    .limit(1)
 
-  let maxNum = 0
-  for (const row of data ?? []) {
-    const match = row.contract_number?.match(/^CNT-(\d+)$/)
-    if (match) {
-      const num = parseInt(match[1], 10)
-      if (num > maxNum) maxNum = num
-    }
-  }
-
-  const next = maxNum + 1
-  return `CNT-${String(next).padStart(4, "0")}`
+  const parsed = data?.[0]?.contract_number
+    ? parseInt((data[0].contract_number as string).replace("CNT-", ""))
+    : 0
+  const lastNumber = isNaN(parsed) ? 0 : parsed
+  const newNumber = `CNT-${String(lastNumber + 1).padStart(4, "0")}`
+  return newNumber
 }
 
 export interface ContractInput {
@@ -47,69 +42,55 @@ export async function createContract(input: ContractInput) {
 
   const adminSupabase = createAdminClient()
 
-  // Always generate a fresh unique contract number right before insert
-  // Fetch all existing contract numbers for this seller
-  const { data: existingContracts, error: fetchError } = await adminSupabase
-    .from("contracts")
-    .select("contract_number")
-    .eq("seller_id", user.id)
-    .like("contract_number", "CNT-%")
+  // Retry loop: generate a unique contract number and attempt insert
+  const maxAttempts = 10
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    // Query the latest contract number across all sellers
+    const { data } = await adminSupabase
+      .from("contracts")
+      .select("contract_number")
+      .order("created_at", { ascending: false })
+      .limit(1)
 
-  if (fetchError) {
-    return { error: "Failed to check existing contract numbers" }
-  }
+    const parsed = data?.[0]?.contract_number
+      ? parseInt((data[0].contract_number as string).replace("CNT-", ""))
+      : 0
+    const lastNumber = isNaN(parsed) ? 0 : parsed
+    const contractNumber = `CNT-${String(lastNumber + 1).padStart(4, "0")}`
 
-  const existingNumbers = new Set<string>()
-  let maxNum = 0
-  for (const row of existingContracts ?? []) {
-    const cn = row.contract_number as string | null
-    if (cn) {
-      existingNumbers.add(cn)
-      const match = cn.match(/^CNT-(\d+)$/)
-      if (match) {
-        const n = parseInt(match[1], 10)
-        if (n > maxNum) maxNum = n
-      }
+    const { data: contract, error: contractError } = await adminSupabase
+      .from("contracts")
+      .insert({
+        contract_number: contractNumber,
+        seller_id: user.id,
+        buyer_code: input.buyer_code ?? null,
+        buyer_name: input.buyer_name,
+        buyer_email: input.buyer_email,
+        buyer_company_name: input.buyer_company_name || null,
+        seller_company_name: input.seller_company_name || null,
+        terms: input.terms,
+        seller_signature: input.seller_signature ?? null,
+        buyer_signature: input.buyer_signature ?? null,
+        status: "draft",
+        expiry_date: input.expiry_date || null,
+      })
+      .select()
+      .single()
+
+    if (!contractError && contract) {
+      return { success: true, contract }
     }
-  }
 
-  // Find the next number that does not already exist
-  let next = maxNum + 1
-  let contractNumber = `CNT-${String(next).padStart(4, "0")}`
-  const maxAttempts = 100
-  let attempts = 0
-  while (existingNumbers.has(contractNumber)) {
-    if (++attempts >= maxAttempts) {
-      return { error: "Failed to generate unique contract number" }
+    // If it's a duplicate key error, retry with a new number
+    if (contractError?.code === "23505") {
+      continue
     }
-    next++
-    contractNumber = `CNT-${String(next).padStart(4, "0")}`
-  }
 
-  const { data: contract, error: contractError } = await adminSupabase
-    .from("contracts")
-    .insert({
-      contract_number: contractNumber,
-      seller_id: user.id,
-      buyer_code: input.buyer_code ?? null,
-      buyer_name: input.buyer_name,
-      buyer_email: input.buyer_email,
-      buyer_company_name: input.buyer_company_name || null,
-      seller_company_name: input.seller_company_name || null,
-      terms: input.terms,
-      seller_signature: input.seller_signature ?? null,
-      buyer_signature: input.buyer_signature ?? null,
-      status: "draft",
-      expiry_date: input.expiry_date || null,
-    })
-    .select()
-    .single()
-
-  if (contractError || !contract) {
+    // For any other error, return immediately
     return { error: contractError?.message ?? "Failed to create contract" }
   }
 
-  return { success: true, contract }
+  return { error: "Failed to generate unique contract number after multiple attempts" }
 }
 
 export async function getSellerContracts(): Promise<Contract[]> {
