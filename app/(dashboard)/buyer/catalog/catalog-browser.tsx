@@ -83,7 +83,11 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
         const conversation = await getOrCreateConversation(product.seller_id)
         if (conversation) {
           window.location.href = `/buyer/chats?id=${conversation.id}`
+        } else {
+          addToast("error", tChat("chatWithSeller"))
         }
+      } catch {
+        addToast("error", tChat("chatWithSeller"))
       } finally {
         setChattingIds((prev) => {
           const next = new Set(prev)
