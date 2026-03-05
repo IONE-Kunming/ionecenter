@@ -22,6 +22,7 @@ export default async function BuyerCatalogPage() {
     pricing_type: p.pricing_type,
     price_cny: p.price_cny,
     stock: p.stock,
+    seller_id: p.seller_id,
     seller_name: p.seller_name ?? "Unknown",
     image_url: p.image_url ?? null,
   }))
