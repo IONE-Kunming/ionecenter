@@ -50,15 +50,35 @@ export async function getProducts(filters?: {
 
 export async function getProduct(id: string): Promise<Product | null> {
   const supabase = createAdminClient()
+
+  console.log("[getProduct] fetching product with id:", id)
+
   const { data, error } = await supabase
     .from("products")
     .select("*, seller:users!seller_id(display_name, company, city, country, is_active)")
     .eq("id", id)
-    .single()
+    .maybeSingle()
+
+  console.log("[getProduct] query result — data:", data ? { id: data.id, name: data.name } : null, "| error:", error?.message ?? "none")
 
   if (error) {
     console.error("[getProduct] Supabase query error:", error.message, error.details, error.hint)
-    return null
+
+    // Fallback: try a simpler query without the seller join
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from("products")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle()
+
+    console.log("[getProduct] fallback query result — data:", fallbackData ? { id: fallbackData.id, name: fallbackData.name } : null, "| error:", fallbackError?.message ?? "none")
+
+    if (fallbackError || !fallbackData) return null
+
+    return {
+      ...fallbackData,
+      seller_name: undefined,
+    }
   }
 
   if (!data) return null
