@@ -78,7 +78,7 @@ export async function addToCart(
       existing.length = dimensions.length
       existing.width = dimensions.width
       existing.total_meters = dimensions.total_meters
-      existing.total_price = dimensions.total_price
+      existing.total_price = dimensions.total_meters * product.price_per_meter * existing.quantity
     }
   } else {
     const item: CartItem = { product_id: productId, quantity, price: product.price_per_meter }
