@@ -450,7 +450,11 @@
     "sellerCartBlocked": "لا يمكنك إضافة منتجات إلى السلة أثناء العرض كبائع. هذه الميزة متاحة فقط للمشترين.",
     "sellerCartBlockedTitle": "الإجراء غير مسموح",
     "sellerCartBlockedButton": "فهمت",
-    "price": "السعر"
+    "price": "السعر",
+    "lengthM": "الطول (م)",
+    "widthM": "العرض (م)",
+    "totalLabel": "المجموع",
+    "enterDimensions": "يرجى إدخال طول وعرض صالحين (الحد الأدنى 0.01)"
   },
   "support": {
     "title": "الدعم",

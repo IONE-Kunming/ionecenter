@@ -35,7 +35,11 @@ export async function updateCart(items: CartItem[]) {
   return { success: true }
 }
 
-export async function addToCart(productId: string, quantity: number) {
+export async function addToCart(
+  productId: string,
+  quantity: number,
+  dimensions?: { length: number; width: number; total_meters: number; total_price: number }
+) {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
 
@@ -70,8 +74,21 @@ export async function addToCart(productId: string, quantity: number) {
 
   if (existing) {
     existing.quantity += quantity
+    if (dimensions) {
+      existing.length = dimensions.length
+      existing.width = dimensions.width
+      existing.total_meters = dimensions.total_meters
+      existing.total_price = dimensions.total_price
+    }
   } else {
-    items.push({ product_id: productId, quantity, price: product.price_per_meter })
+    const item: CartItem = { product_id: productId, quantity, price: product.price_per_meter }
+    if (dimensions) {
+      item.length = dimensions.length
+      item.width = dimensions.width
+      item.total_meters = dimensions.total_meters
+      item.total_price = dimensions.total_price
+    }
+    items.push(item)
   }
 
   const { error } = await supabase

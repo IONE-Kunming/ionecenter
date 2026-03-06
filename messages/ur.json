@@ -449,7 +449,11 @@
     "sellerCartBlocked": "بائع کے طور پر دیکھتے ہوئے آپ کارٹ میں مصنوعات شامل نہیں کر سکتے۔ یہ خصوصیت صرف خریداروں کے لیے دستیاب ہے۔",
     "sellerCartBlockedTitle": "عمل کی اجازت نہیں",
     "sellerCartBlockedButton": "سمجھ گیا",
-    "price": "قیمت"
+    "price": "قیمت",
+    "lengthM": "لمبائی (م)",
+    "widthM": "چوڑائی (م)",
+    "totalLabel": "کل",
+    "enterDimensions": "براہ کرم درست لمبائی اور چوڑائی درج کریں (کم از کم 0.01)"
   },
   "support": {
     "title": "سپورٹ",

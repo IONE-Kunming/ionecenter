@@ -160,6 +160,10 @@ export interface CartItem {
   product_id: string
   quantity: number
   price: number
+  length?: number
+  width?: number
+  total_meters?: number
+  total_price?: number
 }
 
 export interface Cart {

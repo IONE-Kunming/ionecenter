@@ -449,7 +449,11 @@
     "sellerCartBlocked": "作为卖家浏览时无法将产品添加到购物车。此功能仅对买家开放。",
     "sellerCartBlockedTitle": "操作不允许",
     "sellerCartBlockedButton": "知道了",
-    "price": "价格"
+    "price": "价格",
+    "lengthM": "长度 (m)",
+    "widthM": "宽度 (m)",
+    "totalLabel": "总计",
+    "enterDimensions": "请输入有效的长度和宽度（最小 0.01）"
   },
   "support": {
     "title": "支持",
