@@ -73,7 +73,7 @@ export default async function SellerOrderDetailPage({ params }: { params: Promis
                   <TableCell>
                     <div>
                       <span className="font-medium">{item.name}</span>
-                      {item.length != null && item.width != null && (
+                      {item.pricing_type === "customized" && item.length != null && item.width != null && (
                         <div className="text-xs text-muted-foreground mt-1">
                           <p>{t("length")}: {item.length} m</p>
                           <p>{t("width")}: {item.width} m</p>

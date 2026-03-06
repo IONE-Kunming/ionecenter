@@ -16,6 +16,7 @@ export function DashboardHeader() {
   const tProductDetail = useTranslations("productDetail")
   const tInvoices = useTranslations("invoices")
   const tPackingLists = useTranslations("packingLists")
+  const tOrders = useTranslations("orders")
   const parts = pathname.split("/").filter(Boolean)
 
   // Detect product detail page pattern: /buyer/product/[id] or /seller/product/[id]
@@ -30,12 +31,17 @@ export function DashboardHeader() {
   // Detect packing list detail page: /seller/packing-lists/[id]
   const isPackingListDetailPage = parts.length === 3 && parts[1] === "packing-lists" && parts[2] !== "create"
 
+  // Detect order detail page: /seller/orders/[id] or /buyer/orders/[id]
+  const isOrderDetailPage = parts.length === 3 && parts[1] === "orders" && parts[2] !== "create"
+
   const fallbackTitle = isProductDetailPage
     ? tProductDetail("title")
     : isOfflineInvoiceDetailPage || isInvoiceDetailPage
     ? tInvoices("invoiceDetails")
     : isPackingListDetailPage
     ? tPackingLists("packingList")
+    : isOrderDetailPage
+    ? tOrders("orderDetails")
     : parts[parts.length - 1]
         ?.replace(/-/g, " ")
         .replace(/\b\w/g, (c) => c.toUpperCase()) || "Dashboard"
