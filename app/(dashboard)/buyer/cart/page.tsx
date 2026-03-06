@@ -41,6 +41,7 @@ export default async function CartPage() {
       pricing_type: product?.pricing_type ?? "standard",
       length: item.length ?? null,
       width: item.width ?? null,
+      total_meters: item.total_meters ?? null,
     }
   })
 

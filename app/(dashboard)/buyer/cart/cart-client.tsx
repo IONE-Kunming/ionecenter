@@ -24,6 +24,7 @@ interface EnrichedCartItem {
   pricing_type: string
   length: number | null
   width: number | null
+  total_meters: number | null
 }
 
 interface SellerInfo {
@@ -46,6 +47,7 @@ export default function CartClient({ items: initialItems, sellerMap }: { items: 
           price: item.price,
           ...(item.length != null && { length: item.length }),
           ...(item.width != null && { width: item.width }),
+          ...(item.total_meters != null && { total_meters: item.total_meters }),
         }))
       )
     })
