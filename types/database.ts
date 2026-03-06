@@ -106,6 +106,7 @@ export interface OrderItem {
   length: number | null
   width: number | null
   total_meters: number | null
+  pricing_type?: PricingType | null
 }
 
 export interface Invoice {

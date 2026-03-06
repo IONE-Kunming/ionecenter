@@ -62,14 +62,19 @@ export async function getOrder(id: string): Promise<(Order & { items: OrderItem[
 
   const { data: items } = await supabase
     .from("order_items")
-    .select("*")
+    .select("*, product:products!product_id(pricing_type)")
     .eq("order_id", id)
+
+  const mappedItems = (items ?? []).map((item) => {
+    const { product, ...rest } = item as typeof item & { product?: { pricing_type: string } | null }
+    return { ...rest, pricing_type: product?.pricing_type ?? null } as OrderItem
+  })
 
   return {
     ...order,
     buyer: order.buyer as unknown as Order["buyer"],
     seller: order.seller as unknown as Order["seller"],
-    items: items ?? [],
+    items: mappedItems,
   }
 }
 
