@@ -38,6 +38,10 @@ export default async function CartPage() {
       stock: product?.stock ?? 0,
       image_url: product?.image_url ?? null,
       seller_id: product?.seller_id ?? "",
+      length: item.length ?? null,
+      width: item.width ?? null,
+      total_meters: item.total_meters ?? null,
+      total_price: item.total_price ?? null,
     }
   })
 

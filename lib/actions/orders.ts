@@ -248,6 +248,9 @@ export async function createOrdersFromCart(
       quantity: item.quantity,
       price: item.price * item.quantity,
       price_per_meter: item.product.price_per_meter,
+      length: item.length ?? null,
+      width: item.width ?? null,
+      total_meters: item.total_meters ?? null,
       image_url: item.product.image_url,
     }))
 
