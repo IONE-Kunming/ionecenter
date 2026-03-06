@@ -9,7 +9,12 @@ export default async function BuyerProductDetailPage({ params }: { params: Promi
   if (!user) redirect("/sign-in")
 
   const [{ id }, userRole] = await Promise.all([params, getUserRole()])
+
+  console.log("[BuyerProductDetailPage] product id from URL params:", id)
+
   const product = await getProduct(id)
+
+  console.log("[BuyerProductDetailPage] getProduct result:", product ? { id: product.id, name: product.name } : null)
 
   if (!product) {
     return (
