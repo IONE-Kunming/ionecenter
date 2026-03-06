@@ -118,6 +118,12 @@ export default async function OfflineInvoiceDetailPage({ params, searchParams }:
                             <span className="ml-1 font-sans">{item.product_name}</span>
                           )}
                         </span>
+                        {item.length != null && item.width != null && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            <p>{t("length")}: {item.length} m</p>
+                            <p>{t("width")}: {item.width} m</p>
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <span className="text-sm text-foreground">

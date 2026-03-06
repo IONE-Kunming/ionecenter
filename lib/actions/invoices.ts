@@ -167,7 +167,7 @@ export async function searchSellerProducts(query: string) {
   const supabase = createAdminClient()
   const { data } = await supabase
     .from("products")
-    .select("id, name, model_number, description, price_per_meter, price_usd")
+    .select("id, name, model_number, description, price_per_meter, price_usd, pricing_type")
     .eq("seller_id", user.id)
     .eq("is_active", true)
     .or(`model_number.ilike.%${query}%,name.ilike.%${query}%`)
@@ -360,6 +360,8 @@ export interface OfflineInvoiceInput {
     unit_price: number
     quantity: number
     item_code?: string
+    length?: number | null
+    width?: number | null
   }[]
   discount: number
   amount_paid: number
@@ -432,6 +434,8 @@ export async function createOfflineInvoice(input: OfflineInvoiceInput) {
       unit_price: item.unit_price,
       quantity: item.quantity,
       total: Number((item.unit_price * item.quantity).toFixed(2)),
+      length: item.length ?? null,
+      width: item.width ?? null,
     }))
 
     const { error: itemsError } = await adminSupabase
@@ -574,6 +578,8 @@ export async function updateOfflineInvoice(invoiceId: string, input: OfflineInvo
       unit_price: item.unit_price,
       quantity: item.quantity,
       total: Number((item.unit_price * item.quantity).toFixed(2)),
+      length: item.length ?? null,
+      width: item.width ?? null,
     }))
 
     const { error: itemsError } = await adminSupabase

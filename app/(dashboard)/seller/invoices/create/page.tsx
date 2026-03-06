@@ -23,6 +23,8 @@ export default async function CreateOfflineInvoicePage({ searchParams }: { searc
           description: item.description,
           unit_price: item.unit_price,
           quantity: item.quantity,
+          length: item.length ?? null,
+          width: item.width ?? null,
         })),
       }
     }
