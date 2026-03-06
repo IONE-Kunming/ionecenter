@@ -312,7 +312,9 @@
     "printInvoice": "打印发票",
     "deleteInvoice": "删除发票",
     "deleteInvoiceConfirm": "您确定要删除此发票吗？此操作无法撤消。",
-    "editInvoice": "编辑发票"
+    "editInvoice": "编辑发票",
+    "length": "长度",
+    "width": "宽度"
   },
   "notifications": {
     "unread": "{count} 条未读",
@@ -334,7 +336,9 @@
     "goToCart": "前往购物车",
     "addedToCart": "已加入购物车！",
     "addToCart": "加入购物车",
-    "outOfStock": "缺货"
+    "outOfStock": "缺货",
+    "length": "长度",
+    "width": "宽度"
   },
   "checkout": {
     "title": "结账",

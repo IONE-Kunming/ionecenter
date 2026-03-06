@@ -112,6 +112,8 @@ export async function createInvoice(orderId: string) {
         unit: "m",
         price: item.price_per_meter ?? (item.quantity > 0 ? Number((item.price / item.quantity).toFixed(2)) : 0),
         subtotal: item.price,
+        length: item.length ?? null,
+        width: item.width ?? null,
       }))
 
       const { error: invItemsError } = await adminSupabase

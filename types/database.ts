@@ -103,6 +103,8 @@ export interface OrderItem {
   price: number
   price_per_meter: number | null
   image_url: string | null
+  length: number | null
+  width: number | null
 }
 
 export interface Invoice {
@@ -154,6 +156,8 @@ export interface InvoiceItem {
   unit: string | null
   price: number
   subtotal: number
+  length: number | null
+  width: number | null
 }
 
 export interface CartItem {

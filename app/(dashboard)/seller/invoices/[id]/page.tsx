@@ -110,7 +110,17 @@ export default async function SellerInvoiceDetailPage({ params }: { params: Prom
               <TableBody>
                 {invoice.items.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell>
+                      <div>
+                        <span className="font-medium">{item.name}</span>
+                        {item.length != null && item.width != null && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            <p>{t("length")}: {item.length} m</p>
+                            <p>{t("width")}: {item.width} m</p>
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-right">{item.quantity} {item.unit ?? ""}</TableCell>
                     <TableCell className="text-right">{formatCurrency(item.price, "USD", intlLocale)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(item.subtotal, "USD", intlLocale)}</TableCell>

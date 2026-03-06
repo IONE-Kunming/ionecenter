@@ -12,7 +12,7 @@ export default async function CartPage() {
   const productIds = cart.items.map((item) => item.product_id)
   const { data: products } = await supabase
     .from("products")
-    .select("id, name, model_number, price_per_meter, price_usd, stock, image_url, seller_id")
+    .select("id, name, model_number, price_per_meter, price_usd, stock, image_url, seller_id, pricing_type")
     .in("id", productIds)
 
   // Fetch seller names
@@ -38,6 +38,9 @@ export default async function CartPage() {
       stock: product?.stock ?? 0,
       image_url: product?.image_url ?? null,
       seller_id: product?.seller_id ?? "",
+      pricing_type: product?.pricing_type ?? "standard",
+      length: item.length ?? null,
+      width: item.width ?? null,
     }
   })
 

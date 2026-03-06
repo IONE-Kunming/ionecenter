@@ -362,6 +362,12 @@ export function SellerInvoicesList({
                         <TableRow key={item.id}>
                           <TableCell>
                             <span className="text-sm font-mono">{item.name}</span>
+                            {item.length != null && item.width != null && (
+                              <div className="text-xs text-muted-foreground mt-1">
+                                <p>{t("length")}: {item.length} m</p>
+                                <p>{t("width")}: {item.width} m</p>
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>
                             <span className="text-sm">{item.description || "—"}</span>
