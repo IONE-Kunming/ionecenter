@@ -259,7 +259,9 @@
     "price": "قیمت",
     "taxPercent": "ٹیکس ({rate}%)",
     "depositPercent": "بیعانہ ({rate}%)",
-    "remaining": "بقایا"
+    "remaining": "بقایا",
+    "length": "لمبائی",
+    "width": "چوڑائی"
   },
   "invoices": {
     "invoiceNumber": "انوائس نمبر",

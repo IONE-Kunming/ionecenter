@@ -259,7 +259,9 @@
     "price": "السعر",
     "taxPercent": "الضريبة ({rate}%)",
     "depositPercent": "العربون ({rate}%)",
-    "remaining": "المتبقي"
+    "remaining": "المتبقي",
+    "length": "الطول",
+    "width": "العرض"
   },
   "invoices": {
     "invoiceNumber": "فاتورة رقم",
