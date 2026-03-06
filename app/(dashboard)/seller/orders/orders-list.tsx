@@ -37,7 +37,7 @@ export function SellerOrdersList({ orders }: { orders: SellerOrderRow[] }) {
   ]
 
   const filtered = orders.filter((o) => {
-    const matchSearch = !search || o.buyer_name.toLowerCase().includes(search.toLowerCase()) || o.id.includes(search)
+    const matchSearch = !search || o.buyer_name.toLowerCase().includes(search.toLowerCase()) || o.id.toLowerCase().includes(search.toLowerCase())
     const matchStatus = !statusFilter || o.status === statusFilter
     return matchSearch && matchStatus
   })
@@ -69,7 +69,7 @@ export function SellerOrdersList({ orders }: { orders: SellerOrderRow[] }) {
             <TableBody>
               {filtered.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell><Link href={`/seller/orders/${order.id}`} className="font-medium text-primary hover:underline">{order.id.slice(0, 13)}...</Link></TableCell>
+                  <TableCell><Link href={`/seller/orders/${order.id}`} className="font-medium text-primary hover:underline">{order.id.slice(0, 8).toUpperCase()}</Link></TableCell>
                   <TableCell>{formatDate(order.created_at)}</TableCell>
                   <TableCell>{order.buyer_name}</TableCell>
                   <TableCell className="text-muted-foreground">{order.buyer_company}</TableCell>
