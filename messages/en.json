@@ -277,7 +277,9 @@
     "inProduction": "In Production",
     "outOfProduction": "Out of Production",
     "arrivedAtPort": "Arrived at Port",
-    "inProductionShort": "In Production"
+    "inProductionShort": "In Production",
+    "length": "Length",
+    "width": "Width"
   },
   "invoices": {
     "invoiceNumber": "Invoice #",

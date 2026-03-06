@@ -259,7 +259,9 @@
     "price": "价格",
     "taxPercent": "税费 ({rate}%)",
     "depositPercent": "定金 ({rate}%)",
-    "remaining": "剩余"
+    "remaining": "剩余",
+    "length": "长度",
+    "width": "宽度"
   },
   "invoices": {
     "invoiceNumber": "发票编号",

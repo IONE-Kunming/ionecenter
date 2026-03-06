@@ -71,7 +71,17 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <TableBody>
               {order.items.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.name}</TableCell>
+                  <TableCell>
+                    <div>
+                      <span className="font-medium">{item.name}</span>
+                      {item.length != null && item.width != null && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          <p>{t("length")}: {item.length} m</p>
+                          <p>{t("width")}: {item.width} m</p>
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{item.model_number ?? "—"}</TableCell>
                   <TableCell className="text-right">{item.quantity}</TableCell>
                   <TableCell className="text-right">{formatCurrency(item.price_per_meter ?? 0, "USD", intlLocale)}</TableCell>
