@@ -105,6 +105,7 @@ export interface OrderItem {
   image_url: string | null
   length: number | null
   width: number | null
+  total_meters: number | null
 }
 
 export interface Invoice {
