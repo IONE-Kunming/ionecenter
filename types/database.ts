@@ -102,6 +102,9 @@ export interface OrderItem {
   quantity: number
   price: number
   price_per_meter: number | null
+  length: number | null
+  width: number | null
+  total_meters: number | null
   image_url: string | null
 }
 

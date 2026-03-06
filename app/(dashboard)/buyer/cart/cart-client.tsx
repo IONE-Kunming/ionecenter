@@ -21,6 +21,10 @@ interface EnrichedCartItem {
   stock: number
   image_url: string | null
   seller_id: string
+  length: number | null
+  width: number | null
+  total_meters: number | null
+  total_price: number | null
 }
 
 interface SellerInfo {
@@ -41,6 +45,10 @@ export default function CartClient({ items: initialItems, sellerMap }: { items: 
           product_id: item.id,
           quantity: item.quantity,
           price: item.price,
+          ...(item.length != null ? { length: item.length } : {}),
+          ...(item.width != null ? { width: item.width } : {}),
+          ...(item.total_meters != null ? { total_meters: item.total_meters } : {}),
+          ...(item.total_price != null ? { total_price: item.total_price } : {}),
         }))
       )
     })
