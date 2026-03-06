@@ -1336,7 +1336,10 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
                               min={0}
                               step={0.01}
                               value={row.length ?? ""}
-                              onChange={(e) => updateRowDimension(i, "length", e.target.value ? Number(e.target.value) : null)}
+                              onChange={(e) => {
+                                const v = parseFloat(e.target.value)
+                                updateRowDimension(i, "length", isNaN(v) ? null : v)
+                              }}
                               className="w-20 ml-auto text-right print:border-none print:p-0 print:shadow-none"
                             />
                           ) : (
@@ -1350,7 +1353,10 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
                               min={0}
                               step={0.01}
                               value={row.width ?? ""}
-                              onChange={(e) => updateRowDimension(i, "width", e.target.value ? Number(e.target.value) : null)}
+                              onChange={(e) => {
+                                const v = parseFloat(e.target.value)
+                                updateRowDimension(i, "width", isNaN(v) ? null : v)
+                              }}
                               className="w-20 ml-auto text-right print:border-none print:p-0 print:shadow-none"
                             />
                           ) : (
