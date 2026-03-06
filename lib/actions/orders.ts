@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import { calculateOrderTotals, TAX_RATE } from "@/lib/utils"
 import { createInvoice } from "./invoices"
-import type { Order, OrderItem, CartItem, PaymentMethod } from "@/types/database"
+import type { Order, OrderItem, CartItem, PaymentMethod, PricingType } from "@/types/database"
 
 export async function getBuyerOrders(): Promise<Order[]> {
   const user = await getCurrentUser()
@@ -66,7 +66,7 @@ export async function getOrder(id: string): Promise<(Order & { items: OrderItem[
     .eq("order_id", id)
 
   const mappedItems = (items ?? []).map((item) => {
-    const { product, ...rest } = item as typeof item & { product?: { pricing_type: string } | null }
+    const { product, ...rest } = item as typeof item & { product?: { pricing_type: PricingType } | null }
     return { ...rest, pricing_type: product?.pricing_type ?? null } as OrderItem
   })
 
