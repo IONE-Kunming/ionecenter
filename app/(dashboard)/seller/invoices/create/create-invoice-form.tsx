@@ -55,6 +55,8 @@ const INVOICE_LABELS: Record<InvoiceLanguage, Record<string, string>> = {
     discount: "Discount",
     amountPaid: "Amount Paid",
     amountDue: "Amount Due",
+    lengthM: "Length (m)",
+    widthM: "Width (m)",
   },
   ar: {
     invoice: "فاتورة",
@@ -91,6 +93,8 @@ const INVOICE_LABELS: Record<InvoiceLanguage, Record<string, string>> = {
     discount: "الخصم",
     amountPaid: "المبلغ المدفوع",
     amountDue: "المبلغ المستحق",
+    lengthM: "الطول (م)",
+    widthM: "العرض (م)",
   },
   zh: {
     invoice: "发票",
@@ -127,6 +131,8 @@ const INVOICE_LABELS: Record<InvoiceLanguage, Record<string, string>> = {
     discount: "折扣",
     amountPaid: "已付金额",
     amountDue: "应付金额",
+    lengthM: "长度 (m)",
+    widthM: "宽度 (m)",
   },
 }
 
@@ -136,6 +142,7 @@ interface ProductResult {
   model_number: string
   description: string | null
   price_per_meter: number
+  pricing_type?: string
 }
 
 interface BankInfo {
@@ -200,6 +207,9 @@ interface InvoiceRow {
   searchQuery: string
   suggestions: ProductResult[]
   showSuggestions: boolean
+  pricingType: string
+  length: number | null
+  width: number | null
 }
 
 function generateItemKey(index: number): string {
@@ -249,6 +259,8 @@ export interface EditData {
     description: string | null
     unit_price: number
     quantity: number
+    length?: number | null
+    width?: number | null
   }[]
 }
 
@@ -298,6 +310,9 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
           searchQuery: "",
           suggestions: [],
           showSuggestions: false,
+          pricingType: (item.length != null || item.width != null) ? "customized" : "standard",
+          length: item.length ?? null,
+          width: item.width ?? null,
         }))
       : [
           {
@@ -309,6 +324,9 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
             searchQuery: "",
             suggestions: [],
             showSuggestions: false,
+            pricingType: "standard",
+            length: null,
+            width: null,
           },
         ]
   )
@@ -518,6 +536,9 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
                 searchQuery: product.model_number,
                 suggestions: [],
                 showSuggestions: false,
+                pricingType: product.pricing_type ?? "standard",
+                length: product.pricing_type === "customized" ? r.length : null,
+                width: product.pricing_type === "customized" ? r.width : null,
               }
             : r
         )
@@ -538,6 +559,9 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
         searchQuery: "",
         suggestions: [],
         showSuggestions: false,
+        pricingType: "standard",
+        length: null,
+        width: null,
       },
     ])
   }, [])
@@ -557,6 +581,17 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
     },
     []
   )
+
+  const updateRowDimension = useCallback(
+    (index: number, field: "length" | "width", value: number | null) => {
+      setRows((prev) =>
+        prev.map((r, i) => (i === index ? { ...r, [field]: value } : r))
+      )
+    },
+    []
+  )
+
+  const hasCustomizedRow = rows.some((r) => r.pricingType === "customized")
 
   // Calculations
   const subtotal = rows.reduce((sum, r) => sum + r.unitPrice * r.quantity, 0)
@@ -599,6 +634,8 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
             description: r.description,
             unit_price: r.unitPrice,
             quantity: r.quantity,
+            length: r.pricingType === "customized" ? r.length : null,
+            width: r.pricingType === "customized" ? r.width : null,
           })),
         discount,
         amount_paid: amountPaid,
@@ -1222,6 +1259,12 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
                 <TableRow>
                   <TableHead className="w-[260px]">{lbl.item}</TableHead>
                   <TableHead>{lbl.description}</TableHead>
+                  {hasCustomizedRow && (
+                    <>
+                      <TableHead className="text-right w-[100px]">{lbl.lengthM}</TableHead>
+                      <TableHead className="text-right w-[100px]">{lbl.widthM}</TableHead>
+                    </>
+                  )}
                   <TableHead className="text-right w-[120px]">{lbl.unitPrice}</TableHead>
                   <TableHead className="text-right w-[90px]">{lbl.quantity}</TableHead>
                   <TableHead className="text-right w-[120px]">{lbl.total}</TableHead>
@@ -1284,6 +1327,44 @@ export function CreateOfflineInvoiceForm({ editData }: { editData?: EditData | n
                         {row.description || "—"}
                       </span>
                     </TableCell>
+                    {hasCustomizedRow && (
+                      <>
+                        <TableCell className="text-right">
+                          {row.pricingType === "customized" ? (
+                            <Input
+                              type="number"
+                              min={0}
+                              step={0.01}
+                              value={row.length ?? ""}
+                              onChange={(e) => {
+                                const v = parseFloat(e.target.value)
+                                updateRowDimension(i, "length", isNaN(v) ? null : v)
+                              }}
+                              className="w-20 ml-auto text-right print:border-none print:p-0 print:shadow-none"
+                            />
+                          ) : (
+                            <span className="text-sm text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {row.pricingType === "customized" ? (
+                            <Input
+                              type="number"
+                              min={0}
+                              step={0.01}
+                              value={row.width ?? ""}
+                              onChange={(e) => {
+                                const v = parseFloat(e.target.value)
+                                updateRowDimension(i, "width", isNaN(v) ? null : v)
+                              }}
+                              className="w-20 ml-auto text-right print:border-none print:p-0 print:shadow-none"
+                            />
+                          ) : (
+                            <span className="text-sm text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                      </>
+                    )}
                     <TableCell className="text-right">
                       <Input
                         type="number"

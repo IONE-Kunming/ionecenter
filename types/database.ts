@@ -280,6 +280,8 @@ export interface OfflineInvoiceItem {
   unit_price: number
   quantity: number
   total: number
+  length: number | null
+  width: number | null
   created_at: string
 }
 
