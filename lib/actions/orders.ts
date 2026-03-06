@@ -249,6 +249,8 @@ export async function createOrdersFromCart(
       price: item.price * item.quantity,
       price_per_meter: item.product.price_per_meter,
       image_url: item.product.image_url,
+      length: item.length ?? null,
+      width: item.width ?? null,
     }))
 
     const { error: itemsError } = await supabase

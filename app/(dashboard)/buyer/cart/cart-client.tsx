@@ -21,6 +21,9 @@ interface EnrichedCartItem {
   stock: number
   image_url: string | null
   seller_id: string
+  pricing_type: string
+  length: number | null
+  width: number | null
 }
 
 interface SellerInfo {
@@ -41,6 +44,8 @@ export default function CartClient({ items: initialItems, sellerMap }: { items: 
           product_id: item.id,
           quantity: item.quantity,
           price: item.price,
+          ...(item.length != null && { length: item.length }),
+          ...(item.width != null && { width: item.width }),
         }))
       )
     })
@@ -137,6 +142,12 @@ export default function CartClient({ items: initialItems, sellerMap }: { items: 
                         <h3 className="font-semibold">{item.name}</h3>
                         <p className="text-sm text-muted-foreground">{item.model_number}</p>
                         <p className="text-sm font-medium text-primary mt-1">{formatCurrency(item.price)}/m</p>
+                        {item.pricing_type === "customized" && item.length != null && item.width != null && (
+                          <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                            <p>{t("length")}: {item.length} m</p>
+                            <p>{t("width")}: {item.width} m</p>
+                          </div>
+                        )}
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)} disabled={isPending}>

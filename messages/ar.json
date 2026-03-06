@@ -313,7 +313,9 @@
     "deleteInvoice": "حذف الفاتورة",
     "deleteInvoiceConfirm": "هل أنت متأكد أنك تريد حذف هذه الفاتورة؟ لا يمكن التراجع عن هذا الإجراء.",
     "editInvoice": "تعديل الفاتورة",
-    "issued": "صادرة"
+    "issued": "صادرة",
+    "length": "الطول",
+    "width": "العرض"
   },
   "notifications": {
     "unread": "{count} غير مقروءة",
@@ -335,7 +337,9 @@
     "goToCart": "اذهب إلى السلة",
     "addedToCart": "أضيف إلى السلة!",
     "addToCart": "أضف إلى السلة",
-    "outOfStock": "نفد من المخزون"
+    "outOfStock": "نفد من المخزون",
+    "length": "الطول",
+    "width": "العرض"
   },
   "checkout": {
     "title": "الدفع",
