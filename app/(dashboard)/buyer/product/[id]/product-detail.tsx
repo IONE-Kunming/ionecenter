@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import Image from "next/image"
 import { ArrowLeft, Package, ShoppingCart, MessageSquare, ShieldAlert, Minus, Plus } from "lucide-react"
@@ -32,13 +32,28 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
   const tCommon = useTranslations("common")
   const { addToast } = useToast()
   const { rate } = useExchangeRate()
-  const { formatDualPrice } = useFormatters()
+  const { formatCurrency, formatDualPrice } = useFormatters()
   const [chatPending, startChat] = useTransition()
   const [cartPending, startCart] = useTransition()
   const [quantity, setQuantity] = useState(1)
   const [showSellerModal, setShowSellerModal] = useState(false)
   const stockStatus = getDetailStockStatus(product.stock)
   const isOutOfStock = product.stock <= 0
+
+  const isCustomized = product.pricing_type === "customized"
+  const [length, setLength] = useState("")
+  const [width, setWidth] = useState("")
+
+  const customizedTotal = useMemo(() => {
+    if (!isCustomized) return null
+    const l = parseFloat(length)
+    const w = parseFloat(width)
+    if (isNaN(l) || isNaN(w) || l < 0.01 || w < 0.01) return null
+    const totalMeters = l + w
+    const totalUsd = totalMeters * product.price_per_meter * quantity
+    const liveCny = rate != null ? totalMeters * product.price_per_meter * rate * quantity : null
+    return { totalMeters, totalUsd, totalCny: liveCny }
+  }, [isCustomized, length, width, quantity, product.price_per_meter, rate])
 
   // Build video list
   const allVideos = (product.video_urls ?? [])
@@ -57,8 +72,24 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
       setShowSellerModal(true)
       return
     }
+    if (isCustomized) {
+      const l = parseFloat(length)
+      const w = parseFloat(width)
+      if (isNaN(l) || isNaN(w) || l < 0.01 || w < 0.01) {
+        addToast("error", t("enterDimensions"))
+        return
+      }
+    }
     startCart(async () => {
-      const result = await addToCart(product.id, quantity)
+      const dimensions = isCustomized && customizedTotal
+        ? {
+            length: parseFloat(length),
+            width: parseFloat(width),
+            total_meters: customizedTotal.totalMeters,
+            total_price: customizedTotal.totalUsd,
+          }
+        : undefined
+      const result = await addToCart(product.id, quantity, dimensions)
       if (result.error) {
         addToast("error", result.error)
       } else {
@@ -136,6 +167,48 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
               {formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, rate)}
             </span>
           </div>
+
+          {/* Dimensions inputs for Customized products */}
+          {isCustomized && (
+            <div className="mt-4 space-y-3 rounded-lg border p-4 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <label htmlFor="length" className="text-sm font-medium w-24">{t("lengthM")}:</label>
+                <input
+                  id="length"
+                  type="number"
+                  min={0.01}
+                  step={0.01}
+                  value={length}
+                  onChange={(e) => setLength(e.target.value)}
+                  placeholder="0.00"
+                  disabled={isOutOfStock}
+                  className="h-9 w-32 rounded-md border px-3 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <label htmlFor="width" className="text-sm font-medium w-24">{t("widthM")}:</label>
+                <input
+                  id="width"
+                  type="number"
+                  min={0.01}
+                  step={0.01}
+                  value={width}
+                  onChange={(e) => setWidth(e.target.value)}
+                  placeholder="0.00"
+                  disabled={isOutOfStock}
+                  className="h-9 w-32 rounded-md border px-3 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+              </div>
+              {customizedTotal && (
+                <div className="pt-2 border-t text-sm font-semibold text-primary">
+                  {t("totalLabel")}: {formatCurrency(customizedTotal.totalUsd)}
+                  {customizedTotal.totalCny != null && (
+                    <> | {formatCurrency(customizedTotal.totalCny, "CNY")}</>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="mt-4 flex items-center gap-4">
             <Badge variant={stockStatus.color === "green" ? "success" : stockStatus.color === "yellow" ? "warning" : "destructive"}>

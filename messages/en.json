@@ -473,7 +473,11 @@
     "sellerCartBlocked": "You cannot add products to cart while viewing as a seller. This feature is only available for buyers.",
     "sellerCartBlockedTitle": "Action Not Allowed",
     "sellerCartBlockedButton": "Got it",
-    "price": "Price"
+    "price": "Price",
+    "lengthM": "Length (m)",
+    "widthM": "Width (m)",
+    "totalLabel": "Total",
+    "enterDimensions": "Please enter valid length and width (minimum 0.01)"
   },
   "support": {
     "title": "Support",
