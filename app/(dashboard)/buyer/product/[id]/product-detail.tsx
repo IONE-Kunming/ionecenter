@@ -21,10 +21,10 @@ interface ProductDetailProps {
   userRole?: UserRole | null
 }
 
-function getDetailStockStatus(stock: number): { label: string; color: "green" | "yellow" | "red"; key: string } {
-  if (stock <= 0) return { label: "Out of Stock", color: "red", key: "outOfStock" }
-  if (stock <= 200) return { label: "Low Stock", color: "yellow", key: "lowStock" }
-  return { label: "In Stock", color: "green", key: "inStock" }
+function getDetailStockStatus(stock: number): { color: "green" | "yellow" | "red"; key: string } {
+  if (stock <= 0) return { color: "red", key: "outOfStock" }
+  if (stock <= 200) return { color: "yellow", key: "lowStock" }
+  return { color: "green", key: "inStock" }
 }
 
 export function ProductDetail({ product, currentUserId, userRole }: ProductDetailProps) {
@@ -167,6 +167,7 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
                   value={quantity}
                   onChange={(e) => handleQuantityChange(Number(e.target.value))}
                   disabled={isOutOfStock}
+                  aria-label="Quantity"
                   className="h-9 w-16 border-y text-center text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 <Button
