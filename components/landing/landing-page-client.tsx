@@ -398,7 +398,7 @@ export function LandingPageClient({
       </header>
 
       {/* ===== MAIN LAYOUT ===== */}
-      <div className="max-w-[1480px] mx-auto flex">
+      <div className="flex">
         {/* Desktop Sidebar */}
         <aside className="hidden md:block w-64 shrink-0 border-e sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
           {categoriesSidebar}
