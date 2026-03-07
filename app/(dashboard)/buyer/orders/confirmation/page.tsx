@@ -53,7 +53,7 @@ export default async function OrderConfirmationPage({ searchParams }: { searchPa
             {t("viewOrders")}
           </Button>
         </Link>
-        <Link href="/buyer/all-products">
+        <Link href="/">
           <Button variant="outline" className="w-full gap-2">
             <ShoppingCart className="h-4 w-4" />
             {t("continueShopping")}

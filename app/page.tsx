@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
+import { Suspense } from "react"
 import { getProducts } from "@/lib/actions/products"
 import { getSiteCategories } from "@/lib/actions/site-settings"
 import { buildCategoryData } from "@/lib/categories"
@@ -44,27 +45,31 @@ export default async function HomePage() {
   const categoriesWithProducts = [...new Set(products.map((p) => p.main_category))]
   const subcategoriesWithProducts = [...new Set(products.map((p) => p.category))]
 
+  const clientProps = {
+    products: products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      model_number: p.model_number,
+      main_category: p.main_category,
+      category: p.category,
+      price_per_meter: p.price_per_meter,
+      pricing_type: p.pricing_type,
+      price_cny: p.price_cny,
+      stock: p.stock,
+      image_url: p.image_url ?? null,
+    })),
+    categoryData,
+    categoriesWithProducts,
+    subcategoriesWithProducts,
+    isLoggedIn: !!userId,
+    userRole,
+    userImageUrl,
+    userFullName,
+  }
+
   return (
-    <LandingPageClient
-      products={products.map((p) => ({
-        id: p.id,
-        name: p.name,
-        model_number: p.model_number,
-        main_category: p.main_category,
-        category: p.category,
-        price_per_meter: p.price_per_meter,
-        pricing_type: p.pricing_type,
-        price_cny: p.price_cny,
-        stock: p.stock,
-        image_url: p.image_url ?? null,
-      }))}
-      categoryData={categoryData}
-      categoriesWithProducts={categoriesWithProducts}
-      subcategoriesWithProducts={subcategoriesWithProducts}
-      isLoggedIn={!!userId}
-      userRole={userRole}
-      userImageUrl={userImageUrl}
-      userFullName={userFullName}
-    />
+    <Suspense>
+      <LandingPageClient {...clientProps} />
+    </Suspense>
   )
 }

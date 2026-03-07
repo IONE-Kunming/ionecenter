@@ -101,7 +101,7 @@ export default function CartClient({ items: initialItems, sellerMap }: { items: 
         icon={ShoppingCart}
         title={t("emptyCart")}
         description={t("emptyCartDesc")}
-        action={{ label: t("browseCatalog"), onClick: () => window.location.href = "/buyer/catalog" }}
+        action={{ label: t("browseCatalog"), onClick: () => window.location.href = "/" }}
       />
     )
   }
@@ -217,7 +217,7 @@ export default function CartClient({ items: initialItems, sellerMap }: { items: 
             <Link href="/buyer/checkout" className="block">
               <Button className="w-full mt-4">{t("proceedCheckout")}</Button>
             </Link>
-            <Link href="/buyer/catalog" className="block">
+            <Link href="/" className="block">
               <Button variant="outline" className="w-full">{t("continueShopping")}</Button>
             </Link>
           </CardContent>

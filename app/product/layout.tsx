@@ -7,7 +7,6 @@ import { ThemeToggle } from "@/components/theme-toggle"
 
 export default async function ProductDetailLayout({ children }: { children: React.ReactNode }) {
   const tNav = await getTranslations("nav")
-  const tFooter = await getTranslations("footer")
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -18,13 +17,13 @@ export default async function ProductDetailLayout({ children }: { children: Reac
           </Link>
           <div className="flex items-center gap-2">
             <Link href="/about" className="hidden md:inline-flex text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5">
-              {tFooter("aboutUs")}
+              {tNav("aboutUs")}
             </Link>
             <LanguageSwitcher />
             <ThemeToggle />
             <Link href="/sign-up?intent=seller">
               <Button size="sm" variant="outline" className="hidden sm:inline-flex">
-                {tFooter("becomeASeller")}
+                {tNav("becomeSeller")}
               </Button>
             </Link>
             <Link href="/sign-in">

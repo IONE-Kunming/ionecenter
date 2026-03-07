@@ -6,7 +6,6 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 
 export default async function GuestLayout({ children }: { children: React.ReactNode }) {
   const nav = await getTranslations("nav")
-  const footerT = await getTranslations("footer")
 
   return (
     <div className="min-h-screen bg-[#000000] text-white">
@@ -17,12 +16,12 @@ export default async function GuestLayout({ children }: { children: React.ReactN
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/about" className="hidden md:inline-flex text-sm text-[#ABB8C3] hover:text-white transition-colors px-3 py-1.5">
-              {footerT("aboutUs")}
+              {nav("aboutUs")}
             </Link>
             <LanguageSwitcher />
             <Link href="/sign-up?intent=seller">
               <Button variant="ghost" size="sm" className="hidden sm:inline-flex text-[#ABB8C3] hover:text-white border border-white/20">
-                {footerT("becomeASeller")}
+                {nav("becomeSeller")}
               </Button>
             </Link>
             <Link href="/sign-in">

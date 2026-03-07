@@ -4,6 +4,7 @@ import { useState, useMemo, useTransition } from "react"
 import { useTranslations } from "next-intl"
 import Link from "@/components/ui/link"
 import Image from "next/image"
+import { useSearchParams } from "next/navigation"
 import {
   Package, Search, ShoppingCart, ChevronRight, ChevronDown, Menu, X,
   Check, Loader2, User, LogOut, Heart, MessageSquare, Bell, HelpCircle,
@@ -65,18 +66,18 @@ export function LandingPageClient({
 }: LandingPageClientProps) {
   const t = useTranslations("catalog")
   const tNav = useTranslations("nav")
-  const tFooter = useTranslations("footer")
   const tCommon = useTranslations("common")
   const tCart = useTranslations("cart")
   const tProfile = useTranslations("profileMenu")
   const tCatNames = useTranslations("categoryNames")
   const { rate } = useExchangeRate()
   const { signOut } = useClerk()
+  const searchParams = useSearchParams()
 
   const [, startTransition] = useTransition()
-  const [search, setSearch] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("")
-  const [selectedSubcategory, setSelectedSubcategory] = useState("")
+  const [search, setSearch] = useState(searchParams.get("search") || "")
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "")
+  const [selectedSubcategory, setSelectedSubcategory] = useState(searchParams.get("subcategory") || "")
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)

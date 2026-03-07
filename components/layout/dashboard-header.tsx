@@ -53,7 +53,7 @@ export function DashboardHeader() {
   const role = parts[0] === "buyer" ? "buyer" : parts[0] === "seller" ? "seller" : "admin"
 
   const getSearchPath = () => {
-    if (role === "buyer") return "/buyer/all-products"
+    if (role === "buyer") return "/"
     if (role === "seller") return "/seller/products"
     return "/admin/products"
   }
