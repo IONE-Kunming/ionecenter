@@ -15,7 +15,15 @@ export default async function GuestLayout({ children }: { children: React.ReactN
             <Image src="/logo.svg" alt="IONE Center" width={150} height={40} className="h-10 w-auto" />
           </Link>
           <div className="flex items-center gap-3">
+            <Link href="/about" className="hidden md:inline-flex text-sm text-[#ABB8C3] hover:text-white transition-colors px-3 py-1.5">
+              {nav("aboutUs")}
+            </Link>
             <LanguageSwitcher />
+            <Link href="/sign-up?intent=seller">
+              <Button variant="ghost" size="sm" className="hidden sm:inline-flex text-[#ABB8C3] hover:text-white border border-white/20">
+                {nav("becomeSeller")}
+              </Button>
+            </Link>
             <Link href="/sign-in">
               <Button variant="ghost" size="sm" className="text-[#ABB8C3] hover:text-white">{nav("logIn")}</Button>
             </Link>

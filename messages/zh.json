@@ -6,7 +6,9 @@
     "howItWorks": "如何运作",
     "logIn": "登录",
     "signUp": "注册",
-    "signUpFree": "免费注册"
+    "signUpFree": "免费注册",
+    "aboutUs": "关于我们",
+    "becomeSeller": "成为卖家"
   },
   "hero": {
     "titleLine1": "B2B 电子商务",
@@ -735,7 +737,14 @@
     "backToCatalog": "返回目录",
     "productNotFound": "产品未找到",
     "productNotFoundDesc": "您查找的产品不存在。",
-    "signUpToChat": "注册与卖家聊天"
+    "signUpToChat": "注册与卖家聊天",
+    "signInRequired": "需要登录",
+    "signInRequiredDesc": "请登录或创建账户以将商品添加到购物车并下单。",
+    "addToCart": "加入购物车",
+    "viewCart": "查看购物车",
+    "categories": "分类",
+    "allProducts": "所有产品",
+    "browseProducts": "浏览产品"
   },
   "categoryNames": {
     "construction": "建筑",
@@ -1334,5 +1343,19 @@
     "totalWeight": "总重量",
     "totalCBM": "总CBM",
     "noProductsFound": "未找到产品"
+  },
+  "profileMenu": {
+    "home": "首页",
+    "orders": "我的订单",
+    "cart": "购物车",
+    "myList": "收藏夹",
+    "invoices": "发票",
+    "contracts": "合同",
+    "chats": "聊天",
+    "support": "客服支持",
+    "profile": "账户设置",
+    "sellerDashboard": "卖家后台",
+    "adminDashboard": "管理后台",
+    "signOut": "退出登录"
   }
 }
