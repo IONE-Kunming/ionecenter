@@ -36,7 +36,7 @@ const ITEMS_PER_PAGE = 12
 
 export function CatalogGrid({
   products,
-  basePath = "/guest/product",
+  basePath = "/product",
   showSignupCta = false,
   categoryData,
 }: {

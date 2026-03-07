@@ -20,7 +20,7 @@ export default async function GuestCatalogPage() {
           {t("catalogDesc")}
         </p>
       </div>
-      <CatalogGrid products={products} basePath="/guest/product" showSignupCta categoryData={categoryData} />
+      <CatalogGrid products={products} basePath="/product" showSignupCta categoryData={categoryData} />
     </div>
   )
 }
