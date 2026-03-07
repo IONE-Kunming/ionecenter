@@ -1,8 +1,17 @@
 import { SignUp } from "@clerk/nextjs"
 import { getTranslations } from "next-intl/server"
 
-export default async function SignUpPage() {
+export default async function SignUpPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ intent?: string }>
+}) {
   const t = await getTranslations("auth")
+  const { intent } = await searchParams
+
+  const redirectUrl = intent === "seller"
+    ? "/select-role?intent=seller"
+    : "/auth-callback"
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
@@ -17,7 +26,7 @@ export default async function SignUpPage() {
           </p>
         </div>
         <SignUp
-          forceRedirectUrl="/auth-callback"
+          forceRedirectUrl={redirectUrl}
           appearance={{
             elements: {
               rootBox: "mx-auto w-full",

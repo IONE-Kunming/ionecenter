@@ -6,7 +6,9 @@
     "howItWorks": "كيف يعمل",
     "logIn": "تسجيل الدخول",
     "signUp": "إنشاء حساب",
-    "signUpFree": "سجل مجاناً"
+    "signUpFree": "سجل مجاناً",
+    "aboutUs": "من نحن",
+    "becomeSeller": "كن بائعاً"
   },
   "hero": {
     "titleLine1": "تجارة إلكترونية B2B",
@@ -736,7 +738,14 @@
     "backToCatalog": "العودة إلى الكتالوج",
     "productNotFound": "المنتج غير موجود",
     "productNotFoundDesc": "المنتج الذي تبحث عنه غير موجود.",
-    "signUpToChat": "سجّل للتواصل مع البائع"
+    "signUpToChat": "سجّل للتواصل مع البائع",
+    "signInRequired": "تسجيل الدخول مطلوب",
+    "signInRequiredDesc": "يرجى تسجيل الدخول أو إنشاء حساب لإضافة المنتجات إلى سلة التسوق وإجراء الطلبات.",
+    "addToCart": "أضف إلى السلة",
+    "viewCart": "اذهب إلى السلة",
+    "categories": "الفئات",
+    "allProducts": "جميع المنتجات",
+    "browseProducts": "تصفح المنتجات"
   },
   "categoryNames": {
     "construction": "البناء",
@@ -1335,5 +1344,19 @@
     "totalWeight": "إجمالي الوزن",
     "totalCBM": "إجمالي الحجم",
     "noProductsFound": "لم يتم العثور على منتجات"
+  },
+  "profileMenu": {
+    "home": "الرئيسية",
+    "orders": "طلباتي",
+    "cart": "السلة",
+    "myList": "قائمتي",
+    "invoices": "الفواتير",
+    "contracts": "العقود",
+    "chats": "المحادثات",
+    "support": "الدعم",
+    "profile": "إعدادات الحساب",
+    "sellerDashboard": "لوحة البائع",
+    "adminDashboard": "لوحة المدير",
+    "signOut": "تسجيل الخروج"
   }
 }

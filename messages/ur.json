@@ -6,7 +6,9 @@
     "howItWorks": "یہ کیسے کام کرتا ہے",
     "logIn": "لاگ ان",
     "signUp": "سائن اپ",
-    "signUpFree": "مفت سائن اپ"
+    "signUpFree": "مفت سائن اپ",
+    "aboutUs": "ہمارے بارے میں",
+    "becomeSeller": "بیچنے والا بنیں"
   },
   "hero": {
     "titleLine1": "B2B ای کامرس",
@@ -735,7 +737,14 @@
     "backToCatalog": "کیٹلاگ پر واپس",
     "productNotFound": "پروڈکٹ نہیں ملی",
     "productNotFoundDesc": "آپ جو پروڈکٹ تلاش کر رہے ہیں وہ موجود نہیں ہے۔",
-    "signUpToChat": "بیچنے والے سے چیٹ کرنے کے لیے سائن اپ کریں"
+    "signUpToChat": "بیچنے والے سے چیٹ کرنے کے لیے سائن اپ کریں",
+    "signInRequired": "سائن ان ضروری ہے",
+    "signInRequiredDesc": "کارٹ میں اشیاء شامل کرنے اور آرڈر دینے کے لیے برائے کرم سائن ان کریں یا اکاؤنٹ بنائیں۔",
+    "addToCart": "کارٹ میں شامل کریں",
+    "viewCart": "کارٹ دیکھیں",
+    "categories": "زمرے",
+    "allProducts": "تمام مصنوعات",
+    "browseProducts": "مصنوعات براؤز کریں"
   },
   "categoryNames": {
     "construction": "تعمیرات",
@@ -1334,5 +1343,19 @@
     "totalWeight": "کل وزن",
     "totalCBM": "کل CBM",
     "noProductsFound": "کوئی پروڈکٹ نہیں ملی"
+  },
+  "profileMenu": {
+    "home": "ہوم",
+    "orders": "میرے آرڈرز",
+    "cart": "کارٹ",
+    "myList": "میری فہرست",
+    "invoices": "انوائس",
+    "contracts": "معاہدے",
+    "chats": "چیٹس",
+    "support": "سپورٹ",
+    "profile": "اکاؤنٹ سیٹنگز",
+    "sellerDashboard": "سیلر ڈیش بورڈ",
+    "adminDashboard": "ایڈمن ڈیش بورڈ",
+    "signOut": "سائن آؤٹ"
   }
 }

@@ -6,7 +6,9 @@
     "howItWorks": "How It Works",
     "logIn": "Log In",
     "signUp": "Sign Up",
-    "signUpFree": "Sign Up Free"
+    "signUpFree": "Sign Up Free",
+    "aboutUs": "About Us",
+    "becomeSeller": "Become a Seller"
   },
   "hero": {
     "titleLine1": "B2B Ecommerce",
@@ -811,7 +813,14 @@
     "backToCatalog": "Back to Catalog",
     "productNotFound": "Product Not Found",
     "productNotFoundDesc": "The product you are looking for does not exist.",
-    "signUpToChat": "Sign Up to Chat with Seller"
+    "signUpToChat": "Sign Up to Chat with Seller",
+    "signInRequired": "Sign In Required",
+    "signInRequiredDesc": "Please sign in or create an account to add items to your cart and place orders.",
+    "addToCart": "Add to Cart",
+    "viewCart": "Go to Cart",
+    "categories": "Categories",
+    "allProducts": "All Products",
+    "browseProducts": "Browse Products"
   },
   "categoryNames": {
     "construction": "Construction",
@@ -1481,5 +1490,19 @@
     "totalWeight": "Total Weight",
     "totalCBM": "Total CBM",
     "noProductsFound": "No products found"
+  },
+  "profileMenu": {
+    "home": "Home",
+    "orders": "My Orders",
+    "cart": "Cart",
+    "myList": "My List",
+    "invoices": "Invoices",
+    "contracts": "Contracts",
+    "chats": "Chats",
+    "support": "Support",
+    "profile": "Account Settings",
+    "sellerDashboard": "Seller Dashboard",
+    "adminDashboard": "Admin Dashboard",
+    "signOut": "Sign Out"
   }
 }

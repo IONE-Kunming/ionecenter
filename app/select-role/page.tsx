@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import { ShoppingBag, Store } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,11 +9,20 @@ import { setUserRole } from "@/lib/actions/roles"
 import type { UserRole } from "@/types/database"
 import { useTranslations } from "next-intl"
 
-export default function SelectRolePage() {
+function SelectRoleContent() {
   const [selected, setSelected] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const t = useTranslations("selectRole")
+  const searchParams = useSearchParams()
+
+  // Auto-select seller if coming from "Become a Seller" flow
+  useEffect(() => {
+    const intent = searchParams.get("intent")
+    if (intent === "seller") {
+      setSelected("seller")
+    }
+  }, [searchParams])
 
   async function handleContinue() {
     if (!selected) return
@@ -23,7 +33,7 @@ export default function SelectRolePage() {
       if (selected === "seller") {
         window.location.href = "/seller/dashboard"
       } else {
-        window.location.href = "/buyer/catalog"
+        window.location.href = "/"
       }
     } else {
       setError(result.error ?? "Something went wrong")
@@ -92,5 +102,13 @@ export default function SelectRolePage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SelectRolePage() {
+  return (
+    <Suspense>
+      <SelectRoleContent />
+    </Suspense>
   )
 }
