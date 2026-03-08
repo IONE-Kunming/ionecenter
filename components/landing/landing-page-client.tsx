@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -52,7 +51,7 @@ interface LandingPageClientProps {
   userFullName?: string | null
 }
 
-const ITEMS_PER_PAGE = 16
+
 
 export function LandingPageClient({
   products,
@@ -81,7 +80,7 @@ export function LandingPageClient({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
+
   const [addingIds, setAddingIds] = useState<Set<string>>(new Set())
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
   const [cartCount, setCartCount] = useState(0)
@@ -109,13 +108,11 @@ export function LandingPageClient({
   const handleSelectCategory = (cat: string) => {
     setSelectedCategory(cat)
     setSelectedSubcategory("")
-    setCurrentPage(1)
     setSidebarOpen(false)
   }
 
   const handleSelectSubcategory = (sub: string) => {
     setSelectedSubcategory(sub)
-    setCurrentPage(1)
     setSidebarOpen(false)
   }
 
@@ -161,11 +158,6 @@ export function LandingPageClient({
     })
   }, [products, search, selectedCategory, selectedSubcategory])
 
-  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  )
 
   // Only show categories/subcategories that have products
   const visibleCategories = categoryData.mainCategories.filter((cat) =>
@@ -207,7 +199,7 @@ export function LandingPageClient({
       <nav className="flex-1 overflow-y-auto p-3">
         {/* All Products */}
         <button
-          onClick={() => { setSelectedCategory(""); setSelectedSubcategory(""); setCurrentPage(1); setSidebarOpen(false) }}
+          onClick={() => { setSelectedCategory(""); setSelectedSubcategory(""); setSidebarOpen(false) }}
           className={`w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors text-start mb-1 ${
             !selectedCategory ? "bg-accent font-medium" : "hover:bg-accent/50"
           }`}
@@ -294,7 +286,7 @@ export function LandingPageClient({
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={search}
-                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
+                onChange={(e) => { setSearch(e.target.value) }}
                 placeholder={tCommon("searchProducts")}
                 className="pl-9 h-9 rounded-full"
               />
@@ -389,7 +381,7 @@ export function LandingPageClient({
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
+              onChange={(e) => { setSearch(e.target.value) }}
               placeholder={tCommon("searchProducts")}
               className="pl-9 h-9 rounded-full"
             />
@@ -423,7 +415,7 @@ export function LandingPageClient({
           {(selectedCategory || selectedSubcategory) && (
             <div className="flex items-center gap-2 text-sm mb-4 flex-wrap">
               <button
-                onClick={() => { setSelectedCategory(""); setSelectedSubcategory(""); setCurrentPage(1) }}
+                onClick={() => { setSelectedCategory(""); setSelectedSubcategory("") }}
                 className="text-muted-foreground hover:text-foreground"
               >
                 {t("allProducts")}
@@ -432,7 +424,7 @@ export function LandingPageClient({
                 <>
                   <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
                   <button
-                    onClick={() => { setSelectedSubcategory(""); setCurrentPage(1) }}
+                    onClick={() => { setSelectedSubcategory("") }}
                     className={selectedSubcategory ? "text-muted-foreground hover:text-foreground" : "font-medium"}
                   >
                     {translateCat(selectedCategory)}
@@ -449,10 +441,9 @@ export function LandingPageClient({
           )}
 
           {/* Product grid */}
-          {paginatedProducts.length > 0 ? (
-            <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 md:gap-4">
-                {paginatedProducts.map((product) => (
+          {filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 gap-2 md:gap-3">
+              {filteredProducts.map((product) => (
                   <Card key={product.id} className="group hover:shadow-md transition-all">
                     <CardContent className="p-0">
                       <Link href={isLoggedIn && userRole === "buyer" ? `/buyer/product/${product.id}` : `/product/${product.id}`}>
@@ -463,7 +454,7 @@ export function LandingPageClient({
                               alt={product.name}
                               fill
                               className="object-contain"
-                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 17vw"
                             />
                           ) : (
                             <Package className="h-10 w-10 text-muted-foreground/30" />
@@ -500,14 +491,7 @@ export function LandingPageClient({
                     </CardContent>
                   </Card>
                 ))}
-              </div>
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                className="mt-6"
-              />
-            </>
+            </div>
           ) : (
             <EmptyState icon={Package} title={t("noProducts")} description={t("noProductsDesc")} />
           )}
