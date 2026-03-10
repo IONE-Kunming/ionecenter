@@ -18,6 +18,7 @@ export default async function BuyerCatalogPage() {
     model_number: p.model_number,
     main_category: p.main_category,
     category: p.category,
+    description: p.description,
     price_per_meter: p.price_per_meter,
     pricing_type: p.pricing_type,
     price_cny: p.price_cny,
