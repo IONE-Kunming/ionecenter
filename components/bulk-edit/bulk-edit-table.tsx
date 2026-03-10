@@ -183,12 +183,14 @@ function Toast({ message, type, onDone }: { message: string; type: "success" | "
 function CustomCategoryCell({
   value,
   onChange,
+  onFocus,
   onBlur,
   savedCategories,
   sessionCategories,
 }: {
   value: string
   onChange: (value: string) => void
+  onFocus?: () => void
   onBlur?: () => void
   savedCategories: string[]
   sessionCategories: string[]
@@ -250,7 +252,7 @@ function CustomCategoryCell({
         type="text"
         value={value}
         onChange={(e) => { setHasTypedSinceFocus(true); onChange(e.target.value) }}
-        onFocus={() => { setHasTypedSinceFocus(false); setIsFocused(true) }}
+        onFocus={() => { setHasTypedSinceFocus(false); setIsFocused(true); onFocus?.() }}
         onBlur={(e) => {
           // Don't fire onBlur if focus moved to the dropdown
           if (dropdownRef.current?.contains(e.relatedTarget as Node)) return
@@ -334,6 +336,8 @@ export function BulkEditTable({
 
   // Track product IDs with pending custom_category saves (to keep rows visible on Empty tab)
   const [pendingMyCategorySaveIds, setPendingMyCategorySaveIds] = useState<Set<string>>(new Set())
+  // Track product IDs currently being edited in the My Category cell (to keep rows visible on Empty tab while typing)
+  const [editingMyCategoryIds, setEditingMyCategoryIds] = useState<Set<string>>(new Set())
   const customCategoryTabRef = useRef(customCategoryTab)
   useEffect(() => { customCategoryTabRef.current = customCategoryTab }, [customCategoryTab])
 
@@ -360,12 +364,13 @@ export function BulkEditTable({
 
   // ─── Filtering ──────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
-    // On the Empty tab, also include products with pending my-category saves
-    // so the row stays visible until the on-blur auto-save completes
+    // On the Empty tab, also include products that are actively being edited
+    // or have pending my-category saves, so the row stays visible while typing
+    // and until the on-blur auto-save completes
     let base: BulkEditProduct[]
-    if (customCategoryTab === "empty" && pendingMyCategorySaveIds.size > 0) {
+    if (customCategoryTab === "empty" && (pendingMyCategorySaveIds.size > 0 || editingMyCategoryIds.size > 0)) {
       base = products.filter((p) =>
-        !p.custom_category || p.custom_category.trim() === "" || pendingMyCategorySaveIds.has(p.id)
+        !p.custom_category || p.custom_category.trim() === "" || pendingMyCategorySaveIds.has(p.id) || editingMyCategoryIds.has(p.id)
       )
     } else {
       base = filterByCustomCategoryTab(products, customCategoryTab)
@@ -381,7 +386,7 @@ export function BulkEditTable({
         (filter === "modified" && modifiedIds.has(p.id))
       return matchesSearch && matchesFilter
     })
-  }, [products, search, filter, modifiedIds, customCategoryTab, pendingMyCategorySaveIds])
+  }, [products, search, filter, modifiedIds, customCategoryTab, pendingMyCategorySaveIds, editingMyCategoryIds])
 
   // ─── Stats ──────────────────────────────────────────────────────────────
   const stats = useMemo(() => ({
@@ -463,7 +468,22 @@ export function BulkEditTable({
   }, [autoSaveProduct])
 
   // ─── Save My Category on blur ──────────────────────────────────────────
+  const handleMyCategoryFocus = useCallback((productId: string) => {
+    setEditingMyCategoryIds((prev) => {
+      const next = new Set(prev)
+      next.add(productId)
+      return next
+    })
+  }, [])
+
   const handleMyCategoryBlur = useCallback((productId: string) => {
+    // Remove from actively-editing set
+    setEditingMyCategoryIds((prev) => {
+      const next = new Set(prev)
+      next.delete(productId)
+      return next
+    })
+
     const product = productsRef.current.find((p) => p.id === productId)
     if (!product) return
     const orig = originalData.find((o) => o.id === productId)
@@ -550,6 +570,7 @@ export function BulkEditTable({
     autoSaveTimers.current.forEach((t) => clearTimeout(t))
     autoSaveTimers.current.clear()
     setPendingMyCategorySaveIds(new Set())
+    setEditingMyCategoryIds(new Set())
     setProducts(JSON.parse(JSON.stringify(originalData)))
     setModifiedIds(new Set())
     showToast("All changes reset")
@@ -1312,6 +1333,7 @@ export function BulkEditTable({
                           <CustomCategoryCell
                             value={product.custom_category ?? ""}
                             onChange={(v) => updateField(product.id, "custom_category", v)}
+                            onFocus={() => handleMyCategoryFocus(product.id)}
                             onBlur={() => handleMyCategoryBlur(product.id)}
                             savedCategories={savedCustomCategories}
                             sessionCategories={sessionCustomCategories}
