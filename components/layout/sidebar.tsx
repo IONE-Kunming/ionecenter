@@ -44,7 +44,7 @@ function getNavItems(role: UserRole, t: TranslationFn): NavItem[] {
       { label: t("dashboard"), href: "/buyer/dashboard", icon: LayoutDashboard },
       { label: t("categories"), href: "/buyer/categories", icon: FolderTree },
       { label: t("catalog"), href: "/buyer/catalog", icon: Package },
-      { label: t("allProducts"), href: "/buyer/all-products", icon: Package },
+      { label: t("allProducts"), href: "/buyer/all-products", icon: ClipboardList },
       { label: t("myList"), href: "/buyer/my-list", icon: Heart },
       { label: t("cart"), href: "/buyer/cart", icon: ShoppingCart },
       { label: t("orders"), href: "/buyer/orders", icon: FileText },
