@@ -1150,8 +1150,8 @@ export function BulkEditTable({
         />
       )}
 
-      {/* Table */}
-      <div className="rounded-b-lg border border-t-0 bg-card overflow-x-auto -mt-5">
+      {/* Table – max-h accounts for page header, toolbar, tabs, and spacing above */}
+      <div className="rounded-b-lg border border-t-0 bg-card overflow-auto max-h-[calc(100vh-280px)] -mt-5">
         {filtered.length === 0 ? (
           <div className="py-16 text-center text-muted-foreground">
             <Package className="h-10 w-10 mx-auto mb-3 opacity-30" />
@@ -1159,8 +1159,8 @@ export function BulkEditTable({
           </div>
         ) : (
           <table ref={tableRef} className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50">
+            <thead className="sticky top-0 z-10">
+              <tr className="border-b bg-muted">
                 <th className="px-4 py-3 w-10">
                   <input
                     type="checkbox"
