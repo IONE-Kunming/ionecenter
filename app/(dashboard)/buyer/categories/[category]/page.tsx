@@ -1,0 +1,46 @@
+import { getProducts } from "@/lib/actions/products"
+import { getWishlistProductIds } from "@/lib/actions/wishlist"
+import { getSiteCategories } from "@/lib/actions/site-settings"
+import { buildCategoryData } from "@/lib/categories"
+import { SubcategoriesClient } from "./subcategories-client"
+
+export default async function BuyerSubcategoriesPage({
+  params,
+}: {
+  params: Promise<{ category: string }>
+}) {
+  const { category } = await params
+  const categoryName = decodeURIComponent(category)
+
+  const [products, siteCategories, wishlistedIds] = await Promise.all([
+    getProducts(),
+    getSiteCategories(),
+    getWishlistProductIds(),
+  ])
+
+  const categoryData = buildCategoryData(siteCategories)
+
+  const mapped = products.map((p) => ({
+    id: p.id,
+    name: p.name,
+    model_number: p.model_number,
+    main_category: p.main_category,
+    category: p.category,
+    price_per_meter: p.price_per_meter,
+    pricing_type: p.pricing_type,
+    price_cny: p.price_cny,
+    stock: p.stock,
+    seller_id: p.seller_id,
+    seller_name: p.seller_name ?? "Unknown",
+    image_url: p.image_url ?? null,
+  }))
+
+  return (
+    <SubcategoriesClient
+      categoryName={categoryName}
+      products={mapped}
+      categoryData={categoryData}
+      wishlistedIds={wishlistedIds}
+    />
+  )
+}

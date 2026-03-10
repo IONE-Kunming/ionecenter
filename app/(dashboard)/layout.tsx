@@ -34,13 +34,16 @@ export default async function DashboardLayout({
   const isBuyer = role === "buyer"
 
   if (isBuyer) {
-    // Buyer layout: no sidebar, buyer-specific header
+    // Buyer layout: sidebar + buyer-specific header
     return (
       <div className="min-h-screen">
-        <PageTitleProvider>
-          <BuyerDashboardHeader />
-          <main className="p-4 md:p-6">{children}</main>
-        </PageTitleProvider>
+        <Sidebar role={role} />
+        <div className="md:ms-64">
+          <PageTitleProvider>
+            <BuyerDashboardHeader />
+            <main className="p-4 md:p-6">{children}</main>
+          </PageTitleProvider>
+        </div>
       </div>
     )
   }
