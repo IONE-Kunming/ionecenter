@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react"
 import Image from "next/image"
 import {
-  Save, Upload, Download, Search, FileSpreadsheet,
+  Upload, Download, Search, FileSpreadsheet,
   RotateCcw, Package, Trash2, GripVertical,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -62,6 +62,10 @@ export interface ImportRow {
 }
 
 type FilterMode = "all" | "available" | "unavailable" | "modified"
+
+// ─── Auto-save constants ─────────────────────────────────────────────────────
+const AUTO_SAVE_DEBOUNCE_MS = 1000
+const SAVED_INDICATOR_DURATION_MS = 2000
 
 // ─── Column definitions for reorderable data columns ────────────────────────
 type BulkEditColumnKey = "product" | "name" | "model_number" | "category" | "custom_category" | "price" | "stock" | "availability"
@@ -257,11 +261,12 @@ export function BulkEditTable({
   const tCommon = useTranslations("common")
 
   const [products, setProducts] = useState<BulkEditProduct[]>(initialProducts)
-  const [originalData] = useState<BulkEditProduct[]>(() => JSON.parse(JSON.stringify(initialProducts)))
+  const [originalData, setOriginalData] = useState<BulkEditProduct[]>(() => JSON.parse(JSON.stringify(initialProducts)))
   const [modifiedIds, setModifiedIds] = useState<Set<string>>(new Set())
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<FilterMode>("all")
   const [saving, setSaving] = useState(false)
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved">("idle")
   const [importing, setImporting] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [importResult, setImportResult] = useState<string | null>(null)
@@ -277,6 +282,18 @@ export function BulkEditTable({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
   const toastCounter = useRef(0)
+  const autoSaveTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+  const savedIndicatorTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const productsRef = useRef(products)
+  useEffect(() => { productsRef.current = products }, [products])
+
+  // Cleanup auto-save timers on unmount
+  useEffect(() => {
+    return () => {
+      autoSaveTimers.current.forEach((t) => clearTimeout(t))
+      if (savedIndicatorTimer.current) clearTimeout(savedIndicatorTimer.current)
+    }
+  }, [])
 
   // ─── Drag-and-drop reordering ───────────────────────────────────────────
   const defaultColumns = useCustomCategory ? CUSTOM_CATEGORY_BULK_COLUMNS : DEFAULT_BULK_COLUMNS
@@ -324,6 +341,64 @@ export function BulkEditTable({
     setToasts((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
+  // ─── Auto-save helpers ──────────────────────────────────────────────────
+  const isProductChanged = useCallback((orig: BulkEditProduct, current: BulkEditProduct) => {
+    return (
+      orig.name !== current.name ||
+      orig.model_number !== current.model_number ||
+      orig.category !== current.category ||
+      orig.main_category !== current.main_category ||
+      (orig.custom_category ?? "") !== (current.custom_category ?? "") ||
+      orig.price_usd !== current.price_usd ||
+      (orig.price_cny ?? 0) !== (current.price_cny ?? 0) ||
+      orig.stock !== current.stock ||
+      orig.is_active !== current.is_active
+    )
+  }, [])
+
+  const autoSaveProduct = useCallback(async (productId: string) => {
+    const product = productsRef.current.find((p) => p.id === productId)
+    if (!product) return
+
+    const snapshot: BulkEditProduct = JSON.parse(JSON.stringify(product))
+    setAutoSaveStatus("saving")
+    setSaving(true)
+    try {
+      const result = await onSave([snapshot])
+      if (result.error) {
+        showToast(`Error saving: ${result.error}`, "error")
+      } else {
+        // Update original data with saved snapshot
+        setOriginalData((prev) => prev.map((p) => p.id === productId ? snapshot : p))
+        // Re-check if current state still differs from saved snapshot
+        const current = productsRef.current.find((p) => p.id === productId)
+        if (current && !isProductChanged(snapshot, current)) {
+          setModifiedIds((prev) => {
+            const next = new Set(prev)
+            next.delete(productId)
+            return next
+          })
+        }
+        setAutoSaveStatus("saved")
+        if (savedIndicatorTimer.current) clearTimeout(savedIndicatorTimer.current)
+        savedIndicatorTimer.current = setTimeout(() => setAutoSaveStatus("idle"), SAVED_INDICATOR_DURATION_MS)
+      }
+    } catch {
+      showToast("Failed to auto-save", "error")
+    }
+    setSaving(false)
+  }, [onSave, showToast, isProductChanged])
+
+  const scheduleAutoSave = useCallback((productId: string) => {
+    const existing = autoSaveTimers.current.get(productId)
+    if (existing) clearTimeout(existing)
+    const timer = setTimeout(() => {
+      autoSaveTimers.current.delete(productId)
+      autoSaveProduct(productId)
+    }, AUTO_SAVE_DEBOUNCE_MS)
+    autoSaveTimers.current.set(productId, timer)
+  }, [autoSaveProduct])
+
   // ─── Field updates ─────────────────────────────────────────────────────
   const updateField = useCallback((id: string, field: keyof BulkEditProduct, value: string | number | boolean) => {
     setProducts((prev) => prev.map((p) => {
@@ -339,27 +414,23 @@ export function BulkEditTable({
       if (!orig || !current) return next
 
       const updatedProduct = { ...current, [field]: value }
-      const changed =
-        orig.name !== updatedProduct.name ||
-        orig.model_number !== updatedProduct.model_number ||
-        orig.category !== updatedProduct.category ||
-        orig.main_category !== updatedProduct.main_category ||
-        (orig.custom_category ?? "") !== (updatedProduct.custom_category ?? "") ||
-        orig.price_usd !== updatedProduct.price_usd ||
-        (orig.price_cny ?? 0) !== (updatedProduct.price_cny ?? 0) ||
-        orig.stock !== updatedProduct.stock ||
-        orig.is_active !== updatedProduct.is_active
-
-      if (changed) next.add(id)
+      if (isProductChanged(orig, updatedProduct)) next.add(id)
       else next.delete(id)
       return next
     })
-  }, [originalData, products])
+    scheduleAutoSave(id)
+  }, [originalData, products, isProductChanged, scheduleAutoSave])
 
   // ─── Revert row ────────────────────────────────────────────────────────
   const revertRow = useCallback((id: string) => {
     const orig = originalData.find((o) => o.id === id)
     if (!orig) return
+    // Cancel any pending auto-save for this row
+    const pendingTimer = autoSaveTimers.current.get(id)
+    if (pendingTimer) {
+      clearTimeout(pendingTimer)
+      autoSaveTimers.current.delete(id)
+    }
     setProducts((prev) => prev.map((p) => p.id === id ? { ...JSON.parse(JSON.stringify(orig)) } : p))
     setModifiedIds((prev) => {
       const next = new Set(prev)
@@ -371,28 +442,13 @@ export function BulkEditTable({
 
   // ─── Reset all ─────────────────────────────────────────────────────────
   const resetAll = useCallback(() => {
+    // Cancel all pending auto-save timers
+    autoSaveTimers.current.forEach((t) => clearTimeout(t))
+    autoSaveTimers.current.clear()
     setProducts(JSON.parse(JSON.stringify(originalData)))
     setModifiedIds(new Set())
     showToast("All changes reset")
   }, [originalData, showToast])
-
-  // ─── Save ──────────────────────────────────────────────────────────────
-  const handleSave = useCallback(async () => {
-    setSaving(true)
-    try {
-      const result = await onSave(products)
-      if (result.error) {
-        showToast(`Error: ${result.error}`, "error")
-      } else {
-        showToast(`✓ ${products.length} products saved`)
-        setModifiedIds(new Set())
-        window.location.reload()
-      }
-    } catch {
-      showToast("Failed to save changes", "error")
-    }
-    setSaving(false)
-  }, [products, onSave, showToast])
 
   // ─── Import ────────────────────────────────────────────────────────────
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -870,7 +926,19 @@ export function BulkEditTable({
                 <Trash2 className="h-3.5 w-3.5 mr-1.5" /> {deleting ? "Deleting..." : `Delete (${selectedIds.size})`}
               </Button>
             )}
-            {modifiedIds.size > 0 && (
+            {autoSaveStatus === "saving" && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                Saving...
+              </div>
+            )}
+            {autoSaveStatus === "saved" && (
+              <div className="flex items-center gap-2 text-xs text-green-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                Saved ✓
+              </div>
+            )}
+            {modifiedIds.size > 0 && autoSaveStatus !== "saving" && (
               <div className="flex items-center gap-2 text-xs text-yellow-500">
                 <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 animate-pulse" />
                 Unsaved changes
@@ -878,9 +946,6 @@ export function BulkEditTable({
             )}
             <Button variant="outline" size="sm" onClick={resetAll}>
               <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> Reset
-            </Button>
-            <Button size="sm" onClick={handleSave} disabled={saving || modifiedIds.size === 0}>
-              <Save className="h-3.5 w-3.5 mr-1.5" /> {saving ? tCommon("saving") : t("saveAll")}
             </Button>
           </div>
         </div>
@@ -1094,6 +1159,7 @@ export function BulkEditTable({
                                 }
                                 return next
                               })
+                              scheduleAutoSave(product.id)
                             }}
                             className="w-full min-w-[140px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors cursor-pointer"
                           >
