@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/layout/sidebar"
 import { DashboardHeader } from "@/components/layout/dashboard-header"
 import { BuyerDashboardHeader } from "@/components/layout/buyer-dashboard-header"
 import { PageTitleProvider } from "@/components/layout/page-title-context"
+import { ProductsPageHeaderProvider } from "@/components/layout/products-page-context"
 import { ensureUserInSupabase, getCurrentUser } from "@/lib/actions/users"
 import type { UserRole } from "@/types/database"
 
@@ -50,8 +51,10 @@ export default async function DashboardLayout({
       <Sidebar role={role} />
       <div className="md:ms-64">
         <PageTitleProvider>
-          <DashboardHeader />
-          <main className="p-6">{children}</main>
+          <ProductsPageHeaderProvider>
+            <DashboardHeader />
+            <main className="p-6">{children}</main>
+          </ProductsPageHeaderProvider>
         </PageTitleProvider>
       </div>
     </div>
