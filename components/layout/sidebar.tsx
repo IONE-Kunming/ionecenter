@@ -42,7 +42,6 @@ function getNavItems(role: UserRole, t: TranslationFn): NavItem[] {
   if (role === "buyer") {
     return [
       { label: t("dashboard"), href: "/buyer/dashboard", icon: LayoutDashboard },
-      { label: t("categories"), href: "/buyer/categories", icon: FolderTree },
       { label: t("catalog"), href: "/buyer/catalog", icon: Package },
       { label: t("allProducts"), href: "/buyer/all-products", icon: ClipboardList },
       { label: t("myList"), href: "/buyer/my-list", icon: Heart },
