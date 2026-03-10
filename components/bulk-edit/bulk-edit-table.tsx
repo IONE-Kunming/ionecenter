@@ -44,6 +44,7 @@ interface BulkEditTableProps {
   subtitle?: string
   categoryData: CategoryData
   useCustomCategory?: boolean
+  savedCustomCategories?: string[]
 }
 
 export interface ImportRow {
@@ -172,6 +173,74 @@ function Toast({ message, type, onDone }: { message: string; type: "success" | "
   )
 }
 
+// ─── Custom Category Autocomplete Cell ──────────────────────────────────────
+function CustomCategoryCell({
+  value,
+  onChange,
+  savedCategories,
+  sessionCategories,
+}: {
+  value: string
+  onChange: (value: string) => void
+  savedCategories: string[]
+  sessionCategories: string[]
+}) {
+  const [isFocused, setIsFocused] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsFocused(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const suggestions = useMemo(() => {
+    const all = new Set<string>()
+    for (const v of savedCategories) if (v) all.add(v)
+    for (const v of sessionCategories) if (v) all.add(v)
+    const sorted = [...all].sort((a, b) => a.localeCompare(b))
+    if (!value.trim()) return sorted
+    const q = value.toLowerCase()
+    return sorted.filter((s) => s.toLowerCase().includes(q) && s.toLowerCase() !== q)
+  }, [savedCategories, sessionCategories, value])
+
+  const showDropdown = isFocused && suggestions.length > 0
+
+  return (
+    <div ref={containerRef} className="relative">
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={() => setIsFocused(true)}
+        className="w-full min-w-[140px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
+      />
+      {showDropdown && (
+        <div className="absolute top-full left-0 right-0 z-50 mt-0.5 max-h-48 overflow-y-auto rounded-md border bg-popover shadow-lg">
+          {suggestions.map((s) => (
+            <button
+              key={s}
+              type="button"
+              className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent cursor-pointer transition-colors truncate"
+              onMouseDown={(e) => {
+                e.preventDefault()
+                onChange(s)
+                setIsFocused(false)
+              }}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Component ─────────────────────────────────────────────────────────
 export function BulkEditTable({
   initialProducts,
@@ -182,6 +251,7 @@ export function BulkEditTable({
   subtitle = "PRODUCT MANAGEMENT — INLINE EDITOR",
   categoryData,
   useCustomCategory = false,
+  savedCustomCategories = [],
 }: BulkEditTableProps) {
   const t = useTranslations("bulkEdit")
   const tCommon = useTranslations("common")
@@ -215,6 +285,11 @@ export function BulkEditTable({
   const [dragOverCol, setDragOverCol] = useState<number | null>(null)
   const [draggedRow, setDraggedRow] = useState<number | null>(null)
   const [dragOverRow, setDragOverRow] = useState<number | null>(null)
+
+  // ─── Session custom categories (from all rows in current edit session) ───
+  const sessionCustomCategories = useMemo(() => {
+    return products.map((p) => p.custom_category ?? "").filter(Boolean)
+  }, [products])
 
   // ─── Filtering ──────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -1032,11 +1107,11 @@ export function BulkEditTable({
                           </select>
                         )}
                         {col.key === "custom_category" && (
-                          <input
-                            type="text"
+                          <CustomCategoryCell
                             value={product.custom_category ?? ""}
-                            onChange={(e) => updateField(product.id, "custom_category", e.target.value)}
-                            className="w-full min-w-[140px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
+                            onChange={(v) => updateField(product.id, "custom_category", v)}
+                            savedCategories={savedCustomCategories}
+                            sessionCategories={sessionCustomCategories}
                           />
                         )}
                         {col.key === "price" && (
