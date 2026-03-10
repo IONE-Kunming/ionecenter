@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
-import { Package, Plus, Search, Upload, Download, Pencil, Trash2, FileSpreadsheet } from "lucide-react"
+import { Package, Plus, Upload, Download, Pencil, Trash2, FileSpreadsheet } from "lucide-react"
 import { useTranslations } from "next-intl"
 import readXlsxFile from "read-excel-file"
 import { Card, CardContent } from "@/components/ui/card"
@@ -26,6 +26,7 @@ import { getCategoryIndex, getSubcategoryIndex } from "@/lib/sku"
 import type { Product } from "@/types/database"
 import type { PricingType } from "@/types/database"
 import { useExchangeRate, usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
+import { ProductSearchDropdown } from "@/components/product-search-dropdown"
 
 /** Upload a product image directly to Supabase Storage via signed URL (fast path). Falls back to server action. */
 async function uploadProductImageDirect(file: File): Promise<string | null> {
@@ -114,7 +115,7 @@ function downloadTemplate() {
   URL.revokeObjectURL(url)
 }
 
-export function SellerProductsList({ initialProducts, initialSearch = "", categoryData, wishlistedIds = [] }: { initialProducts: Product[]; initialSearch?: string; categoryData: CategoryData; wishlistedIds?: string[] }) {
+export function SellerProductsList({ initialProducts, initialSearch = "", initialEditId = "", categoryData, wishlistedIds = [] }: { initialProducts: Product[]; initialSearch?: string; initialEditId?: string; categoryData: CategoryData; wishlistedIds?: string[] }) {
   const t = useTranslations("sellerProducts")
   const tCommon = useTranslations("common")
   const tBulk = useTranslations("bulkEdit")
@@ -177,6 +178,15 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
     setEditImage(null)
     setEditImagePreview(product.image_url || null)
   }
+
+  // Auto-open edit modal if initialEditId is provided
+  useEffect(() => {
+    if (initialEditId) {
+      const product = initialProducts.find((p) => p.id === initialEditId)
+      if (product) openEdit(product)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialEditId])
 
   const handleEditSave = async () => {
     if (!editProduct) return
@@ -440,7 +450,8 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   }
 
   const filtered = products.filter((p) => {
-    const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.model_number.toLowerCase().includes(search.toLowerCase())
+    const q = search.toLowerCase()
+    const matchSearch = !search || p.name.toLowerCase().includes(q) || p.model_number.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || p.main_category.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q))
     const matchCategory = !categoryFilter || p.main_category === categoryFilter
     return matchSearch && matchCategory
   })
@@ -448,10 +459,13 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchProducts")} className="pl-9" />
-        </div>
+        <ProductSearchDropdown
+          products={products}
+          search={search}
+          onSearchChange={setSearch}
+          onSelect={(product) => { window.location.href = `/seller/products/${product.id}` }}
+          placeholder={tCommon("searchProducts")}
+        />
         <Button onClick={() => setShowAddModal(true)} className="gap-2"><Plus className="h-4 w-4" /> {t("addProduct")}</Button>
         <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2"><Upload className="h-4 w-4" /> {tBulk("bulkImport")}</Button>
       </div>
