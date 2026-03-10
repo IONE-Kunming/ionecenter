@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react"
+import { createPortal } from "react-dom"
 import Image from "next/image"
 import {
   Save, Upload, Download, Search, FileSpreadsheet,
@@ -187,16 +188,39 @@ function CustomCategoryCell({
 }) {
   const [isFocused, setIsFocused] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 })
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current && !containerRef.current.contains(e.target as Node) &&
+        (!dropdownRef.current || !dropdownRef.current.contains(e.target as Node))
+      ) {
         setIsFocused(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
+
+  useEffect(() => {
+    if (!isFocused || !inputRef.current) return
+    const rect = inputRef.current.getBoundingClientRect()
+    setDropdownPos({ top: rect.bottom + 2, left: rect.left, width: rect.width })
+
+    const scrollParent = containerRef.current?.closest(".overflow-x-auto")
+    const dismiss = () => setIsFocused(false)
+    scrollParent?.addEventListener("scroll", dismiss)
+    window.addEventListener("scroll", dismiss)
+    window.addEventListener("resize", dismiss)
+    return () => {
+      scrollParent?.removeEventListener("scroll", dismiss)
+      window.removeEventListener("scroll", dismiss)
+      window.removeEventListener("resize", dismiss)
+    }
+  }, [isFocused])
 
   const suggestions = useMemo(() => {
     const all = new Set<string>()
@@ -213,14 +237,19 @@ function CustomCategoryCell({
   return (
     <div ref={containerRef} className="relative">
       <input
+        ref={inputRef}
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setIsFocused(true)}
         className="w-full min-w-[140px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
       />
-      {showDropdown && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-0.5 max-h-48 overflow-y-auto rounded-md border bg-popover shadow-lg">
+      {showDropdown && createPortal(
+        <div
+          ref={dropdownRef}
+          className="fixed z-50 max-h-[200px] overflow-y-auto rounded-md border bg-popover shadow-lg"
+          style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
+        >
           {suggestions.map((s) => (
             <button
               key={s}
@@ -235,7 +264,8 @@ function CustomCategoryCell({
               {s}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
