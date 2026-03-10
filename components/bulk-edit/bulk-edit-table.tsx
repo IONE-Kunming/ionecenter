@@ -17,6 +17,7 @@ import { ImportPreview } from "./import-preview"
 import { uploadProductImage } from "@/lib/actions/products"
 import type { CategoryData } from "@/lib/categories"
 import { getSubcategoriesFromData, isMainCategoryInData, getMainCategoryForSubcategoryInData } from "@/lib/categories"
+import { CustomCategoryTabs, filterByCustomCategoryTab, type CustomCategoryTab } from "@/components/custom-category-tabs"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface BulkEditProduct {
@@ -274,6 +275,7 @@ export function BulkEditTable({
   const [showPreview, setShowPreview] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [currencyMode, setCurrencyMode] = useState<CurrencyMode>("usd")
+  const [customCategoryTab, setCustomCategoryTab] = useState<CustomCategoryTab>("all")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
   const toastCounter = useRef(0)
@@ -293,7 +295,7 @@ export function BulkEditTable({
 
   // ─── Filtering ──────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
-    return products.filter((p) => {
+    return filterByCustomCategoryTab(products, customCategoryTab).filter((p) => {
       const matchesSearch = !search ||
         p.name.toLowerCase().includes(search.toLowerCase()) ||
         p.model_number.toLowerCase().includes(search.toLowerCase()) ||
@@ -304,7 +306,7 @@ export function BulkEditTable({
         (filter === "modified" && modifiedIds.has(p.id))
       return matchesSearch && matchesFilter
     })
-  }, [products, search, filter, modifiedIds])
+  }, [products, search, filter, modifiedIds, customCategoryTab])
 
   // ─── Stats ──────────────────────────────────────────────────────────────
   const stats = useMemo(() => ({
@@ -933,6 +935,16 @@ export function BulkEditTable({
         </Button>
         <span className="text-xs text-muted-foreground">{filtered.length} of {products.length}</span>
       </div>
+
+      {/* Custom category tabs */}
+      {useCustomCategory && (
+        <CustomCategoryTabs
+          products={products}
+          activeTab={customCategoryTab}
+          onTabChange={setCustomCategoryTab}
+          className="-mt-5 rounded-none border border-t-0 bg-card px-3"
+        />
+      )}
 
       {/* Table */}
       <div className="rounded-b-lg border border-t-0 bg-card overflow-x-auto -mt-5">

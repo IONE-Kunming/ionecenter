@@ -28,6 +28,7 @@ import type { PricingType } from "@/types/database"
 import { useExchangeRate, usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
 import { matchesProductSearch } from "@/components/product-search-dropdown"
 import { useProductsPageHeader } from "@/components/layout/products-page-context"
+import { CustomCategoryTabs, filterByCustomCategoryTab, type CustomCategoryTab } from "@/components/custom-category-tabs"
 
 /** Upload a product image directly to Supabase Storage via signed URL (fast path). Falls back to server action. */
 async function uploadProductImageDirect(file: File): Promise<string | null> {
@@ -132,6 +133,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
     setOnProductClick,
   } = useProductsPageHeader()
   const [categoryFilter] = useState("")
+  const [customCategoryTab, setCustomCategoryTab] = useState<CustomCategoryTab>("all")
   const [showAddModal, setShowAddModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -479,7 +481,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
     setImporting(false)
   }
 
-  const filtered = products.filter((p) => {
+  const filtered = filterByCustomCategoryTab(products, customCategoryTab).filter((p) => {
     const matchSearch = matchesProductSearch(p, search)
     const matchCategory = !categoryFilter || p.main_category === categoryFilter
     return matchSearch && matchCategory
@@ -487,6 +489,13 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
 
   return (
     <div>
+      {/* Custom category tabs bar */}
+      <CustomCategoryTabs
+        products={products}
+        activeTab={customCategoryTab}
+        onTabChange={setCustomCategoryTab}
+        className="mb-4"
+      />
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((product) => {
