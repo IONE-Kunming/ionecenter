@@ -271,6 +271,7 @@ function CustomCategoryCell({
               type="button"
               className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent cursor-pointer transition-colors truncate"
               onMouseDown={(e) => {
+                // preventDefault keeps focus on the input, so native onBlur won't fire
                 e.preventDefault()
                 onChange(s)
                 setIsFocused(false)
