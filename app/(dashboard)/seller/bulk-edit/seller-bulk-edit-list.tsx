@@ -45,6 +45,7 @@ export function SellerBulkEditList({ initialProducts, categoryData }: { initialP
       subtitle={t("bulkEditSubtitle")}
       categoryData={categoryData}
       useCustomCategory
+      autoSave
     />
   )
 }

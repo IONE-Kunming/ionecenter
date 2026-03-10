@@ -44,6 +44,7 @@ interface BulkEditTableProps {
   subtitle?: string
   categoryData: CategoryData
   useCustomCategory?: boolean
+  autoSave?: boolean
 }
 
 export interface ImportRow {
@@ -182,12 +183,13 @@ export function BulkEditTable({
   subtitle = "PRODUCT MANAGEMENT — INLINE EDITOR",
   categoryData,
   useCustomCategory = false,
+  autoSave = false,
 }: BulkEditTableProps) {
   const t = useTranslations("bulkEdit")
   const tCommon = useTranslations("common")
 
   const [products, setProducts] = useState<BulkEditProduct[]>(initialProducts)
-  const [originalData] = useState<BulkEditProduct[]>(() => JSON.parse(JSON.stringify(initialProducts)))
+  const [originalData, setOriginalData] = useState<BulkEditProduct[]>(() => JSON.parse(JSON.stringify(initialProducts)))
   const [modifiedIds, setModifiedIds] = useState<Set<string>>(new Set())
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<FilterMode>("all")
@@ -207,6 +209,14 @@ export function BulkEditTable({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
   const toastCounter = useRef(0)
+
+  // ─── Auto-save state ──────────────────────────────────────────────────
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved">("idle")
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const productsRef = useRef(products)
+  productsRef.current = products
+  const modifiedIdsRef = useRef(modifiedIds)
+  modifiedIdsRef.current = modifiedIds
 
   // ─── Drag-and-drop reordering ───────────────────────────────────────────
   const defaultColumns = useCustomCategory ? CUSTOM_CATEGORY_BULK_COLUMNS : DEFAULT_BULK_COLUMNS
@@ -296,10 +306,15 @@ export function BulkEditTable({
 
   // ─── Reset all ─────────────────────────────────────────────────────────
   const resetAll = useCallback(() => {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current)
+      autoSaveTimerRef.current = null
+    }
     setProducts(JSON.parse(JSON.stringify(originalData)))
     setModifiedIds(new Set())
+    if (autoSave) setAutoSaveStatus("idle")
     showToast("All changes reset")
-  }, [originalData, showToast])
+  }, [originalData, showToast, autoSave])
 
   // ─── Save ──────────────────────────────────────────────────────────────
   const handleSave = useCallback(async () => {
@@ -318,6 +333,76 @@ export function BulkEditTable({
     }
     setSaving(false)
   }, [products, onSave, showToast])
+
+  // ─── Auto-save ────────────────────────────────────────────────────────
+  const performAutoSave = useCallback(async () => {
+    const ids = new Set(modifiedIdsRef.current)
+    if (ids.size === 0) return
+
+    const toSave = productsRef.current.filter((p) => ids.has(p.id))
+    if (toSave.length === 0) return
+
+    const snapshot = new Map(
+      toSave.map((p) => [p.id, JSON.parse(JSON.stringify(p)) as BulkEditProduct])
+    )
+
+    setAutoSaveStatus("saving")
+    try {
+      const result = await onSave(toSave)
+      if (result.error) {
+        showToast(`Error: ${result.error}`, "error")
+        setAutoSaveStatus("idle")
+      } else {
+        setOriginalData((prev) =>
+          prev.map((o) => (snapshot.has(o.id) ? snapshot.get(o.id)! : o))
+        )
+        setModifiedIds((prev) => {
+          const next = new Set(prev)
+          for (const [id, saved] of snapshot) {
+            const current = productsRef.current.find((p) => p.id === id)
+            if (
+              current &&
+              current.name === saved.name &&
+              current.model_number === saved.model_number &&
+              current.category === saved.category &&
+              current.main_category === saved.main_category &&
+              (current.custom_category ?? "") === (saved.custom_category ?? "") &&
+              current.price_usd === saved.price_usd &&
+              (current.price_cny ?? 0) === (saved.price_cny ?? 0) &&
+              current.stock === saved.stock &&
+              current.is_active === saved.is_active
+            ) {
+              next.delete(id)
+            }
+          }
+          return next
+        })
+        setAutoSaveStatus("saved")
+        setTimeout(() => setAutoSaveStatus((s) => (s === "saved" ? "idle" : s)), 2000)
+      }
+    } catch {
+      showToast("Failed to save changes", "error")
+      setAutoSaveStatus("idle")
+    }
+  }, [onSave, showToast])
+
+  const performAutoSaveRef = useRef(performAutoSave)
+  performAutoSaveRef.current = performAutoSave
+
+  useEffect(() => {
+    if (!autoSave || modifiedIds.size === 0) return
+
+    autoSaveTimerRef.current = setTimeout(() => {
+      performAutoSaveRef.current()
+    }, 1000)
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current)
+        autoSaveTimerRef.current = null
+      }
+    }
+  }, [autoSave, modifiedIds])
 
   // ─── Import ────────────────────────────────────────────────────────────
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -787,18 +872,45 @@ export function BulkEditTable({
               <Trash2 className="h-3.5 w-3.5 mr-1.5" /> {deleting ? "Deleting..." : `Delete (${selectedIds.size})`}
             </Button>
           )}
-          {modifiedIds.size > 0 && (
-            <div className="flex items-center gap-2 text-xs text-yellow-500">
-              <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 animate-pulse" />
-              Unsaved changes
-            </div>
+          {autoSave ? (
+            <>
+              {autoSaveStatus === "saving" && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                  Saving...
+                </div>
+              )}
+              {autoSaveStatus === "saved" && (
+                <div className="flex items-center gap-2 text-xs text-green-500">
+                  Saved ✓
+                </div>
+              )}
+              {modifiedIds.size > 0 && autoSaveStatus !== "saving" && (
+                <div className="flex items-center gap-2 text-xs text-yellow-500">
+                  <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 animate-pulse" />
+                  Unsaved changes
+                </div>
+              )}
+              <Button variant="outline" size="sm" onClick={resetAll}>
+                <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> Reset
+              </Button>
+            </>
+          ) : (
+            <>
+              {modifiedIds.size > 0 && (
+                <div className="flex items-center gap-2 text-xs text-yellow-500">
+                  <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 animate-pulse" />
+                  Unsaved changes
+                </div>
+              )}
+              <Button variant="outline" size="sm" onClick={resetAll}>
+                <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> Reset
+              </Button>
+              <Button size="sm" onClick={handleSave} disabled={saving || modifiedIds.size === 0}>
+                <Save className="h-3.5 w-3.5 mr-1.5" /> {saving ? tCommon("saving") : t("saveAll")}
+              </Button>
+            </>
           )}
-          <Button variant="outline" size="sm" onClick={resetAll}>
-            <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> Reset
-          </Button>
-          <Button size="sm" onClick={handleSave} disabled={saving || modifiedIds.size === 0}>
-            <Save className="h-3.5 w-3.5 mr-1.5" /> {saving ? tCommon("saving") : t("saveAll")}
-          </Button>
         </div>
       </div>
 
