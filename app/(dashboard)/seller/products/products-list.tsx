@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import Image from "next/image"
-import { Package, Plus, Upload, Download, Pencil, Trash2, FileSpreadsheet } from "lucide-react"
+import { Package, Download, Pencil, Trash2, FileSpreadsheet } from "lucide-react"
 import { useTranslations } from "next-intl"
 import readXlsxFile from "read-excel-file"
 import { Card, CardContent } from "@/components/ui/card"
@@ -26,7 +26,8 @@ import { getCategoryIndex, getSubcategoryIndex } from "@/lib/sku"
 import type { Product } from "@/types/database"
 import type { PricingType } from "@/types/database"
 import { useExchangeRate, usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
-import { ProductSearchDropdown, matchesProductSearch } from "@/components/product-search-dropdown"
+import { matchesProductSearch } from "@/components/product-search-dropdown"
+import { useProductsPageHeader } from "@/components/layout/products-page-context"
 
 /** Upload a product image directly to Supabase Storage via signed URL (fast path). Falls back to server action. */
 async function uploadProductImageDirect(file: File): Promise<string | null> {
@@ -121,7 +122,15 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   const tBulk = useTranslations("bulkEdit")
   const { rate: exchangeRate, isLive: isLiveRate } = useExchangeRate()
   const [products, setProducts] = useState(initialProducts)
-  const [search, setSearch] = useState(initialSearch)
+  const {
+    search,
+    setSearch: ctxSetSearch,
+    registerProducts,
+    unregisterProducts,
+    setOnAddProduct,
+    setOnBulkImport,
+    setOnProductClick,
+  } = useProductsPageHeader()
   const [categoryFilter] = useState("")
   const [showAddModal, setShowAddModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
@@ -161,7 +170,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  const openEdit = (product: Product) => {
+  const openEdit = useCallback((product: Product) => {
     setEditProduct(product)
     setEditForm({
       name: product.name,
@@ -177,7 +186,37 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
     setEditCategory(product.main_category)
     setEditImage(null)
     setEditImagePreview(product.image_url || null)
-  }
+  }, [])
+
+  // Register products and callbacks with the header context
+  useEffect(() => {
+    registerProducts(products)
+  }, [products, registerProducts])
+
+  useEffect(() => {
+    if (initialSearch) ctxSetSearch(initialSearch)
+    return () => {
+      unregisterProducts()
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- mount/unmount only
+
+  const handleOpenAdd = useCallback(() => setShowAddModal(true), [])
+  const handleOpenImport = useCallback(() => setShowImportModal(true), [])
+  const handleProductClick = useCallback((productId: string) => {
+    const product = products.find((p) => p.id === productId)
+    if (product) openEdit(product)
+  }, [products, openEdit])
+
+  useEffect(() => {
+    setOnAddProduct(handleOpenAdd)
+    setOnBulkImport(handleOpenImport)
+    setOnProductClick(handleProductClick)
+    return () => {
+      setOnAddProduct(null)
+      setOnBulkImport(null)
+      setOnProductClick(null)
+    }
+  }, [handleOpenAdd, handleOpenImport, handleProductClick, setOnAddProduct, setOnBulkImport, setOnProductClick])
 
   const handleEditSave = async () => {
     if (!editProduct) return
@@ -447,13 +486,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   })
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4">
-        <ProductSearchDropdown value={search} onChange={(v) => setSearch(v)} products={products} placeholder={tCommon("searchProducts")} className="flex-1" />
-        <Button onClick={() => setShowAddModal(true)} className="gap-2"><Plus className="h-4 w-4" /> {t("addProduct")}</Button>
-        <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2"><Upload className="h-4 w-4" /> {tBulk("bulkImport")}</Button>
-      </div>
-
+    <div>
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((product) => {
@@ -494,7 +527,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
           })}
         </div>
       ) : (
-        <EmptyState icon={Package} title={t("noProducts")} action={{ label: t("addProduct"), onClick: () => setShowAddModal(true) }} />
+        <EmptyState icon={Package} title={t("noProducts")} description={search ? undefined : t("noProductsDesc")} action={search ? undefined : { label: t("addProduct"), onClick: () => setShowAddModal(true) }} />
       )}
 
       {/* Add Product Modal */}

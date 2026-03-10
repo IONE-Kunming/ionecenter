@@ -22,6 +22,8 @@ interface ProductSearchDropdownProps {
   placeholder?: string
   /** URL prefix for product links, e.g. "/buyer/product" */
   linkPrefix?: string
+  /** Callback when a product item is clicked (used instead of linkPrefix when provided) */
+  onItemClick?: (productId: string) => void
   className?: string
 }
 
@@ -45,6 +47,7 @@ export function ProductSearchDropdown({
   products,
   placeholder = "Search products...",
   linkPrefix,
+  onItemClick,
   className,
 }: ProductSearchDropdownProps) {
   const [isFocused, setIsFocused] = useState(false)
@@ -123,7 +126,10 @@ export function ProductSearchDropdown({
                 type="button"
                 role="option"
                 className="w-full text-left"
-                onClick={() => setIsFocused(false)}
+                onClick={() => {
+                  setIsFocused(false)
+                  onItemClick?.(product.id)
+                }}
               >
                 {content}
               </button>
