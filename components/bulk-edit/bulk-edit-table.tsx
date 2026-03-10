@@ -24,10 +24,13 @@ export interface BulkEditProduct {
   name: string
   model_number: string
   price_usd: number
+  price_cny?: number
   stock: number
   is_active: boolean
   image_url?: string | null
 }
+
+export type CurrencyMode = "usd" | "cny"
 
 interface BulkEditTableProps {
   initialProducts: BulkEditProduct[]
@@ -184,6 +187,7 @@ export function BulkEditTable({
   const [previewRows, setPreviewRows] = useState<ImportRow[]>([])
   const [showPreview, setShowPreview] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [currencyMode, setCurrencyMode] = useState<CurrencyMode>("usd")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
   const toastCounter = useRef(0)
@@ -247,6 +251,7 @@ export function BulkEditTable({
         orig.name !== updatedProduct.name ||
         orig.model_number !== updatedProduct.model_number ||
         orig.price_usd !== updatedProduct.price_usd ||
+        (orig.price_cny ?? 0) !== (updatedProduct.price_cny ?? 0) ||
         orig.stock !== updatedProduct.stock ||
         orig.is_active !== updatedProduct.is_active
 
@@ -822,6 +827,14 @@ export function BulkEditTable({
         <Button variant="outline" size="sm" onClick={() => setShowImportModal(true)} className="ml-auto gap-1.5 text-xs h-8">
           <Upload className="h-3.5 w-3.5" /> Import
         </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrencyMode((prev) => (prev === "usd" ? "cny" : "usd"))}
+          className="gap-1.5 text-xs h-8"
+        >
+          {currencyMode === "usd" ? "USD $" : "CN¥"}
+        </Button>
         <span className="text-xs text-muted-foreground">{filtered.length} of {products.length}</span>
       </div>
 
@@ -954,14 +967,19 @@ export function BulkEditTable({
                         )}
                         {col.key === "price" && (
                           <div className="relative">
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                              {currencyMode === "usd" ? "$" : "CN¥"}
+                            </span>
                             <input
                               type="number"
                               min="0"
                               step="0.01"
-                              value={product.price_usd}
-                              onChange={(e) => updateField(product.id, "price_usd", Number(e.target.value))}
-                              className="w-full max-w-[180px] bg-transparent border border-transparent rounded pl-5 pr-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
+                              value={currencyMode === "usd" ? product.price_usd : (product.price_cny ?? 0)}
+                              onChange={(e) => updateField(product.id, currencyMode === "usd" ? "price_usd" : "price_cny", Number(e.target.value))}
+                              className={cn(
+                                "w-full max-w-[180px] bg-transparent border border-transparent rounded pr-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors",
+                                currencyMode === "usd" ? "pl-5" : "pl-9"
+                              )}
                             />
                           </div>
                         )}

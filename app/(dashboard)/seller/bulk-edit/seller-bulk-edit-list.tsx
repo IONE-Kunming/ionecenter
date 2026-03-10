@@ -13,6 +13,7 @@ export function SellerBulkEditList({ initialProducts, categoryData }: { initialP
         name: product.name,
         model_number: product.model_number,
         price_usd: product.price_usd,
+        price_cny: product.price_cny ?? null,
         price_per_meter: product.price_usd,
         stock: product.stock,
       })
