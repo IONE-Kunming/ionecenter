@@ -1150,7 +1150,7 @@ export function BulkEditTable({
         />
       )}
 
-      {/* Table */}
+      {/* Table – max-h accounts for page header, toolbar, tabs, and spacing above */}
       <div className="rounded-b-lg border border-t-0 bg-card overflow-auto max-h-[calc(100vh-280px)] -mt-5">
         {filtered.length === 0 ? (
           <div className="py-16 text-center text-muted-foreground">
