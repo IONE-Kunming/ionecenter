@@ -5,7 +5,7 @@ import { BulkEditTable, type BulkEditProduct, type ImportRow } from "@/component
 import { updateProduct, deleteProduct, bulkImportProducts } from "@/lib/actions/products"
 import type { CategoryData } from "@/lib/categories"
 
-export function SellerBulkEditList({ initialProducts, categoryData }: { initialProducts: BulkEditProduct[]; categoryData: CategoryData }) {
+export function SellerBulkEditList({ initialProducts, categoryData, savedCustomCategories }: { initialProducts: BulkEditProduct[]; categoryData: CategoryData; savedCustomCategories: string[] }) {
   const t = useTranslations("bulkEdit")
   const handleSave = async (products: BulkEditProduct[]) => {
     for (const product of products) {
@@ -45,6 +45,7 @@ export function SellerBulkEditList({ initialProducts, categoryData }: { initialP
       subtitle={t("bulkEditSubtitle")}
       categoryData={categoryData}
       useCustomCategory
+      savedCustomCategories={savedCustomCategories}
     />
   )
 }

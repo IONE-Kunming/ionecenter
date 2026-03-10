@@ -1,12 +1,13 @@
-import { getSellerProducts } from "@/lib/actions/products"
+import { getSellerProducts, getSellerCustomCategories } from "@/lib/actions/products"
 import { getSiteCategories } from "@/lib/actions/site-settings"
 import { buildCategoryData } from "@/lib/categories"
 import { SellerBulkEditList } from "./seller-bulk-edit-list"
 
 export default async function SellerBulkEditPage() {
-  const [products, siteCategories] = await Promise.all([
+  const [products, siteCategories, savedCustomCategories] = await Promise.all([
     getSellerProducts(),
     getSiteCategories(),
+    getSellerCustomCategories(),
   ])
   const categoryData = buildCategoryData(siteCategories)
 
@@ -24,5 +25,5 @@ export default async function SellerBulkEditPage() {
     image_url: p.image_url ?? null,
   }))
 
-  return <SellerBulkEditList initialProducts={mapped} categoryData={categoryData} />
+  return <SellerBulkEditList initialProducts={mapped} categoryData={categoryData} savedCustomCategories={savedCustomCategories} />
 }

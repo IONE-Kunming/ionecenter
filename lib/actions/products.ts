@@ -109,6 +109,24 @@ export async function getSellerProducts(): Promise<Product[]> {
   }))
 }
 
+export async function getSellerCustomCategories(): Promise<string[]> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return []
+
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from("products")
+    .select("custom_category")
+    .eq("seller_id", user.id)
+    .not("custom_category", "is", null)
+    .neq("custom_category", "")
+
+  if (!data) return []
+  const unique = [...new Set(data.map((r) => r.custom_category as string))]
+  unique.sort((a, b) => a.localeCompare(b))
+  return unique
+}
+
 export async function createProduct(
   product: Omit<Product, "id" | "seller_id" | "created_at" | "updated_at" | "stock_status" | "seller_name">
 ) {
