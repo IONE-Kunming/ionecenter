@@ -926,12 +926,13 @@ export function BulkEditTable({
         <button
           type="button"
           onClick={() => setCurrencyMode((prev) => (prev === "usd" ? "cny" : "usd"))}
-          className="relative inline-flex h-8 rounded-full border bg-muted p-0.5 text-xs font-medium transition-colors"
-          style={{ width: 120 }}
+          className="relative inline-flex h-8 w-[120px] rounded-full border bg-muted p-0.5 text-xs font-medium transition-colors"
         >
           <span
-            className="absolute top-0.5 h-[calc(100%-4px)] w-[calc(50%-2px)] rounded-full bg-primary shadow transition-all duration-300 ease-in-out"
-            style={{ left: currencyMode === "usd" ? 2 : "calc(50%)" }}
+            className={cn(
+              "absolute top-0.5 h-[calc(100%-4px)] w-[calc(50%-2px)] rounded-full bg-primary shadow transition-all duration-300 ease-in-out",
+              currencyMode === "usd" ? "left-0.5" : "left-[50%]"
+            )}
           />
           <span
             className={cn(
