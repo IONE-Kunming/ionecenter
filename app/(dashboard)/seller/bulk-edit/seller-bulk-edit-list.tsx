@@ -15,6 +15,7 @@ export function SellerBulkEditList({ initialProducts, categoryData }: { initialP
         main_category: product.main_category,
         category: product.category,
         price_usd: product.price_usd,
+        price_cny: product.price_cny ?? null,
         price_per_meter: product.price_usd,
         stock: product.stock,
       })
