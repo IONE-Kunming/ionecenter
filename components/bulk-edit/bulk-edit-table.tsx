@@ -326,6 +326,11 @@ export function BulkEditTable({
   const myCategoryCountdownInterval = useRef<ReturnType<typeof setInterval> | null>(null)
   const myCategoryCountdownEnd = useRef<number | null>(null)
 
+  // Track product IDs with pending custom_category saves (to keep rows visible on Empty tab)
+  const [pendingMyCategorySaveIds, setPendingMyCategorySaveIds] = useState<Set<string>>(new Set())
+  const customCategoryTabRef = useRef(customCategoryTab)
+  useEffect(() => { customCategoryTabRef.current = customCategoryTab }, [customCategoryTab])
+
   // Cleanup auto-save timers on unmount
   useEffect(() => {
     return () => {
@@ -350,7 +355,17 @@ export function BulkEditTable({
 
   // ─── Filtering ──────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
-    return filterByCustomCategoryTab(products, customCategoryTab).filter((p) => {
+    // On the Empty tab, also include products with pending my-category saves
+    // so the row stays visible until the 25-second auto-save completes
+    let base: BulkEditProduct[]
+    if (customCategoryTab === "empty" && pendingMyCategorySaveIds.size > 0) {
+      base = products.filter((p) =>
+        !p.custom_category || p.custom_category.trim() === "" || pendingMyCategorySaveIds.has(p.id)
+      )
+    } else {
+      base = filterByCustomCategoryTab(products, customCategoryTab)
+    }
+    return base.filter((p) => {
       const matchesSearch = !search ||
         p.name.toLowerCase().includes(search.toLowerCase()) ||
         p.model_number.toLowerCase().includes(search.toLowerCase()) ||
@@ -361,7 +376,7 @@ export function BulkEditTable({
         (filter === "modified" && modifiedIds.has(p.id))
       return matchesSearch && matchesFilter
     })
-  }, [products, search, filter, modifiedIds, customCategoryTab])
+  }, [products, search, filter, modifiedIds, customCategoryTab, pendingMyCategorySaveIds])
 
   // ─── Stats ──────────────────────────────────────────────────────────────
   const stats = useMemo(() => ({
@@ -466,10 +481,25 @@ export function BulkEditTable({
     const delay = field === "custom_category" ? MY_CATEGORY_AUTO_SAVE_DEBOUNCE_MS : AUTO_SAVE_DEBOUNCE_MS
     if (field === "custom_category") {
       startMyCategoryCountdown(delay)
+      // Keep row visible on the Empty tab until save completes
+      if (customCategoryTabRef.current === "empty") {
+        setPendingMyCategorySaveIds((prev) => {
+          const next = new Set(prev)
+          next.add(productId)
+          return next
+        })
+      }
     }
     const timer = setTimeout(() => {
       autoSaveTimers.current.delete(productId)
-      if (field === "custom_category") clearMyCategoryCountdown()
+      if (field === "custom_category") {
+        clearMyCategoryCountdown()
+        setPendingMyCategorySaveIds((prev) => {
+          const next = new Set(prev)
+          next.delete(productId)
+          return next
+        })
+      }
       autoSaveProduct(productId)
     }, delay)
     autoSaveTimers.current.set(productId, timer)
@@ -508,6 +538,12 @@ export function BulkEditTable({
       autoSaveTimers.current.delete(id)
       clearMyCategoryCountdown()
     }
+    // Remove from pending my-category saves so row returns to correct tab
+    setPendingMyCategorySaveIds((prev) => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
     setProducts((prev) => prev.map((p) => p.id === id ? { ...JSON.parse(JSON.stringify(orig)) } : p))
     setModifiedIds((prev) => {
       const next = new Set(prev)
@@ -523,6 +559,7 @@ export function BulkEditTable({
     autoSaveTimers.current.forEach((t) => clearTimeout(t))
     autoSaveTimers.current.clear()
     clearMyCategoryCountdown()
+    setPendingMyCategorySaveIds(new Set())
     setProducts(JSON.parse(JSON.stringify(originalData)))
     setModifiedIds(new Set())
     showToast("All changes reset")
