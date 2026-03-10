@@ -193,6 +193,7 @@ function CustomCategoryCell({
   sessionCategories: string[]
 }) {
   const [isFocused, setIsFocused] = useState(false)
+  const [hasTypedSinceFocus, setHasTypedSinceFocus] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -233,10 +234,10 @@ function CustomCategoryCell({
     for (const v of savedCategories) if (v) all.add(v)
     for (const v of sessionCategories) if (v) all.add(v)
     const sorted = [...all].sort((a, b) => a.localeCompare(b))
-    if (!value.trim()) return sorted
+    if (!hasTypedSinceFocus || !value.trim()) return sorted
     const q = value.toLowerCase()
-    return sorted.filter((s) => s.toLowerCase().includes(q) && s.toLowerCase() !== q)
-  }, [savedCategories, sessionCategories, value])
+    return sorted.filter((s) => s.toLowerCase().includes(q))
+  }, [savedCategories, sessionCategories, value, hasTypedSinceFocus])
 
   const showDropdown = isFocused && suggestions.length > 0
 
@@ -246,14 +247,14 @@ function CustomCategoryCell({
         ref={inputRef}
         type="text"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setIsFocused(true)}
+        onChange={(e) => { setHasTypedSinceFocus(true); onChange(e.target.value) }}
+        onFocus={() => { setHasTypedSinceFocus(false); setIsFocused(true) }}
         className="w-full min-w-[140px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
       />
       {showDropdown && createPortal(
         <div
           ref={dropdownRef}
-          className="fixed z-50 max-h-[200px] overflow-y-auto rounded-md border bg-popover shadow-lg"
+          className="fixed z-50 h-[200px] overflow-y-scroll rounded-md border bg-popover shadow-lg"
           style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
         >
           {suggestions.map((s) => (
