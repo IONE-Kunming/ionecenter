@@ -17,6 +17,7 @@ import { ImportPreview } from "./import-preview"
 import { uploadProductImage } from "@/lib/actions/products"
 import type { CategoryData } from "@/lib/categories"
 import { getSubcategoriesFromData, isMainCategoryInData, getMainCategoryForSubcategoryInData } from "@/lib/categories"
+import { CustomCategoryTabs, filterByCustomCategoryTab, type CustomCategoryTab } from "@/components/custom-category-tabs"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface BulkEditProduct {
@@ -274,6 +275,7 @@ export function BulkEditTable({
   const [showPreview, setShowPreview] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [currencyMode, setCurrencyMode] = useState<CurrencyMode>("usd")
+  const [customCategoryTab, setCustomCategoryTab] = useState<CustomCategoryTab>("all")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
   const toastCounter = useRef(0)
@@ -293,7 +295,8 @@ export function BulkEditTable({
 
   // ─── Filtering ──────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
-    return products.filter((p) => {
+    const tabFiltered = useCustomCategory ? filterByCustomCategoryTab(products, customCategoryTab) : products
+    return tabFiltered.filter((p) => {
       const matchesSearch = !search ||
         p.name.toLowerCase().includes(search.toLowerCase()) ||
         p.model_number.toLowerCase().includes(search.toLowerCase()) ||
@@ -304,7 +307,7 @@ export function BulkEditTable({
         (filter === "modified" && modifiedIds.has(p.id))
       return matchesSearch && matchesFilter
     })
-  }, [products, search, filter, modifiedIds])
+  }, [products, search, filter, modifiedIds, customCategoryTab, useCustomCategory])
 
   // ─── Stats ──────────────────────────────────────────────────────────────
   const stats = useMemo(() => ({
@@ -894,6 +897,15 @@ export function BulkEditTable({
         <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-green-500" /> Available: <strong className="text-foreground">{stats.available}</strong></span>
         <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-red-500" /> Unavailable: <strong className="text-foreground">{stats.unavailable}</strong></span>
       </div>
+
+      {/* Custom Category Tabs */}
+      {useCustomCategory && (
+        <CustomCategoryTabs
+          products={products}
+          activeTab={customCategoryTab}
+          onTabChange={setCustomCategoryTab}
+        />
+      )}
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 rounded-t-lg border border-b-0 bg-card p-3">
