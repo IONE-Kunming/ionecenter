@@ -820,7 +820,11 @@
     "viewCart": "Go to Cart",
     "categories": "Categories",
     "allProducts": "All Products",
-    "browseProducts": "Browse Products"
+    "browseProducts": "Browse Products",
+    "pinCategory": "Pin",
+    "unpinCategory": "Unpin",
+    "pinnedCategories": "Pinned Categories",
+    "dropHereToPin": "Drop category here to pin"
   },
   "categoryNames": {
     "construction": "Construction",

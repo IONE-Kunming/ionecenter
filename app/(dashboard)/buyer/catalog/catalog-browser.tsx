@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useMemo, useTransition } from "react"
+import { useState, useMemo, useTransition, useCallback, useRef } from "react"
 import { useTranslations } from "next-intl"
 import Link from "@/components/ui/link"
 import Image from "next/image"
-import { Package, ArrowLeft, ShoppingCart, MessageSquare, Check, Loader2 } from "lucide-react"
+import { Package, ArrowLeft, ShoppingCart, MessageSquare, Check, Loader2, Pin } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -18,10 +18,12 @@ import { formatDualPrice } from "@/lib/utils"
 import { useExchangeRate } from "@/lib/use-exchange-rate"
 import { addToCart } from "@/lib/actions/cart"
 import { getOrCreateConversation } from "@/lib/actions/chat"
+import { savePinnedCategories } from "@/lib/actions/pinned-categories"
 import type { CategoryData } from "@/lib/categories"
 import { toCategoryKey } from "@/lib/categories"
 import type { PricingType } from "@/types/database"
 import { ProductSearchDropdown, matchesProductSearch } from "@/components/product-search-dropdown"
+import { PinnedCategoriesBar } from "@/components/catalog/pinned-categories-bar"
 
 type BrowseLevel = "categories" | "subcategories" | "products"
 
@@ -46,7 +48,7 @@ const CATEGORY_BADGE_BASE = "rounded-full bg-primary text-primary-foreground fle
 const CATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE}`
 const SUBCATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE} text-[10px]`
 
-export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = [] }: { products: CatalogProduct[]; categoryData: CategoryData; wishlistedIds?: string[] }) {
+export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = [], isPreviewMode = false, initialPinnedCategories = [] }: { products: CatalogProduct[]; categoryData: CategoryData; wishlistedIds?: string[]; isPreviewMode?: boolean; initialPinnedCategories?: string[] }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
@@ -56,6 +58,60 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
   const { addToast } = useToast()
   const [, startTransition] = useTransition()
   const [chattingIds, setChattingIds] = useState<Set<string>>(new Set())
+
+  // ── Pinned categories state (only active in preview mode) ──
+  const [pinnedCategories, setPinnedCategories] = useState<string[]>(initialPinnedCategories)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const persistPinned = useCallback((cats: string[]) => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => {
+      savePinnedCategories(cats)
+    }, 500)
+  }, [])
+
+  const handlePinCategory = useCallback((cat: string) => {
+    setPinnedCategories((prev) => {
+      if (prev.includes(cat)) return prev
+      const next = [...prev, cat]
+      persistPinned(next)
+      return next
+    })
+  }, [persistPinned])
+
+  const handleUnpinCategory = useCallback((cat: string) => {
+    setPinnedCategories((prev) => {
+      const next = prev.filter((c) => c !== cat)
+      persistPinned(next)
+      return next
+    })
+  }, [persistPinned])
+
+  const handlePinnedSelect = useCallback((cat: string) => {
+    setSelectedCategory(cat)
+    setLevel("subcategories")
+    setCurrentPage(1)
+  }, [])
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    const cat = e.dataTransfer.getData("text/plain")
+    if (cat && categoryData.mainCategories.includes(cat)) {
+      handlePinCategory(cat)
+    }
+  }, [categoryData.mainCategories, handlePinCategory])
 
   const translateCat = (name: string): string => {
     const key = toCategoryKey(name)
@@ -167,6 +223,18 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
       {/* Category Grid */}
       {level === "categories" && (
         <div className="space-y-4">
+          {/* Pinned categories bar + show numbers toggle */}
+          {isPreviewMode && (
+            <PinnedCategoriesBar
+              pinnedCategories={pinnedCategories}
+              onSelect={handlePinnedSelect}
+              onUnpin={handleUnpinCategory}
+              isDragOver={isDragOver}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            />
+          )}
           <div className="flex justify-end items-center gap-2">
             <Label htmlFor="showNumbers" className="text-sm">{t("showNumbers")}</Label>
             <Switch id="showNumbers" checked={showCategoryNumbers} onCheckedChange={setShowCategoryNumbers} />
@@ -176,13 +244,28 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
             const subcategories = categoryData.categoryMap[cat] ?? []
             const categoryCode = String(catIdx + 1).padStart(2, '0')
             const imageUrl = categoryData.categoryImageMap[cat] ?? null
+            const isPinned = pinnedCategories.includes(cat)
             return (
             <Card
               key={cat}
               className="cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden"
+              draggable={isPreviewMode}
+              onDragStart={isPreviewMode ? (e) => { e.dataTransfer.setData("text/plain", cat); e.dataTransfer.effectAllowed = "copy" } : undefined}
               onClick={() => { setSelectedCategory(cat); setLevel("subcategories"); setCurrentPage(1) }}
             >
-              <CardContent className="p-0">
+              <CardContent className="p-0 relative">
+                {isPreviewMode && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); isPinned ? handleUnpinCategory(cat) : handlePinCategory(cat) }}
+                    className={`absolute top-2 z-20 w-7 h-7 rounded-full flex items-center justify-center transition-colors shadow-md ${
+                      showCategoryNumbers ? "right-2" : "right-2"
+                    } ${isPinned ? "bg-primary text-primary-foreground" : "bg-background/80 text-muted-foreground hover:bg-primary/20 hover:text-primary"}`}
+                    title={isPinned ? t("unpinCategory") : t("pinCategory")}
+                  >
+                    <Pin className="h-3.5 w-3.5" />
+                  </button>
+                )}
                 {imageUrl ? (
                   <div className="relative h-[160px]">
                     {showCategoryNumbers && (
