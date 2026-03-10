@@ -122,7 +122,15 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   const tBulk = useTranslations("bulkEdit")
   const { rate: exchangeRate, isLive: isLiveRate } = useExchangeRate()
   const [products, setProducts] = useState(initialProducts)
-  const productsCtx = useProductsPageHeader()
+  const {
+    search,
+    setSearch: ctxSetSearch,
+    registerProducts,
+    unregisterProducts,
+    setOnAddProduct,
+    setOnBulkImport,
+    setOnProductClick,
+  } = useProductsPageHeader()
   const [categoryFilter] = useState("")
   const [showAddModal, setShowAddModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
@@ -162,9 +170,6 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  // Use context search (shared with navbar header)
-  const search = productsCtx.search
-
   const openEdit = useCallback((product: Product) => {
     setEditProduct(product)
     setEditForm({
@@ -185,15 +190,15 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
 
   // Register products and callbacks with the header context
   useEffect(() => {
-    productsCtx.registerProducts(products)
-  }, [products, productsCtx.registerProducts]) // eslint-disable-line react-hooks/exhaustive-deps
+    registerProducts(products)
+  }, [products, registerProducts])
 
   useEffect(() => {
-    if (initialSearch) productsCtx.setSearch(initialSearch)
+    if (initialSearch) ctxSetSearch(initialSearch)
     return () => {
-      productsCtx.unregisterProducts()
+      unregisterProducts()
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- mount/unmount only
 
   const handleOpenAdd = useCallback(() => setShowAddModal(true), [])
   const handleOpenImport = useCallback(() => setShowImportModal(true), [])
@@ -203,15 +208,15 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   }, [products, openEdit])
 
   useEffect(() => {
-    productsCtx.setOnAddProduct(handleOpenAdd)
-    productsCtx.setOnBulkImport(handleOpenImport)
-    productsCtx.setOnProductClick(handleProductClick)
+    setOnAddProduct(handleOpenAdd)
+    setOnBulkImport(handleOpenImport)
+    setOnProductClick(handleProductClick)
     return () => {
-      productsCtx.setOnAddProduct(null)
-      productsCtx.setOnBulkImport(null)
-      productsCtx.setOnProductClick(null)
+      setOnAddProduct(null)
+      setOnBulkImport(null)
+      setOnProductClick(null)
     }
-  }, [handleOpenAdd, handleOpenImport, handleProductClick, productsCtx.setOnAddProduct, productsCtx.setOnBulkImport, productsCtx.setOnProductClick]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [handleOpenAdd, handleOpenImport, handleProductClick, setOnAddProduct, setOnBulkImport, setOnProductClick])
 
   const handleEditSave = async () => {
     if (!editProduct) return
