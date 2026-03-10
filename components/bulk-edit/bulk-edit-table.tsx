@@ -923,14 +923,33 @@ export function BulkEditTable({
         <Button variant="outline" size="sm" onClick={() => setShowImportModal(true)} className="ml-auto gap-1.5 text-xs h-8">
           <Upload className="h-3.5 w-3.5" /> Import
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
+        <button
+          type="button"
           onClick={() => setCurrencyMode((prev) => (prev === "usd" ? "cny" : "usd"))}
-          className="gap-1.5 text-xs h-8"
+          className="relative inline-flex h-8 rounded-full border bg-muted p-0.5 text-xs font-medium transition-colors"
+          style={{ width: 120 }}
         >
-          {currencyMode === "usd" ? "USD $" : "CN¥"}
-        </Button>
+          <span
+            className="absolute top-0.5 h-[calc(100%-4px)] w-[calc(50%-2px)] rounded-full bg-primary shadow transition-all duration-300 ease-in-out"
+            style={{ left: currencyMode === "usd" ? 2 : "calc(50%)" }}
+          />
+          <span
+            className={cn(
+              "relative z-10 flex items-center justify-center w-1/2 rounded-full transition-colors duration-300",
+              currencyMode === "usd" ? "text-primary-foreground" : "text-muted-foreground"
+            )}
+          >
+            USD $
+          </span>
+          <span
+            className={cn(
+              "relative z-10 flex items-center justify-center w-1/2 rounded-full transition-colors duration-300",
+              currencyMode === "cny" ? "text-primary-foreground" : "text-muted-foreground"
+            )}
+          >
+            CN¥
+          </span>
+        </button>
         <span className="text-xs text-muted-foreground">{filtered.length} of {products.length}</span>
       </div>
 
@@ -970,7 +989,7 @@ export function BulkEditTable({
                       draggedCol === colIdx && "opacity-50",
                       dragOverCol === colIdx && draggedCol !== colIdx && "border-l-2 border-l-primary"
                     )}
-                    style={(col.key === "price" || col.key === "stock") ? { minWidth: 130 } : undefined}
+                    style={col.key === "price" ? { minWidth: 180 } : col.key === "stock" ? { minWidth: 130 } : undefined}
                   >
                     <span className="flex items-center gap-1">
                       <GripVertical className="h-3 w-3 opacity-40 shrink-0" />
@@ -1029,7 +1048,7 @@ export function BulkEditTable({
                         onClick={() => setFocusedCell({ row: rowIdx, col: colIdx })}
                         tabIndex={-1}
                         className={col.key === "product" || col.key === "availability" ? "px-4 py-3" : "px-4 py-2 rounded-sm"}
-                        style={(col.key === "price" || col.key === "stock") ? { minWidth: 130 } : undefined}
+                        style={col.key === "price" ? { minWidth: 180 } : col.key === "stock" ? { minWidth: 130 } : undefined}
                       >
                         {col.key === "product" && (
                           <div className="flex items-center gap-3">
@@ -1117,7 +1136,7 @@ export function BulkEditTable({
                         )}
                         {col.key === "price" && (
                           <div className="relative">
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
                               {currencyMode === "usd" ? "$" : "CN¥"}
                             </span>
                             <input
@@ -1127,7 +1146,7 @@ export function BulkEditTable({
                               value={currencyMode === "usd" ? product.price_usd : (product.price_cny ?? "")}
                               onChange={(e) => updateField(product.id, currencyMode === "usd" ? "price_usd" : "price_cny", Number(e.target.value))}
                               className={cn(
-                                "w-full max-w-[180px] bg-transparent border border-transparent rounded pr-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors",
+                                "w-full min-w-[160px] bg-transparent border border-transparent rounded pr-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors",
                                 currencyMode === "usd" ? "pl-5" : "pl-9"
                               )}
                             />
