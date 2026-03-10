@@ -13,6 +13,11 @@ interface PaginationProps {
 }
 
 export function Pagination({ currentPage, totalPages, onPageChange, className }: PaginationProps) {
+  const handlePageChange = React.useCallback((page: number) => {
+    onPageChange(page)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }, [onPageChange])
+
   const pages = React.useMemo(() => {
     const items: (number | string)[] = []
     const maxVisible = 5
@@ -39,7 +44,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
       <Button
         variant="outline"
         size="icon"
-        onClick={() => onPageChange(currentPage - 1)}
+        onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage === 1}
       >
         <ChevronLeft className="h-4 w-4" />
@@ -54,7 +59,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
             key={page}
             variant={currentPage === page ? "default" : "outline"}
             size="icon"
-            onClick={() => onPageChange(page)}
+            onClick={() => handlePageChange(page)}
           >
             {page}
           </Button>
@@ -63,7 +68,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
       <Button
         variant="outline"
         size="icon"
-        onClick={() => onPageChange(currentPage + 1)}
+        onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
       >
         <ChevronRight className="h-4 w-4" />
