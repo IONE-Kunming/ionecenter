@@ -205,7 +205,7 @@ function CustomCategoryCell({
     const sorted = [...all].sort((a, b) => a.localeCompare(b))
     if (!value.trim()) return sorted
     const q = value.toLowerCase()
-    return sorted.filter((s) => s.toLowerCase().includes(q) && s !== value)
+    return sorted.filter((s) => s.toLowerCase().includes(q) && s.toLowerCase() !== q)
   }, [savedCategories, sessionCategories, value])
 
   const showDropdown = isFocused && suggestions.length > 0
