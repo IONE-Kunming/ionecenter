@@ -856,24 +856,33 @@ export function BulkEditTable({
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
           <p className="text-xs text-muted-foreground tracking-widest uppercase mt-1">{subtitle}</p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          {selectedIds.size > 0 && (
-            <Button variant="destructive" size="sm" onClick={handleBulkDelete} disabled={deleting}>
-              <Trash2 className="h-3.5 w-3.5 mr-1.5" /> {deleting ? "Deleting..." : `Delete (${selectedIds.size})`}
+        <div className="flex flex-col items-end gap-2">
+          {/* Stats */}
+          <div className="flex gap-6 flex-wrap text-xs text-muted-foreground">
+            <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary" /> Total: <strong className="text-foreground">{stats.total}</strong></span>
+            <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-yellow-500" /> Modified: <strong className="text-foreground">{stats.modified}</strong></span>
+            <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-green-500" /> Available: <strong className="text-foreground">{stats.available}</strong></span>
+            <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-red-500" /> Unavailable: <strong className="text-foreground">{stats.unavailable}</strong></span>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            {selectedIds.size > 0 && (
+              <Button variant="destructive" size="sm" onClick={handleBulkDelete} disabled={deleting}>
+                <Trash2 className="h-3.5 w-3.5 mr-1.5" /> {deleting ? "Deleting..." : `Delete (${selectedIds.size})`}
+              </Button>
+            )}
+            {modifiedIds.size > 0 && (
+              <div className="flex items-center gap-2 text-xs text-yellow-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 animate-pulse" />
+                Unsaved changes
+              </div>
+            )}
+            <Button variant="outline" size="sm" onClick={resetAll}>
+              <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> Reset
             </Button>
-          )}
-          {modifiedIds.size > 0 && (
-            <div className="flex items-center gap-2 text-xs text-yellow-500">
-              <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 animate-pulse" />
-              Unsaved changes
-            </div>
-          )}
-          <Button variant="outline" size="sm" onClick={resetAll}>
-            <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> Reset
-          </Button>
-          <Button size="sm" onClick={handleSave} disabled={saving || modifiedIds.size === 0}>
-            <Save className="h-3.5 w-3.5 mr-1.5" /> {saving ? tCommon("saving") : t("saveAll")}
-          </Button>
+            <Button size="sm" onClick={handleSave} disabled={saving || modifiedIds.size === 0}>
+              <Save className="h-3.5 w-3.5 mr-1.5" /> {saving ? tCommon("saving") : t("saveAll")}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -885,14 +894,6 @@ export function BulkEditTable({
         <span className="flex items-center gap-1.5"><kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[0.6rem]">Tab</kbd> Next cell</span>
         <span className="flex items-center gap-1.5"><kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[0.6rem]">Alt+↑↓</kbd> Reorder rows</span>
         <span className="flex items-center gap-1.5"><kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[0.6rem]">Alt+←→</kbd> Reorder columns</span>
-      </div>
-
-      {/* Stats */}
-      <div className="flex gap-6 flex-wrap text-xs text-muted-foreground">
-        <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary" /> Total: <strong className="text-foreground">{stats.total}</strong></span>
-        <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-yellow-500" /> Modified: <strong className="text-foreground">{stats.modified}</strong></span>
-        <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-green-500" /> Available: <strong className="text-foreground">{stats.available}</strong></span>
-        <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-red-500" /> Unavailable: <strong className="text-foreground">{stats.unavailable}</strong></span>
       </div>
 
       {/* Toolbar */}
