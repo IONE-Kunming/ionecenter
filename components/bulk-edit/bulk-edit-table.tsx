@@ -974,7 +974,7 @@ export function BulkEditTable({
                               type="number"
                               min="0"
                               step="0.01"
-                              value={currencyMode === "usd" ? product.price_usd : (product.price_cny ?? 0)}
+                              value={currencyMode === "usd" ? product.price_usd : (product.price_cny ?? "")}
                               onChange={(e) => updateField(product.id, currencyMode === "usd" ? "price_usd" : "price_cny", Number(e.target.value))}
                               className={cn(
                                 "w-full max-w-[180px] bg-transparent border border-transparent rounded pr-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors",
