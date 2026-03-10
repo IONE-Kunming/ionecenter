@@ -67,6 +67,7 @@ type FilterMode = "all" | "available" | "unavailable" | "modified"
 
 // ─── Auto-save constants ─────────────────────────────────────────────────────
 const AUTO_SAVE_DEBOUNCE_MS = 1000
+const MY_CATEGORY_AUTO_SAVE_DEBOUNCE_MS = 25000
 const SAVED_INDICATOR_DURATION_MS = 2000
 
 // ─── Column definitions for reorderable data columns ────────────────────────
@@ -319,11 +320,17 @@ export function BulkEditTable({
   const productsRef = useRef(products)
   useEffect(() => { productsRef.current = products }, [products])
 
+  // ─── My Category countdown state ──────────────────────────────────────
+  const [myCategoryCountdown, setMyCategoryCountdown] = useState<number | null>(null)
+  const myCategoryCountdownInterval = useRef<ReturnType<typeof setInterval> | null>(null)
+  const myCategoryCountdownEnd = useRef<number | null>(null)
+
   // Cleanup auto-save timers on unmount
   useEffect(() => {
     return () => {
       autoSaveTimers.current.forEach((t) => clearTimeout(t))
       if (savedIndicatorTimer.current) clearTimeout(savedIndicatorTimer.current)
+      if (myCategoryCountdownInterval.current) clearInterval(myCategoryCountdownInterval.current)
     }
   }, [])
 
@@ -421,15 +428,51 @@ export function BulkEditTable({
     setSaving(false)
   }, [onSave, showToast, isProductChanged])
 
-  const scheduleAutoSave = useCallback((productId: string) => {
+  const startMyCategoryCountdown = useCallback((delayMs: number) => {
+    if (myCategoryCountdownInterval.current) clearInterval(myCategoryCountdownInterval.current)
+    myCategoryCountdownEnd.current = Date.now() + delayMs
+    setMyCategoryCountdown(Math.ceil(delayMs / 1000))
+    myCategoryCountdownInterval.current = setInterval(() => {
+      const end = myCategoryCountdownEnd.current
+      if (end == null) {
+        if (myCategoryCountdownInterval.current) clearInterval(myCategoryCountdownInterval.current)
+        myCategoryCountdownInterval.current = null
+        setMyCategoryCountdown(null)
+        return
+      }
+      const remaining = end - Date.now()
+      if (remaining <= 0) {
+        if (myCategoryCountdownInterval.current) clearInterval(myCategoryCountdownInterval.current)
+        myCategoryCountdownInterval.current = null
+        myCategoryCountdownEnd.current = null
+        setMyCategoryCountdown(null)
+      } else {
+        setMyCategoryCountdown(Math.ceil(remaining / 1000))
+      }
+    }, 1000)
+  }, [])
+
+  const clearMyCategoryCountdown = useCallback(() => {
+    if (myCategoryCountdownInterval.current) clearInterval(myCategoryCountdownInterval.current)
+    myCategoryCountdownInterval.current = null
+    myCategoryCountdownEnd.current = null
+    setMyCategoryCountdown(null)
+  }, [])
+
+  const scheduleAutoSave = useCallback((productId: string, field?: keyof BulkEditProduct) => {
     const existing = autoSaveTimers.current.get(productId)
     if (existing) clearTimeout(existing)
+    const delay = field === "custom_category" ? MY_CATEGORY_AUTO_SAVE_DEBOUNCE_MS : AUTO_SAVE_DEBOUNCE_MS
+    if (field === "custom_category") {
+      startMyCategoryCountdown(delay)
+    }
     const timer = setTimeout(() => {
       autoSaveTimers.current.delete(productId)
+      if (field === "custom_category") clearMyCategoryCountdown()
       autoSaveProduct(productId)
-    }, AUTO_SAVE_DEBOUNCE_MS)
+    }, delay)
     autoSaveTimers.current.set(productId, timer)
-  }, [autoSaveProduct])
+  }, [autoSaveProduct, startMyCategoryCountdown, clearMyCategoryCountdown])
 
   // ─── Field updates ─────────────────────────────────────────────────────
   const updateField = useCallback((id: string, field: keyof BulkEditProduct, value: string | number | boolean) => {
@@ -450,7 +493,7 @@ export function BulkEditTable({
       else next.delete(id)
       return next
     })
-    scheduleAutoSave(id)
+    scheduleAutoSave(id, field)
   }, [originalData, products, isProductChanged, scheduleAutoSave])
 
   // ─── Revert row ────────────────────────────────────────────────────────
@@ -462,6 +505,7 @@ export function BulkEditTable({
     if (pendingTimer) {
       clearTimeout(pendingTimer)
       autoSaveTimers.current.delete(id)
+      clearMyCategoryCountdown()
     }
     setProducts((prev) => prev.map((p) => p.id === id ? { ...JSON.parse(JSON.stringify(orig)) } : p))
     setModifiedIds((prev) => {
@@ -470,17 +514,18 @@ export function BulkEditTable({
       return next
     })
     showToast("Row reverted")
-  }, [originalData, showToast])
+  }, [originalData, showToast, clearMyCategoryCountdown])
 
   // ─── Reset all ─────────────────────────────────────────────────────────
   const resetAll = useCallback(() => {
     // Cancel all pending auto-save timers
     autoSaveTimers.current.forEach((t) => clearTimeout(t))
     autoSaveTimers.current.clear()
+    clearMyCategoryCountdown()
     setProducts(JSON.parse(JSON.stringify(originalData)))
     setModifiedIds(new Set())
     showToast("All changes reset")
-  }, [originalData, showToast])
+  }, [originalData, showToast, clearMyCategoryCountdown])
 
   // ─── Import ────────────────────────────────────────────────────────────
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -968,6 +1013,12 @@ export function BulkEditTable({
               <div className="flex items-center gap-2 text-xs text-green-500">
                 <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                 Saved ✓
+              </div>
+            )}
+            {myCategoryCountdown !== null && autoSaveStatus !== "saving" && autoSaveStatus !== "saved" && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+                Saving in {myCategoryCountdown}s...
               </div>
             )}
             {modifiedIds.size > 0 && autoSaveStatus !== "saving" && (
