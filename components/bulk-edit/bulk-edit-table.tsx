@@ -433,7 +433,14 @@ export function BulkEditTable({
     myCategoryCountdownEnd.current = Date.now() + delayMs
     setMyCategoryCountdown(Math.ceil(delayMs / 1000))
     myCategoryCountdownInterval.current = setInterval(() => {
-      const remaining = myCategoryCountdownEnd.current! - Date.now()
+      const end = myCategoryCountdownEnd.current
+      if (end == null) {
+        if (myCategoryCountdownInterval.current) clearInterval(myCategoryCountdownInterval.current)
+        myCategoryCountdownInterval.current = null
+        setMyCategoryCountdown(null)
+        return
+      }
+      const remaining = end - Date.now()
       if (remaining <= 0) {
         if (myCategoryCountdownInterval.current) clearInterval(myCategoryCountdownInterval.current)
         myCategoryCountdownInterval.current = null
@@ -1009,7 +1016,7 @@ export function BulkEditTable({
               </div>
             )}
             {myCategoryCountdown !== null && autoSaveStatus !== "saving" && autoSaveStatus !== "saved" && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
                 <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
                 Saving in {myCategoryCountdown}s...
               </div>
