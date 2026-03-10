@@ -21,7 +21,7 @@ import { getOrCreateConversation } from "@/lib/actions/chat"
 import type { CategoryData } from "@/lib/categories"
 import { toCategoryKey } from "@/lib/categories"
 import type { PricingType } from "@/types/database"
-import { ProductSearchDropdown } from "@/components/product-search-dropdown"
+import { ProductSearchDropdown, matchesProductSearch } from "@/components/product-search-dropdown"
 
 type BrowseLevel = "categories" | "subcategories" | "products"
 
@@ -142,7 +142,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
     return products.filter((p) => {
       const matchesCategory = !selectedCategory || p.main_category === selectedCategory
       const matchesSubcategory = !selectedSubcategory || p.category === selectedSubcategory
-      const matchesSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.model_number.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase())
+      const matchesSearch = matchesProductSearch(p, search)
       return matchesCategory && matchesSubcategory && matchesSearch
     })
   }, [products, selectedCategory, selectedSubcategory, search])

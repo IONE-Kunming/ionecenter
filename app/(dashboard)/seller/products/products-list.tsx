@@ -26,7 +26,7 @@ import { getCategoryIndex, getSubcategoryIndex } from "@/lib/sku"
 import type { Product } from "@/types/database"
 import type { PricingType } from "@/types/database"
 import { useExchangeRate, usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
-import { ProductSearchDropdown } from "@/components/product-search-dropdown"
+import { ProductSearchDropdown, matchesProductSearch } from "@/components/product-search-dropdown"
 
 /** Upload a product image directly to Supabase Storage via signed URL (fast path). Falls back to server action. */
 async function uploadProductImageDirect(file: File): Promise<string | null> {
@@ -441,7 +441,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   }
 
   const filtered = products.filter((p) => {
-    const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.model_number.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase()) || (p.description && p.description.toLowerCase().includes(search.toLowerCase()))
+    const matchSearch = matchesProductSearch(p, search)
     const matchCategory = !categoryFilter || p.main_category === categoryFilter
     return matchSearch && matchCategory
   })

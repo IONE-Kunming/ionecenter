@@ -27,6 +27,18 @@ interface ProductSearchDropdownProps {
 
 const MAX_DROPDOWN_ITEMS = 8
 
+/** Check whether a product matches a search query across name, model_number, category, and description. */
+export function matchesProductSearch(product: SearchableProduct, query: string): boolean {
+  if (!query) return true
+  const q = query.toLowerCase()
+  return (
+    product.name.toLowerCase().includes(q) ||
+    product.model_number.toLowerCase().includes(q) ||
+    product.category.toLowerCase().includes(q) ||
+    (product.description != null && product.description.toLowerCase().includes(q))
+  )
+}
+
 export function ProductSearchDropdown({
   value,
   onChange,
@@ -50,17 +62,7 @@ export function ProductSearchDropdown({
 
   const dropdownItems = useMemo(() => {
     if (!value.trim()) return []
-    const q = value.toLowerCase()
-    return products
-      .filter((p) => {
-        return (
-          p.name.toLowerCase().includes(q) ||
-          p.model_number.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          (p.description && p.description.toLowerCase().includes(q))
-        )
-      })
-      .slice(0, MAX_DROPDOWN_ITEMS)
+    return products.filter((p) => matchesProductSearch(p, value)).slice(0, MAX_DROPDOWN_ITEMS)
   }, [products, value])
 
   const showDropdown = isFocused && value.trim().length > 0 && dropdownItems.length > 0
@@ -76,7 +78,7 @@ export function ProductSearchDropdown({
         className="pl-9"
       />
       {showDropdown && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-80 overflow-y-auto rounded-md border bg-popover shadow-lg">
+        <div role="listbox" className="absolute top-full left-0 right-0 z-50 mt-1 max-h-80 overflow-y-auto rounded-md border bg-popover shadow-lg">
           {dropdownItems.map((product) => {
             const content = (
               <div className="flex items-center gap-3 px-3 py-2 hover:bg-accent cursor-pointer transition-colors">
@@ -107,6 +109,7 @@ export function ProductSearchDropdown({
                 <Link
                   key={product.id}
                   href={`${linkPrefix}/${product.id}`}
+                  role="option"
                   onClick={() => setIsFocused(false)}
                 >
                   {content}
@@ -115,9 +118,15 @@ export function ProductSearchDropdown({
             }
 
             return (
-              <div key={product.id} onClick={() => setIsFocused(false)}>
+              <button
+                key={product.id}
+                type="button"
+                role="option"
+                className="w-full text-left"
+                onClick={() => setIsFocused(false)}
+              >
                 {content}
-              </div>
+              </button>
             )
           })}
         </div>
