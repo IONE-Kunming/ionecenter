@@ -7,14 +7,14 @@ import { SellerProductsList } from "./products-list"
 export default async function SellerProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string }>
+  searchParams: Promise<{ search?: string; edit?: string }>
 }) {
-  const { search } = await searchParams
+  const { search, edit } = await searchParams
   const [products, siteCategories, wishlistedIds] = await Promise.all([
     getSellerProducts(),
     getSiteCategories(),
     getWishlistProductIds(),
   ])
   const categoryData = buildCategoryData(siteCategories)
-  return <SellerProductsList initialProducts={products} initialSearch={search || ""} categoryData={categoryData} wishlistedIds={wishlistedIds} />
+  return <SellerProductsList initialProducts={products} initialSearch={search || ""} initialEditId={edit || ""} categoryData={categoryData} wishlistedIds={wishlistedIds} />
 }
