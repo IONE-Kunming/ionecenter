@@ -278,3 +278,138 @@ export async function deleteGalleryFolder(
 
   return {}
 }
+
+/**
+ * Rename a gallery file by copying it to a new path and deleting the old one.
+ */
+export async function renameGalleryFile(
+  filePath: string,
+  newName: string
+): Promise<{ newItem?: GalleryItem; error?: string }> {
+  const user = await getCurrentUser()
+  if (!user) return { error: "Not authenticated" }
+
+  const cleanName = newName.trim()
+  if (!cleanName) return { error: "Invalid file name" }
+
+  const supabase = createAdminClient()
+  const oldStoragePath = `gallery/${user.id}/${filePath}`
+
+  // Download the old file
+  const { data: fileData, error: downloadErr } = await supabase.storage
+    .from(GALLERY_BUCKET)
+    .download(oldStoragePath)
+
+  if (downloadErr || !fileData) return { error: downloadErr?.message ?? "Failed to download file" }
+
+  // Build new storage path: same folder, new timestamp-name
+  const pathParts = filePath.split("/")
+  pathParts.pop() // remove old filename
+  const folderPath = pathParts.join("/")
+  const ext = cleanName.split(".").pop()?.toLowerCase() ?? ""
+  const newFileName = `${Date.now()}-${cleanName}`
+  const newStoragePath = folderPath
+    ? `gallery/${user.id}/${folderPath}/${newFileName}`
+    : `gallery/${user.id}/${newFileName}`
+
+  // Upload with new name
+  const { error: uploadErr } = await supabase.storage
+    .from(GALLERY_BUCKET)
+    .upload(newStoragePath, fileData, { contentType: fileData.type || "application/octet-stream" })
+
+  if (uploadErr) return { error: uploadErr.message }
+
+  // Delete old file
+  await supabase.storage.from(GALLERY_BUCKET).remove([oldStoragePath])
+
+  // Build return item
+  const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(newStoragePath)
+  const isVid = ["mp4", "mov", "avi", "webm", "mkv"].includes(ext)
+  const itemFullPath = folderPath ? `${folderPath}/${newFileName}` : newFileName
+
+  return {
+    newItem: {
+      name: newFileName,
+      fullPath: itemFullPath,
+      publicUrl: urlData.publicUrl,
+      type: isVid ? "video" : "image",
+      size: fileData.size,
+      createdAt: new Date().toISOString(),
+    },
+  }
+}
+
+/**
+ * Rename a gallery folder by creating a new folder and moving all files to it.
+ */
+export async function renameGalleryFolder(
+  folderPath: string,
+  newName: string
+): Promise<{ newFolder?: GalleryFolder; error?: string }> {
+  const user = await getCurrentUser()
+  if (!user) return { error: "Not authenticated" }
+
+  const cleanName = newName.replace(/[^a-zA-Z0-9_\- ]/g, "").trim()
+  if (!cleanName) return { error: "Invalid folder name" }
+
+  // Build old and new prefixes
+  const pathParts = folderPath.split("/")
+  pathParts.pop() // remove old folder name
+  const parentPath = pathParts.join("/")
+
+  const oldPrefix = `gallery/${user.id}/${folderPath}`
+  const newFolderPath = parentPath ? `${parentPath}/${cleanName}` : cleanName
+  const newPrefix = `gallery/${user.id}/${newFolderPath}`
+
+  const supabase = createAdminClient()
+
+  // List all files in old folder (recursively)
+  async function collectAll(prefix: string, depth = 0): Promise<string[]> {
+    if (depth > 5) return []
+    const { data } = await supabase.storage
+      .from(GALLERY_BUCKET)
+      .list(prefix, { limit: 1000 })
+    if (!data) return []
+
+    const paths: string[] = []
+    for (const item of data) {
+      const itemPath = `${prefix}/${item.name}`
+      if (item.metadata === null) {
+        const sub = await collectAll(itemPath, depth + 1)
+        paths.push(...sub)
+      } else {
+        paths.push(itemPath)
+      }
+    }
+    return paths
+  }
+
+  const oldPaths = await collectAll(oldPrefix)
+  // Also include .keep
+  oldPaths.push(`${oldPrefix}/.keep`)
+
+  // Create new folder .keep
+  const keepFile = new Blob([""], { type: "text/plain" })
+  await supabase.storage.from(GALLERY_BUCKET).upload(`${newPrefix}/.keep`, keepFile, { contentType: "text/plain" })
+
+  // Move each file: download then upload to new path
+  for (const oldPath of oldPaths) {
+    if (oldPath.endsWith("/.keep")) continue
+    const relativePath = oldPath.slice(oldPrefix.length)
+    const newPath = `${newPrefix}${relativePath}`
+
+    const { data: fileData } = await supabase.storage.from(GALLERY_BUCKET).download(oldPath)
+    if (fileData) {
+      await supabase.storage.from(GALLERY_BUCKET).upload(newPath, fileData, {
+        contentType: fileData.type || "application/octet-stream",
+      })
+    }
+  }
+
+  // Delete all old files
+  if (oldPaths.length > 0) {
+    await supabase.storage.from(GALLERY_BUCKET).remove(oldPaths)
+  }
+
+  return { newFolder: { name: cleanName, fullPath: newFolderPath } }
+}

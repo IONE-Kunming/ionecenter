@@ -348,6 +348,15 @@ export interface PackingListItem {
   created_at: string
 }
 
+export interface ProductImage {
+  id: string
+  product_id: string
+  image_url: string
+  is_primary: boolean
+  sort_order: number
+  created_at: string
+}
+
 export interface DashboardStats {
   totalOrders: number
   totalRevenue: number
