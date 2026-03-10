@@ -63,6 +63,24 @@ export interface ImportRow {
 
 type FilterMode = "all" | "available" | "unavailable" | "modified"
 
+// ─── Auto-save constants ────────────────────────────────────────────────────
+const AUTO_SAVE_DEBOUNCE_MS = 1000
+const AUTO_SAVE_SAVED_DISPLAY_MS = 2000
+
+function areProductsEqual(a: BulkEditProduct, b: BulkEditProduct): boolean {
+  return (
+    a.name === b.name &&
+    a.model_number === b.model_number &&
+    a.category === b.category &&
+    a.main_category === b.main_category &&
+    (a.custom_category ?? "") === (b.custom_category ?? "") &&
+    a.price_usd === b.price_usd &&
+    (a.price_cny ?? 0) === (b.price_cny ?? 0) &&
+    a.stock === b.stock &&
+    a.is_active === b.is_active
+  )
+}
+
 // ─── Column definitions for reorderable data columns ────────────────────────
 type BulkEditColumnKey = "product" | "name" | "model_number" | "category" | "custom_category" | "price" | "stock" | "availability"
 
@@ -360,25 +378,14 @@ export function BulkEditTable({
           const next = new Set(prev)
           for (const [id, saved] of snapshot) {
             const current = productsRef.current.find((p) => p.id === id)
-            if (
-              current &&
-              current.name === saved.name &&
-              current.model_number === saved.model_number &&
-              current.category === saved.category &&
-              current.main_category === saved.main_category &&
-              (current.custom_category ?? "") === (saved.custom_category ?? "") &&
-              current.price_usd === saved.price_usd &&
-              (current.price_cny ?? 0) === (saved.price_cny ?? 0) &&
-              current.stock === saved.stock &&
-              current.is_active === saved.is_active
-            ) {
+            if (current && areProductsEqual(current, saved)) {
               next.delete(id)
             }
           }
           return next
         })
         setAutoSaveStatus("saved")
-        setTimeout(() => setAutoSaveStatus((s) => (s === "saved" ? "idle" : s)), 2000)
+        setTimeout(() => setAutoSaveStatus((s) => (s === "saved" ? "idle" : s)), AUTO_SAVE_SAVED_DISPLAY_MS)
       }
     } catch {
       showToast("Failed to save changes", "error")
@@ -394,7 +401,7 @@ export function BulkEditTable({
 
     autoSaveTimerRef.current = setTimeout(() => {
       performAutoSaveRef.current()
-    }, 1000)
+    }, AUTO_SAVE_DEBOUNCE_MS)
 
     return () => {
       if (autoSaveTimerRef.current) {
