@@ -25,6 +25,6 @@ export default async function AuthCallbackPage() {
       redirect("/admin/dashboard")
     case "buyer":
     default:
-      redirect("/")
+      redirect("/buyer/categories")
   }
 }
