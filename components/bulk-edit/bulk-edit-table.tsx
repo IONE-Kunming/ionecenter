@@ -67,7 +67,6 @@ type FilterMode = "all" | "available" | "unavailable" | "modified"
 
 // ─── Auto-save constants ─────────────────────────────────────────────────────
 const AUTO_SAVE_DEBOUNCE_MS = 1000
-const MY_CATEGORY_AUTO_SAVE_DEBOUNCE_MS = 25000
 const SAVED_INDICATOR_DURATION_MS = 2000
 
 // ─── Column definitions for reorderable data columns ────────────────────────
@@ -184,11 +183,13 @@ function Toast({ message, type, onDone }: { message: string; type: "success" | "
 function CustomCategoryCell({
   value,
   onChange,
+  onBlur,
   savedCategories,
   sessionCategories,
 }: {
   value: string
   onChange: (value: string) => void
+  onBlur?: () => void
   savedCategories: string[]
   sessionCategories: string[]
 }) {
@@ -206,6 +207,7 @@ function CustomCategoryCell({
         (!dropdownRef.current || !dropdownRef.current.contains(e.target as Node))
       ) {
         setIsFocused(false)
+        // onBlur is handled by the input's native onBlur event
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
@@ -249,6 +251,12 @@ function CustomCategoryCell({
         value={value}
         onChange={(e) => { setHasTypedSinceFocus(true); onChange(e.target.value) }}
         onFocus={() => { setHasTypedSinceFocus(false); setIsFocused(true) }}
+        onBlur={(e) => {
+          // Don't fire onBlur if focus moved to the dropdown
+          if (dropdownRef.current?.contains(e.relatedTarget as Node)) return
+          setIsFocused(false)
+          onBlur?.()
+        }}
         className="w-full min-w-[140px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
       />
       {showDropdown && createPortal(
@@ -266,6 +274,8 @@ function CustomCategoryCell({
                 e.preventDefault()
                 onChange(s)
                 setIsFocused(false)
+                // Defer onBlur to after React processes the onChange state update
+                setTimeout(() => onBlur?.(), 0)
               }}
             >
               {s}
@@ -321,11 +331,6 @@ export function BulkEditTable({
   const productsRef = useRef(products)
   useEffect(() => { productsRef.current = products }, [products])
 
-  // ─── My Category countdown state ──────────────────────────────────────
-  const [myCategoryCountdown, setMyCategoryCountdown] = useState<number | null>(null)
-  const myCategoryCountdownInterval = useRef<ReturnType<typeof setInterval> | null>(null)
-  const myCategoryCountdownEnd = useRef<number | null>(null)
-
   // Track product IDs with pending custom_category saves (to keep rows visible on Empty tab)
   const [pendingMyCategorySaveIds, setPendingMyCategorySaveIds] = useState<Set<string>>(new Set())
   const customCategoryTabRef = useRef(customCategoryTab)
@@ -336,7 +341,6 @@ export function BulkEditTable({
     return () => {
       autoSaveTimers.current.forEach((t) => clearTimeout(t))
       if (savedIndicatorTimer.current) clearTimeout(savedIndicatorTimer.current)
-      if (myCategoryCountdownInterval.current) clearInterval(myCategoryCountdownInterval.current)
     }
   }, [])
 
@@ -356,7 +360,7 @@ export function BulkEditTable({
   // ─── Filtering ──────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     // On the Empty tab, also include products with pending my-category saves
-    // so the row stays visible until the 25-second auto-save completes
+    // so the row stays visible until the on-blur auto-save completes
     let base: BulkEditProduct[]
     if (customCategoryTab === "empty" && pendingMyCategorySaveIds.size > 0) {
       base = products.filter((p) =>
@@ -444,66 +448,53 @@ export function BulkEditTable({
     setSaving(false)
   }, [onSave, showToast, isProductChanged])
 
-  const startMyCategoryCountdown = useCallback((delayMs: number) => {
-    if (myCategoryCountdownInterval.current) clearInterval(myCategoryCountdownInterval.current)
-    myCategoryCountdownEnd.current = Date.now() + delayMs
-    setMyCategoryCountdown(Math.ceil(delayMs / 1000))
-    myCategoryCountdownInterval.current = setInterval(() => {
-      const end = myCategoryCountdownEnd.current
-      if (end == null) {
-        if (myCategoryCountdownInterval.current) clearInterval(myCategoryCountdownInterval.current)
-        myCategoryCountdownInterval.current = null
-        setMyCategoryCountdown(null)
-        return
-      }
-      const remaining = end - Date.now()
-      if (remaining <= 0) {
-        if (myCategoryCountdownInterval.current) clearInterval(myCategoryCountdownInterval.current)
-        myCategoryCountdownInterval.current = null
-        myCategoryCountdownEnd.current = null
-        setMyCategoryCountdown(null)
-      } else {
-        setMyCategoryCountdown(Math.ceil(remaining / 1000))
-      }
-    }, 1000)
-  }, [])
-
-  const clearMyCategoryCountdown = useCallback(() => {
-    if (myCategoryCountdownInterval.current) clearInterval(myCategoryCountdownInterval.current)
-    myCategoryCountdownInterval.current = null
-    myCategoryCountdownEnd.current = null
-    setMyCategoryCountdown(null)
-  }, [])
-
   const scheduleAutoSave = useCallback((productId: string, field?: keyof BulkEditProduct) => {
+    // custom_category is saved on blur, not on a timer
+    if (field === "custom_category") return
     const existing = autoSaveTimers.current.get(productId)
     if (existing) clearTimeout(existing)
-    const delay = field === "custom_category" ? MY_CATEGORY_AUTO_SAVE_DEBOUNCE_MS : AUTO_SAVE_DEBOUNCE_MS
-    if (field === "custom_category") {
-      startMyCategoryCountdown(delay)
-      // Keep row visible on the Empty tab until save completes
-      if (customCategoryTabRef.current === "empty") {
-        setPendingMyCategorySaveIds((prev) => {
-          const next = new Set(prev)
-          next.add(productId)
-          return next
-        })
-      }
-    }
+    const delay = AUTO_SAVE_DEBOUNCE_MS
     const timer = setTimeout(() => {
       autoSaveTimers.current.delete(productId)
-      if (field === "custom_category") {
-        clearMyCategoryCountdown()
-        setPendingMyCategorySaveIds((prev) => {
-          const next = new Set(prev)
-          next.delete(productId)
-          return next
-        })
-      }
       autoSaveProduct(productId)
     }, delay)
     autoSaveTimers.current.set(productId, timer)
-  }, [autoSaveProduct, startMyCategoryCountdown, clearMyCategoryCountdown])
+  }, [autoSaveProduct])
+
+  // ─── Save My Category on blur ──────────────────────────────────────────
+  const handleMyCategoryBlur = useCallback((productId: string) => {
+    const product = productsRef.current.find((p) => p.id === productId)
+    if (!product) return
+    const orig = originalData.find((o) => o.id === productId)
+    if (!orig) return
+    // Only save if the custom_category actually changed
+    if ((orig.custom_category ?? "") === (product.custom_category ?? "")) return
+
+    // Keep row visible on the Empty tab until save completes
+    if (customCategoryTabRef.current === "empty") {
+      setPendingMyCategorySaveIds((prev) => {
+        const next = new Set(prev)
+        next.add(productId)
+        return next
+      })
+    }
+
+    // Cancel any pending timer for this product (from other field edits)
+    const existing = autoSaveTimers.current.get(productId)
+    if (existing) {
+      clearTimeout(existing)
+      autoSaveTimers.current.delete(productId)
+    }
+
+    // Save immediately, then clear pending state
+    autoSaveProduct(productId).then(() => {
+      setPendingMyCategorySaveIds((prev) => {
+        const next = new Set(prev)
+        next.delete(productId)
+        return next
+      })
+    })
+  }, [autoSaveProduct, originalData])
 
   // ─── Field updates ─────────────────────────────────────────────────────
   const updateField = useCallback((id: string, field: keyof BulkEditProduct, value: string | number | boolean) => {
@@ -536,7 +527,6 @@ export function BulkEditTable({
     if (pendingTimer) {
       clearTimeout(pendingTimer)
       autoSaveTimers.current.delete(id)
-      clearMyCategoryCountdown()
     }
     // Remove from pending my-category saves so row returns to correct tab
     setPendingMyCategorySaveIds((prev) => {
@@ -551,19 +541,18 @@ export function BulkEditTable({
       return next
     })
     showToast("Row reverted")
-  }, [originalData, showToast, clearMyCategoryCountdown])
+  }, [originalData, showToast])
 
   // ─── Reset all ─────────────────────────────────────────────────────────
   const resetAll = useCallback(() => {
     // Cancel all pending auto-save timers
     autoSaveTimers.current.forEach((t) => clearTimeout(t))
     autoSaveTimers.current.clear()
-    clearMyCategoryCountdown()
     setPendingMyCategorySaveIds(new Set())
     setProducts(JSON.parse(JSON.stringify(originalData)))
     setModifiedIds(new Set())
     showToast("All changes reset")
-  }, [originalData, showToast, clearMyCategoryCountdown])
+  }, [originalData, showToast])
 
   // ─── Import ────────────────────────────────────────────────────────────
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1053,12 +1042,6 @@ export function BulkEditTable({
                 Saved ✓
               </div>
             )}
-            {myCategoryCountdown !== null && autoSaveStatus !== "saving" && autoSaveStatus !== "saved" && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
-                <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
-                Saving in {myCategoryCountdown}s...
-              </div>
-            )}
             {modifiedIds.size > 0 && autoSaveStatus !== "saving" && (
               <div className="flex items-center gap-2 text-xs text-yellow-500">
                 <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 animate-pulse" />
@@ -1328,6 +1311,7 @@ export function BulkEditTable({
                           <CustomCategoryCell
                             value={product.custom_category ?? ""}
                             onChange={(v) => updateField(product.id, "custom_category", v)}
+                            onBlur={() => handleMyCategoryBlur(product.id)}
                             savedCategories={savedCustomCategories}
                             sessionCategories={sessionCustomCategories}
                           />
