@@ -18,7 +18,7 @@ export async function getPinnedCategories(): Promise<PinnedCategory[]> {
 
   const supabase = createAdminClient()
   const { data } = await supabase
-    .from("pinned_categories")
+    .from("seller_pinned_categories")
     .select("*")
     .eq("seller_id", user.id)
     .order("sort_order", { ascending: true })
@@ -35,7 +35,7 @@ export async function savePinnedCategories(categoryNames: string[]) {
 
   // Delete existing pinned categories for this seller
   const { error: deleteError } = await supabase
-    .from("pinned_categories")
+    .from("seller_pinned_categories")
     .delete()
     .eq("seller_id", user.id)
 
@@ -50,7 +50,7 @@ export async function savePinnedCategories(categoryNames: string[]) {
     sort_order: i,
   }))
 
-  const { error } = await supabase.from("pinned_categories").insert(rows)
+  const { error } = await supabase.from("seller_pinned_categories").insert(rows)
   if (error) return { error: error.message }
   return { success: true }
 }
