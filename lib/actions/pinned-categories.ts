@@ -34,10 +34,12 @@ export async function savePinnedCategories(categoryNames: string[]) {
   const supabase = createAdminClient()
 
   // Delete existing pinned categories for this seller
-  await supabase
+  const { error: deleteError } = await supabase
     .from("pinned_categories")
     .delete()
     .eq("seller_id", user.id)
+
+  if (deleteError) return { error: deleteError.message }
 
   if (categoryNames.length === 0) return { success: true }
 

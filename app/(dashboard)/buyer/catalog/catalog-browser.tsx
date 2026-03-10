@@ -66,10 +66,13 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
 
   const persistPinned = useCallback((cats: string[]) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-    saveTimerRef.current = setTimeout(() => {
-      savePinnedCategories(cats)
+    saveTimerRef.current = setTimeout(async () => {
+      const result = await savePinnedCategories(cats)
+      if (result.error) {
+        addToast("error", result.error)
+      }
     }, 500)
-  }, [])
+  }, [addToast])
 
   const handlePinCategory = useCallback((cat: string) => {
     setPinnedCategories((prev) => {
@@ -258,9 +261,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); isPinned ? handleUnpinCategory(cat) : handlePinCategory(cat) }}
-                    className={`absolute top-2 z-20 w-7 h-7 rounded-full flex items-center justify-center transition-colors shadow-md ${
-                      showCategoryNumbers ? "right-2" : "right-2"
-                    } ${isPinned ? "bg-primary text-primary-foreground" : "bg-background/80 text-muted-foreground hover:bg-primary/20 hover:text-primary"}`}
+                    className={`absolute top-2 right-2 z-20 w-7 h-7 rounded-full flex items-center justify-center transition-colors shadow-md ${isPinned ? "bg-primary text-primary-foreground" : "bg-background/80 text-muted-foreground hover:bg-primary/20 hover:text-primary"}`}
                     title={isPinned ? t("unpinCategory") : t("pinCategory")}
                   >
                     <Pin className="h-3.5 w-3.5" />
