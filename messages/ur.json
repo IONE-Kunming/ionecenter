@@ -744,7 +744,11 @@
     "viewCart": "کارٹ دیکھیں",
     "categories": "زمرے",
     "allProducts": "تمام مصنوعات",
-    "browseProducts": "مصنوعات براؤز کریں"
+    "browseProducts": "مصنوعات براؤز کریں",
+    "pinCategory": "پن کریں",
+    "unpinCategory": "ان پن",
+    "pinnedCategories": "پن شدہ زمرے",
+    "dropHereToPin": "پن کرنے کے لیے زمرہ یہاں چھوڑیں"
   },
   "categoryNames": {
     "construction": "تعمیرات",

@@ -745,7 +745,11 @@
     "viewCart": "اذهب إلى السلة",
     "categories": "الفئات",
     "allProducts": "جميع المنتجات",
-    "browseProducts": "تصفح المنتجات"
+    "browseProducts": "تصفح المنتجات",
+    "pinCategory": "تثبيت",
+    "unpinCategory": "إلغاء التثبيت",
+    "pinnedCategories": "الفئات المثبتة",
+    "dropHereToPin": "اسحب الفئة هنا لتثبيتها"
   },
   "categoryNames": {
     "construction": "البناء",
