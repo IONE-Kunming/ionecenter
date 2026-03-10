@@ -4,9 +4,8 @@ import { useState, useMemo, useTransition } from "react"
 import { useTranslations } from "next-intl"
 import Link from "@/components/ui/link"
 import Image from "next/image"
-import { Package, ArrowLeft, Search, ShoppingCart, MessageSquare, Check, Loader2 } from "lucide-react"
+import { Package, ArrowLeft, ShoppingCart, MessageSquare, Check, Loader2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
@@ -22,6 +21,7 @@ import { getOrCreateConversation } from "@/lib/actions/chat"
 import type { CategoryData } from "@/lib/categories"
 import { toCategoryKey } from "@/lib/categories"
 import type { PricingType } from "@/types/database"
+import { ProductSearchDropdown } from "@/components/product-search-dropdown"
 
 type BrowseLevel = "categories" | "subcategories" | "products"
 
@@ -31,6 +31,7 @@ interface CatalogProduct {
   model_number: string
   main_category: string
   category: string
+  description?: string | null
   price_per_meter: number
   pricing_type?: PricingType
   price_cny?: number | null
@@ -142,7 +143,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
     return products.filter((p) => {
       const matchesCategory = !selectedCategory || p.main_category === selectedCategory
       const matchesSubcategory = !selectedSubcategory || p.category === selectedSubcategory
-      const matchesSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.model_number.toLowerCase().includes(search.toLowerCase())
+      const matchesSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.model_number.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase()) || (p.description && p.description.toLowerCase().includes(search.toLowerCase()))
       return matchesCategory && matchesSubcategory && matchesSearch
     })
   }, [products, selectedCategory, selectedSubcategory, search])
@@ -293,10 +294,14 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
           <Button variant="ghost" size="sm" onClick={() => { setLevel("subcategories"); setSelectedSubcategory("") }}>
             <ArrowLeft className="h-4 w-4 mr-2" /> {tCommon("back")}
           </Button>
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }} placeholder={tCommon("searchProducts")} className="pl-9" />
-          </div>
+          <ProductSearchDropdown
+            products={products.filter((p) => (!selectedCategory || p.main_category === selectedCategory) && (!selectedSubcategory || p.category === selectedSubcategory))}
+            value={search}
+            onChange={(v) => { setSearch(v); setCurrentPage(1) }}
+            onSelect={(id) => { window.location.href = `/buyer/product/${id}` }}
+            placeholder={tCommon("searchProducts")}
+            className="max-w-md"
+          />
           {paginatedProducts.length > 0 ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
