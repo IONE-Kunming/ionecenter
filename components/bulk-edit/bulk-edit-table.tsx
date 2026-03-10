@@ -25,6 +25,7 @@ export interface BulkEditProduct {
   model_number: string
   main_category: string
   category: string
+  custom_category?: string
   price_usd: number
   price_cny?: number
   stock: number
@@ -42,6 +43,7 @@ interface BulkEditTableProps {
   title?: string
   subtitle?: string
   categoryData: CategoryData
+  useCustomCategory?: boolean
 }
 
 export interface ImportRow {
@@ -61,7 +63,7 @@ export interface ImportRow {
 type FilterMode = "all" | "available" | "unavailable" | "modified"
 
 // ─── Column definitions for reorderable data columns ────────────────────────
-type BulkEditColumnKey = "product" | "name" | "model_number" | "category" | "price" | "stock" | "availability"
+type BulkEditColumnKey = "product" | "name" | "model_number" | "category" | "custom_category" | "price" | "stock" | "availability"
 
 interface BulkEditColumnDef {
   key: BulkEditColumnKey
@@ -74,6 +76,16 @@ const DEFAULT_BULK_COLUMNS: BulkEditColumnDef[] = [
   { key: "name", label: "Name", hasTextInput: true },
   { key: "model_number", label: "Model #", hasTextInput: true },
   { key: "category", label: "Category", hasTextInput: false },
+  { key: "price", label: "Price", hasTextInput: true },
+  { key: "stock", label: "Stock", hasTextInput: true },
+  { key: "availability", label: "Availability", hasTextInput: false },
+]
+
+const CUSTOM_CATEGORY_BULK_COLUMNS: BulkEditColumnDef[] = [
+  { key: "product", label: "Product", hasTextInput: false },
+  { key: "name", label: "Name", hasTextInput: true },
+  { key: "model_number", label: "Model #", hasTextInput: true },
+  { key: "custom_category", label: "My Category", hasTextInput: true },
   { key: "price", label: "Price", hasTextInput: true },
   { key: "stock", label: "Stock", hasTextInput: true },
   { key: "availability", label: "Availability", hasTextInput: false },
@@ -169,6 +181,7 @@ export function BulkEditTable({
   title = "Bulk Edit",
   subtitle = "PRODUCT MANAGEMENT — INLINE EDITOR",
   categoryData,
+  useCustomCategory = false,
 }: BulkEditTableProps) {
   const t = useTranslations("bulkEdit")
   const tCommon = useTranslations("common")
@@ -196,7 +209,8 @@ export function BulkEditTable({
   const toastCounter = useRef(0)
 
   // ─── Drag-and-drop reordering ───────────────────────────────────────────
-  const [columnOrder, setColumnOrder] = useState<BulkEditColumnDef[]>(DEFAULT_BULK_COLUMNS)
+  const defaultColumns = useCustomCategory ? CUSTOM_CATEGORY_BULK_COLUMNS : DEFAULT_BULK_COLUMNS
+  const [columnOrder, setColumnOrder] = useState<BulkEditColumnDef[]>(defaultColumns)
   const [draggedCol, setDraggedCol] = useState<number | null>(null)
   const [dragOverCol, setDragOverCol] = useState<number | null>(null)
   const [draggedRow, setDraggedRow] = useState<number | null>(null)
@@ -255,6 +269,7 @@ export function BulkEditTable({
         orig.model_number !== updatedProduct.model_number ||
         orig.category !== updatedProduct.category ||
         orig.main_category !== updatedProduct.main_category ||
+        (orig.custom_category ?? "") !== (updatedProduct.custom_category ?? "") ||
         orig.price_usd !== updatedProduct.price_usd ||
         (orig.price_cny ?? 0) !== (updatedProduct.price_cny ?? 0) ||
         orig.stock !== updatedProduct.stock ||
@@ -1015,6 +1030,14 @@ export function BulkEditTable({
                               </optgroup>
                             ))}
                           </select>
+                        )}
+                        {col.key === "custom_category" && (
+                          <input
+                            type="text"
+                            value={product.custom_category ?? ""}
+                            onChange={(e) => updateField(product.id, "custom_category", e.target.value)}
+                            className="w-full min-w-[140px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
+                          />
                         )}
                         {col.key === "price" && (
                           <div className="relative">
