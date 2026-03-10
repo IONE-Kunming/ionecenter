@@ -4,9 +4,8 @@ import { useState, useMemo, useTransition } from "react"
 import { useTranslations } from "next-intl"
 import Link from "@/components/ui/link"
 import Image from "next/image"
-import { Package, Search, ShoppingCart, MessageSquare, Check, Loader2 } from "lucide-react"
+import { Package, ShoppingCart, MessageSquare, Check, Loader2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
@@ -21,6 +20,7 @@ import { getOrCreateConversation } from "@/lib/actions/chat"
 import type { CategoryData } from "@/lib/categories"
 import { toCategoryKey } from "@/lib/categories"
 import type { Product } from "@/types/database"
+import { ProductSearchDropdown } from "@/components/product-search-dropdown"
 
 export function AllProductsList({ products, initialSearch = "", categoryData, wishlistedIds = [] }: { products: Product[]; initialSearch?: string; categoryData: CategoryData; wishlistedIds?: string[] }) {
   const t = useTranslations("catalog")
@@ -103,7 +103,7 @@ export function AllProductsList({ products, initialSearch = "", categoryData, wi
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
-      const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.model_number.toLowerCase().includes(search.toLowerCase())
+      const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.model_number.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase()) || (p.description && p.description.toLowerCase().includes(search.toLowerCase()))
       const matchCategory = !categoryFilter || p.main_category === categoryFilter
       return matchSearch && matchCategory
     })
@@ -115,10 +115,7 @@ export function AllProductsList({ products, initialSearch = "", categoryData, wi
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }} placeholder={tCommon("searchProducts")} className="pl-9" />
-        </div>
+        <ProductSearchDropdown value={search} onChange={(v) => { setSearch(v); setCurrentPage(1) }} products={products} placeholder={tCommon("searchProducts")} linkPrefix="/buyer/product" className="flex-1" />
         <Select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1) }} options={categoryData.mainCategories.map((c) => ({ value: c, label: translateCat(c) }))} placeholder={tCommon("allCategories")} className="w-full sm:w-56" />
       </div>
 

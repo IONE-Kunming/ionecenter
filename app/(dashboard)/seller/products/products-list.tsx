@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import Image from "next/image"
-import { Package, Plus, Search, Upload, Download, Pencil, Trash2, FileSpreadsheet } from "lucide-react"
+import { Package, Plus, Upload, Download, Pencil, Trash2, FileSpreadsheet } from "lucide-react"
 import { useTranslations } from "next-intl"
 import readXlsxFile from "read-excel-file"
 import { Card, CardContent } from "@/components/ui/card"
@@ -26,6 +26,7 @@ import { getCategoryIndex, getSubcategoryIndex } from "@/lib/sku"
 import type { Product } from "@/types/database"
 import type { PricingType } from "@/types/database"
 import { useExchangeRate, usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
+import { ProductSearchDropdown } from "@/components/product-search-dropdown"
 
 /** Upload a product image directly to Supabase Storage via signed URL (fast path). Falls back to server action. */
 async function uploadProductImageDirect(file: File): Promise<string | null> {
@@ -440,7 +441,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   }
 
   const filtered = products.filter((p) => {
-    const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.model_number.toLowerCase().includes(search.toLowerCase())
+    const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.model_number.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase()) || (p.description && p.description.toLowerCase().includes(search.toLowerCase()))
     const matchCategory = !categoryFilter || p.main_category === categoryFilter
     return matchSearch && matchCategory
   })
@@ -448,10 +449,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchProducts")} className="pl-9" />
-        </div>
+        <ProductSearchDropdown value={search} onChange={(v) => setSearch(v)} products={products} placeholder={tCommon("searchProducts")} className="flex-1" />
         <Button onClick={() => setShowAddModal(true)} className="gap-2"><Plus className="h-4 w-4" /> {t("addProduct")}</Button>
         <Button variant="outline" onClick={() => setShowImportModal(true)} className="gap-2"><Upload className="h-4 w-4" /> {tBulk("bulkImport")}</Button>
       </div>
