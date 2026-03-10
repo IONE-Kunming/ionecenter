@@ -166,7 +166,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
     const params = new URLSearchParams(window.location.search)
     const editId = params.get("edit")
     if (editId) {
-      const product = products.find((p) => p.id === editId)
+      const product = initialProducts.find((p) => p.id === editId)
       if (product) openEdit(product)
       // Remove the query param from URL without reloading
       window.history.replaceState({}, "", window.location.pathname)

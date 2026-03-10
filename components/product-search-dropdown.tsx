@@ -23,6 +23,7 @@ interface ProductSearchDropdownProps {
   onSelect: (product: SearchableProduct) => void
   placeholder?: string
   className?: string
+  maxResults?: number
 }
 
 export function ProductSearchDropdown({
@@ -32,6 +33,7 @@ export function ProductSearchDropdown({
   onSelect,
   placeholder,
   className,
+  maxResults = 20,
 }: ProductSearchDropdownProps) {
   const tCommon = useTranslations("common")
   const [open, setOpen] = useState(false)
@@ -76,7 +78,7 @@ export function ProductSearchDropdown({
       {open && search.trim() && (
         <div className="absolute z-50 mt-1 w-full max-h-72 overflow-y-auto rounded-md border bg-popover shadow-lg">
           {dropdownResults.length > 0 ? (
-            dropdownResults.slice(0, 20).map((product) => (
+            dropdownResults.slice(0, maxResults).map((product) => (
               <button
                 key={product.id}
                 type="button"
