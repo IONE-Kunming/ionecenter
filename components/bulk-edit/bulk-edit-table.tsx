@@ -23,6 +23,8 @@ export interface BulkEditProduct {
   id: string
   name: string
   model_number: string
+  main_category: string
+  category: string
   price_usd: number
   stock: number
   is_active: boolean
@@ -56,7 +58,7 @@ export interface ImportRow {
 type FilterMode = "all" | "available" | "unavailable" | "modified"
 
 // ─── Column definitions for reorderable data columns ────────────────────────
-type BulkEditColumnKey = "product" | "name" | "model_number" | "price" | "stock" | "availability"
+type BulkEditColumnKey = "product" | "name" | "model_number" | "category" | "price" | "stock" | "availability"
 
 interface BulkEditColumnDef {
   key: BulkEditColumnKey
@@ -68,6 +70,7 @@ const DEFAULT_BULK_COLUMNS: BulkEditColumnDef[] = [
   { key: "product", label: "Product", hasTextInput: false },
   { key: "name", label: "Name", hasTextInput: true },
   { key: "model_number", label: "Model #", hasTextInput: true },
+  { key: "category", label: "Category", hasTextInput: false },
   { key: "price", label: "Price", hasTextInput: true },
   { key: "stock", label: "Stock", hasTextInput: true },
   { key: "availability", label: "Availability", hasTextInput: false },
@@ -246,6 +249,8 @@ export function BulkEditTable({
       const changed =
         orig.name !== updatedProduct.name ||
         orig.model_number !== updatedProduct.model_number ||
+        orig.category !== updatedProduct.category ||
+        orig.main_category !== updatedProduct.main_category ||
         orig.price_usd !== updatedProduct.price_usd ||
         orig.stock !== updatedProduct.stock ||
         orig.is_active !== updatedProduct.is_active
@@ -951,6 +956,52 @@ export function BulkEditTable({
                             onChange={(e) => updateField(product.id, "model_number", e.target.value)}
                             className="w-full min-w-[100px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors"
                           />
+                        )}
+                        {col.key === "category" && (
+                          <select
+                            value={product.category}
+                            onChange={(e) => {
+                              const subcat = e.target.value
+                              const parent = getMainCategoryForSubcategoryInData(categoryData, subcat)
+                              setProducts((prev) => prev.map((p) => {
+                                if (p.id !== product.id) return p
+                                return { ...p, category: subcat, main_category: parent ?? p.main_category }
+                              }))
+                              setModifiedIds((prev) => {
+                                const next = new Set(prev)
+                                const orig = originalData.find((o) => o.id === product.id)
+                                if (orig && (orig.category !== subcat || orig.main_category !== (parent ?? product.main_category))) {
+                                  next.add(product.id)
+                                } else if (orig) {
+                                  const current = products.find((p) => p.id === product.id)
+                                  if (current) {
+                                    const updated = { ...current, category: subcat, main_category: parent ?? current.main_category }
+                                    const changed =
+                                      orig.name !== updated.name ||
+                                      orig.model_number !== updated.model_number ||
+                                      orig.category !== updated.category ||
+                                      orig.main_category !== updated.main_category ||
+                                      orig.price_usd !== updated.price_usd ||
+                                      orig.stock !== updated.stock ||
+                                      orig.is_active !== updated.is_active
+                                    if (changed) next.add(product.id)
+                                    else next.delete(product.id)
+                                  }
+                                }
+                                return next
+                              })
+                            }}
+                            className="w-full min-w-[140px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors cursor-pointer"
+                          >
+                            <option value="">—</option>
+                            {categoryData.mainCategories.map((main) => (
+                              <optgroup key={main} label={main}>
+                                {getSubcategoriesFromData(categoryData, main).map((sub) => (
+                                  <option key={sub} value={sub}>{sub}</option>
+                                ))}
+                              </optgroup>
+                            ))}
+                          </select>
                         )}
                         {col.key === "price" && (
                           <div className="relative">
