@@ -14,6 +14,7 @@ export function SellerBulkEditList({ initialProducts, categoryData }: { initialP
         model_number: product.model_number,
         main_category: product.main_category,
         category: product.category,
+        custom_category: product.custom_category || null,
         price_usd: product.price_usd,
         price_cny: product.price_cny ?? null,
         price_per_meter: product.price_usd,
@@ -43,6 +44,7 @@ export function SellerBulkEditList({ initialProducts, categoryData }: { initialP
       title={t("bulkEditTitle")}
       subtitle={t("bulkEditSubtitle")}
       categoryData={categoryData}
+      useCustomCategory
     />
   )
 }

@@ -62,6 +62,7 @@ export interface Product {
   description: string | null
   stock: number
   stock_status: string
+  custom_category?: string | null
   image_url: string | null
   video_urls?: string[] | null
   is_active: boolean

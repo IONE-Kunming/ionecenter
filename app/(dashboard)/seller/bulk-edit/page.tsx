@@ -16,6 +16,7 @@ export default async function SellerBulkEditPage() {
     model_number: p.model_number,
     main_category: p.main_category,
     category: p.category,
+    custom_category: p.custom_category ?? "",
     price_usd: p.price_usd ?? p.price_per_meter,
     price_cny: p.price_cny ?? undefined,
     stock: p.stock,
