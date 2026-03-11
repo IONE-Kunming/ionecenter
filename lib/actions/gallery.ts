@@ -235,7 +235,7 @@ export async function createGalleryFolder(
   const fullPath = parentPath ? `${parentPath}/${cleanName}` : cleanName
 
   // Upsert into gallery_folders table
-  await supabase
+  const { error: dbError } = await supabase
     .from("gallery_folders")
     .upsert(
       {
@@ -246,6 +246,8 @@ export async function createGalleryFolder(
       },
       { onConflict: "seller_id,folder_path" }
     )
+
+  if (dbError) return { error: dbError.message }
 
   return { folder: { name: cleanName, fullPath, coverImage: coverImageUrl ?? null } }
 }
@@ -391,11 +393,13 @@ export async function deleteGalleryFolder(
   }
 
   // Delete the folder record from gallery_folders table
-  await supabase
+  const { error: dbError } = await supabase
     .from("gallery_folders")
     .delete()
     .eq("seller_id", user.id)
     .eq("folder_path", folderPath)
+
+  if (dbError) return { error: dbError.message }
 
   return {}
 }
@@ -535,11 +539,13 @@ export async function renameGalleryFolder(
   }
 
   // Update the folder record in gallery_folders table
-  await supabase
+  const { error: dbError } = await supabase
     .from("gallery_folders")
     .update({ folder_name: cleanName, folder_path: newFolderPath })
     .eq("seller_id", user.id)
     .eq("folder_path", folderPath)
+
+  if (dbError) return { error: dbError.message }
 
   return { newFolder: { name: cleanName, fullPath: newFolderPath } }
 }
