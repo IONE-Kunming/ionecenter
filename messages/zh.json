@@ -1193,7 +1193,14 @@
     "autoMatchFileFound": "已自动匹配图片到产品: {product}",
     "autoMatchFileNotFound": "未找到与此图片名称匹配的产品",
     "keepExistingPrimary": "点击图片设为主图，或不选择以保留现有主图",
-    "products": "产品"
+    "products": "产品",
+    "folderCoverImage": "文件夹封面图片",
+    "clickToUploadCover": "点击上传封面图片",
+    "editCover": "编辑封面",
+    "changeCoverImage": "更改封面图片",
+    "uploadNewCover": "为此文件夹上传新的封面图片",
+    "coverImageUpdated": "封面图片更新成功",
+    "save": "保存"
   },
   "invoiceCreate": {
     "backToInvoices": "返回发票",

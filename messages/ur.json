@@ -1193,7 +1193,14 @@
     "autoMatchFileFound": "تصویر خودکار طور پر پروڈکٹ سے مل گئی: {product}",
     "autoMatchFileNotFound": "اس تصویر کے نام سے کوئی مماثل پروڈکٹ نہیں ملا",
     "keepExistingPrimary": "بنیادی تصویر مقرر کرنے کے لیے تصویر پر کلک کریں، یا موجودہ بنیادی تصویر برقرار رکھنے کے لیے غیر منتخب چھوڑ دیں",
-    "products": "مصنوعات"
+    "products": "مصنوعات",
+    "folderCoverImage": "فولڈر کور تصویر",
+    "clickToUploadCover": "کور تصویر اپ لوڈ کرنے کے لیے کلک کریں",
+    "editCover": "کور تبدیل کریں",
+    "changeCoverImage": "کور تصویر تبدیل کریں",
+    "uploadNewCover": "اس فولڈر کے لیے نئی کور تصویر اپ لوڈ کریں",
+    "coverImageUpdated": "کور تصویر کامیابی سے اپ ڈیٹ ہو گئی",
+    "save": "محفوظ کریں"
   },
   "invoiceCreate": {
     "backToInvoices": "انوائسز پر واپس جائیں",

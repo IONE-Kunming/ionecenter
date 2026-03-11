@@ -1265,7 +1265,14 @@
     "autoMatchFileFound": "Auto-matched image to product: {product}",
     "autoMatchFileNotFound": "No matching product found for this image name",
     "keepExistingPrimary": "Click an image to set as primary, or leave unselected to keep the existing primary image",
-    "products": "products"
+    "products": "products",
+    "folderCoverImage": "Folder Cover Image",
+    "clickToUploadCover": "Click to upload a cover image",
+    "editCover": "Edit Cover",
+    "changeCoverImage": "Change Cover Image",
+    "uploadNewCover": "Upload a new cover image for this folder",
+    "coverImageUpdated": "Cover image updated successfully",
+    "save": "Save"
   },
   "invoiceCreate": {
     "backToInvoices": "Back to Invoices",
