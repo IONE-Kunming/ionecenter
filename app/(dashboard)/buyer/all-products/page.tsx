@@ -21,7 +21,11 @@ export default async function AllProductsPage({
   const allImages = await getProductsAllImages(products.map((p) => p.id))
   const productsWithImages = products.map((p) => ({
     ...p,
-    images: allImages[p.id] ?? [],
+    images: allImages[p.id]?.length
+      ? allImages[p.id]
+      : p.image_url
+        ? [{ id: "", product_id: p.id, image_url: p.image_url, is_primary: true, sort_order: 0, created_at: "" }]
+        : [],
   }))
 
   return <AllProductsList products={productsWithImages} initialSearch={search || ""} categoryData={categoryData} wishlistedIds={wishlistedIds} />
