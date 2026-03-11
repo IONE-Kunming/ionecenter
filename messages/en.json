@@ -1266,7 +1266,10 @@
     "autoMatchFileNotFound": "No matching product found for this image name",
     "keepExistingPrimary": "Click an image to set as primary, or leave unselected to keep the existing primary image",
     "coverImage": "Cover Image",
-    "products": "products"
+    "products": "products",
+    "editCover": "Edit Cover",
+    "chooseCoverImage": "Choose Cover Image",
+    "updateCover": "Update Cover"
   },
   "invoiceCreate": {
     "backToInvoices": "Back to Invoices",
