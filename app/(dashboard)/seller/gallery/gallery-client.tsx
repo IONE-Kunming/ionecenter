@@ -81,6 +81,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
   const [linkImages, setLinkImages] = useState<GalleryItem[]>([])
   const [linking, setLinking] = useState(false)
   const [autoMatching, setAutoMatching] = useState<string | null>(null)
+  const [autoMatchingFile, setAutoMatchingFile] = useState<string | null>(null)
 
   // Bulk select state
   const [selectionMode, setSelectionMode] = useState(false)
@@ -259,7 +260,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
     setRenameValue("")
   }
 
-  // ── Auto-match handler ──
+  // ── Auto-match handler (folder) ──
   async function handleAutoMatch(folder: GalleryFolder) {
     setAutoMatching(folder.fullPath)
     setError(null)
@@ -276,6 +277,35 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
       await openLinkDialogWithMatches(folder, matches)
     } else {
       setError(t("autoMatchNotFound"))
+    }
+  }
+
+  // ── Auto-match handler (individual file) ──
+  async function handleAutoMatchFile(item: GalleryItem) {
+    if (item.type !== "image") return
+    setAutoMatchingFile(item.fullPath)
+    setError(null)
+
+    // Strip timestamp prefix to get the original filename
+    const cleanName = displayName(item.name)
+    const matches = await autoMatchFolderToProduct(cleanName)
+    setAutoMatchingFile(null)
+
+    if (matches.length === 1) {
+      const match = matches[0]
+      // Directly assign the single image to the matched product
+      const result = await assignImagesToProduct([item.publicUrl], match.id, null)
+      if (result.error) {
+        setError(result.error)
+      } else {
+        setSuccessMsg(t("autoMatchFileFound", { product: `${match.name} (${match.model_number})` }))
+      }
+    } else if (matches.length > 1) {
+      // Multiple matches — open dialog with this single file and matches for seller to choose
+      setSuccessMsg(t("autoMatchMultiple"))
+      openSingleFileLinkDialogWithMatches(item, matches)
+    } else {
+      setError(t("autoMatchFileNotFound"))
     }
   }
 
@@ -321,6 +351,33 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
       const images = result.files.filter((f) => f.type === "image")
       setLinkImages(images)
     }
+
+    // Pre-populate the product list with the matching products
+    setProductResults(matches.map((m) => ({ ...m, image_url: null })))
+  }
+
+  // ── Single file link dialog ──
+  async function openSingleFileLinkDialog(item: GalleryItem) {
+    setLinkFolderPath("__single_file__")
+    setProductSearch("")
+    setSelectedProductId(null)
+    setPrimaryImageUrl(null)
+    setLinkImages([item])
+
+    // Load initial product list
+    const products = await searchSellerProductsForGallery("")
+    setProductResults(products)
+  }
+
+  function openSingleFileLinkDialogWithMatches(
+    item: GalleryItem,
+    matches: { id: string; name: string; model_number: string }[]
+  ) {
+    setLinkFolderPath("__single_file__")
+    setProductSearch("")
+    setSelectedProductId(null)
+    setPrimaryImageUrl(null)
+    setLinkImages([item])
 
     // Pre-populate the product list with the matching products
     setProductResults(matches.map((m) => ({ ...m, image_url: null })))
@@ -706,7 +763,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
 
                 {/* Actions overlay */}
                 {!selectionMode && (
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 flex-wrap">
                     <a
                       href={item.publicUrl}
                       target="_blank"
@@ -720,6 +777,27 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                         <Video className="h-4 w-4 text-white" />
                       )}
                     </a>
+                    {item.type === "image" && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleAutoMatchFile(item) }}
+                        disabled={autoMatchingFile === item.fullPath}
+                        className="p-1.5 rounded bg-blue-500/80 hover:bg-blue-500 transition-colors"
+                        title={t("autoMatch")}
+                      >
+                        {autoMatchingFile === item.fullPath
+                          ? <Loader2 className="h-4 w-4 text-white animate-spin" />
+                          : <Star className="h-4 w-4 text-white" />}
+                      </button>
+                    )}
+                    {item.type === "image" && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); openSingleFileLinkDialog(item) }}
+                        className="p-1.5 rounded bg-primary/80 hover:bg-primary transition-colors"
+                        title={t("linkToProduct")}
+                      >
+                        <Link2 className="h-4 w-4 text-white" />
+                      </button>
+                    )}
                     <button
                       onClick={(e) => { e.stopPropagation(); setRenamingFile(item.fullPath); setRenameValue(displayName(item.name)) }}
                       className="p-1.5 rounded bg-orange-500/80 hover:bg-orange-500 transition-colors"
