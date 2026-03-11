@@ -71,7 +71,7 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
         id: p.id,
         name: p.name,
         model_number: p.model_number,
-        category: "",
+        category: "", // ProductWithImages doesn't include category
         description: p.description,
         image_url: p.image_url,
       }))
