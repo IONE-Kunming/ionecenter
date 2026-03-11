@@ -527,7 +527,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
         products={products}
         activeTab={customCategoryTab}
         onTabChange={setCustomCategoryTab}
-        className="mb-4"
+        className="mb-4 sticky top-[65px] z-20 bg-background"
       />
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
