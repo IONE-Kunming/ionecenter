@@ -134,6 +134,16 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
   const [cartCount, setCartCount] = useState(0)
   const [showCategoryNumbers, setShowCategoryNumbers] = useState(true)
 
+  const productCountsBySubcategory = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const p of products) {
+      if (p.category) {
+        counts[p.category] = (counts[p.category] ?? 0) + 1
+      }
+    }
+    return counts
+  }, [products])
+
   const handleChatWithSeller = (e: React.MouseEvent, product: CatalogProduct) => {
     e.stopPropagation()
     e.preventDefault()
@@ -352,6 +362,9 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                       <div className="absolute bottom-2 left-3 right-3">
                         <h3 className="font-semibold text-sm text-white">{translateCat(sub)}</h3>
+                        <p className="text-xs text-white/80">
+                          {productCountsBySubcategory[sub] ?? 0} {t("productsLabel")}
+                        </p>
                       </div>
                     </div>
                   ) : (
@@ -363,6 +376,9 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                       )}
                       <Package className="h-8 w-8 mx-auto text-primary" />
                       <h3 className="mt-2 font-semibold text-sm">{translateCat(sub)}</h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {productCountsBySubcategory[sub] ?? 0} {t("productsLabel")}
+                      </p>
                     </div>
                   )}
                 </CardContent>

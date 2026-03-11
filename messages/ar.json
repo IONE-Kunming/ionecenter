@@ -729,6 +729,7 @@
   },
   "catalog": {
     "subcategories": "فئات فرعية",
+    "productsLabel": "منتجات",
     "searchProducts": "البحث في المنتجات...",
     "noProducts": "لم يتم العثور على منتجات",
     "noProductsDesc": "حاول تعديل معايير البحث.",

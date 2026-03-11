@@ -728,6 +728,7 @@
   },
   "catalog": {
     "subcategories": "ذیلی زمرے",
+    "productsLabel": "مصنوعات",
     "searchProducts": "مصنوعات تلاش کریں...",
     "noProducts": "کوئی مصنوعات نہیں ملیں",
     "noProductsDesc": "اپنے تلاش کے معیار کو ایڈجسٹ کریں۔",
