@@ -754,7 +754,9 @@
     "pinCategory": "پن کریں",
     "unpinCategory": "ان پن",
     "pinnedCategories": "پن شدہ زمرے",
-    "dropHereToPin": "پن کرنے کے لیے زمرہ یہاں چھوڑیں"
+    "dropHereToPin": "پن کرنے کے لیے زمرہ یہاں چھوڑیں",
+    "noCategoriesFound": "کوئی زمرے نہیں ملے",
+    "noCategoriesFoundDesc": "اپنے تلاش کے معیار کو ایڈجسٹ کریں۔"
   },
   "categoryNames": {
     "construction": "تعمیرات",

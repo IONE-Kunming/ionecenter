@@ -830,7 +830,9 @@
     "pinCategory": "Pin",
     "unpinCategory": "Unpin",
     "pinnedCategories": "Pinned Categories",
-    "dropHereToPin": "Drop category here to pin"
+    "dropHereToPin": "Drop category here to pin",
+    "noCategoriesFound": "No categories found",
+    "noCategoriesFoundDesc": "Try adjusting your search criteria."
   },
   "categoryNames": {
     "construction": "Construction",

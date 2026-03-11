@@ -755,7 +755,9 @@
     "pinCategory": "تثبيت",
     "unpinCategory": "إلغاء التثبيت",
     "pinnedCategories": "الفئات المثبتة",
-    "dropHereToPin": "اسحب الفئة هنا لتثبيتها"
+    "dropHereToPin": "اسحب الفئة هنا لتثبيتها",
+    "noCategoriesFound": "لم يتم العثور على فئات",
+    "noCategoriesFoundDesc": "حاول تعديل معايير البحث."
   },
   "categoryNames": {
     "construction": "البناء",
