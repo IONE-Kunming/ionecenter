@@ -65,19 +65,19 @@ export function PinnedCategoriesBar({
           key={cat}
           type="button"
           onClick={() => onSelect(cat)}
-          className="group inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
+          className="group inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
         >
           {showImage ? (
             <Image
               src={imgUrl}
               alt={translateCat(cat)}
-              width={20}
-              height={20}
-              className="rounded-full object-cover w-5 h-5 shrink-0"
+              width={40}
+              height={40}
+              className="rounded-md object-cover w-10 h-10 shrink-0"
               onError={() => setFailedImages((prev) => new Set(prev).add(cat))}
             />
           ) : (
-            <Package className="h-4 w-4 shrink-0" />
+            <Package className="h-10 w-10 shrink-0" />
           )}
           <span>{translateCat(cat)}</span>
           <span
