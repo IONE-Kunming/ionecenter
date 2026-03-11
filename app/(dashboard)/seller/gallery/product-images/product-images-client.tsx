@@ -216,7 +216,7 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
         products={products}
         activeTab={customCategoryTab}
         onTabChange={setCustomCategoryTab}
-        className="mb-4"
+        className="mb-4 sticky top-[65px] z-20 bg-background"
       />
 
       {filteredProducts.length === 0 ? (
