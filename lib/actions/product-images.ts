@@ -456,17 +456,15 @@ function stripLeadingZeros(digits: string): string {
 }
 
 /**
- * Auto-match a folder/file name to products by name, model_number, or
- * by extracting numeric sequences and matching against product model_numbers.
+ * Auto-match a folder/file name to products by model_number.
  *
- * Matching strategy:
- *  1. Exact name match (case-insensitive)
- *  2. Exact model_number match (case-insensitive)
- *  3. Extract individual numeric sequences from the filename, then for each
- *     (longest first): search model_numbers that contain the number (with
- *     leading zeros stripped, then with original zeros).
- *  4. Reverse match: extract the last numeric sequence from each product
- *     model_number and check if it matches any filename numeric sequence.
+ * Matching priority:
+ *  Case 1 — Exact match: filename matches the full model number exactly.
+ *  Case 2 — Numbers only match: filename is purely numeric; strip leading
+ *           zeros and check if a model number ends with that number.
+ *  Case 3 — Partial match: filename is contained anywhere within a model number.
+ *  Case 4 — Model number contained in filename: the full model number appears
+ *           inside the filename.
  *
  * Returns an array of matching products (empty = no match).
  */
@@ -480,100 +478,71 @@ export async function autoMatchFolderToProduct(
   if (!trimmed) return []
 
   const supabase = createAdminClient()
-  const escaped = trimmed.replace(/[%_\\]/g, (ch) => `\\${ch}`)
+  const maxResults = 20
 
-  // 1. Try exact case-insensitive match on name first
-  const { data: nameMatch } = await supabase
-    .from("products")
-    .select("id, name, model_number")
-    .eq("seller_id", user.id)
-    .ilike("name", escaped)
-    .limit(1)
+  // Strip file extension (e.g. "01104.jpg" → "01104")
+  const baseName = trimmed.replace(/\.[^.]+$/, "")
+  if (!baseName) return []
 
-  if (nameMatch && nameMatch.length > 0) return nameMatch
+  const escaped = baseName.replace(/[%_\\]/g, (ch) => `\\${ch}`)
 
-  // 2. Try exact case-insensitive match on model_number
-  const { data: modelMatch } = await supabase
+  // Case 1 — Exact match: filename matches the full model number exactly
+  const { data: exactMatch } = await supabase
     .from("products")
     .select("id, name, model_number")
     .eq("seller_id", user.id)
     .ilike("model_number", escaped)
-    .limit(1)
+    .limit(maxResults)
 
-  if (modelMatch && modelMatch.length > 0) return modelMatch
+  if (exactMatch && exactMatch.length > 0) return exactMatch
 
-  // 3. Extract individual numeric sequences from the filename.
-  //    Strip file extension first (e.g. "01104.jpg" → "01104").
-  const baseName = trimmed.replace(/\.[^.]+$/, "")
-  const numericSequences = baseName.match(/\d+/g) || []
+  // Case 2 — Numbers only match: filename is purely numeric; strip leading
+  // zeros and check if a model number ends with that number.
+  if (/^\d+$/.test(baseName)) {
+    const stripped = stripLeadingZeros(baseName)
+    const escapedStripped = stripped.replace(/[%_\\]/g, (ch) => `\\${ch}`)
 
-  if (numericSequences.length > 0) {
-    const maxResults = 20
-
-    // Sort by length descending to prefer longer (more specific) matches
-    const sortedSequences = [...numericSequences].sort(
-      (a, b) => b.length - a.length
-    )
-
-    for (const seq of sortedSequences) {
-      const stripped = stripLeadingZeros(seq)
-      const escapedStripped = stripped.replace(/[%_\\]/g, (ch) => `\\${ch}`)
-
-      // Search products whose model_number contains the number (leading zeros removed)
-      const { data: containsMatch } = await supabase
-        .from("products")
-        .select("id, name, model_number")
-        .eq("seller_id", user.id)
-        .ilike("model_number", `%${escapedStripped}%`)
-        .limit(maxResults)
-
-      if (containsMatch && containsMatch.length > 0) return containsMatch
-
-      // Also try with original digits (leading zeros intact) if different
-      if (seq !== stripped) {
-        const escapedOrig = seq.replace(/[%_\\]/g, (ch) => `\\${ch}`)
-        const { data: origMatch } = await supabase
-          .from("products")
-          .select("id, name, model_number")
-          .eq("seller_id", user.id)
-          .ilike("model_number", `%${escapedOrig}%`)
-          .limit(maxResults)
-
-        if (origMatch && origMatch.length > 0) return origMatch
-      }
-    }
-
-    // 4. Reverse match: extract the last numeric sequence from each product
-    //    model_number and check if it matches any of the filename's numeric
-    //    sequences (with leading zeros stripped).
-    const fileDigitsSet = new Set(
-      sortedSequences.map((s) => stripLeadingZeros(s))
-    )
-
-    const { data: allProducts } = await supabase
+    const { data: numMatch } = await supabase
       .from("products")
       .select("id, name, model_number")
       .eq("seller_id", user.id)
-      .limit(500)
+      .ilike("model_number", `%${escapedStripped}`)
+      .limit(maxResults)
 
-    if (allProducts && allProducts.length > 0) {
-      const matched = allProducts.filter((p) => {
-        if (!p.model_number) return false
-        const modelNums = p.model_number.match(/\d+/g)
-        if (!modelNums || modelNums.length === 0) return false
-        const lastModelDigits = stripLeadingZeros(
-          modelNums[modelNums.length - 1]
-        )
-        return fileDigitsSet.has(lastModelDigits)
-      })
+    if (numMatch && numMatch.length > 0) return numMatch
+  }
 
-      if (matched.length > 0)
-        return matched.slice(0, maxResults).map((p) => ({
-          id: p.id,
-          name: p.name,
-          model_number: p.model_number,
-        }))
-    }
+  // Case 3 — Partial match: filename is contained anywhere within the model number
+  const { data: partialMatch } = await supabase
+    .from("products")
+    .select("id, name, model_number")
+    .eq("seller_id", user.id)
+    .ilike("model_number", `%${escaped}%`)
+    .limit(maxResults)
+
+  if (partialMatch && partialMatch.length > 0) return partialMatch
+
+  // Case 4 — Model number contained in filename: the full model number
+  // appears inside the image filename
+  const { data: allProducts } = await supabase
+    .from("products")
+    .select("id, name, model_number")
+    .eq("seller_id", user.id)
+    .limit(500)
+
+  if (allProducts && allProducts.length > 0) {
+    const baseNameLower = baseName.toLowerCase()
+    const matched = allProducts.filter((p) => {
+      if (!p.model_number) return false
+      return baseNameLower.includes(p.model_number.toLowerCase())
+    })
+
+    if (matched.length > 0)
+      return matched.slice(0, maxResults).map((p) => ({
+        id: p.id,
+        name: p.name,
+        model_number: p.model_number,
+      }))
   }
 
   return []
