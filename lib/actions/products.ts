@@ -169,6 +169,17 @@ export async function createProduct(
     .single()
 
   if (error) return { error: error.message }
+
+  // Also save image to product_images table as primary image
+  if (data && product.image_url) {
+    await supabase.from("product_images").insert({
+      product_id: data.id,
+      image_url: product.image_url,
+      is_primary: true,
+      sort_order: 0,
+    })
+  }
+
   return { data }
 }
 
@@ -250,9 +261,25 @@ export async function bulkImportProducts(
     seller_id: user.id,
   }))
 
-  const { error } = await supabase.from("products").insert(insertRows)
+  const { data: inserted, error } = await supabase.from("products").insert(insertRows).select("id, image_url")
 
   if (error) return { error: error.message }
+
+  // Also save images to product_images table as primary images
+  if (inserted) {
+    const imageRows = inserted
+      .filter((p) => p.image_url)
+      .map((p) => ({
+        product_id: p.id,
+        image_url: p.image_url!,
+        is_primary: true,
+        sort_order: 0,
+      }))
+    if (imageRows.length > 0) {
+      await supabase.from("product_images").insert(imageRows)
+    }
+  }
+
   return { success: true, count: insertRows.length }
 }
 
