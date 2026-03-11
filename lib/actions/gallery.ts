@@ -543,16 +543,18 @@ export async function renameGalleryFolder(
     await supabase.storage.from(GALLERY_BUCKET).remove(oldPaths)
   }
 
-  // Update the folder record in gallery_folders table
-  const { error: dbError } = await supabase
+  // Update the folder record in gallery_folders table and return the cover_image
+  const { data: updatedRecord, error: dbError } = await supabase
     .from("gallery_folders")
     .update({ folder_name: cleanName, folder_path: newFolderPath })
     .eq("seller_id", user.id)
     .eq("folder_path", folderPath)
+    .select("cover_image")
+    .maybeSingle()
 
   if (dbError) return { error: dbError.message }
 
-  return { newFolder: { name: cleanName, fullPath: newFolderPath } }
+  return { newFolder: { name: cleanName, fullPath: newFolderPath, coverImage: updatedRecord?.cover_image ?? null } }
 }
 
 /**
