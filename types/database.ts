@@ -357,6 +357,15 @@ export interface ProductImage {
   created_at: string
 }
 
+export interface GalleryFolderRecord {
+  id: string
+  seller_id: string
+  folder_name: string
+  folder_path: string
+  cover_image: string | null
+  created_at: string
+}
+
 export interface DashboardStats {
   totalOrders: number
   totalRevenue: number

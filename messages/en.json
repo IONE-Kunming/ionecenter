@@ -1265,6 +1265,7 @@
     "autoMatchFileFound": "Auto-matched image to product: {product}",
     "autoMatchFileNotFound": "No matching product found for this image name",
     "keepExistingPrimary": "Click an image to set as primary, or leave unselected to keep the existing primary image",
+    "coverImage": "Cover Image",
     "products": "products"
   },
   "invoiceCreate": {
