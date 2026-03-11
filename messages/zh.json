@@ -1194,7 +1194,10 @@
     "autoMatchFileNotFound": "未找到与此图片名称匹配的产品",
     "keepExistingPrimary": "点击图片设为主图，或不选择以保留现有主图",
     "coverImage": "封面图片",
-    "products": "产品"
+    "products": "产品",
+    "editCover": "编辑封面",
+    "chooseCoverImage": "选择封面图片",
+    "updateCover": "更新封面"
   },
   "invoiceCreate": {
     "backToInvoices": "返回发票",

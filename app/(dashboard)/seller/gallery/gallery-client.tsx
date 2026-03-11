@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl"
 import {
   FolderOpen, FolderPlus, Upload, Trash2, ArrowLeft, Image as ImageIcon,
   Video, Loader2, ChevronRight, File, Pencil, Link2, CheckSquare, Star,
-  Search,
+  Search, Camera,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,6 +25,7 @@ import {
   renameGalleryFile,
   renameGalleryFolder,
   uploadFolderCoverImage,
+  updateFolderCoverImage,
   getGalleryFolderStats,
 } from "@/lib/actions/gallery"
 import type { GalleryItem, GalleryFolder, GalleryFolderStats } from "@/lib/actions/gallery"
@@ -100,6 +101,13 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
 
   // Folder stats (image count + linked products count)
   const [folderStats, setFolderStats] = useState<Record<string, GalleryFolderStats>>({})
+
+  // Edit cover image state
+  const [editCoverFolder, setEditCoverFolder] = useState<GalleryFolder | null>(null)
+  const [editCoverFile, setEditCoverFile] = useState<File | null>(null)
+  const [editCoverPreview, setEditCoverPreview] = useState<string | null>(null)
+  const [editCoverLoading, setEditCoverLoading] = useState(false)
+  const editCoverInputRef = useRef<HTMLInputElement>(null)
 
   // Breadcrumb segments
   const segments = currentPath ? currentPath.split("/") : []
@@ -298,6 +306,35 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
     }
     setRenamingFile(null)
     setRenameValue("")
+  }
+
+  // ── Edit cover image handler ──
+  async function handleEditCoverImage() {
+    if (!editCoverFolder || !editCoverFile) return
+    setEditCoverLoading(true)
+    setError(null)
+
+    const formData = new FormData()
+    formData.append("file", editCoverFile)
+    const result = await updateFolderCoverImage(editCoverFolder.fullPath, formData)
+    setEditCoverLoading(false)
+
+    if (result.error) {
+      setError(result.error)
+      return
+    }
+    if (result.url) {
+      setFolders((prev) =>
+        prev.map((f) =>
+          f.fullPath === editCoverFolder.fullPath
+            ? { ...f, coverImage: result.url }
+            : f
+        )
+      )
+    }
+    setEditCoverFolder(null)
+    setEditCoverFile(null)
+    setEditCoverPreview(null)
   }
 
   // ── Auto-match handler (folder) ──
@@ -775,6 +812,13 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                         <Pencil className="h-3 w-3 text-white" />
                       </button>
                       <button
+                        onClick={() => setEditCoverFolder(folder)}
+                        className="p-1 rounded bg-emerald-500/80 hover:bg-emerald-500"
+                        title={t("editCover")}
+                      >
+                        <Camera className="h-3 w-3 text-white" />
+                      </button>
+                      <button
                         onClick={() => handleDeleteFolder(folder)}
                         disabled={deletingFolder === folder.fullPath}
                         className="p-1 rounded bg-destructive/80 hover:bg-destructive"
@@ -932,6 +976,74 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
           </div>
         </div>
       )}
+
+      {/* Edit Cover Image Dialog */}
+      <Dialog open={editCoverFolder !== null} onOpenChange={(v) => {
+        if (!v) {
+          setEditCoverFolder(null)
+          setEditCoverFile(null)
+          setEditCoverPreview(null)
+        }
+      }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t("editCover")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <input
+              ref={editCoverInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) {
+                  setEditCoverFile(file)
+                  setEditCoverPreview(URL.createObjectURL(file))
+                }
+                if (editCoverInputRef.current) editCoverInputRef.current.value = ""
+              }}
+            />
+            {editCoverPreview ? (
+              <div className="relative w-full aspect-square rounded-lg overflow-hidden border">
+                <NextImage src={editCoverPreview} alt="" fill className="object-cover" unoptimized />
+              </div>
+            ) : editCoverFolder?.coverImage ? (
+              <div className="relative w-full aspect-square rounded-lg overflow-hidden border">
+                <NextImage src={editCoverFolder.coverImage} alt="" fill className="object-cover" unoptimized />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center w-full aspect-square rounded-lg border border-dashed">
+                <FolderOpen className="h-12 w-12 text-muted-foreground" />
+              </div>
+            )}
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => editCoverInputRef.current?.click()}
+            >
+              <Upload className="h-4 w-4 me-2" />
+              {t("chooseCoverImage")}
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => {
+              setEditCoverFolder(null)
+              setEditCoverFile(null)
+              setEditCoverPreview(null)
+            }}>
+              {t("cancel")}
+            </Button>
+            <Button
+              onClick={handleEditCoverImage}
+              disabled={!editCoverFile || editCoverLoading}
+            >
+              {editCoverLoading ? <Loader2 className="h-4 w-4 animate-spin me-2" /> : null}
+              {editCoverLoading ? t("uploading") : t("updateCover")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Link to Product Dialog */}
       <Dialog open={linkFolderPath !== null} onOpenChange={(v) => { if (!v) setLinkFolderPath(null) }}>

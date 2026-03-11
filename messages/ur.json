@@ -1194,7 +1194,10 @@
     "autoMatchFileNotFound": "اس تصویر کے نام سے کوئی مماثل پروڈکٹ نہیں ملا",
     "keepExistingPrimary": "بنیادی تصویر مقرر کرنے کے لیے تصویر پر کلک کریں، یا موجودہ بنیادی تصویر برقرار رکھنے کے لیے غیر منتخب چھوڑ دیں",
     "coverImage": "سرورق تصویر",
-    "products": "مصنوعات"
+    "products": "مصنوعات",
+    "editCover": "کور تبدیل کریں",
+    "chooseCoverImage": "کور تصویر منتخب کریں",
+    "updateCover": "کور اپ ڈیٹ کریں"
   },
   "invoiceCreate": {
     "backToInvoices": "انوائسز پر واپس جائیں",

@@ -285,6 +285,44 @@ export async function uploadFolderCoverImage(
 }
 
 /**
+ * Update the cover image for an existing gallery folder.
+ * Uploads the new cover image and updates the gallery_folders record.
+ */
+export async function updateFolderCoverImage(
+  folderPath: string,
+  formData: FormData
+): Promise<{ url?: string; error?: string }> {
+  const user = await getCurrentUser()
+  if (!user) return { error: "Not authenticated" }
+
+  const file = formData.get("file") as File
+  if (!file) return { error: "No file provided" }
+  if (!file.type.startsWith("image/")) return { error: "Only images are allowed" }
+
+  const supabase = createAdminClient()
+  const storagePath = `gallery/${user.id}/_covers/${Date.now()}-${file.name}`
+
+  const { data, error } = await supabase.storage
+    .from(GALLERY_BUCKET)
+    .upload(storagePath, file, { contentType: file.type })
+
+  if (error) return { error: error.message }
+
+  const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(data.path)
+  const newUrl = urlData.publicUrl
+
+  const { error: dbError } = await supabase
+    .from("gallery_folders")
+    .update({ cover_image: newUrl })
+    .eq("seller_id", user.id)
+    .eq("folder_path", folderPath)
+
+  if (dbError) return { error: dbError.message }
+
+  return { url: newUrl }
+}
+
+/**
  * Delete a file from the seller's gallery.
  * Also removes matching record(s) from product_images by specific id,
  * and reassigns primary if needed.

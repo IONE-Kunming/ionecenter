@@ -1195,7 +1195,10 @@
     "autoMatchFileNotFound": "لم يتم العثور على منتج مطابق لاسم هذه الصورة",
     "keepExistingPrimary": "انقر على صورة لتعيينها كصورة رئيسية، أو اتركها بدون تحديد للحفاظ على الصورة الرئيسية الحالية",
     "coverImage": "صورة الغلاف",
-    "products": "منتجات"
+    "products": "منتجات",
+    "editCover": "تعديل الغلاف",
+    "chooseCoverImage": "اختر صورة الغلاف",
+    "updateCover": "تحديث الغلاف"
   },
   "invoiceCreate": {
     "backToInvoices": "العودة إلى الفواتير",
