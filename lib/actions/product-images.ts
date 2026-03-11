@@ -268,9 +268,10 @@ export async function getProductsAllImages(
 
 /**
  * Assign gallery images to a product. Inserts rows into product_images.
- * If primaryUrl is provided, marks that image as primary and updates
- * products.image_url. If primaryUrl is null, all images are inserted as
- * non-primary so the existing primary image (if any) is preserved.
+ * If primaryUrl is provided and present in imageUrls, marks that image as
+ * primary and updates products.image_url. If primaryUrl is null (or not in
+ * imageUrls) and the product has no existing primary image, the first
+ * assigned image is automatically set as primary.
  */
 export async function assignImagesToProduct(
   imageUrls: string[],
@@ -305,9 +306,11 @@ export async function assignImagesToProduct(
   const hasPrimary = existingPrimary && existingPrimary.length > 0
 
   // Determine the effective primary URL:
-  //   - If seller explicitly chose one → use it
+  //   - If seller explicitly chose one that is in the list → use it
   //   - Else if product has no primary → auto-set first image as primary
-  const effectivePrimary = primaryUrl ?? (!hasPrimary ? imageUrls[0] : null)
+  //   - Otherwise keep existing primary (effectivePrimary = null)
+  const validPrimary = primaryUrl && imageUrls.includes(primaryUrl) ? primaryUrl : null
+  const effectivePrimary = validPrimary ?? (!hasPrimary ? imageUrls[0] : null)
 
   if (effectivePrimary) {
     // Unset any existing primary
@@ -363,6 +366,40 @@ export async function assignImagesToProduct(
       .eq("seller_id", user.id)
 
     if (updateErr) return { error: updateErr.message }
+  }
+
+  // Safety: ensure the product has at least one primary image
+  const { data: primaryAfter } = await supabase
+    .from("product_images")
+    .select("id")
+    .eq("product_id", productId)
+    .eq("is_primary", true)
+    .limit(1)
+
+  if (!primaryAfter || primaryAfter.length === 0) {
+    const { data: first } = await supabase
+      .from("product_images")
+      .select("id, image_url")
+      .eq("product_id", productId)
+      .order("sort_order", { ascending: true })
+      .limit(1)
+
+    if (first && first.length > 0) {
+      const { error: promoteErr } = await supabase
+        .from("product_images")
+        .update({ is_primary: true })
+        .eq("id", first[0].id)
+
+      if (promoteErr) {
+        console.error("[assignImagesToProduct] Failed to promote primary:", promoteErr.message)
+      } else {
+        await supabase
+          .from("products")
+          .update({ image_url: first[0].image_url })
+          .eq("id", productId)
+          .eq("seller_id", user.id)
+      }
+    }
   }
 
   revalidatePath("/seller/products")
