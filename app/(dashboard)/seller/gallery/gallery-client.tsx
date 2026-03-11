@@ -24,8 +24,9 @@ import {
   deleteGalleryFolder,
   renameGalleryFile,
   renameGalleryFolder,
+  getGalleryFolderStats,
 } from "@/lib/actions/gallery"
-import type { GalleryItem, GalleryFolder } from "@/lib/actions/gallery"
+import type { GalleryItem, GalleryFolder, GalleryFolderStats } from "@/lib/actions/gallery"
 import {
   searchSellerProductsForGallery,
   assignImagesToProduct,
@@ -93,6 +94,9 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
   const [bulkPrimaryUrl, setBulkPrimaryUrl] = useState<string | null>(null)
   const [bulkLinking, setBulkLinking] = useState(false)
 
+  // Folder stats (image count + linked products count)
+  const [folderStats, setFolderStats] = useState<Record<string, GalleryFolderStats>>({})
+
   // Breadcrumb segments
   const segments = currentPath ? currentPath.split("/") : []
 
@@ -103,6 +107,21 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
       return () => clearTimeout(timer)
     }
   }, [successMsg])
+
+  // Fetch folder stats when folders change
+  const fetchFolderStats = useCallback(async (folderList: GalleryFolder[]) => {
+    if (folderList.length === 0) {
+      setFolderStats({})
+      return
+    }
+    const paths = folderList.map((f) => f.fullPath)
+    const stats = await getGalleryFolderStats(paths)
+    setFolderStats(stats)
+  }, [])
+
+  useEffect(() => {
+    fetchFolderStats(folders)
+  }, [folders, fetchFolderStats])
 
   function navigateTo(path: string) {
     setError(null)
@@ -299,6 +318,8 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
         setError(result.error)
       } else {
         setSuccessMsg(t("autoMatchFileFound", { product: `${match.name} (${match.model_number})` }))
+        // Refresh folder stats after auto-matching a file
+        fetchFolderStats(folders)
       }
     } else if (matches.length > 1) {
       // Multiple matches — open dialog with this single file and matches for seller to choose
@@ -398,6 +419,8 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
     }
     setSuccessMsg(t("assignSuccess"))
     setLinkFolderPath(null)
+    // Refresh folder stats after linking images to a product
+    fetchFolderStats(folders)
   }
 
   // ── Bulk select + assign ──
@@ -439,6 +462,8 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
     setShowBulkAssign(false)
     setSelectionMode(false)
     setSelectedFiles(new Set())
+    // Refresh folder stats after bulk assigning images to a product
+    fetchFolderStats(folders)
   }
 
   // Helper to strip timestamp prefix from filename for display
@@ -634,6 +659,17 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                     >
                       <FolderOpen className="h-10 w-10 text-yellow-500 group-hover:text-yellow-400" />
                       <span className="text-xs font-medium truncate w-full">{folder.name}</span>
+                      {/* Folder stats: image count & linked products */}
+                      {folderStats[folder.fullPath] && (
+                        <div className="flex flex-col items-center gap-0.5 w-full">
+                          <span className="text-[10px] text-muted-foreground">
+                            {folderStats[folder.fullPath].imageCount} {t("images").toLowerCase()}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {folderStats[folder.fullPath].linkedProductsCount} {t("products").toLowerCase()}
+                          </span>
+                        </div>
+                      )}
                     </button>
                     {/* Folder action buttons */}
                     <div className="absolute top-1 end-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -1192,7 +1192,8 @@
     "autoMatching": "自动匹配中...",
     "autoMatchFileFound": "已自动匹配图片到产品: {product}",
     "autoMatchFileNotFound": "未找到与此图片名称匹配的产品",
-    "keepExistingPrimary": "点击图片设为主图，或不选择以保留现有主图"
+    "keepExistingPrimary": "点击图片设为主图，或不选择以保留现有主图",
+    "products": "产品"
   },
   "invoiceCreate": {
     "backToInvoices": "返回发票",
