@@ -1,5 +1,6 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
 import type { ProductImage } from "@/types/database"
@@ -348,6 +349,9 @@ export async function assignImagesToProduct(
 
     if (updateErr) return { error: updateErr.message }
   }
+
+  revalidatePath("/seller/products")
+  revalidatePath("/seller/gallery/product-images")
 
   return { success: true }
 }
