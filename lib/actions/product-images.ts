@@ -450,6 +450,11 @@ export async function searchSellerProductsForGallery(
   return data
 }
 
+/** Strip leading zeros from a digit string, keeping at least one digit. */
+function stripLeadingZeros(digits: string): string {
+  return digits.replace(/^0+/, "") || "0"
+}
+
 /**
  * Auto-match a folder/file name to products by name, model_number, or
  * by extracting numeric sequences and matching against product model_numbers.
@@ -511,8 +516,7 @@ export async function autoMatchFolderToProduct(
     )
 
     for (const seq of sortedSequences) {
-      // Strip leading zeros but keep at least one digit
-      const stripped = seq.replace(/^0+/, "") || "0"
+      const stripped = stripLeadingZeros(seq)
       const escapedStripped = stripped.replace(/[%_\\]/g, (ch) => `\\${ch}`)
 
       // Search products whose model_number contains the number (leading zeros removed)
@@ -543,21 +547,23 @@ export async function autoMatchFolderToProduct(
     //    model_number and check if it matches any of the filename's numeric
     //    sequences (with leading zeros stripped).
     const fileDigitsSet = new Set(
-      sortedSequences.map((s) => s.replace(/^0+/, "") || "0")
+      sortedSequences.map((s) => stripLeadingZeros(s))
     )
 
     const { data: allProducts } = await supabase
       .from("products")
       .select("id, name, model_number")
       .eq("seller_id", user.id)
+      .limit(500)
 
     if (allProducts && allProducts.length > 0) {
       const matched = allProducts.filter((p) => {
         if (!p.model_number) return false
         const modelNums = p.model_number.match(/\d+/g)
         if (!modelNums || modelNums.length === 0) return false
-        const lastModelDigits =
-          modelNums[modelNums.length - 1].replace(/^0+/, "") || "0"
+        const lastModelDigits = stripLeadingZeros(
+          modelNums[modelNums.length - 1]
+        )
         return fileDigitsSet.has(lastModelDigits)
       })
 
