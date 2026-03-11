@@ -19,44 +19,44 @@ export interface ProductWithImages {
 
 /**
  * Fetch all seller products along with all their images from product_images table.
+ * Uses a Supabase foreign-key join so images are reliably associated with each product.
  */
 export async function getSellerProductsWithImages(): Promise<ProductWithImages[]> {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return []
 
   const supabase = createAdminClient()
-  const { data: products, error: prodErr } = await supabase
+  const { data, error } = await supabase
     .from("products")
-    .select("id, name, model_number, description, image_url")
+    .select("id, name, model_number, description, image_url, product_images(*)")
     .eq("seller_id", user.id)
     .order("name", { ascending: true })
 
-  if (prodErr || !products || products.length === 0) return []
+  if (error || !data) return []
 
-  const productIds = products.map((p: { id: string }) => p.id)
-  const { data: images, error: imgErr } = await supabase
-    .from("product_images")
-    .select("*")
-    .in("product_id", productIds)
-    .order("is_primary", { ascending: false })
-    .order("sort_order", { ascending: true })
-
-  const imageMap: Record<string, ProductImage[]> = {}
-  if (!imgErr && images) {
-    for (const img of images) {
-      if (!imageMap[img.product_id]) imageMap[img.product_id] = []
-      imageMap[img.product_id].push(img)
-    }
+  type Row = {
+    id: string
+    name: string
+    model_number: string
+    description: string | null
+    image_url: string | null
+    product_images: ProductImage[]
   }
 
-  return products.map((p: { id: string; name: string; model_number: string; description: string | null; image_url: string | null }) => ({
-    id: p.id,
-    name: p.name,
-    model_number: p.model_number,
-    description: p.description,
-    image_url: p.image_url,
-    images: imageMap[p.id] ?? [],
-  }))
+  return (data as Row[]).map((p) => {
+    const images = [...p.product_images].sort((a, b) => {
+      if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1
+      return a.sort_order - b.sort_order
+    })
+    return {
+      id: p.id,
+      name: p.name,
+      model_number: p.model_number,
+      description: p.description,
+      image_url: images[0]?.image_url ?? p.image_url ?? null,
+      images,
+    }
+  })
 }
 
 /**
@@ -112,6 +112,9 @@ export async function setProductImageAsPrimary(
     .from("products")
     .update({ image_url: image.image_url })
     .eq("id", image.product_id)
+
+  revalidatePath("/seller/gallery/product-images")
+  revalidatePath("/seller/products")
 
   return { success: true }
 }
@@ -178,6 +181,9 @@ export async function addImagesToProduct(
       .update({ image_url: imageUrls[0] })
       .eq("id", productId)
   }
+
+  revalidatePath("/seller/gallery/product-images")
+  revalidatePath("/seller/products")
 
   return { success: true }
 }
@@ -410,8 +416,8 @@ export async function assignImagesToProduct(
 
 /**
  * Delete a single image from product_images.
- * If the deleted image was primary, promote the next available image.
- * Does NOT modify products.image_url.
+ * If the deleted image was primary, promote the next available image
+ * and update products.image_url for backward compatibility.
  */
 export async function deleteProductImage(
   imageId: string
@@ -452,7 +458,7 @@ export async function deleteProductImage(
   if (image.is_primary) {
     const { data: remaining, error: remainErr } = await supabase
       .from("product_images")
-      .select("id")
+      .select("id, image_url")
       .eq("product_id", image.product_id)
       .order("sort_order", { ascending: true })
       .limit(1)
@@ -462,8 +468,23 @@ export async function deleteProductImage(
         .from("product_images")
         .update({ is_primary: true })
         .eq("id", remaining[0].id)
+
+      // Update products.image_url to the new primary image
+      await supabase
+        .from("products")
+        .update({ image_url: remaining[0].image_url })
+        .eq("id", image.product_id)
+    } else {
+      // No images left — clear products.image_url
+      await supabase
+        .from("products")
+        .update({ image_url: null })
+        .eq("id", image.product_id)
     }
   }
+
+  revalidatePath("/seller/gallery/product-images")
+  revalidatePath("/seller/products")
 
   return { success: true }
 }
