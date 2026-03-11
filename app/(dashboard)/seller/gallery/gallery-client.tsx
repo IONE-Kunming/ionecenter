@@ -24,6 +24,7 @@ import {
   deleteGalleryFolder,
   renameGalleryFile,
   renameGalleryFolder,
+  uploadFolderCoverImage,
   getGalleryFolderStats,
 } from "@/lib/actions/gallery"
 import type { GalleryItem, GalleryFolder, GalleryFolderStats } from "@/lib/actions/gallery"
@@ -62,6 +63,9 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
   const [showNewFolder, setShowNewFolder] = useState(false)
   const [folderName, setFolderName] = useState("")
   const [creating, setCreating] = useState(false)
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null)
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null)
+  const coverInputRef = useRef<HTMLInputElement>(null)
   const [deletingFolder, setDeletingFolder] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
@@ -200,7 +204,22 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
     }
     setCreating(true)
     setError(null)
-    const result = await createGalleryFolder(folderName.trim(), currentPath)
+
+    // Upload cover image first if provided
+    let coverImageUrl: string | null = null
+    if (coverImageFile) {
+      const formData = new FormData()
+      formData.append("file", coverImageFile)
+      const uploadResult = await uploadFolderCoverImage(formData)
+      if (uploadResult.error) {
+        setError(uploadResult.error)
+        setCreating(false)
+        return
+      }
+      coverImageUrl = uploadResult.url ?? null
+    }
+
+    const result = await createGalleryFolder(folderName.trim(), currentPath, coverImageUrl)
     setCreating(false)
     if (result.error) {
       setError(result.error)
@@ -213,6 +232,8 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
       })
     }
     setFolderName("")
+    setCoverImageFile(null)
+    setCoverImagePreview(null)
     setShowNewFolder(false)
   }
 
@@ -535,25 +556,69 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
 
       {/* New folder input */}
       {showNewFolder && (
-        <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/40">
-          <FolderOpen className="h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={t("folderName")}
-            value={folderName}
-            onChange={(e) => setFolderName(e.target.value)}
-            className="flex-1 h-8"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleCreateFolder()
-              if (e.key === "Escape") { setShowNewFolder(false); setFolderName("") }
-            }}
-            autoFocus
-          />
-          <Button size="sm" onClick={handleCreateFolder} disabled={creating}>
-            {creating ? <Loader2 className="h-3 w-3 animate-spin" /> : t("create")}
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => { setShowNewFolder(false); setFolderName("") }}>
-            {t("cancel")}
-          </Button>
+        <div className="flex flex-col gap-3 p-3 border rounded-lg bg-muted/40">
+          <div className="flex items-center gap-2">
+            <FolderOpen className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t("folderName")}
+              value={folderName}
+              onChange={(e) => setFolderName(e.target.value)}
+              className="flex-1 h-8"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !coverImageFile) handleCreateFolder()
+                if (e.key === "Escape") { setShowNewFolder(false); setFolderName(""); setCoverImageFile(null); setCoverImagePreview(null) }
+              }}
+              autoFocus
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              {coverImagePreview ? (
+                <div className="relative w-10 h-10 rounded border overflow-hidden flex-shrink-0">
+                  <NextImage src={coverImagePreview} alt="" fill className="object-cover" unoptimized />
+                  <button
+                    onClick={() => { setCoverImageFile(null); setCoverImagePreview(null) }}
+                    className="absolute top-0 right-0 p-0.5 bg-destructive/80 rounded-bl"
+                  >
+                    <Trash2 className="h-2.5 w-2.5 text-white" />
+                  </button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => coverInputRef.current?.click()}
+                >
+                  <ImageIcon className="h-3 w-3 mr-1" />
+                  {t("coverImage")}
+                </Button>
+              )}
+              <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    setCoverImageFile(file)
+                    setCoverImagePreview(URL.createObjectURL(file))
+                  }
+                  if (coverInputRef.current) coverInputRef.current.value = ""
+                }}
+              />
+            </div>
+            <div className="flex gap-2 ml-auto">
+              <Button size="sm" onClick={handleCreateFolder} disabled={creating}>
+                {creating ? <Loader2 className="h-3 w-3 animate-spin" /> : t("create")}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => { setShowNewFolder(false); setFolderName(""); setCoverImageFile(null); setCoverImagePreview(null) }}>
+                {t("cancel")}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -630,7 +695,13 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
               >
                 {renamingFolder === folder.fullPath ? (
                   <div className="flex flex-col items-center gap-2 w-full">
-                    <FolderOpen className="h-10 w-10 text-yellow-500" />
+                    {folder.coverImage ? (
+                      <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0">
+                        <NextImage src={folder.coverImage} alt="" fill className="object-cover" unoptimized />
+                      </div>
+                    ) : (
+                      <FolderOpen className="h-10 w-10 text-yellow-500" />
+                    )}
                     <Input
                       value={renameValue}
                       onChange={(e) => setRenameValue(e.target.value)}
@@ -657,7 +728,13 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                       onDoubleClick={(e) => { e.preventDefault(); setRenamingFolder(folder.fullPath); setRenameValue(folder.name) }}
                       className="flex flex-col items-center gap-2 w-full"
                     >
-                      <FolderOpen className="h-10 w-10 text-yellow-500 group-hover:text-yellow-400" />
+                      {folder.coverImage ? (
+                        <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0">
+                          <NextImage src={folder.coverImage} alt={folder.name} fill className="object-cover" unoptimized />
+                        </div>
+                      ) : (
+                        <FolderOpen className="h-10 w-10 text-yellow-500 group-hover:text-yellow-400" />
+                      )}
                       <span className="text-xs font-medium truncate w-full">{folder.name}</span>
                       {/* Folder stats: image count & linked products */}
                       {folderStats[folder.fullPath] && (
