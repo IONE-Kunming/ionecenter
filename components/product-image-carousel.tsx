@@ -23,7 +23,9 @@ export function ProductImageCarousel({ images, fallbackUrl, alt, sizes = "(max-w
 
   const hasMultiple = imageUrls.length > 1
 
-  const goTo = useCallback((index: number) => {
+  const handleDotClick = useCallback((e: React.MouseEvent, index: number) => {
+    e.preventDefault()
+    e.stopPropagation()
     setCurrentIndex(index)
   }, [])
 
@@ -78,7 +80,7 @@ export function ProductImageCarousel({ images, fallbackUrl, alt, sizes = "(max-w
               <button
                 key={i}
                 type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); goTo(i) }}
+                onClick={(e) => handleDotClick(e, i)}
                 className={`h-1.5 rounded-full transition-all ${i === currentIndex ? "w-4 bg-white" : "w-1.5 bg-white/50"}`}
                 aria-label={`Go to image ${i + 1}`}
               />

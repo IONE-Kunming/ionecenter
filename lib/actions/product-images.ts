@@ -72,6 +72,13 @@ export async function getProductsAllImages(
     if (!map[row.product_id]) map[row.product_id] = []
     map[row.product_id].push(row)
   }
+  // Ensure per-product ordering: is_primary DESC, sort_order ASC
+  for (const pid of Object.keys(map)) {
+    map[pid].sort((a, b) => {
+      if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1
+      return a.sort_order - b.sort_order
+    })
+  }
   return map
 }
 
