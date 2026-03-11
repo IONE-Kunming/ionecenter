@@ -14,6 +14,7 @@ export interface ProductWithImages {
   model_number: string
   description: string | null
   image_url: string | null
+  custom_category?: string | null
   images: ProductImage[]
 }
 
@@ -28,7 +29,7 @@ export async function getSellerProductsWithImages(): Promise<ProductWithImages[]
   const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, model_number, description, image_url, product_images(*)")
+    .select("id, name, model_number, description, image_url, custom_category, product_images(*)")
     .eq("seller_id", user.id)
     .order("name", { ascending: true })
 
@@ -40,6 +41,7 @@ export async function getSellerProductsWithImages(): Promise<ProductWithImages[]
     model_number: string
     description: string | null
     image_url: string | null
+    custom_category?: string | null
     product_images: ProductImage[]
   }
 
@@ -54,6 +56,7 @@ export async function getSellerProductsWithImages(): Promise<ProductWithImages[]
       model_number: p.model_number,
       description: p.description,
       image_url: images[0]?.image_url ?? p.image_url ?? null,
+      custom_category: p.custom_category ?? null,
       images,
     }
   })

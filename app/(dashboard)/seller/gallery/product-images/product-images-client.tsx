@@ -22,6 +22,7 @@ import type { ProductWithImages } from "@/lib/actions/product-images"
 import { createProductImageSignedUploadUrl, getProductFilePublicUrl } from "@/lib/actions/products"
 import { createClient } from "@/lib/supabase/client"
 import { useProductsPageHeader } from "@/components/layout/products-page-context"
+import { CustomCategoryTabs, filterByCustomCategoryTab, type CustomCategoryTab } from "@/components/custom-category-tabs"
 
 interface ProductImagesClientProps {
   initialProducts: ProductWithImages[]
@@ -42,6 +43,7 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
   const t = useTranslations("productImages")
   const [products, setProducts] = useState(initialProducts)
   const [view, setView] = useState<"list" | "grid">("grid")
+  const [customCategoryTab, setCustomCategoryTab] = useState<CustomCategoryTab>("all")
 
   // Use the shared header search context
   const {
@@ -108,11 +110,12 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
     return () => clearTimeout(timer)
   }, [highlightedProductId])
 
-  // Filtered products based on search
+  // Filtered products based on search and custom category tab
   const filteredProducts = useMemo(() => {
-    if (!searchQuery.trim()) return products
-    return products.filter((p) => matchesSearch(p, searchQuery))
-  }, [products, searchQuery])
+    const tabFiltered = filterByCustomCategoryTab(products, customCategoryTab)
+    if (!searchQuery.trim()) return tabFiltered
+    return tabFiltered.filter((p) => matchesSearch(p, searchQuery))
+  }, [products, searchQuery, customCategoryTab])
 
   async function refreshProducts() {
     const updated = await getSellerProductsWithImages()
@@ -207,6 +210,14 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
           </Button>
         </div>
       </div>
+
+      {/* Custom category tabs */}
+      <CustomCategoryTabs
+        products={products}
+        activeTab={customCategoryTab}
+        onTabChange={setCustomCategoryTab}
+        className="mb-4"
+      />
 
       {filteredProducts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
