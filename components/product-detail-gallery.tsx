@@ -6,17 +6,12 @@ import { Package } from "lucide-react"
 
 interface ProductDetailGalleryProps {
   images: { image_url: string; is_primary: boolean }[]
-  fallbackUrl: string | null
   alt: string
 }
 
-export function ProductDetailGallery({ images, fallbackUrl, alt }: ProductDetailGalleryProps) {
-  // Build display list: use images from product_images if available, else fallback
-  const imageUrls = images.length > 0
-    ? images.map((img) => img.image_url)
-    : fallbackUrl
-      ? [fallbackUrl]
-      : []
+export function ProductDetailGallery({ images, alt }: ProductDetailGalleryProps) {
+  // Build display list from product_images only
+  const imageUrls = images.map((img) => img.image_url)
 
   const [selectedIndex, setSelectedIndex] = useState(0)
 

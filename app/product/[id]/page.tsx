@@ -52,7 +52,6 @@ export default async function PublicProductDetailPage({ params }: { params: Prom
           {/* Product Image */}
           <PublicProductGallery
             images={productImages}
-            fallbackUrl={product.image_url}
             alt={product.name}
             videoUrls={allVideos}
           />
