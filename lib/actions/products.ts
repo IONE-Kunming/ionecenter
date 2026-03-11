@@ -5,6 +5,7 @@ import { getCurrentUser } from "./users"
 import { generateSKU } from "@/lib/sku"
 import { getSiteCategories } from "./site-settings"
 import { buildCategoryData } from "@/lib/categories"
+import { getProductsPrimaryImages } from "./product-images"
 import type { Product } from "@/types/database"
 
 export async function getProducts(filters?: {
@@ -41,11 +42,23 @@ export async function getProducts(filters?: {
     return []
   }
 
-  return (data ?? [])
+  const products = (data ?? [])
     .map((p) => ({
       ...p,
       seller_name: (p.seller as unknown as { display_name: string })?.display_name,
     }))
+
+  return enrichProductImages(products)
+}
+
+/** Enrich product image_url: use product_images primary image, falling back to products.image_url */
+async function enrichProductImages<T extends { id: string; image_url: string | null }>(products: T[]): Promise<T[]> {
+  if (products.length === 0) return products
+  const primaryImages = await getProductsPrimaryImages(products.map((p) => p.id))
+  return products.map((p) => ({
+    ...p,
+    image_url: primaryImages[p.id] ?? p.image_url,
+  }))
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
@@ -75,10 +88,12 @@ export async function getProduct(id: string): Promise<Product | null> {
 
     if (fallbackError || !fallbackData) return null
 
-    return {
+    const fallbackProduct = {
       ...fallbackData,
       seller_name: undefined,
     }
+    const [enriched] = await enrichProductImages([fallbackProduct])
+    return enriched
   }
 
   if (!data) return null
@@ -87,10 +102,12 @@ export async function getProduct(id: string): Promise<Product | null> {
   const seller = data.seller as { display_name: string; company: string | null; city: string | null; country: string | null; is_active: boolean | null } | null
   if (seller && seller.is_active === false) return null
 
-  return {
+  const product = {
     ...data,
     seller_name: seller?.display_name,
   }
+  const [enriched] = await enrichProductImages([product])
+  return enriched
 }
 
 export async function getSellerProducts(): Promise<Product[]> {
@@ -104,9 +121,11 @@ export async function getSellerProducts(): Promise<Product[]> {
     .eq("seller_id", user.id)
     .order("created_at", { ascending: false })
 
-  return (data ?? []).map((p) => ({
+  const products = (data ?? []).map((p) => ({
     ...p,
   }))
+
+  return enrichProductImages(products)
 }
 
 export async function getSellerCustomCategories(): Promise<string[]> {
