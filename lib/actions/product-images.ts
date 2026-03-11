@@ -343,6 +343,17 @@ export async function assignImagesToProduct(
   if (insertErr) return { error: insertErr.message }
   if (!inserted || inserted.length === 0) return { error: "Failed to save images" }
 
+  // Verify the insert succeeded by querying product_images
+  const { data: saved, error: verifyErr } = await supabase
+    .from("product_images")
+    .select("id")
+    .eq("product_id", productId)
+    .in("image_url", imageUrls)
+
+  if (verifyErr || !saved || saved.length === 0) {
+    return { error: "Failed to verify saved product images" }
+  }
+
   // Update products.image_url when a primary was set (explicit or auto)
   if (effectivePrimary) {
     const { error: updateErr } = await supabase
