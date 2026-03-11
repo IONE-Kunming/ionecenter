@@ -71,9 +71,11 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
     setUploadingProduct(productId)
     const uploadedUrls: string[] = []
     const supabase = createClient()
+    const allowedExts = new Set(["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "tiff"])
 
     for (const file of Array.from(files)) {
-      const ext = file.name.split(".").pop() || "jpg"
+      const ext = (file.name.split(".").pop() || "").toLowerCase()
+      if (!allowedExts.has(ext)) continue
       const { signedUrl, token, storagePath, error } = await createProductImageSignedUploadUrl(ext)
       if (error || !signedUrl || !token || !storagePath) continue
 
@@ -92,6 +94,10 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
     }
 
     setUploadingProduct(null)
+  }
+
+  function setFileInputRef(productId: string, el: HTMLInputElement | null) {
+    fileInputRefs.current[productId] = el
   }
 
   function openFilePicker(productId: string) {
@@ -142,7 +148,7 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
           productsWithoutImages={productsWithoutImages}
           settingPrimary={settingPrimary}
           uploadingProduct={uploadingProduct}
-          fileInputRefs={fileInputRefs}
+          onRef={setFileInputRef}
           onSetPrimary={handleSetPrimary}
           onDelete={(imageId, productId) => setDeleteTarget({ imageId, productId })}
           onAddImages={handleAddImages}
@@ -155,7 +161,7 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
           productsWithoutImages={productsWithoutImages}
           settingPrimary={settingPrimary}
           uploadingProduct={uploadingProduct}
-          fileInputRefs={fileInputRefs}
+          onRef={setFileInputRef}
           onSetPrimary={handleSetPrimary}
           onDelete={(imageId, productId) => setDeleteTarget({ imageId, productId })}
           onAddImages={handleAddImages}
@@ -195,7 +201,7 @@ interface ViewProps {
   productsWithoutImages: ProductWithImages[]
   settingPrimary: string | null
   uploadingProduct: string | null
-  fileInputRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>
+  onRef: (productId: string, el: HTMLInputElement | null) => void
   onSetPrimary: (imageId: string) => void
   onDelete: (imageId: string, productId: string) => void
   onAddImages: (productId: string, files: FileList) => void
@@ -203,10 +209,69 @@ interface ViewProps {
   t: TranslationFn
 }
 
+/* ─── Reusable file input + add button ─── */
+
+function HiddenFileInput({
+  productId,
+  onRef,
+  onAddImages,
+}: {
+  productId: string
+  onRef: (productId: string, el: HTMLInputElement | null) => void
+  onAddImages: (productId: string, files: FileList) => void
+}) {
+  return (
+    <input
+      ref={(el) => onRef(productId, el)}
+      type="file"
+      accept="image/*"
+      multiple
+      className="hidden"
+      onChange={(e) => {
+        if (e.target.files && e.target.files.length > 0) {
+          onAddImages(productId, e.target.files)
+          e.target.value = ""
+        }
+      }}
+    />
+  )
+}
+
+function AddImagesButton({
+  productId,
+  uploadingProduct,
+  onOpenFilePicker,
+  t,
+  className,
+}: {
+  productId: string
+  uploadingProduct: string | null
+  onOpenFilePicker: (productId: string) => void
+  t: TranslationFn
+  className?: string
+}) {
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      className={className}
+      onClick={() => onOpenFilePicker(productId)}
+      disabled={uploadingProduct === productId}
+    >
+      {uploadingProduct === productId ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Plus className="h-4 w-4" />
+      )}
+      {t("addImages")}
+    </Button>
+  )
+}
+
 /* ─── List View ─── */
 
 function ListView({
-  products, productsWithoutImages, settingPrimary, uploadingProduct, fileInputRefs,
+  products, productsWithoutImages, settingPrimary, uploadingProduct, onRef,
   onSetPrimary, onDelete, onAddImages, onOpenFilePicker, t,
 }: ViewProps) {
   return (
@@ -220,32 +285,8 @@ function ListView({
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary">{product.images.length} {t("images")}</Badge>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onOpenFilePicker(product.id)}
-                disabled={uploadingProduct === product.id}
-              >
-                {uploadingProduct === product.id ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Plus className="h-4 w-4" />
-                )}
-                {t("addImages")}
-              </Button>
-              <input
-                ref={(el) => { fileInputRefs.current[product.id] = el }}
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files.length > 0) {
-                    onAddImages(product.id, e.target.files)
-                    e.target.value = ""
-                  }
-                }}
-              />
+              <AddImagesButton productId={product.id} uploadingProduct={uploadingProduct} onOpenFilePicker={onOpenFilePicker} t={t} />
+              <HiddenFileInput productId={product.id} onRef={onRef} onAddImages={onAddImages} />
             </div>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2">
@@ -279,32 +320,8 @@ function ListView({
                   <p className="text-sm text-muted-foreground">{product.model_number}</p>
                 </div>
                 <div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onOpenFilePicker(product.id)}
-                    disabled={uploadingProduct === product.id}
-                  >
-                    {uploadingProduct === product.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Plus className="h-4 w-4" />
-                    )}
-                    {t("addImages")}
-                  </Button>
-                  <input
-                    ref={(el) => { fileInputRefs.current[product.id] = el }}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) {
-                        onAddImages(product.id, e.target.files)
-                        e.target.value = ""
-                      }
-                    }}
-                  />
+                  <AddImagesButton productId={product.id} uploadingProduct={uploadingProduct} onOpenFilePicker={onOpenFilePicker} t={t} />
+                  <HiddenFileInput productId={product.id} onRef={onRef} onAddImages={onAddImages} />
                 </div>
               </div>
             ))}
@@ -318,7 +335,7 @@ function ListView({
 /* ─── Grid View ─── */
 
 function GridView({
-  products, productsWithoutImages, settingPrimary, uploadingProduct, fileInputRefs,
+  products, productsWithoutImages, settingPrimary, uploadingProduct, onRef,
   onSetPrimary, onDelete, onAddImages, onOpenFilePicker, t,
 }: ViewProps) {
   return (
@@ -332,32 +349,8 @@ function GridView({
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary">{product.images.length} {t("images")}</Badge>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onOpenFilePicker(product.id)}
-                disabled={uploadingProduct === product.id}
-              >
-                {uploadingProduct === product.id ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Plus className="h-4 w-4" />
-                )}
-                {t("addImages")}
-              </Button>
-              <input
-                ref={(el) => { fileInputRefs.current[product.id] = el }}
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files.length > 0) {
-                    onAddImages(product.id, e.target.files)
-                    e.target.value = ""
-                  }
-                }}
-              />
+              <AddImagesButton productId={product.id} uploadingProduct={uploadingProduct} onOpenFilePicker={onOpenFilePicker} t={t} />
+              <HiddenFileInput productId={product.id} onRef={onRef} onAddImages={onAddImages} />
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
@@ -389,33 +382,8 @@ function GridView({
                   <h3 className="font-semibold">{product.name}</h3>
                   <p className="text-sm text-muted-foreground">{product.model_number}</p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => onOpenFilePicker(product.id)}
-                  disabled={uploadingProduct === product.id}
-                >
-                  {uploadingProduct === product.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Plus className="h-4 w-4" />
-                  )}
-                  {t("addImages")}
-                </Button>
-                <input
-                  ref={(el) => { fileInputRefs.current[product.id] = el }}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files.length > 0) {
-                      onAddImages(product.id, e.target.files)
-                      e.target.value = ""
-                    }
-                  }}
-                />
+                <AddImagesButton productId={product.id} uploadingProduct={uploadingProduct} onOpenFilePicker={onOpenFilePicker} t={t} className="w-full" />
+                <HiddenFileInput productId={product.id} onRef={onRef} onAddImages={onAddImages} />
               </div>
             ))}
           </div>

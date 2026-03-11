@@ -156,7 +156,7 @@ export async function addImagesToProduct(
     .order("sort_order", { ascending: false })
     .limit(1)
 
-  const nextSort = (maxSort && maxSort.length > 0 ? maxSort[0].sort_order : -1) + 1
+  const nextSort = (maxSort?.[0]?.sort_order ?? -1) + 1
 
   const rows = imageUrls.map((url, i) => ({
     product_id: productId,
