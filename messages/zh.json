@@ -157,7 +157,8 @@
     "role_admin": "管理员",
     "exportDocuments": "出口文件",
     "contracts": "合同",
-    "packingList": "装箱单"
+    "packingList": "装箱单",
+    "productImages": "产品图片"
   },
   "common": {
     "search": "搜索...",
@@ -1391,5 +1392,22 @@
     "sellerDashboard": "卖家后台",
     "adminDashboard": "管理后台",
     "signOut": "退出登录"
+  },
+  "productImages": {
+    "title": "产品图片",
+    "subtitle": "管理所有产品的图片",
+    "listView": "列表",
+    "gridView": "网格",
+    "noProducts": "没有找到产品",
+    "noProductsDesc": "请先添加产品以管理其图片。",
+    "images": "张图片",
+    "addImages": "添加图片",
+    "setPrimary": "设为主图",
+    "primary": "主图",
+    "deleteImage": "删除图片",
+    "deleteConfirm": "确定要删除这张图片吗？此操作无法撤消。",
+    "cancel": "取消",
+    "delete": "删除",
+    "noImagesSection": "没有图片的产品"
   }
 }

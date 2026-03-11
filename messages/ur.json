@@ -157,7 +157,8 @@
     "role_admin": "ایڈمن",
     "exportDocuments": "برآمدی دستاویزات",
     "contracts": "معاہدے",
-    "packingList": "پیکنگ لسٹ"
+    "packingList": "پیکنگ لسٹ",
+    "productImages": "پروڈکٹ تصاویر"
   },
   "common": {
     "search": "تلاش...",
@@ -1391,5 +1392,22 @@
     "sellerDashboard": "سیلر ڈیش بورڈ",
     "adminDashboard": "ایڈمن ڈیش بورڈ",
     "signOut": "سائن آؤٹ"
+  },
+  "productImages": {
+    "title": "پروڈکٹ تصاویر",
+    "subtitle": "اپنی تمام مصنوعات کی تصاویر کا انتظام کریں",
+    "listView": "فہرست",
+    "gridView": "گرڈ",
+    "noProducts": "کوئی پروڈکٹ نہیں ملا",
+    "noProductsDesc": "تصاویر کا انتظام کرنے کے لیے پہلے پروڈکٹ شامل کریں۔",
+    "images": "تصاویر",
+    "addImages": "تصاویر شامل کریں",
+    "setPrimary": "بنیادی بنائیں",
+    "primary": "بنیادی",
+    "deleteImage": "تصویر حذف کریں",
+    "deleteConfirm": "کیا آپ واقعی یہ تصویر حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں ہو سکتا۔",
+    "cancel": "منسوخ",
+    "delete": "حذف",
+    "noImagesSection": "بغیر تصاویر کی مصنوعات"
   }
 }

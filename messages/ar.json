@@ -157,7 +157,8 @@
     "role_admin": "مشرف",
     "exportDocuments": "مستندات التصدير",
     "contracts": "العقود",
-    "packingList": "قائمة التعبئة"
+    "packingList": "قائمة التعبئة",
+    "productImages": "صور المنتجات"
   },
   "common": {
     "search": "بحث...",
@@ -1392,5 +1393,22 @@
     "sellerDashboard": "لوحة البائع",
     "adminDashboard": "لوحة المدير",
     "signOut": "تسجيل الخروج"
+  },
+  "productImages": {
+    "title": "صور المنتجات",
+    "subtitle": "إدارة صور جميع منتجاتك",
+    "listView": "قائمة",
+    "gridView": "شبكة",
+    "noProducts": "لا توجد منتجات",
+    "noProductsDesc": "أضف منتجات أولاً لإدارة صورها.",
+    "images": "صور",
+    "addImages": "إضافة صور",
+    "setPrimary": "تعيين كرئيسية",
+    "primary": "رئيسية",
+    "deleteImage": "حذف الصورة",
+    "deleteConfirm": "هل أنت متأكد من حذف هذه الصورة؟ لا يمكن التراجع عن هذا الإجراء.",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "noImagesSection": "منتجات بدون صور"
   }
 }
