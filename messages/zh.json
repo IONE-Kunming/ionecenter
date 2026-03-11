@@ -1410,6 +1410,8 @@
     "deleteConfirm": "确定要删除这张图片吗？此操作无法撤消。",
     "cancel": "取消",
     "delete": "删除",
-    "noImagesSection": "没有图片的产品"
+    "noImagesSection": "没有图片的产品",
+    "searchPlaceholder": "按名称、型号或描述搜索...",
+    "noSearchResults": "没有与您的搜索匹配的产品。"
   }
 }
