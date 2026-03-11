@@ -119,7 +119,7 @@ function downloadTemplate() {
   URL.revokeObjectURL(url)
 }
 
-type ProductWithImages = Product & { images?: { id: string; image_url: string; is_primary: boolean }[] }
+type ProductWithImages = Product & { images?: ProductImage[] }
 
 export function SellerProductsList({ initialProducts, initialSearch = "", categoryData, wishlistedIds = [] }: { initialProducts: ProductWithImages[]; initialSearch?: string; categoryData: CategoryData; wishlistedIds?: string[] }) {
   const t = useTranslations("sellerProducts")
@@ -789,7 +789,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                         <button
                           type="button"
                           className="absolute top-0 right-0 bg-destructive text-destructive-foreground rounded-bl p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity"
-                          onClick={() => setDeleteImageTarget(img as ProductImage)}
+                          onClick={() => setDeleteImageTarget(img)}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

@@ -173,14 +173,14 @@ export async function deleteProductImage(
 
   // If the deleted image was primary, promote the next available image
   if (image.is_primary) {
-    const { data: remaining } = await supabase
+    const { data: remaining, error: remainErr } = await supabase
       .from("product_images")
       .select("id")
       .eq("product_id", image.product_id)
       .order("sort_order", { ascending: true })
       .limit(1)
 
-    if (remaining && remaining.length > 0) {
+    if (!remainErr && remaining && remaining.length > 0) {
       await supabase
         .from("product_images")
         .update({ is_primary: true })
