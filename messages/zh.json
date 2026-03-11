@@ -1186,7 +1186,8 @@
     "noProductsFound": "未找到产品",
     "linkingImages": "正在关联图片到产品...",
     "autoMatch": "自动匹配",
-    "autoMatching": "自动匹配中..."
+    "autoMatching": "自动匹配中...",
+    "keepExistingPrimary": "点击图片设为主图，或不选择以保留现有主图"
   },
   "invoiceCreate": {
     "backToInvoices": "返回发票",

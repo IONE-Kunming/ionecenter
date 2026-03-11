@@ -90,12 +90,14 @@ export async function getProductsAllImages(
 
 /**
  * Assign gallery images to a product. Inserts rows into product_images.
- * Marks one as primary. Also updates products.image_url for backward compat.
+ * If primaryUrl is provided, marks that image as primary and updates
+ * products.image_url. If primaryUrl is null, all images are inserted as
+ * non-primary so the existing primary image (if any) is preserved.
  */
 export async function assignImagesToProduct(
   imageUrls: string[],
   productId: string,
-  primaryUrl: string
+  primaryUrl: string | null
 ): Promise<{ error?: string; success?: boolean }> {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return { error: "Not authorized" }
@@ -114,25 +116,36 @@ export async function assignImagesToProduct(
 
   if (prodErr || !product) return { error: "Product not found or not owned by you" }
 
+  if (primaryUrl) {
+    // Seller explicitly chose a new primary — unset any existing primary
+    await supabase
+      .from("product_images")
+      .update({ is_primary: false })
+      .eq("product_id", productId)
+      .eq("is_primary", true)
+  }
+
   // Insert product_images rows
   const rows = imageUrls.map((url, i) => ({
     product_id: productId,
     image_url: url,
-    is_primary: url === primaryUrl,
+    is_primary: primaryUrl ? url === primaryUrl : false,
     sort_order: i,
   }))
 
   const { error: insertErr } = await supabase.from("product_images").insert(rows)
   if (insertErr) return { error: insertErr.message }
 
-  // Also update products.image_url for backward compatibility
-  const { error: updateErr } = await supabase
-    .from("products")
-    .update({ image_url: primaryUrl })
-    .eq("id", productId)
-    .eq("seller_id", user.id)
+  // Update products.image_url only when the seller chose a new primary
+  if (primaryUrl) {
+    const { error: updateErr } = await supabase
+      .from("products")
+      .update({ image_url: primaryUrl })
+      .eq("id", productId)
+      .eq("seller_id", user.id)
 
-  if (updateErr) return { error: updateErr.message }
+    if (updateErr) return { error: updateErr.message }
+  }
 
   return { success: true }
 }

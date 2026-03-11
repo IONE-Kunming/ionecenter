@@ -292,7 +292,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
     if (!result.error) {
       const images = result.files.filter((f) => f.type === "image")
       setLinkImages(images)
-      if (images.length > 0) setPrimaryImageUrl(images[0].publicUrl)
+      // Don't auto-select primary – keep existing primary unless seller explicitly picks one
     }
 
     // Load initial product list
@@ -306,8 +306,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
     setError(null)
 
     const imageUrls = linkImages.map((img) => img.publicUrl)
-    const primary = primaryImageUrl ?? imageUrls[0]
-    const result = await assignImagesToProduct(imageUrls, selectedProductId, primary)
+    const result = await assignImagesToProduct(imageUrls, selectedProductId, primaryImageUrl)
 
     setLinking(false)
     if (result.error) {
@@ -768,12 +767,13 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
             {/* Image thumbnails - select primary */}
             {linkImages.length > 0 && (
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t("markAsPrimary")}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">{t("markAsPrimary")}</p>
+                <p className="text-xs text-muted-foreground mb-2">{t("keepExistingPrimary")}</p>
                 <div className="flex gap-2 flex-wrap">
                   {linkImages.map((img) => (
                     <button
                       key={img.fullPath}
-                      onClick={() => setPrimaryImageUrl(img.publicUrl)}
+                      onClick={() => setPrimaryImageUrl(primaryImageUrl === img.publicUrl ? null : img.publicUrl)}
                       className={cn(
                         "relative w-16 h-16 rounded border overflow-hidden",
                         primaryImageUrl === img.publicUrl && "ring-2 ring-primary"
