@@ -488,17 +488,19 @@ export async function autoMatchFolderToProduct(
   const digits = baseName.replace(/[^0-9]/g, "")
 
   if (digits.length > 0) {
+    const maxResults = 20
     // Strip leading zeros but keep at least one digit
-    const stripped = digits.replace(/^0+/, "") || digits.slice(-1)
+    const stripped = digits.replace(/^0+/, "") || "0"
     const escapedDigits = stripped.replace(/[%_\\]/g, (ch) => `\\${ch}`)
 
     // Search products whose model_number ends with the extracted number
+    // (ILIKE '%1104' matches any model_number ending in "1104")
     const { data: endMatch } = await supabase
       .from("products")
       .select("id, name, model_number")
       .eq("seller_id", user.id)
       .ilike("model_number", `%${escapedDigits}`)
-      .limit(20)
+      .limit(maxResults)
 
     if (endMatch && endMatch.length > 0) return endMatch
 
@@ -508,7 +510,7 @@ export async function autoMatchFolderToProduct(
       .select("id, name, model_number")
       .eq("seller_id", user.id)
       .ilike("model_number", `%${escapedDigits}%`)
-      .limit(20)
+      .limit(maxResults)
 
     if (containsMatch && containsMatch.length > 0) return containsMatch
   }
