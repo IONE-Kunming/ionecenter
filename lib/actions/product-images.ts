@@ -11,6 +11,7 @@ export interface ProductWithImages {
   id: string
   name: string
   model_number: string
+  description: string | null
   image_url: string | null
   images: ProductImage[]
 }
@@ -25,7 +26,7 @@ export async function getSellerProductsWithImages(): Promise<ProductWithImages[]
   const supabase = createAdminClient()
   const { data: products, error: prodErr } = await supabase
     .from("products")
-    .select("id, name, model_number, image_url")
+    .select("id, name, model_number, description, image_url")
     .eq("seller_id", user.id)
     .order("name", { ascending: true })
 
@@ -47,10 +48,11 @@ export async function getSellerProductsWithImages(): Promise<ProductWithImages[]
     }
   }
 
-  return products.map((p: { id: string; name: string; model_number: string; image_url: string | null }) => ({
+  return products.map((p: { id: string; name: string; model_number: string; description: string | null; image_url: string | null }) => ({
     id: p.id,
     name: p.name,
     model_number: p.model_number,
+    description: p.description,
     image_url: p.image_url,
     images: imageMap[p.id] ?? [],
   }))
