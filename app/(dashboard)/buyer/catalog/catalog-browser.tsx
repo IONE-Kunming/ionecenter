@@ -250,6 +250,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
             <PinnedCategoriesBar
               pinnedCategories={pinnedCategories}
               categoryImageMap={categoryData.categoryImageMap}
+              categoryMap={categoryData.categoryMap}
               onSelect={handlePinnedSelect}
               onUnpin={handleUnpinCategory}
               isDragOver={isDragOver}

@@ -2,13 +2,14 @@
 
 import { X, Package } from "lucide-react"
 import Image from "next/image"
-import { useState } from "react"
 import { useTranslations } from "next-intl"
+import { Card, CardContent } from "@/components/ui/card"
 import { toCategoryKey } from "@/lib/categories"
 
 interface PinnedCategoriesBarProps {
   pinnedCategories: string[]
   categoryImageMap?: Record<string, string | null>
+  categoryMap?: Record<string, string[]>
   onSelect: (category: string) => void
   onUnpin: (category: string) => void
   isDragOver: boolean
@@ -20,6 +21,7 @@ interface PinnedCategoriesBarProps {
 export function PinnedCategoriesBar({
   pinnedCategories,
   categoryImageMap,
+  categoryMap,
   onSelect,
   onUnpin,
   isDragOver,
@@ -29,7 +31,6 @@ export function PinnedCategoriesBar({
 }: PinnedCategoriesBarProps) {
   const t = useTranslations("catalog")
   const tCatNames = useTranslations("categoryNames")
-  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
 
   const translateCat = (name: string): string => {
     const key = toCategoryKey(name)
@@ -43,7 +44,7 @@ export function PinnedCategoriesBar({
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
-      className={`flex flex-wrap items-center gap-3 min-h-[80px] rounded-lg border-2 border-dashed px-3 py-3 transition-colors ${
+      className={`flex items-stretch gap-4 min-h-[80px] rounded-lg border-2 border-dashed px-3 py-3 transition-colors overflow-x-auto ${
         isDragOver
           ? "border-primary bg-primary/10"
           : pinnedCategories.length > 0
@@ -52,57 +53,60 @@ export function PinnedCategoriesBar({
       }`}
     >
       {pinnedCategories.length === 0 && !isDragOver && (
-        <span className="text-xs text-muted-foreground">{t("dropHereToPin")}</span>
+        <span className="text-xs text-muted-foreground self-center">{t("dropHereToPin")}</span>
       )}
       {isDragOver && pinnedCategories.length === 0 && (
-        <span className="text-xs text-primary font-medium">{t("dropHereToPin")}</span>
+        <span className="text-xs text-primary font-medium self-center">{t("dropHereToPin")}</span>
       )}
       {pinnedCategories.map((cat) => {
-        const imgUrl = categoryImageMap?.[cat] ?? null
-        const showImage = imgUrl && !failedImages.has(cat)
+        const imageUrl = categoryImageMap?.[cat] ?? null
+        const subcategories = categoryMap?.[cat] ?? []
         return (
-        <button
-          key={cat}
-          type="button"
-          onClick={() => onSelect(cat)}
-          className="group inline-flex items-center gap-3 rounded-xl bg-primary/10 px-4 py-2.5 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
-        >
-          {showImage ? (
-            <div className="w-[60px] h-[60px] rounded-md bg-white flex items-center justify-center shrink-0">
-              <Image
-                src={imgUrl}
-                alt={translateCat(cat)}
-                width={60}
-                height={60}
-                className="rounded-md object-contain w-[60px] h-[60px]"
-                onError={() => setFailedImages((prev) => new Set(prev).add(cat))}
-              />
-            </div>
-          ) : (
-            <div className="w-[60px] h-[60px] rounded-md bg-white flex items-center justify-center shrink-0">
-              <Package className="h-8 w-8 text-primary" />
-            </div>
-          )}
-          <span>{translateCat(cat)}</span>
-          <span
-            role="button"
-            tabIndex={0}
-            onClick={(e) => {
-              e.stopPropagation()
-              onUnpin(cat)
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.stopPropagation()
-                onUnpin(cat)
-              }
-            }}
-            className="inline-flex items-center justify-center rounded-full hover:bg-primary/30 p-0.5 transition-colors"
-            title={t("unpinCategory")}
+          <Card
+            key={cat}
+            className="cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden shrink-0 w-[260px]"
+            onClick={() => onSelect(cat)}
           >
-            <X className="h-3 w-3" />
-          </span>
-        </button>
+            <CardContent className="p-0 relative">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onUnpin(cat)
+                }}
+                className="absolute top-2 right-2 z-20 w-7 h-7 rounded-full flex items-center justify-center transition-colors shadow-md bg-black/50 text-white hover:bg-black/70"
+                title={t("unpinCategory")}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+              {imageUrl ? (
+                <div className="relative h-[160px]">
+                  <Image
+                    src={imageUrl}
+                    alt={translateCat(cat)}
+                    fill
+                    className="object-cover"
+                    sizes="260px"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                  <div className="absolute bottom-3 left-4 right-4">
+                    <h3 className="font-semibold text-white">{translateCat(cat)}</h3>
+                    <p className="text-sm text-white/80">
+                      {subcategories.length} {t("subcategories")}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-8 text-center h-[160px] flex flex-col items-center justify-center">
+                  <Package className="h-10 w-10 mx-auto text-primary" />
+                  <h3 className="mt-4 font-semibold text-base">{translateCat(cat)}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {subcategories.length} {t("subcategories")}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )
       })}
     </div>
