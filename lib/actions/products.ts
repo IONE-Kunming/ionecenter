@@ -121,16 +121,17 @@ export async function getSellerProducts(): Promise<(Product & { images: ProductI
     .eq("seller_id", user.id)
     .order("created_at", { ascending: false })
 
-  return (data ?? []).map((p) => {
-    const { product_images: imgs, ...rest } = p as Record<string, unknown>
-    const images = ((imgs ?? []) as ProductImage[]).sort((a, b) => {
+  type ProductWithJoin = Product & { product_images: ProductImage[] }
+
+  return ((data ?? []) as ProductWithJoin[]).map((p) => {
+    const { product_images: imgs, ...rest } = p
+    const images = [...imgs].sort((a, b) => {
       if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1
       return a.sort_order - b.sort_order
     })
-    const primaryImage = images.find((img) => img.is_primary) ?? images[0]
     return {
-      ...(rest as Product),
-      image_url: primaryImage?.image_url ?? (rest as Product).image_url ?? null,
+      ...rest,
+      image_url: images[0]?.image_url ?? rest.image_url ?? null,
       images,
     }
   })
