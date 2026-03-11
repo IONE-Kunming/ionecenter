@@ -772,14 +772,14 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                         className="relative w-full h-full"
                       >
                         <NextImage src={folder.coverImage} alt={folder.name} fill className="object-cover" unoptimized />
-                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-6">
-                          <span className="text-xs font-medium truncate block text-white">{folder.name}</span>
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-2 pt-8">
+                          <span className="text-sm font-bold truncate block text-white">{folder.name}</span>
                           {folderStats[folder.fullPath] && (
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[10px] text-white/80">
+                              <span className="text-xs text-white">
                                 {folderStats[folder.fullPath].imageCount} {t("images").toLowerCase()}
                               </span>
-                              <span className="text-[10px] text-white/80">
+                              <span className="text-xs text-white">
                                 {folderStats[folder.fullPath].linkedProductsCount} {t("products").toLowerCase()}
                               </span>
                             </div>
@@ -793,13 +793,13 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                         className="flex flex-col items-center gap-2 w-full"
                       >
                         <FolderOpen className="h-10 w-10 text-yellow-500 group-hover:text-yellow-400" />
-                        <span className="text-xs font-medium truncate w-full">{folder.name}</span>
+                        <span className="text-sm font-bold truncate w-full">{folder.name}</span>
                         {folderStats[folder.fullPath] && (
                           <div className="flex flex-col items-center gap-0.5 w-full">
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-xs text-foreground">
                               {folderStats[folder.fullPath].imageCount} {t("images").toLowerCase()}
                             </span>
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-xs text-foreground">
                               {folderStats[folder.fullPath].linkedProductsCount} {t("products").toLowerCase()}
                             </span>
                           </div>
