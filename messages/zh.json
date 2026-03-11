@@ -728,6 +728,7 @@
   },
   "catalog": {
     "subcategories": "子分类",
+    "productsLabel": "个产品",
     "searchProducts": "搜索产品...",
     "noProducts": "未找到产品",
     "noProductsDesc": "请调整您的搜索条件。",

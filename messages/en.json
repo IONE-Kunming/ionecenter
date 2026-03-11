@@ -804,6 +804,7 @@
   },
   "catalog": {
     "subcategories": "subcategories",
+    "productsLabel": "products",
     "searchProducts": "Search products...",
     "noProducts": "No products found",
     "noProductsDesc": "Try adjusting your search criteria.",
