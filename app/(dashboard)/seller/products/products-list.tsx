@@ -15,6 +15,7 @@ import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
+import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { formatDualPrice, getStockStatus } from "@/lib/utils"
 import { createProduct, updateProduct, deleteProduct, bulkImportProducts, uploadProductImage, createProductImageSignedUploadUrl, getProductFilePublicUrl } from "@/lib/actions/products"
 import { createClient } from "@/lib/supabase/client"
@@ -117,12 +118,14 @@ function downloadTemplate() {
   URL.revokeObjectURL(url)
 }
 
-export function SellerProductsList({ initialProducts, initialSearch = "", categoryData, wishlistedIds = [] }: { initialProducts: Product[]; initialSearch?: string; categoryData: CategoryData; wishlistedIds?: string[] }) {
+type ProductWithImages = Product & { images?: { image_url: string; is_primary: boolean }[] }
+
+export function SellerProductsList({ initialProducts, initialSearch = "", categoryData, wishlistedIds = [] }: { initialProducts: ProductWithImages[]; initialSearch?: string; categoryData: CategoryData; wishlistedIds?: string[] }) {
   const t = useTranslations("sellerProducts")
   const tCommon = useTranslations("common")
   const tBulk = useTranslations("bulkEdit")
   const { rate: exchangeRate, isLive: isLiveRate } = useExchangeRate()
-  const [products, setProducts] = useState(initialProducts)
+  const [products, setProducts] = useState<ProductWithImages[]>(initialProducts)
   const {
     search,
     setSearch: ctxSetSearch,
@@ -504,17 +507,11 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
               <Card key={product.id} className="group">
                 <CardContent className="p-0">
                   <div className="aspect-square relative bg-card rounded-t-xl flex items-center justify-center overflow-hidden">
-                    {product.image_url ? (
-                      <Image
-                        src={product.image_url}
-                        alt={product.name}
-                        fill
-                        className="object-contain"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      />
-                    ) : (
-                      <Package className="h-12 w-12 text-muted-foreground/30" />
-                    )}
+                    <ProductImageCarousel
+                      images={product.images ?? []}
+                      fallbackUrl={product.image_url}
+                      alt={product.name}
+                    />
                   </div>
                   <div className="p-4">
                     <Badge variant="secondary" className="text-xs mb-2">{product.category}</Badge>

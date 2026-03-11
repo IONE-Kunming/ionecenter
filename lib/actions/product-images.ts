@@ -30,7 +30,7 @@ export async function getProductsPrimaryImages(
 }
 
 /**
- * Get all images for a single product, ordered by sort_order.
+ * Get all images for a single product, ordered by is_primary DESC, sort_order ASC.
  */
 export async function getProductImages(
   productId: string
@@ -40,10 +40,46 @@ export async function getProductImages(
     .from("product_images")
     .select("*")
     .eq("product_id", productId)
+    .order("is_primary", { ascending: false })
     .order("sort_order", { ascending: true })
 
   if (error || !data) return []
   return data
+}
+
+/**
+ * Batch-fetch all images for multiple products.
+ * Returns a map of productId → ProductImage[].
+ * Each product's images are ordered by is_primary DESC, sort_order ASC.
+ */
+export async function getProductsAllImages(
+  productIds: string[]
+): Promise<Record<string, ProductImage[]>> {
+  if (productIds.length === 0) return {}
+
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .from("product_images")
+    .select("*")
+    .in("product_id", productIds)
+    .order("is_primary", { ascending: false })
+    .order("sort_order", { ascending: true })
+
+  if (error || !data) return {}
+
+  const map: Record<string, ProductImage[]> = {}
+  for (const row of data) {
+    if (!map[row.product_id]) map[row.product_id] = []
+    map[row.product_id].push(row)
+  }
+  // Ensure per-product ordering: is_primary DESC, sort_order ASC
+  for (const pid of Object.keys(map)) {
+    map[pid].sort((a, b) => {
+      if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1
+      return a.sort_order - b.sort_order
+    })
+  }
+  return map
 }
 
 /**

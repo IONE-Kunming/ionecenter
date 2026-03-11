@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
+import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { useToast } from "@/components/ui/toaster"
 import { formatDualPrice } from "@/lib/utils"
 import { useExchangeRate } from "@/lib/use-exchange-rate"
@@ -40,6 +41,7 @@ interface CatalogProduct {
   seller_id: string
   seller_name: string
   image_url: string | null
+  images?: { image_url: string; is_primary: boolean }[]
 }
 
 const ITEMS_PER_PAGE = 12
@@ -386,17 +388,11 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                     <CardContent className="p-0">
                       <Link href={`/buyer/product/${product.id}`}>
                         <div className="aspect-square relative bg-card rounded-t-xl flex items-center justify-center overflow-hidden">
-                          {product.image_url ? (
-                            <Image
-                              src={product.image_url}
-                              alt={product.name}
-                              fill
-                              className="object-contain"
-                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                            />
-                          ) : (
-                            <Package className="h-12 w-12 text-muted-foreground/30" />
-                          )}
+                          <ProductImageCarousel
+                            images={product.images ?? []}
+                            fallbackUrl={product.image_url}
+                            alt={product.name}
+                          />
                         </div>
                       </Link>
                       <div className="p-4">

@@ -2,8 +2,7 @@
 
 import { useState, useTransition, useMemo } from "react"
 import { useTranslations } from "next-intl"
-import Image from "next/image"
-import { ArrowLeft, Package, ShoppingCart, MessageSquare, ShieldAlert, Minus, Plus } from "lucide-react"
+import { ArrowLeft, ShoppingCart, MessageSquare, ShieldAlert, Minus, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -13,12 +12,14 @@ import { useFormatters } from "@/lib/use-formatters"
 import { useExchangeRate } from "@/lib/use-exchange-rate"
 import { getOrCreateConversation } from "@/lib/actions/chat"
 import { addToCart } from "@/lib/actions/cart"
+import { ProductDetailGallery } from "@/components/product-detail-gallery"
 import type { Product, UserRole } from "@/types/database"
 
 interface ProductDetailProps {
   product: Product
   currentUserId: string
   userRole?: UserRole | null
+  productImages?: { image_url: string; is_primary: boolean }[]
 }
 
 function getDetailStockStatus(stock: number): { color: "green" | "yellow" | "red"; key: string } {
@@ -27,7 +28,7 @@ function getDetailStockStatus(stock: number): { color: "green" | "yellow" | "red
   return { color: "green", key: "inStock" }
 }
 
-export function ProductDetail({ product, currentUserId, userRole }: ProductDetailProps) {
+export function ProductDetail({ product, currentUserId, userRole, productImages = [] }: ProductDetailProps) {
   const t = useTranslations("productDetail")
   const tCommon = useTranslations("common")
   const { addToast } = useToast()
@@ -115,20 +116,11 @@ export function ProductDetail({ product, currentUserId, userRole }: ProductDetai
       <div className="grid md:grid-cols-2 gap-8">
         {/* Product Image */}
         <div className="space-y-3">
-          <div className="aspect-square relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
-            {product.image_url ? (
-              <Image
-                src={product.image_url}
-                alt={product.name}
-                fill
-                className="object-contain"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority
-              />
-            ) : (
-              <Package className="h-24 w-24 text-muted-foreground/20" />
-            )}
-          </div>
+          <ProductDetailGallery
+            images={productImages}
+            fallbackUrl={product.image_url}
+            alt={product.name}
+          />
 
           {/* Videos */}
           {allVideos.length > 0 && (

@@ -2,6 +2,7 @@ import { getProducts } from "@/lib/actions/products"
 import { getWishlistProductIds } from "@/lib/actions/wishlist"
 import { getSiteCategories } from "@/lib/actions/site-settings"
 import { buildCategoryData } from "@/lib/categories"
+import { getProductsAllImages } from "@/lib/actions/product-images"
 import { BuyerCatalogBrowser } from "./catalog-browser"
 
 export default async function BuyerCatalogPage() {
@@ -11,6 +12,8 @@ export default async function BuyerCatalogPage() {
     getWishlistProductIds(),
   ])
   const categoryData = buildCategoryData(siteCategories)
+
+  const allImages = await getProductsAllImages(products.map((p) => p.id))
 
   const mapped = products.map((p) => ({
     id: p.id,
@@ -25,6 +28,7 @@ export default async function BuyerCatalogPage() {
     seller_id: p.seller_id,
     seller_name: p.seller_name ?? "Unknown",
     image_url: p.image_url ?? null,
+    images: allImages[p.id] ?? [],
   }))
 
   return <BuyerCatalogBrowser products={mapped} categoryData={categoryData} wishlistedIds={wishlistedIds} />
