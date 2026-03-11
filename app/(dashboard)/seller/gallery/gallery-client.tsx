@@ -640,7 +640,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                   className="relative w-full h-40 rounded-lg border overflow-hidden cursor-pointer group"
                   onClick={() => coverInputRef.current?.click()}
                 >
-                  <NextImage src={coverImagePreview} alt="Cover preview" fill className="object-cover" unoptimized />
+                  <NextImage src={coverImagePreview} alt={`Cover preview for ${folderName || "folder"}`} fill className="object-cover" unoptimized />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <Camera className="h-6 w-6 text-white" />
                   </div>
@@ -771,7 +771,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                     >
                       {folder.coverImage ? (
                         <div className="relative w-14 h-14 rounded-lg overflow-hidden border">
-                          <NextImage src={folder.coverImage} alt={folder.name} fill className="object-cover" unoptimized />
+                          <NextImage src={folder.coverImage} alt={`Cover image for ${folder.name} folder`} fill className="object-cover" unoptimized />
                         </div>
                       ) : (
                         <FolderOpen className="h-10 w-10 text-yellow-500 group-hover:text-yellow-400" />
@@ -1178,7 +1178,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                 className="relative w-full h-48 rounded-lg border overflow-hidden cursor-pointer group"
                 onClick={() => editCoverInputRef.current?.click()}
               >
-                <NextImage src={editCoverPreview} alt="Cover preview" fill className="object-cover" unoptimized />
+                <NextImage src={editCoverPreview} alt={`Cover preview for ${editCoverFolder?.name ?? "folder"}`} fill className="object-cover" unoptimized />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <Camera className="h-6 w-6 text-white" />
                 </div>

@@ -291,27 +291,6 @@ export async function uploadFolderCoverImage(
 }
 
 /**
- * Update the cover image for an existing gallery folder.
- * Replaces the old cover image with a new one.
- */
-export async function updateFolderCoverImage(
-  folderPath: string,
-  coverImageUrl: string
-): Promise<{ error?: string }> {
-  const user = await getCurrentUser()
-  if (!user) return { error: "Not authenticated" }
-
-  const supabase = createAdminClient()
-  const { error } = await supabase.from("gallery_folders").upsert(
-    { user_id: user.id, folder_path: folderPath, cover_image: coverImageUrl },
-    { onConflict: "user_id,folder_path" }
-  )
-
-  if (error) return { error: error.message }
-  return {}
-}
-
-/**
  * Delete a file from the seller's gallery.
  * Also removes matching record(s) from product_images by specific id,
  * and reassigns primary if needed.
