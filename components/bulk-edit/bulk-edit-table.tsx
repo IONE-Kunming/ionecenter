@@ -42,6 +42,7 @@ interface BulkEditTableProps {
   onSave: (products: BulkEditProduct[]) => Promise<{ error?: string; success?: boolean }>
   onDelete: (id: string) => Promise<{ error?: string; success?: boolean }>
   onImport: (rows: ImportRow[]) => Promise<{ error?: string; success?: boolean; count?: number }>
+  onSaveCustomCategory?: (productId: string, value: string | null) => Promise<{ error?: string; success?: boolean }>
   title?: string
   subtitle?: string
   categoryData: CategoryData
@@ -297,6 +298,7 @@ export function BulkEditTable({
   onSave,
   onDelete,
   onImport,
+  onSaveCustomCategory,
   title = "Bulk Edit",
   subtitle = "PRODUCT MANAGEMENT — INLINE EDITOR",
   categoryData,
@@ -507,15 +509,55 @@ export function BulkEditTable({
       autoSaveTimers.current.delete(productId)
     }
 
-    // Save immediately, then clear pending state
-    autoSaveProduct(productId).then(() => {
+    const clearPending = () => {
       setPendingMyCategorySaveIds((prev) => {
         const next = new Set(prev)
         next.delete(productId)
         return next
       })
-    })
-  }, [autoSaveProduct, originalData])
+    }
+
+    // Use dedicated custom_category save when available
+    if (onSaveCustomCategory) {
+      const value = product.custom_category || null
+      setAutoSaveStatus("saving")
+      setSaving(true)
+      onSaveCustomCategory(productId, value)
+        .then((result) => {
+          if (result.error) {
+            showToast(`Error saving: ${result.error}`, "error")
+          } else {
+            // Update original data so the row is no longer marked as modified
+            setOriginalData((prev) =>
+              prev.map((p) => p.id === productId ? { ...p, custom_category: product.custom_category } : p)
+            )
+            const current = productsRef.current.find((p) => p.id === productId)
+            const updatedOrig = { ...orig, custom_category: product.custom_category }
+            if (current && !isProductChanged(updatedOrig, current)) {
+              setModifiedIds((prev) => {
+                const next = new Set(prev)
+                next.delete(productId)
+                return next
+              })
+            }
+            setAutoSaveStatus("saved")
+            if (savedIndicatorTimer.current) clearTimeout(savedIndicatorTimer.current)
+            savedIndicatorTimer.current = setTimeout(() => setAutoSaveStatus("idle"), SAVED_INDICATOR_DURATION_MS)
+          }
+        })
+        .catch(() => {
+          showToast("Failed to auto-save", "error")
+        })
+        .finally(() => {
+          setSaving(false)
+          clearPending()
+        })
+      return
+    }
+
+    // Fallback: save via the general autoSaveProduct function
+    autoSaveProduct(productId).then(clearPending)
+  }, [autoSaveProduct, originalData, onSaveCustomCategory, showToast, isProductChanged])
 
   // ─── Field updates ─────────────────────────────────────────────────────
   const updateField = useCallback((id: string, field: keyof BulkEditProduct, value: string | number | boolean) => {

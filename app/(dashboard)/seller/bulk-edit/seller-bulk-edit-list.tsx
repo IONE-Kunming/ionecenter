@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl"
 import { BulkEditTable, type BulkEditProduct, type ImportRow } from "@/components/bulk-edit/bulk-edit-table"
-import { updateProduct, deleteProduct, bulkImportProducts } from "@/lib/actions/products"
+import { updateProduct, deleteProduct, bulkImportProducts, updateProductCustomCategory } from "@/lib/actions/products"
 import type { CategoryData } from "@/lib/categories"
 
 export function SellerBulkEditList({ initialProducts, categoryData, savedCustomCategories }: { initialProducts: BulkEditProduct[]; categoryData: CategoryData; savedCustomCategories: string[] }) {
@@ -25,6 +25,11 @@ export function SellerBulkEditList({ initialProducts, categoryData, savedCustomC
     return { success: true }
   }
 
+  const handleSaveCustomCategory = async (productId: string, value: string | null) => {
+    const result = await updateProductCustomCategory(productId, value)
+    return result
+  }
+
   const handleDelete = async (id: string) => {
     const result = await deleteProduct(id)
     return result ?? { success: true }
@@ -41,6 +46,7 @@ export function SellerBulkEditList({ initialProducts, categoryData, savedCustomC
       onSave={handleSave}
       onDelete={handleDelete}
       onImport={handleImport}
+      onSaveCustomCategory={handleSaveCustomCategory}
       title={t("bulkEditTitle")}
       subtitle={t("bulkEditSubtitle")}
       categoryData={categoryData}
