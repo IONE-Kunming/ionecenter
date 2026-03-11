@@ -172,12 +172,15 @@ export async function createProduct(
 
   // Also save image to product_images table as primary image
   if (data && product.image_url) {
-    await supabase.from("product_images").insert({
+    const { error: imgError } = await supabase.from("product_images").insert({
       product_id: data.id,
       image_url: product.image_url,
       is_primary: true,
       sort_order: 0,
     })
+    if (imgError) {
+      console.error("[createProduct] Failed to save to product_images:", imgError.message)
+    }
   }
 
   return { data }
@@ -276,7 +279,10 @@ export async function bulkImportProducts(
         sort_order: 0,
       }))
     if (imageRows.length > 0) {
-      await supabase.from("product_images").insert(imageRows)
+      const { error: imgError } = await supabase.from("product_images").insert(imageRows)
+      if (imgError) {
+        console.error("[bulkImportProducts] Failed to save to product_images:", imgError.message)
+      }
     }
   }
 
