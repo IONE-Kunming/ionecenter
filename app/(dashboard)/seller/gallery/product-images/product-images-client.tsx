@@ -86,11 +86,11 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
     return products.filter((p) => matchesSearch(p, searchQuery))
   }, [products, searchQuery])
 
-  // Dropdown items (limited)
+  // Dropdown items (limited, derived from filteredProducts to avoid duplicate filtering)
   const dropdownItems = useMemo(() => {
     if (!searchQuery.trim()) return []
-    return products.filter((p) => matchesSearch(p, searchQuery)).slice(0, MAX_DROPDOWN_ITEMS)
-  }, [products, searchQuery])
+    return filteredProducts.slice(0, MAX_DROPDOWN_ITEMS)
+  }, [filteredProducts, searchQuery])
 
   const showDropdown = searchFocused && searchQuery.trim().length > 0 && dropdownItems.length > 0
 
@@ -209,12 +209,13 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
           className="pl-9"
         />
         {showDropdown && (
-          <div role="listbox" className="absolute top-full left-0 right-0 z-50 mt-1 max-h-80 overflow-y-auto rounded-md border bg-popover shadow-lg">
+          <div role="listbox" aria-label={t("searchPlaceholder")} className="absolute top-full left-0 right-0 z-50 mt-1 max-h-80 overflow-y-auto rounded-md border bg-popover shadow-lg">
             {dropdownItems.map((product) => (
               <button
                 key={product.id}
                 type="button"
                 role="option"
+                aria-selected={false}
                 className="w-full text-left"
                 onClick={() => handleDropdownItemClick(product.id)}
               >
