@@ -70,6 +70,7 @@ export function DashboardHeader() {
   }
 
   const showProductsHeader = productsCtx.isProductsPage
+  const isBulkEditPage = parts.length >= 2 && parts[1] === "bulk-edit"
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background px-6 py-4">
@@ -99,7 +100,7 @@ export function DashboardHeader() {
               </Button>
             )}
           </>
-        ) : (
+        ) : !isBulkEditPage ? (
           <form onSubmit={handleSearch} className="flex-1 max-w-md ml-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -111,7 +112,7 @@ export function DashboardHeader() {
               />
             </div>
           </form>
-        )}
+        ) : null}
       </div>
     </header>
   )
