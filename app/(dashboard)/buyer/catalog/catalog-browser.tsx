@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
-import { WhatsAppShareButton } from "@/components/whatsapp-share-button"
+import { ProductShareButton } from "@/components/product-share-button"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { useToast } from "@/components/ui/toaster"
 import { formatDualPrice } from "@/lib/utils"
@@ -432,7 +432,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
                         <p className="font-bold text-primary mt-3">{formatDualPrice(product.price_per_meter, product.price_cny ?? null, product.pricing_type ?? "standard", rate)}</p>
                         <div className="flex items-center gap-1.5 mt-2">
                           <WishlistButton productId={product.id} initialLiked={wishlistedIds.includes(product.id)} />
-                          <WhatsAppShareButton productName={product.name} modelNumber={product.model_number} price={product.price_per_meter} productId={product.id} />
+                          <ProductShareButton productName={product.name} modelNumber={product.model_number} price={product.price_per_meter} productId={product.id} />
                           <Button size="sm" variant="ghost" title={tChat("chatWithSeller")} onClick={(e) => handleChatWithSeller(e, product)} disabled={chattingIds.has(product.id)}>
                             {chattingIds.has(product.id) ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MessageSquare className="h-3.5 w-3.5" />}
                           </Button>
