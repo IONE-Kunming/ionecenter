@@ -17,6 +17,7 @@ export interface GalleryItem {
 export interface GalleryFolder {
   name: string
   fullPath: string
+  coverImage?: string | null
 }
 
 /**
@@ -42,11 +43,14 @@ export async function listGallery(
   const folders: GalleryFolder[] = []
   const files: GalleryItem[] = []
 
+  // Collect folder paths to batch-fetch cover images
+  const folderEntries: { name: string; fullPath: string }[] = []
+
   for (const item of data ?? []) {
     if (item.metadata === null) {
       // It's a folder (prefix)
       const folderFullPath = folderPath ? `${folderPath}/${item.name}` : item.name
-      folders.push({ name: item.name, fullPath: folderFullPath })
+      folderEntries.push({ name: item.name, fullPath: folderFullPath })
     } else {
       const storagePath = `${prefix}/${item.name}`
       const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(storagePath)
@@ -60,6 +64,29 @@ export async function listGallery(
         type: isVideo ? "video" : "image",
         size: item.metadata?.size ?? 0,
         createdAt: item.created_at ?? null,
+      })
+    }
+  }
+
+  // Fetch cover images for all folders from gallery_folders table
+  if (folderEntries.length > 0) {
+    const folderPaths = folderEntries.map((f) => f.fullPath)
+    const { data: folderRecords } = await supabase
+      .from("gallery_folders")
+      .select("folder_path, cover_image")
+      .eq("seller_id", user.id)
+      .in("folder_path", folderPaths)
+
+    const coverMap = new Map<string, string | null>()
+    for (const rec of folderRecords ?? []) {
+      coverMap.set(rec.folder_path, rec.cover_image)
+    }
+
+    for (const entry of folderEntries) {
+      folders.push({
+        name: entry.name,
+        fullPath: entry.fullPath,
+        coverImage: coverMap.get(entry.fullPath) ?? null,
       })
     }
   }
@@ -180,10 +207,12 @@ export async function uploadGalleryFile(
 
 /**
  * Create a new folder in the seller's gallery by uploading a placeholder .keep file.
+ * Also saves the folder record to the gallery_folders table with optional cover image.
  */
 export async function createGalleryFolder(
   folderName: string,
-  parentPath: string = ""
+  parentPath: string = "",
+  coverImageUrl?: string | null
 ): Promise<{ folder?: GalleryFolder; error?: string }> {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
@@ -204,7 +233,48 @@ export async function createGalleryFolder(
   if (error && !error.message.includes("already exists")) return { error: error.message }
 
   const fullPath = parentPath ? `${parentPath}/${cleanName}` : cleanName
-  return { folder: { name: cleanName, fullPath } }
+
+  // Upsert into gallery_folders table
+  await supabase
+    .from("gallery_folders")
+    .upsert(
+      {
+        seller_id: user.id,
+        folder_name: cleanName,
+        folder_path: fullPath,
+        cover_image: coverImageUrl ?? null,
+      },
+      { onConflict: "seller_id,folder_path" }
+    )
+
+  return { folder: { name: cleanName, fullPath, coverImage: coverImageUrl ?? null } }
+}
+
+/**
+ * Upload a cover image for a gallery folder.
+ * Returns the public URL of the uploaded cover image.
+ */
+export async function uploadFolderCoverImage(
+  formData: FormData
+): Promise<{ url?: string; error?: string }> {
+  const user = await getCurrentUser()
+  if (!user) return { error: "Not authenticated" }
+
+  const file = formData.get("file") as File
+  if (!file) return { error: "No file provided" }
+  if (!file.type.startsWith("image/")) return { error: "Only images are allowed" }
+
+  const supabase = createAdminClient()
+  const storagePath = `gallery/${user.id}/_covers/${Date.now()}-${file.name}`
+
+  const { data, error } = await supabase.storage
+    .from(GALLERY_BUCKET)
+    .upload(storagePath, file, { contentType: file.type })
+
+  if (error) return { error: error.message }
+
+  const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(data.path)
+  return { url: urlData.publicUrl }
 }
 
 /**
@@ -319,6 +389,13 @@ export async function deleteGalleryFolder(
       .remove(paths)
     if (removeError) return { error: removeError.message }
   }
+
+  // Delete the folder record from gallery_folders table
+  await supabase
+    .from("gallery_folders")
+    .delete()
+    .eq("seller_id", user.id)
+    .eq("folder_path", folderPath)
 
   return {}
 }
@@ -456,6 +533,13 @@ export async function renameGalleryFolder(
   if (oldPaths.length > 0) {
     await supabase.storage.from(GALLERY_BUCKET).remove(oldPaths)
   }
+
+  // Update the folder record in gallery_folders table
+  await supabase
+    .from("gallery_folders")
+    .update({ folder_name: cleanName, folder_path: newFolderPath })
+    .eq("seller_id", user.id)
+    .eq("folder_path", folderPath)
 
   return { newFolder: { name: cleanName, fullPath: newFolderPath } }
 }
