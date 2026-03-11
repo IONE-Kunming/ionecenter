@@ -729,7 +729,11 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
             {folders.map((folder) => (
               <div
                 key={folder.fullPath}
-                className="relative flex flex-col items-center gap-2 p-3 rounded-lg border hover:bg-accent transition-colors text-center group"
+                className={`relative rounded-lg border transition-colors group ${
+                  renamingFolder === folder.fullPath || !folder.coverImage
+                    ? "flex flex-col items-center gap-2 p-3 hover:bg-accent text-center"
+                    : "overflow-hidden aspect-square"
+                }`}
               >
                 {renamingFolder === folder.fullPath ? (
                   <div className="flex flex-col items-center gap-2 w-full">
@@ -761,31 +765,47 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                   </div>
                 ) : (
                   <>
-                    <button
-                      onClick={() => navigateTo(folder.fullPath)}
-                      onDoubleClick={(e) => { e.preventDefault(); setRenamingFolder(folder.fullPath); setRenameValue(folder.name) }}
-                      className="flex flex-col items-center gap-2 w-full"
-                    >
-                      {folder.coverImage ? (
-                        <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0">
-                          <NextImage src={folder.coverImage} alt={folder.name} fill className="object-cover" unoptimized />
+                    {folder.coverImage ? (
+                      <button
+                        onClick={() => navigateTo(folder.fullPath)}
+                        onDoubleClick={(e) => { e.preventDefault(); setRenamingFolder(folder.fullPath); setRenameValue(folder.name) }}
+                        className="relative w-full h-full"
+                      >
+                        <NextImage src={folder.coverImage} alt={folder.name} fill className="object-cover" unoptimized />
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-6">
+                          <span className="text-xs font-medium truncate block text-white">{folder.name}</span>
+                          {folderStats[folder.fullPath] && (
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px] text-white/80">
+                                {folderStats[folder.fullPath].imageCount} {t("images").toLowerCase()}
+                              </span>
+                              <span className="text-[10px] text-white/80">
+                                {folderStats[folder.fullPath].linkedProductsCount} {t("products").toLowerCase()}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      ) : (
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => navigateTo(folder.fullPath)}
+                        onDoubleClick={(e) => { e.preventDefault(); setRenamingFolder(folder.fullPath); setRenameValue(folder.name) }}
+                        className="flex flex-col items-center gap-2 w-full"
+                      >
                         <FolderOpen className="h-10 w-10 text-yellow-500 group-hover:text-yellow-400" />
-                      )}
-                      <span className="text-xs font-medium truncate w-full">{folder.name}</span>
-                      {/* Folder stats: image count & linked products */}
-                      {folderStats[folder.fullPath] && (
-                        <div className="flex flex-col items-center gap-0.5 w-full">
-                          <span className="text-[10px] text-muted-foreground">
-                            {folderStats[folder.fullPath].imageCount} {t("images").toLowerCase()}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground">
-                            {folderStats[folder.fullPath].linkedProductsCount} {t("products").toLowerCase()}
-                          </span>
-                        </div>
-                      )}
-                    </button>
+                        <span className="text-xs font-medium truncate w-full">{folder.name}</span>
+                        {folderStats[folder.fullPath] && (
+                          <div className="flex flex-col items-center gap-0.5 w-full">
+                            <span className="text-[10px] text-muted-foreground">
+                              {folderStats[folder.fullPath].imageCount} {t("images").toLowerCase()}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">
+                              {folderStats[folder.fullPath].linkedProductsCount} {t("products").toLowerCase()}
+                            </span>
+                          </div>
+                        )}
+                      </button>
+                    )}
                     {/* Folder action buttons */}
                     <div className="absolute top-1 end-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
