@@ -190,6 +190,24 @@ export async function updateProduct(
   return { success: true }
 }
 
+export async function updateProductCustomCategory(
+  id: string,
+  customCategory: string | null
+) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return { error: "Not authorized" }
+
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from("products")
+    .update({ custom_category: customCategory })
+    .eq("id", id)
+    .eq("seller_id", user.id)
+
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
 export async function deleteProduct(id: string) {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return { error: "Not authorized" }
