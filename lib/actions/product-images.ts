@@ -276,80 +276,113 @@ export async function assignImagesToProduct(
   productId: string,
   primaryUrl: string | null
 ): Promise<{ error?: string; success?: boolean }> {
-  const user = await getCurrentUser()
-  if (!user || user.role !== "seller") return { error: "Not authorized" }
+  try {
+    const user = await getCurrentUser()
+    if (!user || user.role !== "seller") return { error: "Not authorized" }
 
-  if (imageUrls.length === 0) return { error: "No images provided" }
+    if (imageUrls.length === 0) return { error: "No images provided" }
 
-  const supabase = createAdminClient()
+    // Validate product_id looks like a UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(productId)) {
+      return { error: "Invalid product ID format — expected a UUID, not a model number" }
+    }
 
-  // Verify product belongs to seller
-  const { data: product, error: prodErr } = await supabase
-    .from("products")
-    .select("id")
-    .eq("id", productId)
-    .eq("seller_id", user.id)
-    .maybeSingle()
+    // Validate all image URLs are absolute URLs (not relative paths)
+    for (const url of imageUrls) {
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        return { error: `Invalid image URL: expected a full URL starting with http(s)://, got "${url}"` }
+      }
+    }
 
-  if (prodErr || !product) return { error: "Product not found or not owned by you" }
+    const supabase = createAdminClient()
 
-  // Check if the product already has a primary image
-  const { data: existingPrimary } = await supabase
-    .from("product_images")
-    .select("id")
-    .eq("product_id", productId)
-    .eq("is_primary", true)
-    .limit(1)
-
-  const hasPrimary = existingPrimary && existingPrimary.length > 0
-
-  // Determine the effective primary URL:
-  //   - If seller explicitly chose one → use it
-  //   - Else if product has no primary → auto-set first image as primary
-  const effectivePrimary = primaryUrl ?? (!hasPrimary ? imageUrls[0] : null)
-
-  if (effectivePrimary) {
-    // Unset any existing primary
-    await supabase
-      .from("product_images")
-      .update({ is_primary: false })
-      .eq("product_id", productId)
-      .eq("is_primary", true)
-  }
-
-  // Get max sort_order to avoid conflicts with existing images
-  const { data: maxSort } = await supabase
-    .from("product_images")
-    .select("sort_order")
-    .eq("product_id", productId)
-    .order("sort_order", { ascending: false })
-    .limit(1)
-
-  const nextSort = (maxSort?.[0]?.sort_order ?? -1) + 1
-
-  // Insert product_images rows
-  const rows = imageUrls.map((url, i) => ({
-    product_id: productId,
-    image_url: url,
-    is_primary: effectivePrimary ? url === effectivePrimary : false,
-    sort_order: nextSort + i,
-  }))
-
-  const { error: insertErr } = await supabase.from("product_images").insert(rows)
-  if (insertErr) return { error: insertErr.message }
-
-  // Update products.image_url when a primary was set (explicit or auto)
-  if (effectivePrimary) {
-    const { error: updateErr } = await supabase
+    // Verify product belongs to seller
+    const { data: product, error: prodErr } = await supabase
       .from("products")
-      .update({ image_url: effectivePrimary })
+      .select("id")
       .eq("id", productId)
       .eq("seller_id", user.id)
+      .maybeSingle()
 
-    if (updateErr) return { error: updateErr.message }
+    if (prodErr) return { error: `Database error verifying product: ${prodErr.message}` }
+    if (!product) return { error: "Product not found or not owned by you" }
+
+    // Check if the product already has a primary image
+    const { data: existingPrimary } = await supabase
+      .from("product_images")
+      .select("id")
+      .eq("product_id", productId)
+      .eq("is_primary", true)
+      .limit(1)
+
+    const hasPrimary = existingPrimary && existingPrimary.length > 0
+
+    // Determine the effective primary URL:
+    //   - If seller explicitly chose one → use it
+    //   - Else if product has no primary → auto-set first image as primary
+    const effectivePrimary = primaryUrl ?? (!hasPrimary ? imageUrls[0] : null)
+
+    if (effectivePrimary) {
+      // Unset any existing primary
+      const { error: unsetErr } = await supabase
+        .from("product_images")
+        .update({ is_primary: false })
+        .eq("product_id", productId)
+        .eq("is_primary", true)
+
+      if (unsetErr) return { error: `Failed to unset existing primary image: ${unsetErr.message}` }
+    }
+
+    // Get max sort_order to avoid conflicts with existing images
+    const { data: maxSort } = await supabase
+      .from("product_images")
+      .select("sort_order")
+      .eq("product_id", productId)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+
+    const nextSort = (maxSort?.[0]?.sort_order ?? -1) + 1
+
+    // Insert product_images rows
+    const rows = imageUrls.map((url, i) => ({
+      product_id: productId,
+      image_url: url,
+      is_primary: effectivePrimary ? url === effectivePrimary : false,
+      sort_order: nextSort + i,
+    }))
+
+    const { error: insertErr } = await supabase.from("product_images").insert(rows)
+    if (insertErr) return { error: `Failed to save images: ${insertErr.message}` }
+
+    // Verify the records were actually saved by querying product_images
+    const { data: savedImages, error: verifyErr } = await supabase
+      .from("product_images")
+      .select("id, image_url")
+      .eq("product_id", productId)
+      .in("image_url", imageUrls)
+
+    if (verifyErr) return { error: `Failed to verify saved images: ${verifyErr.message}` }
+    if (!savedImages || savedImages.length === 0) {
+      return { error: "Images were not saved — the insert succeeded but no records were found in product_images" }
+    }
+
+    // Update products.image_url when a primary was set (explicit or auto)
+    if (effectivePrimary) {
+      const { error: updateErr } = await supabase
+        .from("products")
+        .update({ image_url: effectivePrimary })
+        .eq("id", productId)
+        .eq("seller_id", user.id)
+
+      if (updateErr) return { error: `Images saved but failed to update product primary image: ${updateErr.message}` }
+    }
+
+    return { success: true }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error"
+    return { error: `Unexpected error saving images to product: ${message}` }
   }
-
-  return { success: true }
 }
 
 /**
