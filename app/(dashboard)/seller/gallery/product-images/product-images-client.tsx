@@ -4,11 +4,10 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react"
 import NextImage from "next/image"
 import { useTranslations } from "next-intl"
 import {
-  Star, Trash2, Plus, Loader2, LayoutList, LayoutGrid, ImageIcon, Search, Package,
+  Star, Trash2, Plus, Loader2, LayoutList, LayoutGrid, ImageIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog"
@@ -22,8 +21,7 @@ import {
 import type { ProductWithImages } from "@/lib/actions/product-images"
 import { createProductImageSignedUploadUrl, getProductFilePublicUrl } from "@/lib/actions/products"
 import { createClient } from "@/lib/supabase/client"
-
-const MAX_DROPDOWN_ITEMS = 8
+import { useProductsPageHeader } from "@/components/layout/products-page-context"
 
 interface ProductImagesClientProps {
   initialProducts: ProductWithImages[]
@@ -45,11 +43,15 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
   const [products, setProducts] = useState(initialProducts)
   const [view, setView] = useState<"list" | "grid">("grid")
 
-  // Search state
-  const [searchQuery, setSearchQuery] = useState("")
-  const [searchFocused, setSearchFocused] = useState(false)
+  // Use the shared header search context
+  const {
+    search: searchQuery,
+    registerProducts,
+    unregisterProducts,
+    setOnProductClick,
+  } = useProductsPageHeader()
+
   const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null)
-  const searchContainerRef = useRef<HTMLDivElement>(null)
 
   // Delete dialog state
   const [deleteTarget, setDeleteTarget] = useState<{ imageId: string; productId: string } | null>(null)
@@ -62,16 +64,42 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
   // Setting primary state
   const [settingPrimary, setSettingPrimary] = useState<string | null>(null)
 
-  // Close dropdown when clicking outside
+  // Register products with the header search context
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
-        setSearchFocused(false)
-      }
+    registerProducts(
+      products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        model_number: p.model_number,
+        category: "", // ProductWithImages doesn't include category
+        description: p.description,
+        image_url: p.image_url,
+      }))
+    )
+  }, [products, registerProducts])
+
+  // Unregister on unmount
+  useEffect(() => {
+    return () => {
+      unregisterProducts()
     }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- unmount only
+
+  // Handle product click from the header dropdown – scroll & highlight
+  const handleProductClick = useCallback((productId: string) => {
+    setHighlightedProductId(productId)
+    const el = document.querySelector(`[data-product-id="${productId}"]`)
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" })
+    }
   }, [])
+
+  useEffect(() => {
+    setOnProductClick(handleProductClick)
+    return () => {
+      setOnProductClick(null)
+    }
+  }, [handleProductClick, setOnProductClick])
 
   // Clear highlight after a delay
   useEffect(() => {
@@ -85,24 +113,6 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
     if (!searchQuery.trim()) return products
     return products.filter((p) => matchesSearch(p, searchQuery))
   }, [products, searchQuery])
-
-  // Dropdown items (limited, derived from filteredProducts to avoid duplicate filtering)
-  const dropdownItems = useMemo(() => {
-    if (!searchQuery.trim()) return []
-    return filteredProducts.slice(0, MAX_DROPDOWN_ITEMS)
-  }, [filteredProducts, searchQuery])
-
-  const showDropdown = searchFocused && searchQuery.trim().length > 0 && dropdownItems.length > 0
-
-  const handleDropdownItemClick = useCallback((productId: string) => {
-    setSearchFocused(false)
-    setHighlightedProductId(productId)
-    // Scroll to the product on the page
-    const el = document.querySelector(`[data-product-id="${productId}"]`)
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "center" })
-    }
-  }, [])
 
   async function refreshProducts() {
     const updated = await getSellerProductsWithImages()
@@ -196,52 +206,6 @@ export function ProductImagesClient({ initialProducts }: ProductImagesClientProp
             {t("gridView")}
           </Button>
         </div>
-      </div>
-
-      {/* Search bar */}
-      <div ref={searchContainerRef} className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onFocus={() => setSearchFocused(true)}
-          placeholder={t("searchPlaceholder")}
-          className="pl-9"
-        />
-        {showDropdown && (
-          <div role="listbox" aria-label={t("searchPlaceholder")} className="absolute top-full left-0 right-0 z-50 mt-1 max-h-80 overflow-y-auto rounded-md border bg-popover shadow-lg">
-            {dropdownItems.map((product) => (
-              <button
-                key={product.id}
-                type="button"
-                role="option"
-                aria-selected={false}
-                className="w-full text-left"
-                onClick={() => handleDropdownItemClick(product.id)}
-              >
-                <div className="flex items-center gap-3 px-3 py-2 hover:bg-accent cursor-pointer transition-colors">
-                  <div className="h-10 w-10 flex-shrink-0 rounded bg-muted flex items-center justify-center overflow-hidden">
-                    {product.image_url ? (
-                      <NextImage
-                        src={product.image_url}
-                        alt={product.name}
-                        width={40}
-                        height={40}
-                        className="object-contain"
-                      />
-                    ) : (
-                      <Package className="h-5 w-5 text-muted-foreground/40" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">{product.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{product.model_number}</p>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {filteredProducts.length === 0 ? (
