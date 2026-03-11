@@ -43,7 +43,7 @@ export function PinnedCategoriesBar({
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
-      className={`flex flex-wrap items-center gap-2 min-h-[40px] rounded-lg border-2 border-dashed px-3 py-2 transition-colors ${
+      className={`flex flex-wrap items-center gap-3 min-h-[80px] rounded-lg border-2 border-dashed px-3 py-3 transition-colors ${
         isDragOver
           ? "border-primary bg-primary/10"
           : pinnedCategories.length > 0
@@ -65,19 +65,23 @@ export function PinnedCategoriesBar({
           key={cat}
           type="button"
           onClick={() => onSelect(cat)}
-          className="group inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
+          className="group inline-flex items-center gap-3 rounded-xl bg-primary/10 px-4 py-2.5 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
         >
           {showImage ? (
-            <Image
-              src={imgUrl}
-              alt={translateCat(cat)}
-              width={40}
-              height={40}
-              className="rounded-md object-cover w-10 h-10 shrink-0"
-              onError={() => setFailedImages((prev) => new Set(prev).add(cat))}
-            />
+            <div className="w-[60px] h-[60px] rounded-md bg-white flex items-center justify-center shrink-0">
+              <Image
+                src={imgUrl}
+                alt={translateCat(cat)}
+                width={60}
+                height={60}
+                className="rounded-md object-contain w-[60px] h-[60px]"
+                onError={() => setFailedImages((prev) => new Set(prev).add(cat))}
+              />
+            </div>
           ) : (
-            <Package className="h-10 w-10 shrink-0" />
+            <div className="w-[60px] h-[60px] rounded-md bg-white flex items-center justify-center shrink-0">
+              <Package className="h-8 w-8 text-primary" />
+            </div>
           )}
           <span>{translateCat(cat)}</span>
           <span
