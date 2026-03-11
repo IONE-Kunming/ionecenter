@@ -306,7 +306,7 @@ export async function updateFolderCoverImage(
     .from(GALLERY_BUCKET)
     .upload(storagePath, file, { contentType: file.type })
 
-  if (error) return { error: error.message }
+  if (error || !data) return { error: error?.message ?? "Upload failed" }
 
   const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(data.path)
   const newUrl = urlData.publicUrl

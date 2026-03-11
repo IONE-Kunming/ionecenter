@@ -332,6 +332,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
         )
       )
     }
+    if (editCoverPreview) URL.revokeObjectURL(editCoverPreview)
     setEditCoverFolder(null)
     setEditCoverFile(null)
     setEditCoverPreview(null)
@@ -980,6 +981,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
       {/* Edit Cover Image Dialog */}
       <Dialog open={editCoverFolder !== null} onOpenChange={(v) => {
         if (!v) {
+          if (editCoverPreview) URL.revokeObjectURL(editCoverPreview)
           setEditCoverFolder(null)
           setEditCoverFile(null)
           setEditCoverPreview(null)
@@ -998,6 +1000,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
               onChange={(e) => {
                 const file = e.target.files?.[0]
                 if (file) {
+                  if (editCoverPreview) URL.revokeObjectURL(editCoverPreview)
                   setEditCoverFile(file)
                   setEditCoverPreview(URL.createObjectURL(file))
                 }
@@ -1028,6 +1031,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => {
+              if (editCoverPreview) URL.revokeObjectURL(editCoverPreview)
               setEditCoverFolder(null)
               setEditCoverFile(null)
               setEditCoverPreview(null)
