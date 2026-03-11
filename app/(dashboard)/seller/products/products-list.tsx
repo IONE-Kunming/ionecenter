@@ -15,7 +15,7 @@ import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
-import { WhatsAppShareButton } from "@/components/whatsapp-share-button"
+import { ProductShareButton } from "@/components/product-share-button"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { formatDualPrice, getStockStatus } from "@/lib/utils"
 import { createProduct, updateProduct, deleteProduct, bulkImportProducts, uploadProductImage, createProductImageSignedUploadUrl, getProductFilePublicUrl } from "@/lib/actions/products"
@@ -554,7 +554,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                     <div className="flex items-center gap-2 mt-3">
                       <Button variant="outline" size="sm" className="flex-1 gap-1" onClick={() => openEdit(product)}><Pencil className="h-3 w-3" /> {tCommon("edit")}</Button>
                       <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(product)}><Trash2 className="h-3 w-3" /></Button>
-                      <WhatsAppShareButton productName={product.name} modelNumber={product.model_number} price={product.price_per_meter} productId={product.id} />
+                      <ProductShareButton productName={product.name} modelNumber={product.model_number} price={product.price_per_meter} productId={product.id} />
                       <WishlistButton productId={product.id} initialLiked={wishlistedIds.includes(product.id)} />
                     </div>
                   </div>
