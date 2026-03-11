@@ -3,7 +3,6 @@
 import { useState, useMemo, useTransition } from "react"
 import { useTranslations } from "next-intl"
 import Link from "@/components/ui/link"
-import Image from "next/image"
 import { Package, ShoppingCart, MessageSquare, Check, Loader2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,6 +11,7 @@ import { Select } from "@/components/ui/select"
 import { Pagination } from "@/components/ui/pagination"
 import { EmptyState } from "@/components/ui/empty-state"
 import { WishlistButton } from "@/components/wishlist-button"
+import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { useToast } from "@/components/ui/toaster"
 import { formatDualPrice } from "@/lib/utils"
 import { useExchangeRate } from "@/lib/use-exchange-rate"
@@ -22,7 +22,9 @@ import { toCategoryKey } from "@/lib/categories"
 import type { Product } from "@/types/database"
 import { ProductSearchDropdown, matchesProductSearch } from "@/components/product-search-dropdown"
 
-export function AllProductsList({ products, initialSearch = "", categoryData, wishlistedIds = [] }: { products: Product[]; initialSearch?: string; categoryData: CategoryData; wishlistedIds?: string[] }) {
+type ProductWithImages = Product & { images?: { image_url: string; is_primary: boolean }[] }
+
+export function AllProductsList({ products, initialSearch = "", categoryData, wishlistedIds = [] }: { products: ProductWithImages[]; initialSearch?: string; categoryData: CategoryData; wishlistedIds?: string[] }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
@@ -127,17 +129,11 @@ export function AllProductsList({ products, initialSearch = "", categoryData, wi
                 <CardContent className="p-0">
                   <Link href={`/buyer/product/${product.id}`}>
                     <div className="aspect-square relative bg-card rounded-t-xl flex items-center justify-center overflow-hidden">
-                      {product.image_url ? (
-                        <Image
-                          src={product.image_url}
-                          alt={product.name}
-                          fill
-                          className="object-contain"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                        />
-                      ) : (
-                        <Package className="h-12 w-12 text-muted-foreground/30" />
-                      )}
+                      <ProductImageCarousel
+                        images={product.images ?? []}
+                        fallbackUrl={product.image_url}
+                        alt={product.name}
+                      />
                     </div>
                   </Link>
                   <div className="p-4">

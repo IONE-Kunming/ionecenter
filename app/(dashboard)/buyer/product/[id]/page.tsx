@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/actions/users"
 import { getProduct } from "@/lib/actions/products"
+import { getProductImages } from "@/lib/actions/product-images"
 import { getUserRole } from "@/lib/actions/roles"
 import { ProductDetail } from "./product-detail"
 
@@ -25,5 +26,7 @@ export default async function BuyerProductDetailPage({ params }: { params: Promi
     )
   }
 
-  return <ProductDetail product={product} currentUserId={user.id} userRole={userRole} />
+  const productImages = await getProductImages(product.id)
+
+  return <ProductDetail product={product} currentUserId={user.id} userRole={userRole} productImages={productImages} />
 }

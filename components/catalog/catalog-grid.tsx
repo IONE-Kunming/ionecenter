@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import Link from "@/components/ui/link"
-import Image from "next/image"
 import { useSearchParams } from "next/navigation"
 import { Search, Package } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
@@ -13,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
 import { Select } from "@/components/ui/select"
 import { EmptyState } from "@/components/ui/empty-state"
+import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { formatDualPrice } from "@/lib/utils"
 import { useExchangeRate } from "@/lib/use-exchange-rate"
 import type { CategoryData } from "@/lib/categories"
@@ -30,6 +30,7 @@ interface CatalogProduct {
   price_cny?: number | null
   stock: number
   image_url: string | null
+  images?: { image_url: string; is_primary: boolean }[]
 }
 
 const ITEMS_PER_PAGE = 12
@@ -110,17 +111,11 @@ export function CatalogGrid({
                   <Card className="group hover:shadow-md transition-all cursor-pointer h-full">
                     <CardContent className="p-0">
                       <div className="aspect-square relative bg-card rounded-t-xl flex items-center justify-center overflow-hidden">
-                        {product.image_url ? (
-                          <Image
-                            src={product.image_url}
-                            alt={product.name}
-                            fill
-                            className="object-contain"
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          />
-                        ) : (
-                          <Package className="h-12 w-12 text-muted-foreground/30" />
-                        )}
+                        <ProductImageCarousel
+                          images={product.images ?? []}
+                          fallbackUrl={product.image_url}
+                          alt={product.name}
+                        />
                       </div>
                       <div className="p-4">
                         <Badge variant="secondary" className="text-xs mb-2">
