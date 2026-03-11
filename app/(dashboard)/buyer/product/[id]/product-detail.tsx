@@ -118,7 +118,6 @@ export function ProductDetail({ product, currentUserId, userRole, productImages 
         <div className="space-y-3">
           <ProductDetailGallery
             images={productImages}
-            fallbackUrl={product.image_url}
             alt={product.name}
           />
 

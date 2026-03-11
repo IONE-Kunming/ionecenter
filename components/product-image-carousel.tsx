@@ -6,20 +6,15 @@ import { ChevronLeft, ChevronRight, Package } from "lucide-react"
 
 interface ProductImageCarouselProps {
   images: { image_url: string }[]
-  fallbackUrl: string | null
   alt: string
   sizes?: string
 }
 
-export function ProductImageCarousel({ images, fallbackUrl, alt, sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" }: ProductImageCarouselProps) {
+export function ProductImageCarousel({ images, alt, sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" }: ProductImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  // Build display list: use images from product_images if available, else fallback
-  const imageUrls = images.length > 0
-    ? images.map((img) => img.image_url)
-    : fallbackUrl
-      ? [fallbackUrl]
-      : []
+  // Build display list from product_images only
+  const imageUrls = images.map((img) => img.image_url)
 
   const hasMultiple = imageUrls.length > 1
 

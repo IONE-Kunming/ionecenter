@@ -5,8 +5,10 @@ import { getCurrentUser } from "./users"
 import type { ProductImage } from "@/types/database"
 
 /**
- * Batch-fetch primary images from product_images for multiple products.
- * Returns a map of productId → image_url for records where is_primary = true.
+ * Batch-fetch the display image from product_images for multiple products.
+ * For each product, returns the primary image (is_primary = true).
+ * If no primary image exists, returns the first image ordered by sort_order.
+ * Returns a map of productId → image_url.
  */
 export async function getProductsPrimaryImages(
   productIds: string[]
@@ -16,15 +18,19 @@ export async function getProductsPrimaryImages(
   const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("product_images")
-    .select("product_id, image_url")
+    .select("product_id, image_url, is_primary")
     .in("product_id", productIds)
-    .eq("is_primary", true)
+    .order("is_primary", { ascending: false })
+    .order("sort_order", { ascending: true })
 
   if (error || !data) return {}
 
   const map: Record<string, string> = {}
   for (const row of data) {
-    map[row.product_id] = row.image_url
+    // First row per product wins (primary first, then by sort_order)
+    if (!map[row.product_id]) {
+      map[row.product_id] = row.image_url
+    }
   }
   return map
 }

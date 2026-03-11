@@ -51,13 +51,13 @@ export async function getProducts(filters?: {
   return enrichProductImages(products)
 }
 
-/** Enrich product image_url: use product_images primary image, falling back to products.image_url */
+/** Enrich product image_url: use product_images table only (primary image or first by sort_order) */
 async function enrichProductImages<T extends { id: string; image_url: string | null }>(products: T[]): Promise<T[]> {
   if (products.length === 0) return products
   const primaryImages = await getProductsPrimaryImages(products.map((p) => p.id))
   return products.map((p) => ({
     ...p,
-    image_url: primaryImages[p.id] ?? p.image_url,
+    image_url: primaryImages[p.id] ?? null,
   }))
 }
 
