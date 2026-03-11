@@ -131,6 +131,7 @@ export function AllProductsList({ products, initialSearch = "", categoryData, wi
                     <div className="aspect-square relative bg-card rounded-t-xl flex items-center justify-center overflow-hidden">
                       <ProductImageCarousel
                         images={product.images ?? []}
+                        fallbackUrl={product.image_url}
                         alt={product.name}
                       />
                     </div>
