@@ -1259,7 +1259,8 @@
     "noProductsFound": "No products found",
     "linkingImages": "Linking images to product...",
     "autoMatch": "Auto-match",
-    "autoMatching": "Auto-matching..."
+    "autoMatching": "Auto-matching...",
+    "keepExistingPrimary": "Click an image to set as primary, or leave unselected to keep the existing primary image"
   },
   "invoiceCreate": {
     "backToInvoices": "Back to Invoices",
