@@ -364,6 +364,7 @@ export async function renameGalleryFolder(
   const supabase = createAdminClient()
 
   // List all files in old folder (recursively)
+  // Guard at depth 5 to prevent runaway recursion in unexpectedly deep nesting
   async function collectAll(prefix: string, depth = 0): Promise<string[]> {
     if (depth > 5) return []
     const { data } = await supabase.storage
@@ -374,6 +375,7 @@ export async function renameGalleryFolder(
     const paths: string[] = []
     for (const item of data) {
       const itemPath = `${prefix}/${item.name}`
+      // In Supabase Storage, null metadata indicates a folder (pseudo-directory)
       if (item.metadata === null) {
         const sub = await collectAll(itemPath, depth + 1)
         paths.push(...sub)
