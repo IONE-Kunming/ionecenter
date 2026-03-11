@@ -209,6 +209,8 @@ export async function createGalleryFolder(
 
 /**
  * Delete a file from the seller's gallery.
+ * Also removes matching record(s) from product_images by specific id,
+ * and reassigns primary if needed.
  */
 export async function deleteGalleryFile(
   filePath: string
@@ -219,9 +221,51 @@ export async function deleteGalleryFile(
   const supabase = createAdminClient()
   const storagePath = `gallery/${user.id}/${filePath}`
 
-  const { error } = await supabase.storage.from(GALLERY_BUCKET).remove([storagePath])
+  // Get the public URL to match against product_images.image_url
+  const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(storagePath)
+  const publicUrl = urlData.publicUrl
 
+  // Delete the file from storage
+  const { error } = await supabase.storage.from(GALLERY_BUCKET).remove([storagePath])
   if (error) return { error: error.message }
+
+  // Find matching product_images records by image_url
+  const { data: matchingImages, error: queryErr } = await supabase
+    .from("product_images")
+    .select("id, product_id, is_primary")
+    .eq("image_url", publicUrl)
+
+  if (!queryErr && matchingImages && matchingImages.length > 0) {
+    for (const img of matchingImages) {
+      // Delete this specific record by its id
+      const { error: delErr } = await supabase
+        .from("product_images")
+        .delete()
+        .eq("id", img.id)
+
+      if (delErr) continue
+
+      // If this was the primary image, promote the next available image
+      if (img.is_primary) {
+        const { data: nextImage } = await supabase
+          .from("product_images")
+          .select("id")
+          .eq("product_id", img.product_id)
+          .order("sort_order", { ascending: true })
+          .limit(1)
+          .maybeSingle()
+
+        if (nextImage) {
+          await supabase
+            .from("product_images")
+            .update({ is_primary: true })
+            .eq("id", nextImage.id)
+        }
+        // If no next image exists, product falls back to products.image_url
+      }
+    }
+  }
+
   return {}
 }
 
