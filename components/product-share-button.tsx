@@ -44,7 +44,7 @@ export function ProductShareButton({ productName, modelNumber, price, productId,
     const productLink = getProductLink()
 
     const renderQR = () => {
-      container.innerHTML = ""
+      while (container.firstChild) container.removeChild(container.firstChild)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const QRCode = (window as any).QRCode
       if (QRCode) {
@@ -56,8 +56,15 @@ export function ProductShareButton({ productName, modelNumber, price, productId,
     if ((window as any).QRCode) {
       renderQR()
     } else {
+      const existingScript = document.querySelector('script[data-qrcodejs]')
+      if (existingScript) {
+        existingScript.addEventListener("load", renderQR)
+        return
+      }
       const script = document.createElement("script")
       script.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+      script.crossOrigin = "anonymous"
+      script.setAttribute("data-qrcodejs", "true")
       script.onload = renderQR
       document.head.appendChild(script)
     }
