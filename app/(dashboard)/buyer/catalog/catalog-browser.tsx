@@ -136,13 +136,13 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
 
   const productCountsBySubcategory = useMemo(() => {
     const counts: Record<string, number> = {}
-    for (const subcats of Object.values(categoryData.categoryMap)) {
-      for (const sub of subcats) {
-        counts[sub] = products.filter((p) => p.category === sub).length
+    for (const p of products) {
+      if (p.category) {
+        counts[p.category] = (counts[p.category] ?? 0) + 1
       }
     }
     return counts
-  }, [products, categoryData.categoryMap])
+  }, [products])
 
   const handleChatWithSeller = (e: React.MouseEvent, product: CatalogProduct) => {
     e.stopPropagation()
