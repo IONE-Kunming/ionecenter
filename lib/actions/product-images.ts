@@ -336,8 +336,12 @@ export async function assignImagesToProduct(
     sort_order: nextSort + i,
   }))
 
-  const { error: insertErr } = await supabase.from("product_images").insert(rows)
+  const { data: inserted, error: insertErr } = await supabase
+    .from("product_images")
+    .insert(rows)
+    .select("id")
   if (insertErr) return { error: insertErr.message }
+  if (!inserted || inserted.length === 0) return { error: "Failed to save images" }
 
   // Update products.image_url when a primary was set (explicit or auto)
   if (effectivePrimary) {
@@ -448,8 +452,16 @@ export async function searchSellerProductsForGallery(
 
 /**
  * Auto-match a folder/file name to products by name, model_number, or
- * by extracting the numeric portion and matching against the ending
- * digits of a product's model_number.
+ * by extracting numeric sequences and matching against product model_numbers.
+ *
+ * Matching strategy:
+ *  1. Exact name match (case-insensitive)
+ *  2. Exact model_number match (case-insensitive)
+ *  3. Extract individual numeric sequences from the filename, then for each
+ *     (longest first): search model_numbers that contain the number (with
+ *     leading zeros stripped, then with original zeros).
+ *  4. Reverse match: extract the last numeric sequence from each product
+ *     model_number and check if it matches any filename numeric sequence.
  *
  * Returns an array of matching products (empty = no match).
  */
@@ -485,38 +497,77 @@ export async function autoMatchFolderToProduct(
 
   if (modelMatch && modelMatch.length > 0) return modelMatch
 
-  // 3. Extract numeric portion from the name and match against
-  //    the ending digits of product model_numbers.
+  // 3. Extract individual numeric sequences from the filename.
   //    Strip file extension first (e.g. "01104.jpg" → "01104").
   const baseName = trimmed.replace(/\.[^.]+$/, "")
-  const digits = baseName.replace(/[^0-9]/g, "")
+  const numericSequences = baseName.match(/\d+/g) || []
 
-  if (digits.length > 0) {
+  if (numericSequences.length > 0) {
     const maxResults = 20
-    // Strip leading zeros but keep at least one digit
-    const stripped = digits.replace(/^0+/, "") || "0"
-    const escapedDigits = stripped.replace(/[%_\\]/g, (ch) => `\\${ch}`)
 
-    // Search products whose model_number ends with the extracted number
-    // (ILIKE '%1104' matches any model_number ending in "1104")
-    const { data: endMatch } = await supabase
+    // Sort by length descending to prefer longer (more specific) matches
+    const sortedSequences = [...numericSequences].sort(
+      (a, b) => b.length - a.length
+    )
+
+    for (const seq of sortedSequences) {
+      // Strip leading zeros but keep at least one digit
+      const stripped = seq.replace(/^0+/, "") || "0"
+      const escapedStripped = stripped.replace(/[%_\\]/g, (ch) => `\\${ch}`)
+
+      // Search products whose model_number contains the number (leading zeros removed)
+      const { data: containsMatch } = await supabase
+        .from("products")
+        .select("id, name, model_number")
+        .eq("seller_id", user.id)
+        .ilike("model_number", `%${escapedStripped}%`)
+        .limit(maxResults)
+
+      if (containsMatch && containsMatch.length > 0) return containsMatch
+
+      // Also try with original digits (leading zeros intact) if different
+      if (seq !== stripped) {
+        const escapedOrig = seq.replace(/[%_\\]/g, (ch) => `\\${ch}`)
+        const { data: origMatch } = await supabase
+          .from("products")
+          .select("id, name, model_number")
+          .eq("seller_id", user.id)
+          .ilike("model_number", `%${escapedOrig}%`)
+          .limit(maxResults)
+
+        if (origMatch && origMatch.length > 0) return origMatch
+      }
+    }
+
+    // 4. Reverse match: extract the last numeric sequence from each product
+    //    model_number and check if it matches any of the filename's numeric
+    //    sequences (with leading zeros stripped).
+    const fileDigitsSet = new Set(
+      sortedSequences.map((s) => s.replace(/^0+/, "") || "0")
+    )
+
+    const { data: allProducts } = await supabase
       .from("products")
       .select("id, name, model_number")
       .eq("seller_id", user.id)
-      .ilike("model_number", `%${escapedDigits}`)
-      .limit(maxResults)
 
-    if (endMatch && endMatch.length > 0) return endMatch
+    if (allProducts && allProducts.length > 0) {
+      const matched = allProducts.filter((p) => {
+        if (!p.model_number) return false
+        const modelNums = p.model_number.match(/\d+/g)
+        if (!modelNums || modelNums.length === 0) return false
+        const lastModelDigits =
+          modelNums[modelNums.length - 1].replace(/^0+/, "") || "0"
+        return fileDigitsSet.has(lastModelDigits)
+      })
 
-    // Fallback: search products whose model_number contains the number
-    const { data: containsMatch } = await supabase
-      .from("products")
-      .select("id, name, model_number")
-      .eq("seller_id", user.id)
-      .ilike("model_number", `%${escapedDigits}%`)
-      .limit(maxResults)
-
-    if (containsMatch && containsMatch.length > 0) return containsMatch
+      if (matched.length > 0)
+        return matched.slice(0, maxResults).map((p) => ({
+          id: p.id,
+          name: p.name,
+          model_number: p.model_number,
+        }))
+    }
   }
 
   return []
