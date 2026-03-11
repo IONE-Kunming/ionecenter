@@ -57,7 +57,7 @@ async function enrichProductImages<T extends { id: string; image_url: string | n
   const primaryImages = await getProductsPrimaryImages(products.map((p) => p.id))
   return products.map((p) => ({
     ...p,
-    image_url: primaryImages[p.id] ?? null,
+    image_url: primaryImages[p.id] ?? p.image_url,
   }))
 }
 

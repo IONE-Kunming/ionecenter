@@ -28,7 +28,11 @@ export default async function BuyerCatalogPage() {
     seller_id: p.seller_id,
     seller_name: p.seller_name ?? "Unknown",
     image_url: p.image_url ?? null,
-    images: allImages[p.id] ?? [],
+    images: allImages[p.id]?.length
+      ? allImages[p.id]
+      : p.image_url
+        ? [{ id: "", product_id: p.id, image_url: p.image_url, is_primary: true, sort_order: 0, created_at: "" }]
+        : [],
   }))
 
   return <BuyerCatalogBrowser products={mapped} categoryData={categoryData} wishlistedIds={wishlistedIds} />
