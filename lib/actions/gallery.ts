@@ -17,6 +17,7 @@ export interface GalleryItem {
 export interface GalleryFolder {
   name: string
   fullPath: string
+  coverImage?: string | null
 }
 
 export interface GalleryFolderStats {
@@ -47,11 +48,14 @@ export async function listGallery(
   const folders: GalleryFolder[] = []
   const files: GalleryItem[] = []
 
+  // Collect folder paths first, then batch-query cover images
+  const folderEntries: { name: string; fullPath: string }[] = []
+
   for (const item of data ?? []) {
     if (item.metadata === null) {
       // It's a folder (prefix)
       const folderFullPath = folderPath ? `${folderPath}/${item.name}` : item.name
-      folders.push({ name: item.name, fullPath: folderFullPath })
+      folderEntries.push({ name: item.name, fullPath: folderFullPath })
     } else {
       const storagePath = `${prefix}/${item.name}`
       const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(storagePath)
@@ -65,6 +69,29 @@ export async function listGallery(
         type: isVideo ? "video" : "image",
         size: item.metadata?.size ?? 0,
         createdAt: item.created_at ?? null,
+      })
+    }
+  }
+
+  // Batch-query cover images for all folders
+  if (folderEntries.length > 0) {
+    const folderPaths = folderEntries.map((f) => f.fullPath)
+    const { data: coverData } = await supabase
+      .from("gallery_folders")
+      .select("folder_path, cover_image")
+      .eq("user_id", user.id)
+      .in("folder_path", folderPaths)
+
+    const coverMap = new Map<string, string | null>()
+    for (const row of coverData ?? []) {
+      coverMap.set(row.folder_path, row.cover_image)
+    }
+
+    for (const entry of folderEntries) {
+      folders.push({
+        name: entry.name,
+        fullPath: entry.fullPath,
+        coverImage: coverMap.get(entry.fullPath) ?? null,
       })
     }
   }
@@ -185,10 +212,12 @@ export async function uploadGalleryFile(
 
 /**
  * Create a new folder in the seller's gallery by uploading a placeholder .keep file.
+ * Optionally saves a cover image URL to the gallery_folders table.
  */
 export async function createGalleryFolder(
   folderName: string,
-  parentPath: string = ""
+  parentPath: string = "",
+  coverImageUrl?: string
 ): Promise<{ folder?: GalleryFolder; error?: string }> {
   const user = await getCurrentUser()
   if (!user) return { error: "Not authenticated" }
@@ -209,7 +238,56 @@ export async function createGalleryFolder(
   if (error && !error.message.includes("already exists")) return { error: error.message }
 
   const fullPath = parentPath ? `${parentPath}/${cleanName}` : cleanName
-  return { folder: { name: cleanName, fullPath } }
+
+  // Save cover image URL to gallery_folders table if provided
+  if (coverImageUrl) {
+    await supabase.from("gallery_folders").upsert(
+      { user_id: user.id, folder_path: fullPath, cover_image: coverImageUrl },
+      { onConflict: "user_id,folder_path" }
+    )
+  }
+
+  return { folder: { name: cleanName, fullPath, coverImage: coverImageUrl ?? null } }
+}
+
+/**
+ * Upload a cover image for a gallery folder.
+ * Uploads the image to Supabase Storage and saves the URL to gallery_folders.cover_image.
+ */
+export async function uploadFolderCoverImage(
+  formData: FormData
+): Promise<{ coverImageUrl?: string; error?: string }> {
+  const user = await getCurrentUser()
+  if (!user) return { error: "Not authenticated" }
+
+  const file = formData.get("file") as File
+  const folderPath = (formData.get("folderPath") as string) || ""
+
+  if (!file) return { error: "No file provided" }
+  if (!file.type.startsWith("image/")) return { error: "Only images are allowed" }
+  if (!folderPath) return { error: "No folder path provided" }
+
+  const supabase = createAdminClient()
+  const storagePath = `gallery/${user.id}/covers/${Date.now()}-${file.name}`
+
+  const { data, error } = await supabase.storage
+    .from(GALLERY_BUCKET)
+    .upload(storagePath, file, { contentType: file.type })
+
+  if (error) return { error: error.message }
+
+  const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(data.path)
+  const coverImageUrl = urlData.publicUrl
+
+  // Upsert cover image URL in gallery_folders table
+  const { error: dbError } = await supabase.from("gallery_folders").upsert(
+    { user_id: user.id, folder_path: folderPath, cover_image: coverImageUrl },
+    { onConflict: "user_id,folder_path" }
+  )
+
+  if (dbError) return { error: dbError.message }
+
+  return { coverImageUrl }
 }
 
 /**
@@ -462,7 +540,22 @@ export async function renameGalleryFolder(
     await supabase.storage.from(GALLERY_BUCKET).remove(oldPaths)
   }
 
-  return { newFolder: { name: cleanName, fullPath: newFolderPath } }
+  // Migrate cover image record from old folder path to new folder path
+  await supabase
+    .from("gallery_folders")
+    .update({ folder_path: newFolderPath })
+    .eq("user_id", user.id)
+    .eq("folder_path", folderPath)
+
+  // Fetch updated cover image
+  const { data: coverRow } = await supabase
+    .from("gallery_folders")
+    .select("cover_image")
+    .eq("user_id", user.id)
+    .eq("folder_path", newFolderPath)
+    .maybeSingle()
+
+  return { newFolder: { name: cleanName, fullPath: newFolderPath, coverImage: coverRow?.cover_image ?? null } }
 }
 
 /**

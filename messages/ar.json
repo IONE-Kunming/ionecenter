@@ -1194,7 +1194,14 @@
     "autoMatchFileFound": "تم مطابقة الصورة تلقائيًا مع المنتج: {product}",
     "autoMatchFileNotFound": "لم يتم العثور على منتج مطابق لاسم هذه الصورة",
     "keepExistingPrimary": "انقر على صورة لتعيينها كصورة رئيسية، أو اتركها بدون تحديد للحفاظ على الصورة الرئيسية الحالية",
-    "products": "منتجات"
+    "products": "منتجات",
+    "folderCoverImage": "صورة غلاف المجلد",
+    "clickToUploadCover": "انقر لرفع صورة غلاف",
+    "editCover": "تعديل الغلاف",
+    "changeCoverImage": "تغيير صورة الغلاف",
+    "uploadNewCover": "رفع صورة غلاف جديدة لهذا المجلد",
+    "coverImageUpdated": "تم تحديث صورة الغلاف بنجاح",
+    "save": "حفظ"
   },
   "invoiceCreate": {
     "backToInvoices": "العودة إلى الفواتير",

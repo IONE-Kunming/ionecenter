@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl"
 import {
   FolderOpen, FolderPlus, Upload, Trash2, ArrowLeft, Image as ImageIcon,
   Video, Loader2, ChevronRight, File, Pencil, Link2, CheckSquare, Star,
-  Search,
+  Search, Camera,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,6 +25,7 @@ import {
   renameGalleryFile,
   renameGalleryFolder,
   getGalleryFolderStats,
+  uploadFolderCoverImage,
 } from "@/lib/actions/gallery"
 import type { GalleryItem, GalleryFolder, GalleryFolderStats } from "@/lib/actions/gallery"
 import {
@@ -96,6 +97,18 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
 
   // Folder stats (image count + linked products count)
   const [folderStats, setFolderStats] = useState<Record<string, GalleryFolderStats>>({})
+
+  // Cover image state for create folder dialog
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null)
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null)
+  const coverInputRef = useRef<HTMLInputElement>(null)
+
+  // Edit cover image state
+  const [editCoverFolder, setEditCoverFolder] = useState<GalleryFolder | null>(null)
+  const [editCoverFile, setEditCoverFile] = useState<File | null>(null)
+  const [editCoverPreview, setEditCoverPreview] = useState<string | null>(null)
+  const [editCoverLoading, setEditCoverLoading] = useState(false)
+  const editCoverInputRef = useRef<HTMLInputElement>(null)
 
   // Breadcrumb segments
   const segments = currentPath ? currentPath.split("/") : []
@@ -200,7 +213,26 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
     }
     setCreating(true)
     setError(null)
-    const result = await createGalleryFolder(folderName.trim(), currentPath)
+
+    // If there's a cover image, upload it first
+    let coverImageUrl: string | undefined
+    if (coverImageFile) {
+      const formData = new FormData()
+      formData.append("file", coverImageFile)
+      // We need the folder path that will be created
+      const cleanName = folderName.trim().replace(/[^a-zA-Z0-9_\- ]/g, "").trim()
+      const fullPath = currentPath ? `${currentPath}/${cleanName}` : cleanName
+      formData.append("folderPath", fullPath)
+      const coverResult = await uploadFolderCoverImage(formData)
+      if (coverResult.error) {
+        setError(coverResult.error)
+        setCreating(false)
+        return
+      }
+      coverImageUrl = coverResult.coverImageUrl
+    }
+
+    const result = await createGalleryFolder(folderName.trim(), currentPath, coverImageUrl)
     setCreating(false)
     if (result.error) {
       setError(result.error)
@@ -213,7 +245,40 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
       })
     }
     setFolderName("")
+    setCoverImageFile(null)
+    setCoverImagePreview(null)
     setShowNewFolder(false)
+  }
+
+  // ── Edit cover image handler ──
+  async function handleEditCoverSubmit() {
+    if (!editCoverFolder || !editCoverFile) return
+    setEditCoverLoading(true)
+    setError(null)
+
+    const formData = new FormData()
+    formData.append("file", editCoverFile)
+    formData.append("folderPath", editCoverFolder.fullPath)
+    const result = await uploadFolderCoverImage(formData)
+    setEditCoverLoading(false)
+
+    if (result.error) {
+      setError(result.error)
+      return
+    }
+
+    // Update the folder in state with the new cover image
+    setFolders((prev) =>
+      prev.map((f) =>
+        f.fullPath === editCoverFolder.fullPath
+          ? { ...f, coverImage: result.coverImageUrl ?? null }
+          : f
+      )
+    )
+    setSuccessMsg(t("coverImageUpdated"))
+    setEditCoverFolder(null)
+    setEditCoverFile(null)
+    setEditCoverPreview(null)
   }
 
   async function handleDelete(item: GalleryItem) {
@@ -533,29 +598,76 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
         </div>
       </div>
 
-      {/* New folder input */}
-      {showNewFolder && (
-        <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/40">
-          <FolderOpen className="h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={t("folderName")}
-            value={folderName}
-            onChange={(e) => setFolderName(e.target.value)}
-            className="flex-1 h-8"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleCreateFolder()
-              if (e.key === "Escape") { setShowNewFolder(false); setFolderName("") }
-            }}
-            autoFocus
-          />
-          <Button size="sm" onClick={handleCreateFolder} disabled={creating}>
-            {creating ? <Loader2 className="h-3 w-3 animate-spin" /> : t("create")}
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => { setShowNewFolder(false); setFolderName("") }}>
-            {t("cancel")}
-          </Button>
-        </div>
-      )}
+      {/* Create Folder Dialog */}
+      <Dialog open={showNewFolder} onOpenChange={(v) => { if (!v) { setShowNewFolder(false); setFolderName(""); setCoverImageFile(null); setCoverImagePreview(null) } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("newFolder")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">{t("folderName")}</label>
+              <Input
+                placeholder={t("folderName")}
+                value={folderName}
+                onChange={(e) => setFolderName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleCreateFolder()
+                }}
+                autoFocus
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">{t("folderCoverImage")}</label>
+              <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    setCoverImageFile(file)
+                    const reader = new FileReader()
+                    reader.onload = (ev) => setCoverImagePreview(ev.target?.result as string)
+                    reader.readAsDataURL(file)
+                  }
+                  if (coverInputRef.current) coverInputRef.current.value = ""
+                }}
+              />
+              {coverImagePreview ? (
+                <div
+                  className="relative w-full h-40 rounded-lg border overflow-hidden cursor-pointer group"
+                  onClick={() => coverInputRef.current?.click()}
+                >
+                  <NextImage src={coverImagePreview} alt={`Cover preview for ${folderName || "folder"}`} fill className="object-cover" unoptimized />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Camera className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => coverInputRef.current?.click()}
+                  className="w-full h-32 rounded-lg border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary"
+                >
+                  <Upload className="h-6 w-6" />
+                  <span className="text-xs">{t("clickToUploadCover")}</span>
+                </button>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowNewFolder(false); setFolderName(""); setCoverImageFile(null); setCoverImagePreview(null) }}>
+              {t("cancel")}
+            </Button>
+            <Button onClick={handleCreateFolder} disabled={creating}>
+              {creating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FolderPlus className="h-4 w-4 mr-2" />}
+              {creating ? t("creating") : t("create")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Success message */}
       {successMsg && (
@@ -657,7 +769,13 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                       onDoubleClick={(e) => { e.preventDefault(); setRenamingFolder(folder.fullPath); setRenameValue(folder.name) }}
                       className="flex flex-col items-center gap-2 w-full"
                     >
-                      <FolderOpen className="h-10 w-10 text-yellow-500 group-hover:text-yellow-400" />
+                      {folder.coverImage ? (
+                        <div className="relative w-14 h-14 rounded-lg overflow-hidden border">
+                          <NextImage src={folder.coverImage} alt={`Cover image for ${folder.name} folder`} fill className="object-cover" unoptimized />
+                        </div>
+                      ) : (
+                        <FolderOpen className="h-10 w-10 text-yellow-500 group-hover:text-yellow-400" />
+                      )}
                       <span className="text-xs font-medium truncate w-full">{folder.name}</span>
                       {/* Folder stats: image count & linked products */}
                       {folderStats[folder.fullPath] && (
@@ -673,6 +791,13 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                     </button>
                     {/* Folder action buttons */}
                     <div className="absolute top-1 end-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => { setEditCoverFolder(folder); setEditCoverFile(null); setEditCoverPreview(folder.coverImage ?? null) }}
+                        className="p-1 rounded bg-green-600/80 hover:bg-green-600"
+                        title={t("editCover")}
+                      >
+                        <Camera className="h-3 w-3 text-white" />
+                      </button>
                       <button
                         onClick={() => handleAutoMatch(folder)}
                         disabled={autoMatching === folder.fullPath}
@@ -1019,6 +1144,63 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
             <Button onClick={handleBulkAssign} disabled={bulkLinking || !bulkSelectedProductId}>
               {bulkLinking ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Link2 className="h-4 w-4 mr-2" />}
               {bulkLinking ? t("assigning") : t("assignImages")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Cover Image Dialog */}
+      <Dialog open={editCoverFolder !== null} onOpenChange={(v) => { if (!v) { setEditCoverFolder(null); setEditCoverFile(null); setEditCoverPreview(null) } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("changeCoverImage")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{t("uploadNewCover")}</p>
+            <input
+              ref={editCoverInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) {
+                  setEditCoverFile(file)
+                  const reader = new FileReader()
+                  reader.onload = (ev) => setEditCoverPreview(ev.target?.result as string)
+                  reader.readAsDataURL(file)
+                }
+                if (editCoverInputRef.current) editCoverInputRef.current.value = ""
+              }}
+            />
+            {editCoverPreview ? (
+              <div
+                className="relative w-full h-48 rounded-lg border overflow-hidden cursor-pointer group"
+                onClick={() => editCoverInputRef.current?.click()}
+              >
+                <NextImage src={editCoverPreview} alt={`Cover preview for ${editCoverFolder?.name ?? "folder"}`} fill className="object-cover" unoptimized />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Camera className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => editCoverInputRef.current?.click()}
+                className="w-full h-40 rounded-lg border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary"
+              >
+                <Upload className="h-6 w-6" />
+                <span className="text-xs">{t("clickToUploadCover")}</span>
+              </button>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setEditCoverFolder(null); setEditCoverFile(null); setEditCoverPreview(null) }}>
+              {t("cancel")}
+            </Button>
+            <Button onClick={handleEditCoverSubmit} disabled={editCoverLoading || !editCoverFile}>
+              {editCoverLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Camera className="h-4 w-4 mr-2" />}
+              {editCoverLoading ? t("uploading") : t("save")}
             </Button>
           </DialogFooter>
         </DialogContent>
