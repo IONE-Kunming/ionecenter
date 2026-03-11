@@ -70,7 +70,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
       previewCtx.registerPreviewPage()
       return () => previewCtx.unregisterPreviewPage()
     }
-  }, [isPreviewMode]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isPreviewMode, previewCtx.registerPreviewPage, previewCtx.unregisterPreviewPage])
 
   // ── Pinned categories state (only active in preview mode) ──
   const [pinnedCategories, setPinnedCategories] = useState<string[]>(initialPinnedCategories)
