@@ -385,16 +385,20 @@ export async function assignImagesToProduct(
       .limit(1)
 
     if (first && first.length > 0) {
-      await supabase
+      const { error: promoteErr } = await supabase
         .from("product_images")
         .update({ is_primary: true })
         .eq("id", first[0].id)
 
-      await supabase
-        .from("products")
-        .update({ image_url: first[0].image_url })
-        .eq("id", productId)
-        .eq("seller_id", user.id)
+      if (promoteErr) {
+        console.error("[assignImagesToProduct] Failed to promote primary:", promoteErr.message)
+      } else {
+        await supabase
+          .from("products")
+          .update({ image_url: first[0].image_url })
+          .eq("id", productId)
+          .eq("seller_id", user.id)
+      }
     }
   }
 
