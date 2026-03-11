@@ -19,6 +19,11 @@ export interface GalleryFolder {
   fullPath: string
 }
 
+export interface GalleryFolderStats {
+  imageCount: number
+  linkedProductsCount: number
+}
+
 /**
  * List folders and files in the seller's gallery at the given path prefix.
  */
@@ -458,4 +463,66 @@ export async function renameGalleryFolder(
   }
 
   return { newFolder: { name: cleanName, fullPath: newFolderPath } }
+}
+
+/**
+ * Get image count and linked products count for each folder at the given path.
+ * Returns a map of folder fullPath -> { imageCount, linkedProductsCount }.
+ */
+export async function getGalleryFolderStats(
+  folderPaths: string[]
+): Promise<Record<string, GalleryFolderStats>> {
+  const user = await getCurrentUser()
+  if (!user) return {}
+
+  const supabase = createAdminClient()
+  const result: Record<string, GalleryFolderStats> = {}
+
+  // Fetch image counts from storage for each folder in parallel
+  const imageCountPromises = folderPaths.map(async (folderPath) => {
+    const prefix = `gallery/${user.id}/${folderPath}`
+    const { data } = await supabase.storage.from(GALLERY_BUCKET).list(prefix, {
+      limit: 1000,
+      offset: 0,
+    })
+    // Count only files (non-folders), exclude .keep placeholder
+    const count = (data ?? []).filter(
+      (item) => item.metadata !== null && item.name !== ".keep"
+    ).length
+    return { folderPath, count }
+  })
+
+  const imageCounts = await Promise.all(imageCountPromises)
+  for (const { folderPath, count } of imageCounts) {
+    result[folderPath] = { imageCount: count, linkedProductsCount: 0 }
+  }
+
+  // Build the public URL base for each folder to query product_images
+  const folderUrlPatterns = folderPaths.map((folderPath) => {
+    const storagePath = `gallery/${user.id}/${folderPath}/`
+    const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(storagePath)
+    return { folderPath, urlPrefix: urlData.publicUrl }
+  })
+
+  // Query linked products for all folders in a single query using OR conditions
+  // For each folder, count distinct product_ids where image_url starts with the folder URL prefix
+  const linkedCountPromises = folderUrlPatterns.map(async ({ folderPath, urlPrefix }) => {
+    const { data } = await supabase
+      .from("product_images")
+      .select("product_id")
+      .like("image_url", `${urlPrefix}%`)
+
+    // Count distinct product_ids
+    const uniqueProductIds = new Set((data ?? []).map((row: { product_id: string }) => row.product_id))
+    return { folderPath, count: uniqueProductIds.size }
+  })
+
+  const linkedCounts = await Promise.all(linkedCountPromises)
+  for (const { folderPath, count } of linkedCounts) {
+    if (result[folderPath]) {
+      result[folderPath].linkedProductsCount = count
+    }
+  }
+
+  return result
 }
