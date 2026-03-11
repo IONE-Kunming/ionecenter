@@ -57,6 +57,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
   const videoInputRef = useRef<HTMLInputElement>(null)
   const [imageTarget, setImageTarget] = useState<string | null>(null)
   const imageTargetRef = useRef<string | null>(null)
+  const [imageInputKey, setImageInputKey] = useState(0)
 
   const mainCategories = categories.filter((c) => !c.parent_id).sort((a, b) => a.sort_order - b.sort_order)
   const getSubcategories = (parentId: string) =>
@@ -169,17 +170,20 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
       if (res.error) {
         showToast("error", res.error)
       } else if (res.url) {
+        // Append cache-busting param so the browser doesn't show a stale cached image
+        const freshUrl = `${res.url!}?t=${Date.now()}`
         setCategories((prev) =>
-          prev.map((c) => (c.id === target ? { ...c, image_url: res.url! } : c))
+          prev.map((c) => (c.id === target ? { ...c, image_url: freshUrl } : c))
         )
-        showToast("success", t("imageUploaded"))      }
+        showToast("success", t("imageUploaded"))
+      }
     } catch {
       showToast("error", t("imageUploadFailed"))
     }
     imageTargetRef.current = null
     setImageTarget(null)
     setLoading(false)
-    if (imageInputRef.current) imageInputRef.current.value = ""
+    setImageInputKey((k) => k + 1)
   }
 
   async function handleRemoveImage(id: string) {
@@ -196,6 +200,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
       showToast("error", t("imageRemoveFailed"))
     }
     setLoading(false)
+    setImageInputKey((k) => k + 1)
   }
 
   // ─── Video handlers ────────────────────────────────────
@@ -449,6 +454,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
 
       {/* Hidden file inputs */}
       <input
+        key={imageInputKey}
         ref={imageInputRef}
         type="file"
         accept="image/*"
