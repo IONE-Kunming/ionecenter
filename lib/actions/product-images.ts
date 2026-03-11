@@ -268,8 +268,10 @@ export async function getProductsAllImages(
 /**
  * Assign gallery images to a product. Inserts rows into product_images.
  * If primaryUrl is provided, marks that image as primary and updates
- * products.image_url. If primaryUrl is null, all images are inserted as
- * non-primary so the existing primary image (if any) is preserved.
+ * products.image_url. If primaryUrl is null and the product already has
+ * images, all new images are inserted as non-primary so the existing
+ * primary image is preserved. If the product has no images yet, the first
+ * assigned image is automatically set as primary.
  */
 export async function assignImagesToProduct(
   imageUrls: string[],
@@ -293,6 +295,20 @@ export async function assignImagesToProduct(
 
   if (prodErr || !product) return { error: "Product not found or not owned by you" }
 
+  // If no primary was explicitly chosen, check whether the product already has
+  // images. When the product has zero images the first assigned image should
+  // automatically become the primary so it shows on the product card.
+  if (!primaryUrl) {
+    const { count } = await supabase
+      .from("product_images")
+      .select("id", { count: "exact", head: true })
+      .eq("product_id", productId)
+
+    if (count === 0) {
+      primaryUrl = imageUrls[0]
+    }
+  }
+
   if (primaryUrl) {
     // Seller explicitly chose a new primary — unset any existing primary
     await supabase
@@ -313,7 +329,7 @@ export async function assignImagesToProduct(
   const { error: insertErr } = await supabase.from("product_images").insert(rows)
   if (insertErr) return { error: insertErr.message }
 
-  // Update products.image_url only when the seller chose a new primary
+  // Update products.image_url when a primary image was chosen or auto-selected
   if (primaryUrl) {
     const { error: updateErr } = await supabase
       .from("products")
