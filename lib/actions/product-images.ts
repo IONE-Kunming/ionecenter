@@ -293,8 +293,23 @@ export async function assignImagesToProduct(
 
   if (prodErr || !product) return { error: "Product not found or not owned by you" }
 
-  if (primaryUrl) {
-    // Seller explicitly chose a new primary — unset any existing primary
+  // Check if the product already has a primary image
+  const { data: existingPrimary } = await supabase
+    .from("product_images")
+    .select("id")
+    .eq("product_id", productId)
+    .eq("is_primary", true)
+    .limit(1)
+
+  const hasPrimary = existingPrimary && existingPrimary.length > 0
+
+  // Determine the effective primary URL:
+  //   - If seller explicitly chose one → use it
+  //   - Else if product has no primary → auto-set first image as primary
+  const effectivePrimary = primaryUrl ?? (!hasPrimary ? imageUrls[0] : null)
+
+  if (effectivePrimary) {
+    // Unset any existing primary
     await supabase
       .from("product_images")
       .update({ is_primary: false })
@@ -302,22 +317,32 @@ export async function assignImagesToProduct(
       .eq("is_primary", true)
   }
 
+  // Get max sort_order to avoid conflicts with existing images
+  const { data: maxSort } = await supabase
+    .from("product_images")
+    .select("sort_order")
+    .eq("product_id", productId)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+
+  const nextSort = (maxSort?.[0]?.sort_order ?? -1) + 1
+
   // Insert product_images rows
   const rows = imageUrls.map((url, i) => ({
     product_id: productId,
     image_url: url,
-    is_primary: primaryUrl ? url === primaryUrl : false,
-    sort_order: i,
+    is_primary: effectivePrimary ? url === effectivePrimary : false,
+    sort_order: nextSort + i,
   }))
 
   const { error: insertErr } = await supabase.from("product_images").insert(rows)
   if (insertErr) return { error: insertErr.message }
 
-  // Update products.image_url only when the seller chose a new primary
-  if (primaryUrl) {
+  // Update products.image_url when a primary was set (explicit or auto)
+  if (effectivePrimary) {
     const { error: updateErr } = await supabase
       .from("products")
-      .update({ image_url: primaryUrl })
+      .update({ image_url: effectivePrimary })
       .eq("id", productId)
       .eq("seller_id", user.id)
 
@@ -418,21 +443,25 @@ export async function searchSellerProductsForGallery(
 }
 
 /**
- * Auto-match a folder name to a product by name or model_number.
- * Returns the matched product or null.
+ * Auto-match a folder/file name to products by name, model_number, or
+ * by extracting the numeric portion and matching against the ending
+ * digits of a product's model_number.
+ *
+ * Returns an array of matching products (empty = no match).
  */
 export async function autoMatchFolderToProduct(
   folderName: string
-): Promise<{ id: string; name: string; model_number: string } | null> {
+): Promise<{ id: string; name: string; model_number: string }[]> {
   const user = await getCurrentUser()
-  if (!user || user.role !== "seller") return null
+  if (!user || user.role !== "seller") return []
 
-  if (!folderName.trim()) return null
+  const trimmed = folderName.trim()
+  if (!trimmed) return []
 
   const supabase = createAdminClient()
-  const escaped = folderName.trim().replace(/[%_\\]/g, (ch) => `\\${ch}`)
+  const escaped = trimmed.replace(/[%_\\]/g, (ch) => `\\${ch}`)
 
-  // Try exact case-insensitive match on name first
+  // 1. Try exact case-insensitive match on name first
   const { data: nameMatch } = await supabase
     .from("products")
     .select("id, name, model_number")
@@ -440,9 +469,9 @@ export async function autoMatchFolderToProduct(
     .ilike("name", escaped)
     .limit(1)
 
-  if (nameMatch && nameMatch.length > 0) return nameMatch[0]
+  if (nameMatch && nameMatch.length > 0) return nameMatch
 
-  // Try exact case-insensitive match on model_number
+  // 2. Try exact case-insensitive match on model_number
   const { data: modelMatch } = await supabase
     .from("products")
     .select("id, name, model_number")
@@ -450,7 +479,41 @@ export async function autoMatchFolderToProduct(
     .ilike("model_number", escaped)
     .limit(1)
 
-  if (modelMatch && modelMatch.length > 0) return modelMatch[0]
+  if (modelMatch && modelMatch.length > 0) return modelMatch
 
-  return null
+  // 3. Extract numeric portion from the name and match against
+  //    the ending digits of product model_numbers.
+  //    Strip file extension first (e.g. "01104.jpg" → "01104").
+  const baseName = trimmed.replace(/\.[^.]+$/, "")
+  const digits = baseName.replace(/[^0-9]/g, "")
+
+  if (digits.length > 0) {
+    const maxResults = 20
+    // Strip leading zeros but keep at least one digit
+    const stripped = digits.replace(/^0+/, "") || "0"
+    const escapedDigits = stripped.replace(/[%_\\]/g, (ch) => `\\${ch}`)
+
+    // Search products whose model_number ends with the extracted number
+    // (ILIKE '%1104' matches any model_number ending in "1104")
+    const { data: endMatch } = await supabase
+      .from("products")
+      .select("id, name, model_number")
+      .eq("seller_id", user.id)
+      .ilike("model_number", `%${escapedDigits}`)
+      .limit(maxResults)
+
+    if (endMatch && endMatch.length > 0) return endMatch
+
+    // Fallback: search products whose model_number contains the number
+    const { data: containsMatch } = await supabase
+      .from("products")
+      .select("id, name, model_number")
+      .eq("seller_id", user.id)
+      .ilike("model_number", `%${escapedDigits}%`)
+      .limit(maxResults)
+
+    if (containsMatch && containsMatch.length > 0) return containsMatch
+  }
+
+  return []
 }

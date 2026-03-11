@@ -1179,6 +1179,7 @@
     "assignError": "分配图片失败",
     "autoMatchFound": "已自动匹配文件夹到产品: {product}",
     "autoMatchNotFound": "未找到与此文件夹名称匹配的产品",
+    "autoMatchMultiple": "找到多个匹配的产品 — 请选择正确的产品",
     "markAsPrimary": "设为主图",
     "primary": "主图",
     "selectImages": "选择要分配的图片",

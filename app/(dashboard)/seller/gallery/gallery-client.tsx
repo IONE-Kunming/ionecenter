@@ -263,12 +263,17 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
   async function handleAutoMatch(folder: GalleryFolder) {
     setAutoMatching(folder.fullPath)
     setError(null)
-    const match = await autoMatchFolderToProduct(folder.name)
+    const matches = await autoMatchFolderToProduct(folder.name)
     setAutoMatching(null)
-    if (match) {
+    if (matches.length === 1) {
+      const match = matches[0]
       setSuccessMsg(t("autoMatchFound", { product: `${match.name} (${match.model_number})` }))
       // Open the link dialog pre-loaded with this product
       await openLinkDialog(folder, match.id)
+    } else if (matches.length > 1) {
+      // Multiple matches — open dialog with matches shown so seller can choose
+      setSuccessMsg(t("autoMatchMultiple"))
+      await openLinkDialogWithMatches(folder, matches)
     } else {
       setError(t("autoMatchNotFound"))
     }
@@ -298,6 +303,27 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
     // Load initial product list
     const products = await searchSellerProductsForGallery("")
     setProductResults(products)
+  }
+
+  async function openLinkDialogWithMatches(
+    folder: GalleryFolder,
+    matches: { id: string; name: string; model_number: string }[]
+  ) {
+    setLinkFolderPath(folder.fullPath)
+    setProductSearch("")
+    setSelectedProductId(null)
+    setPrimaryImageUrl(null)
+    setLinkImages([])
+
+    // Fetch images in this folder
+    const result = await listGallery(folder.fullPath)
+    if (!result.error) {
+      const images = result.files.filter((f) => f.type === "image")
+      setLinkImages(images)
+    }
+
+    // Pre-populate the product list with the matching products
+    setProductResults(matches.map((m) => ({ ...m, image_url: null })))
   }
 
   async function handleLinkToProduct() {
