@@ -529,10 +529,10 @@ export function BulkEditTable({
           } else {
             // Update original data so the row is no longer marked as modified
             setOriginalData((prev) =>
-              prev.map((p) => p.id === productId ? { ...p, custom_category: product.custom_category } : p)
+              prev.map((p) => p.id === productId ? { ...p, custom_category: value ?? "" } : p)
             )
             const current = productsRef.current.find((p) => p.id === productId)
-            const updatedOrig = { ...orig, custom_category: product.custom_category }
+            const updatedOrig = { ...orig, custom_category: value ?? "" }
             if (current && !isProductChanged(updatedOrig, current)) {
               setModifiedIds((prev) => {
                 const next = new Set(prev)
