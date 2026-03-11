@@ -144,6 +144,12 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
     return counts
   }, [products])
 
+  const categoryIndexMap = useMemo(() => {
+    const map = new Map<string, number>()
+    categoryData.mainCategories.forEach((cat, idx) => map.set(cat, idx))
+    return map
+  }, [categoryData.mainCategories])
+
   const handleChatWithSeller = (e: React.MouseEvent, product: CatalogProduct) => {
     e.stopPropagation()
     e.preventDefault()
@@ -242,6 +248,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
           {isPreviewMode && (
             <PinnedCategoriesBar
               pinnedCategories={pinnedCategories}
+              categoryImageMap={categoryData.categoryImageMap}
               onSelect={handlePinnedSelect}
               onUnpin={handleUnpinCategory}
               isDragOver={isDragOver}
@@ -255,9 +262,11 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
             <Switch id="showNumbers" checked={showCategoryNumbers} onCheckedChange={setShowCategoryNumbers} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categoryData.mainCategories.map((cat, catIdx) => {
+          {categoryData.mainCategories
+            .filter((cat) => !isPreviewMode || !pinnedCategories.includes(cat))
+            .map((cat) => {
             const subcategories = categoryData.categoryMap[cat] ?? []
-            const categoryCode = String(catIdx + 1).padStart(2, '0')
+            const categoryCode = String((categoryIndexMap.get(cat) ?? 0) + 1).padStart(2, '0')
             const imageUrl = categoryData.categoryImageMap[cat] ?? null
             const isPinned = pinnedCategories.includes(cat)
             return (

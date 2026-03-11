@@ -1,11 +1,14 @@
 "use client"
 
-import { X } from "lucide-react"
+import { X, Package } from "lucide-react"
+import Image from "next/image"
+import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { toCategoryKey } from "@/lib/categories"
 
 interface PinnedCategoriesBarProps {
   pinnedCategories: string[]
+  categoryImageMap?: Record<string, string | null>
   onSelect: (category: string) => void
   onUnpin: (category: string) => void
   isDragOver: boolean
@@ -16,6 +19,7 @@ interface PinnedCategoriesBarProps {
 
 export function PinnedCategoriesBar({
   pinnedCategories,
+  categoryImageMap,
   onSelect,
   onUnpin,
   isDragOver,
@@ -25,6 +29,7 @@ export function PinnedCategoriesBar({
 }: PinnedCategoriesBarProps) {
   const t = useTranslations("catalog")
   const tCatNames = useTranslations("categoryNames")
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
 
   const translateCat = (name: string): string => {
     const key = toCategoryKey(name)
@@ -52,13 +57,28 @@ export function PinnedCategoriesBar({
       {isDragOver && pinnedCategories.length === 0 && (
         <span className="text-xs text-primary font-medium">{t("dropHereToPin")}</span>
       )}
-      {pinnedCategories.map((cat) => (
+      {pinnedCategories.map((cat) => {
+        const imgUrl = categoryImageMap?.[cat] ?? null
+        const showImage = imgUrl && !failedImages.has(cat)
+        return (
         <button
           key={cat}
           type="button"
           onClick={() => onSelect(cat)}
           className="group inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
         >
+          {showImage ? (
+            <Image
+              src={imgUrl}
+              alt={translateCat(cat)}
+              width={20}
+              height={20}
+              className="rounded-full object-cover w-5 h-5 shrink-0"
+              onError={() => setFailedImages((prev) => new Set(prev).add(cat))}
+            />
+          ) : (
+            <Package className="h-4 w-4 shrink-0" />
+          )}
           <span>{translateCat(cat)}</span>
           <span
             role="button"
@@ -79,7 +99,8 @@ export function PinnedCategoriesBar({
             <X className="h-3 w-3" />
           </span>
         </button>
-      ))}
+        )
+      })}
     </div>
   )
 }
