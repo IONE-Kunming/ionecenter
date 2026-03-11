@@ -6,7 +6,7 @@ import { generateSKU } from "@/lib/sku"
 import { getSiteCategories } from "./site-settings"
 import { buildCategoryData } from "@/lib/categories"
 import { getProductsPrimaryImages } from "./product-images"
-import type { Product } from "@/types/database"
+import type { Product, ProductImage } from "@/types/database"
 
 export async function getProducts(filters?: {
   category?: string
@@ -110,22 +110,30 @@ export async function getProduct(id: string): Promise<Product | null> {
   return enriched
 }
 
-export async function getSellerProducts(): Promise<Product[]> {
+export async function getSellerProducts(): Promise<(Product & { images: ProductImage[] })[]> {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return []
 
   const supabase = createAdminClient()
   const { data } = await supabase
     .from("products")
-    .select("*")
+    .select("*, product_images(*)")
     .eq("seller_id", user.id)
     .order("created_at", { ascending: false })
 
-  const products = (data ?? []).map((p) => ({
-    ...p,
-  }))
-
-  return enrichProductImages(products)
+  return (data ?? []).map((p) => {
+    const { product_images: imgs, ...rest } = p as Record<string, unknown>
+    const images = ((imgs ?? []) as ProductImage[]).sort((a, b) => {
+      if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1
+      return a.sort_order - b.sort_order
+    })
+    const primaryImage = images.find((img) => img.is_primary) ?? images[0]
+    return {
+      ...(rest as Product),
+      image_url: primaryImage?.image_url ?? (rest as Product).image_url ?? null,
+      images,
+    }
+  })
 }
 
 export async function getSellerCustomCategories(): Promise<string[]> {
