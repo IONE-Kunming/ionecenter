@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useTransition, useCallback, useRef } from "react"
+import { useState, useMemo, useTransition, useCallback, useRef, useEffect } from "react"
 import { useTranslations } from "next-intl"
 import Link from "@/components/ui/link"
 import Image from "next/image"
@@ -26,6 +26,7 @@ import { toCategoryKey } from "@/lib/categories"
 import type { PricingType } from "@/types/database"
 import { ProductSearchDropdown, matchesProductSearch } from "@/components/product-search-dropdown"
 import { PinnedCategoriesBar } from "@/components/catalog/pinned-categories-bar"
+import { usePreviewSearch } from "@/components/layout/preview-search-context"
 
 type BrowseLevel = "categories" | "subcategories" | "products"
 
@@ -61,6 +62,15 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
   const { addToast } = useToast()
   const [, startTransition] = useTransition()
   const [chattingIds, setChattingIds] = useState<Set<string>>(new Set())
+
+  // ── Preview search context (connects navbar search to category filtering) ──
+  const previewCtx = usePreviewSearch()
+  useEffect(() => {
+    if (isPreviewMode) {
+      previewCtx.registerPreviewPage()
+      return () => previewCtx.unregisterPreviewPage()
+    }
+  }, [isPreviewMode, previewCtx.registerPreviewPage, previewCtx.unregisterPreviewPage])
 
   // ── Pinned categories state (only active in preview mode) ──
   const [pinnedCategories, setPinnedCategories] = useState<string[]>(initialPinnedCategories)
@@ -150,6 +160,17 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
     categoryData.mainCategories.forEach((cat, idx) => map.set(cat, idx))
     return map
   }, [categoryData.mainCategories])
+
+  // ── Filter main categories by navbar search (preview mode) ──
+  const categorySearchQuery = isPreviewMode ? previewCtx.search : ""
+  const filteredMainCategories = useMemo(() => {
+    if (!categorySearchQuery.trim()) return categoryData.mainCategories
+    const q = categorySearchQuery.toLowerCase()
+    return categoryData.mainCategories.filter((cat) => {
+      const translated = translateCat(cat)
+      return cat.toLowerCase().includes(q) || translated.toLowerCase().includes(q)
+    })
+  }, [categoryData.mainCategories, categorySearchQuery]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleChatWithSeller = (e: React.MouseEvent, product: CatalogProduct) => {
     e.stopPropagation()
@@ -264,7 +285,7 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
             <Switch id="showNumbers" checked={showCategoryNumbers} onCheckedChange={setShowCategoryNumbers} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categoryData.mainCategories
+          {filteredMainCategories
             .filter((cat) => !isPreviewMode || !pinnedCategories.includes(cat))
             .map((cat) => {
             const subcategories = categoryData.categoryMap[cat] ?? []
@@ -331,6 +352,9 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
             )
           })}
           </div>
+          {filteredMainCategories.filter((cat) => !isPreviewMode || !pinnedCategories.includes(cat)).length === 0 && (
+            <EmptyState icon={Package} title={t("noCategoriesFound")} description={t("noCategoriesFoundDesc")} />
+          )}
         </div>
       )}
 

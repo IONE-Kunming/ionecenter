@@ -5,6 +5,7 @@ import { DashboardHeader } from "@/components/layout/dashboard-header"
 import { BuyerDashboardHeader } from "@/components/layout/buyer-dashboard-header"
 import { PageTitleProvider } from "@/components/layout/page-title-context"
 import { ProductsPageHeaderProvider } from "@/components/layout/products-page-context"
+import { PreviewSearchProvider } from "@/components/layout/preview-search-context"
 import { ensureUserInSupabase, getCurrentUser } from "@/lib/actions/users"
 import type { UserRole } from "@/types/database"
 
@@ -55,8 +56,10 @@ export default async function DashboardLayout({
       <div className="md:ms-64">
         <PageTitleProvider>
           <ProductsPageHeaderProvider>
-            <DashboardHeader />
-            <main className="p-6">{children}</main>
+            <PreviewSearchProvider>
+              <DashboardHeader />
+              <main className="p-6">{children}</main>
+            </PreviewSearchProvider>
           </ProductsPageHeaderProvider>
         </PageTitleProvider>
       </div>

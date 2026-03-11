@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { usePageTitle } from "./page-title-context"
 import { useProductsPageHeader } from "./products-page-context"
+import { usePreviewSearch } from "./preview-search-context"
 import { ProductSearchDropdown } from "@/components/product-search-dropdown"
 
 export function DashboardHeader() {
@@ -53,6 +54,7 @@ export function DashboardHeader() {
 
   const title = pageTitle || fallbackTitle
 
+  const previewCtx = usePreviewSearch()
   const [searchQuery, setSearchQuery] = useState("")
 
   const role = parts[0] === "buyer" ? "buyer" : parts[0] === "seller" ? "seller" : "admin"
@@ -65,8 +67,16 @@ export function DashboardHeader() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
+    if (previewCtx.isPreviewPage) return
     if (!searchQuery.trim()) return
     router.push(`${getSearchPath()}?search=${encodeURIComponent(searchQuery.trim())}`)
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+    if (previewCtx.isPreviewPage) {
+      previewCtx.setSearch(value)
+    }
   }
 
   const showProductsHeader = productsCtx.isProductsPage
@@ -106,7 +116,7 @@ export function DashboardHeader() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder={tCommon("searchAll")}
                 className="pl-9 h-9"
               />
