@@ -647,7 +647,11 @@
     "priceCny": "价格 (CNY ¥)",
     "liveRate": "实时汇率",
     "fallbackRate": "备用汇率",
-    "price": "价格"
+    "price": "价格",
+    "deleteImageConfirm": "您确定要删除这张图片吗？",
+    "deleteImage": "删除图片",
+    "productImages": "产品图片",
+    "noImages": "此产品没有分配图片。"
   },
   "branches": {
     "title": "分支机构",

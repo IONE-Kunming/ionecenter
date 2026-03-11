@@ -132,6 +132,66 @@ export async function assignImagesToProduct(
 }
 
 /**
+ * Delete a single image from product_images.
+ * If the deleted image was primary, promote the next available image.
+ * Does NOT modify products.image_url.
+ */
+export async function deleteProductImage(
+  imageId: string
+): Promise<{ error?: string; success?: boolean }> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return { error: "Not authorized" }
+
+  const supabase = createAdminClient()
+
+  // Fetch the image to delete (join with products to verify ownership)
+  const { data: image, error: fetchErr } = await supabase
+    .from("product_images")
+    .select("id, product_id, is_primary")
+    .eq("id", imageId)
+    .maybeSingle()
+
+  if (fetchErr || !image) return { error: "Image not found" }
+
+  // Verify product belongs to the seller
+  const { data: product, error: prodErr } = await supabase
+    .from("products")
+    .select("id")
+    .eq("id", image.product_id)
+    .eq("seller_id", user.id)
+    .maybeSingle()
+
+  if (prodErr || !product) return { error: "Product not found or not owned by you" }
+
+  // Delete the image
+  const { error: deleteErr } = await supabase
+    .from("product_images")
+    .delete()
+    .eq("id", imageId)
+
+  if (deleteErr) return { error: deleteErr.message }
+
+  // If the deleted image was primary, promote the next available image
+  if (image.is_primary) {
+    const { data: remaining } = await supabase
+      .from("product_images")
+      .select("id")
+      .eq("product_id", image.product_id)
+      .order("sort_order", { ascending: true })
+      .limit(1)
+
+    if (remaining && remaining.length > 0) {
+      await supabase
+        .from("product_images")
+        .update({ is_primary: true })
+        .eq("id", remaining[0].id)
+    }
+  }
+
+  return { success: true }
+}
+
+/**
  * Search seller products for gallery linking. Returns products matching query by name or model_number.
  */
 export async function searchSellerProductsForGallery(
