@@ -18,6 +18,7 @@ import { WishlistButton } from "@/components/wishlist-button"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { formatDualPrice, getStockStatus } from "@/lib/utils"
 import { createProduct, updateProduct, deleteProduct, bulkImportProducts, uploadProductImage, createProductImageSignedUploadUrl, getProductFilePublicUrl } from "@/lib/actions/products"
+import { deleteProductImage } from "@/lib/actions/product-images"
 import { createClient } from "@/lib/supabase/client"
 import { ImportPreview } from "@/components/bulk-edit/import-preview"
 import type { ImportRow } from "@/components/bulk-edit/bulk-edit-table"
@@ -25,7 +26,7 @@ import type { CategoryData } from "@/lib/categories"
 import { getSubcategoriesFromData, isMainCategoryInData, getMainCategoryForSubcategoryInData } from "@/lib/categories"
 import { getCategoryIndex, getSubcategoryIndex } from "@/lib/sku"
 import type { Product } from "@/types/database"
-import type { PricingType } from "@/types/database"
+import type { PricingType, ProductImage } from "@/types/database"
 import { useExchangeRate, usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
 import { matchesProductSearch } from "@/components/product-search-dropdown"
 import { useProductsPageHeader } from "@/components/layout/products-page-context"
@@ -118,7 +119,7 @@ function downloadTemplate() {
   URL.revokeObjectURL(url)
 }
 
-type ProductWithImages = Product & { images?: { image_url: string; is_primary: boolean }[] }
+type ProductWithImages = Product & { images?: ProductImage[] }
 
 export function SellerProductsList({ initialProducts, initialSearch = "", categoryData, wishlistedIds = [] }: { initialProducts: ProductWithImages[]; initialSearch?: string; categoryData: CategoryData; wishlistedIds?: string[] }) {
   const t = useTranslations("sellerProducts")
@@ -175,6 +176,10 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null)
   const [deleting, setDeleting] = useState(false)
 
+  // Delete image confirmation state
+  const [deleteImageTarget, setDeleteImageTarget] = useState<ProductImage | null>(null)
+  const [deletingImage, setDeletingImage] = useState(false)
+
   const openEdit = useCallback((product: Product) => {
     setEditProduct(product)
     setEditForm({
@@ -191,6 +196,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
     setEditCategory(product.main_category)
     setEditImage(null)
     setEditImagePreview(product.image_url || null)
+    setDeleteImageTarget(null)
   }, [])
 
   // Register products and callbacks with the header context
@@ -272,6 +278,30 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
       // error handled
     }
     setDeleting(false)
+  }
+
+  const handleDeleteImage = async () => {
+    if (!deleteImageTarget || !editProduct) return
+    setDeletingImage(true)
+    try {
+      const result = await deleteProductImage(deleteImageTarget.id)
+      if (!result.error) {
+        // Update the local images list for the product being edited
+        setProducts((prev) => prev.map((p) => {
+          if (p.id !== editProduct.id) return p
+          const updated = (p.images ?? []).filter((img) => img.id !== deleteImageTarget.id)
+          // If the deleted image was primary, promote the next one
+          if (deleteImageTarget.is_primary && updated.length > 0) {
+            updated[0] = { ...updated[0], is_primary: true }
+          }
+          return { ...p, images: updated }
+        }))
+        setDeleteImageTarget(null)
+      }
+    } catch {
+      // error handled
+    }
+    setDeletingImage(false)
   }
 
   const resetAddForm = () => {
@@ -742,6 +772,33 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
               <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" value={editForm.stock || ""} onChange={(e) => setEditForm((f) => ({ ...f, stock: Number(e.target.value) }))} /></div>
             </div>
             <div className="space-y-2"><Label>{t("description")}</Label><Textarea rows={3} value={editForm.description} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} /></div>
+            {/* Existing product images from product_images table */}
+            {editProduct && (() => {
+              const currentProduct = products.find((p) => p.id === editProduct.id)
+              const imgs = currentProduct?.images ?? []
+              return imgs.length > 0 ? (
+                <div className="space-y-2">
+                  <Label>{t("productImages")}</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {imgs.map((img) => (
+                      <div key={img.id} className="relative w-20 h-20 rounded border overflow-hidden group/img">
+                        <Image src={img.image_url} alt={editProduct.name || "Product image"} fill className="object-cover" sizes="80px" />
+                        {img.is_primary && (
+                          <span className="absolute top-0 left-0 bg-primary text-primary-foreground text-[10px] px-1 rounded-br">★</span>
+                        )}
+                        <button
+                          type="button"
+                          className="absolute top-0 right-0 bg-destructive text-destructive-foreground rounded-bl p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity"
+                          onClick={() => setDeleteImageTarget(img)}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null
+            })()}
             <div className="space-y-2">
               <Label>{t("productImage")}</Label>
               {editImagePreview && (
@@ -784,6 +841,24 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
             <Button variant="outline" onClick={() => setDeleteTarget(null)}>{tCommon("cancel")}</Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
               {deleting ? t("deleting") : tCommon("delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Image Confirmation */}
+      <Dialog open={!!deleteImageTarget} onOpenChange={(v) => { if (!v) setDeleteImageTarget(null) }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{t("deleteImage")}</DialogTitle></DialogHeader>
+          <div className="mt-4">
+            <p className="text-sm text-muted-foreground">
+              {t("deleteImageConfirm")}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteImageTarget(null)}>{tCommon("cancel")}</Button>
+            <Button variant="destructive" onClick={handleDeleteImage} disabled={deletingImage}>
+              {deletingImage ? t("deleting") : tCommon("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>

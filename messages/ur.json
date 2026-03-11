@@ -647,7 +647,11 @@
     "priceCny": "قیمت (CNY ¥)",
     "liveRate": "لائیو ریٹ",
     "fallbackRate": "فال بیک ریٹ",
-    "price": "قیمت"
+    "price": "قیمت",
+    "deleteImageConfirm": "کیا آپ واقعی یہ تصویر حذف کرنا چاہتے ہیں؟",
+    "deleteImage": "تصویر حذف کریں",
+    "productImages": "مصنوعات کی تصاویر",
+    "noImages": "اس مصنوعات کے لیے کوئی تصویر نہیں ہے۔"
   },
   "branches": {
     "title": "شاخیں",

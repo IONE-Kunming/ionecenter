@@ -648,7 +648,11 @@
     "priceCny": "السعر (CNY ¥)",
     "liveRate": "سعر مباشر",
     "fallbackRate": "سعر احتياطي",
-    "price": "السعر"
+    "price": "السعر",
+    "deleteImageConfirm": "هل أنت متأكد أنك تريد حذف هذه الصورة؟",
+    "deleteImage": "حذف الصورة",
+    "productImages": "صور المنتج",
+    "noImages": "لا توجد صور مخصصة لهذا المنتج."
   },
   "branches": {
     "title": "الفروع",

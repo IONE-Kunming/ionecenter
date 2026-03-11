@@ -683,7 +683,11 @@
     "fallbackRate": "fallback rate",
     "price": "Price",
     "failedToCreate": "Failed to create product",
-    "unnamedProduct": "Unnamed Product"
+    "unnamedProduct": "Unnamed Product",
+    "deleteImageConfirm": "Are you sure you want to delete this image?",
+    "deleteImage": "Delete Image",
+    "productImages": "Product Images",
+    "noImages": "No images assigned to this product."
   },
   "branches": {
     "title": "Branches",
