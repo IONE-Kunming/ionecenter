@@ -504,8 +504,8 @@ export async function getGalleryFolderStats(
     return { folderPath, urlPrefix: urlData.publicUrl }
   })
 
-  // Query linked products for all folders in a single query using OR conditions
-  // For each folder, count distinct product_ids where image_url starts with the folder URL prefix
+  // Query linked products for each folder in parallel
+  // Each folder has a unique URL prefix, so we run separate queries concurrently
   const linkedCountPromises = folderUrlPatterns.map(async ({ folderPath, urlPrefix }) => {
     const { data } = await supabase
       .from("product_images")
