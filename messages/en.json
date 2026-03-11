@@ -157,7 +157,8 @@
     "role_admin": "Admin",
     "exportDocuments": "Export Documents",
     "contracts": "Contracts",
-    "packingList": "Packing List"
+    "packingList": "Packing List",
+    "productImages": "Product Images"
   },
   "common": {
     "search": "Search...",
@@ -1538,5 +1539,22 @@
     "sellerDashboard": "Seller Dashboard",
     "adminDashboard": "Admin Dashboard",
     "signOut": "Sign Out"
+  },
+  "productImages": {
+    "title": "Product Images",
+    "subtitle": "Manage images for all your products",
+    "listView": "List",
+    "gridView": "Grid",
+    "noProducts": "No products found",
+    "noProductsDesc": "Add products first to manage their images.",
+    "images": "images",
+    "addImages": "Add Images",
+    "setPrimary": "Set Primary",
+    "primary": "Primary",
+    "deleteImage": "Delete Image",
+    "deleteConfirm": "Are you sure you want to delete this image? This action cannot be undone.",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "noImagesSection": "Products without images"
   }
 }

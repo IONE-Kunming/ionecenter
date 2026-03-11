@@ -11,7 +11,7 @@ import {
   Bell, Settings, HelpCircle, LogOut, ChevronDown, Sun, Moon, Menu, X,
   Building2, Pencil, DollarSign, BarChart3, Receipt, Calculator, Scale,
   Store, ClipboardList, Globe, Eye, FolderTree, Heart, Images,
-  FolderOpen, FileSignature, PackageCheck
+  FolderOpen, FileSignature, PackageCheck, Image as ImageIcon
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -77,7 +77,15 @@ function getNavItems(role: UserRole, t: TranslationFn): NavItem[] {
     return [
       { label: t("dashboard"), href: "/seller/dashboard", icon: LayoutDashboard },
       { label: t("products"), href: "/seller/products", icon: Package },
-      { label: t("gallery"), href: "/seller/gallery", icon: Images },
+      {
+        label: t("gallery"),
+        href: "/seller/gallery",
+        icon: Images,
+        children: [
+          { label: t("gallery"), href: "/seller/gallery", icon: Images },
+          { label: t("productImages"), href: "/seller/gallery/product-images", icon: ImageIcon },
+        ],
+      },
       { label: t("myList"), href: "/seller/my-list", icon: Heart },
       { label: t("bulkEdit"), href: "/seller/bulk-edit", icon: Pencil },
       { label: t("orders"), href: "/seller/orders", icon: FileText },
@@ -152,7 +160,7 @@ export function Sidebar({ role }: SidebarProps) {
     )
   }
 
-  // Auto-expand active finance section
+  // Auto-expand active sections
   React.useEffect(() => {
     if (pathname.includes("/finances/")) {
       const financesLabel = t("finances")
@@ -161,6 +169,10 @@ export function Sidebar({ role }: SidebarProps) {
     if (pathname.includes("/invoices") || pathname.includes("/contracts") || pathname.includes("/packing-lists")) {
       const exportDocsLabel = t("exportDocuments")
       setExpandedItems((prev) => (prev.includes(exportDocsLabel) ? prev : [...prev, exportDocsLabel]))
+    }
+    if (pathname.includes("/gallery")) {
+      const galleryLabel = t("gallery")
+      setExpandedItems((prev) => (prev.includes(galleryLabel) ? prev : [...prev, galleryLabel]))
     }
   }, [pathname, t])
 
