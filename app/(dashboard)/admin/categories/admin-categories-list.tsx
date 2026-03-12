@@ -29,9 +29,10 @@ import { createClient } from "@/lib/supabase/client"
 interface Props {
   categories: SiteCategory[]
   videoUrl: string
+  productCounts: Record<string, number>
 }
 
-export function AdminCategoriesList({ categories: initialCategories, videoUrl: initialVideoUrl }: Props) {
+export function AdminCategoriesList({ categories: initialCategories, videoUrl: initialVideoUrl, productCounts }: Props) {
   const t = useTranslations("adminCategories")
   const [categories, setCategories] = useState(initialCategories)
   const [videoUrl, setVideoUrl] = useState(initialVideoUrl)
@@ -324,6 +325,15 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
           {isMain && subs.length > 0 && (
             <span className="text-xs text-muted-foreground mr-2">
               {subs.length !== 1 ? t("subsCount", { count: subs.length }) : t("subCount", { count: subs.length })}
+            </span>
+          )}
+
+          {/* Product count for subcategories */}
+          {!isMain && (
+            <span className="text-xs text-muted-foreground mr-2">
+              {(productCounts[cat.name] ?? 0) !== 1
+                ? t("productsCount", { count: productCounts[cat.name] ?? 0 })
+                : t("productCount", { count: 1 })}
             </span>
           )}
 

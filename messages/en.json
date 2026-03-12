@@ -1388,6 +1388,8 @@
     "addSubcategoryBtn": "Add subcategory",
     "subCount": "{count} sub",
     "subsCount": "{count} subs",
+    "productCount": "{count} product",
+    "productsCount": "{count} products",
     "cancel": "Cancel"
   },
   "adminProfile": {
