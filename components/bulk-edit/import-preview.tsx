@@ -100,7 +100,6 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
   // Auto-calculate missing USD/CNY prices using exchange rate
   useEffect(() => {
     if (initialRows.length > 0 && !rateLoading) {
-      console.log('rate:', rate, '100 USD =', 100 * rate)
       setRows(initialRows.map((r) => {
         let finalUsd = r.price_usd ?? (r.price_per_meter || 0)
         let finalCny = r.price_cny ?? null
