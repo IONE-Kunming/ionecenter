@@ -21,6 +21,8 @@ import { getSubcategoriesFromData, isMainCategoryInData, getMainCategoryForSubca
 import { CustomCategoryTabs, filterByCustomCategoryTab, type CustomCategoryTab } from "@/components/custom-category-tabs"
 import { usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
 
+const FALLBACK_RATE = 7.25
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface BulkEditProduct {
   id: string
@@ -329,7 +331,7 @@ export function BulkEditTable({
   const [showPreview, setShowPreview] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [currencyMode, setCurrencyMode] = useState<CurrencyMode>("usd")
-  const [rate, setRate] = useState(7.25)
+  const [rate, setRate] = useState(FALLBACK_RATE)
   const [rateLoading, setRateLoading] = useState(true)
 
   useEffect(() => {
