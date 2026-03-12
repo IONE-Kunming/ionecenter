@@ -341,7 +341,6 @@ export function BulkEditTable({
   // Auto-fill price_cny from price_usd using the exchange rate
   useEffect(() => {
     if (exchangeRateLoading) return
-    console.log('rate:', exchangeRate, '100 USD =', 100 * exchangeRate)
     setProducts((prev) => {
       const needsFill = prev.some((p) => p.price_usd > 0 && (p.price_cny == null || p.price_cny === 0))
       if (!needsFill) return prev
