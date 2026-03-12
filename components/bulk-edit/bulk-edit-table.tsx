@@ -338,15 +338,19 @@ export function BulkEditTable({
   const productsRef = useRef(products)
   useEffect(() => { productsRef.current = products }, [products])
 
-  // Auto-fill price_cny from price_usd using the live exchange rate
+  // Auto-fill price_cny from price_usd using the exchange rate
   useEffect(() => {
     if (exchangeRateLoading) return
-    setProducts((prev) => prev.map((p) => {
-      if (p.price_usd > 0 && (p.price_cny == null || p.price_cny === 0)) {
-        return { ...p, price_cny: usdToCny(p.price_usd, exchangeRate) }
-      }
-      return p
-    }))
+    setProducts((prev) => {
+      const needsFill = prev.some((p) => p.price_usd > 0 && (p.price_cny == null || p.price_cny === 0))
+      if (!needsFill) return prev
+      return prev.map((p) => {
+        if (p.price_usd > 0 && (p.price_cny == null || p.price_cny === 0)) {
+          return { ...p, price_cny: usdToCny(p.price_usd, exchangeRate) }
+        }
+        return p
+      })
+    })
   }, [exchangeRate, exchangeRateLoading])
 
   // Track product IDs with pending custom_category saves (to keep rows visible on Empty tab)
