@@ -45,6 +45,7 @@ export function useExchangeRate(): ExchangeRateResult {
 
     const cached = getCachedRate()
     if (cached) {
+      console.log('exchange rate:', cached.rate)
       setRate(cached.rate)
       setLoading(false)
       return () => { cancelled = true }
@@ -57,6 +58,7 @@ export function useExchangeRate(): ExchangeRateResult {
         const data = await res.json()
         if (!cancelled && data?.rate) {
           const rawRate = data.rate
+          console.log('exchange rate:', rawRate)
           setRate(rawRate)
           setCachedRate(rawRate)
         }
