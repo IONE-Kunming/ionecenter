@@ -19,7 +19,7 @@ import { uploadProductImage } from "@/lib/actions/products"
 import type { CategoryData } from "@/lib/categories"
 import { getSubcategoriesFromData, isMainCategoryInData, getMainCategoryForSubcategoryInData } from "@/lib/categories"
 import { CustomCategoryTabs, filterByCustomCategoryTab, type CustomCategoryTab } from "@/components/custom-category-tabs"
-import { useExchangeRate, usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
+import { usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface BulkEditProduct {
@@ -329,7 +329,29 @@ export function BulkEditTable({
   const [showPreview, setShowPreview] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [currencyMode, setCurrencyMode] = useState<CurrencyMode>("usd")
-  const { rate: exchangeRate, loading: exchangeRateLoading } = useExchangeRate()
+  const [rate, setRate] = useState(7.25)
+  const [rateLoading, setRateLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    async function fetchRate() {
+      try {
+        const res = await fetch("https://api.exchangerate-api.com/v4/latest/USD")
+        if (!res.ok) throw new Error("API error")
+        const data = await res.json()
+        if (!cancelled && data.rates?.CNY) {
+          console.log('rate:', data.rates.CNY)
+          setRate(data.rates.CNY)
+        }
+      } catch {
+        // Use fallback rate
+      } finally {
+        if (!cancelled) setRateLoading(false)
+      }
+    }
+    fetchRate()
+    return () => { cancelled = true }
+  }, [])
   const [customCategoryTab, setCustomCategoryTab] = useState<CustomCategoryTab>("all")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
@@ -341,18 +363,18 @@ export function BulkEditTable({
 
   // Auto-fill price_cny from price_usd using the exchange rate
   useEffect(() => {
-    if (exchangeRateLoading) return
+    if (rateLoading) return
     setProducts((prev) => {
       const needsFill = prev.some((p) => p.price_usd > 0 && (p.price_cny == null || p.price_cny === 0))
       if (!needsFill) return prev
       return prev.map((p) => {
         if (p.price_usd > 0 && (p.price_cny == null || p.price_cny === 0)) {
-          return { ...p, price_cny: usdToCny(p.price_usd, exchangeRate) }
+          return { ...p, price_cny: usdToCny(p.price_usd, rate) }
         }
         return p
       })
     })
-  }, [exchangeRate, exchangeRateLoading])
+  }, [rate, rateLoading])
 
   // Track product IDs with pending custom_category saves (to keep rows visible on Empty tab)
   const [pendingMyCategorySaveIds, setPendingMyCategorySaveIds] = useState<Set<string>>(new Set())
@@ -1206,7 +1228,7 @@ export function BulkEditTable({
             CN¥
           </span>
         </button>
-        <span className="text-xs text-muted-foreground">1 USD = {exchangeRate} CNY · {t("exchangeRateNote")}</span>
+        <span className="text-xs text-muted-foreground">1 USD = {rate} CNY · {t("exchangeRateNote")}</span>
         <span className="text-xs text-muted-foreground">{filtered.length} of {products.length}</span>
       </div>
 
@@ -1417,10 +1439,10 @@ export function BulkEditTable({
                                 const val = Number(e.target.value)
                                 if (currencyMode === "usd") {
                                   updateField(product.id, "price_usd", val)
-                                  updateField(product.id, "price_cny", usdToCny(val, exchangeRate))
+                                  updateField(product.id, "price_cny", usdToCny(val, rate))
                                 } else {
                                   updateField(product.id, "price_cny", val)
-                                  updateField(product.id, "price_usd", cnyToUsd(val, exchangeRate))
+                                  updateField(product.id, "price_usd", cnyToUsd(val, rate))
                                 }
                               }}
                               className={cn(
