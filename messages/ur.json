@@ -692,7 +692,10 @@
     "importError": "درآمد میں خرابی: {error}",
     "importFailed": "CSV فائل درآمد کرنے میں ناکامی۔",
     "bulkEditTitle": "بلک ترمیم",
-    "bulkEditSubtitle": "میری مصنوعات — ان لائن ایڈیٹر"
+    "bulkEditSubtitle": "میری مصنوعات — ان لائن ایڈیٹر",
+    "rateDisplay": "شرح: $1 = ¥{rate}",
+    "rateLoading": "شرح: $1 = ¥{rate} (لوڈ ہو رہا ہے…)",
+    "rateNote": "شرح تبادلہ ہر 24 گھنٹے اپ ڈیٹ ہوتی ہے"
   },
   "adminDashboard": {
     "totalUsers": "کل صارفین",

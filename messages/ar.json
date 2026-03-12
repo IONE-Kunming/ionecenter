@@ -693,7 +693,10 @@
     "importError": "خطأ في الاستيراد: {error}",
     "importFailed": "فشل استيراد ملف CSV.",
     "bulkEditTitle": "تعديل جماعي",
-    "bulkEditSubtitle": "منتجاتي — محرر مباشر"
+    "bulkEditSubtitle": "منتجاتي — محرر مباشر",
+    "rateDisplay": "السعر: $1 = ¥{rate}",
+    "rateLoading": "السعر: $1 = ¥{rate} (جاري التحميل…)",
+    "rateNote": "يتم تحديث سعر الصرف كل 24 ساعة"
   },
   "adminDashboard": {
     "totalUsers": "إجمالي المستخدمين",
