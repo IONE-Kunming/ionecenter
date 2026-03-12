@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 
 const FALLBACK_RATE = 7.25
-const API_URL = "https://api.exchangerate-api.com/v4/latest/USD"
 const CACHE_KEY = "exchange_rate_usd_cny"
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
 
@@ -53,11 +52,11 @@ export function useExchangeRate(): ExchangeRateResult {
 
     async function fetchRate() {
       try {
-        const res = await fetch(API_URL)
+        const res = await fetch("/api/exchange-rate")
         if (!res.ok) throw new Error("API error")
         const data = await res.json()
-        if (!cancelled && data?.rates?.CNY) {
-          const rawRate = data.rates.CNY
+        if (!cancelled && data?.rate) {
+          const rawRate = data.rate
           setRate(rawRate)
           setCachedRate(rawRate)
         }
