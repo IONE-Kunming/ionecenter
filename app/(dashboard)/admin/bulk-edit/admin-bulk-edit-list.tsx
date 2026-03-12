@@ -43,6 +43,8 @@ export function AdminBulkEditList({
         main_category: p.main_category,
         category: p.category,
         price_per_meter: p.price_usd,
+        price_usd: p.price_usd,
+        price_cny: p.price_cny ?? null,
         stock: p.stock,
         is_active: p.is_active,
       }))

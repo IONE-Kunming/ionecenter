@@ -146,7 +146,7 @@ export async function getAllSellers() {
 }
 
 export async function adminBulkUpdateProducts(
-  updates: { id: string; name: string; model_number: string; main_category?: string; category?: string; price_per_meter: number; stock: number; is_active?: boolean }[]
+  updates: { id: string; name: string; model_number: string; main_category?: string; category?: string; price_per_meter: number; price_usd?: number; price_cny?: number | null; stock: number; is_active?: boolean }[]
 ) {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return { error: "Not authorized" }
@@ -158,6 +158,8 @@ export async function adminBulkUpdateProducts(
       name: update.name,
       model_number: update.model_number,
       price_per_meter: update.price_per_meter,
+      price_usd: update.price_usd ?? update.price_per_meter,
+      price_cny: update.price_cny ?? null,
       stock: update.stock,
     }
     if (update.main_category !== undefined) {

@@ -1405,7 +1405,7 @@ export function BulkEditTable({
                                 }
                               }}
                               className={cn(
-                                "w-full min-w-[160px] bg-transparent border border-transparent rounded pr-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors",
+                                "w-full min-w-[200px] bg-transparent border border-transparent rounded pr-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors",
                                 currencyMode === "usd" ? "pl-5" : "pl-9"
                               )}
                             />
