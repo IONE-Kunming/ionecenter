@@ -1077,9 +1077,13 @@ export function BulkEditTable({
       const inp = td.querySelector("input:not([type=checkbox])") as HTMLInputElement | null
       if (inp) { inp.focus(); inp.select() }
     } else {
-      const chk = td.querySelector("input[type=checkbox]") as HTMLInputElement | null
-      if (chk) chk.focus()
-      else td.focus()
+      const sel = td.querySelector("select") as HTMLSelectElement | null
+      if (sel) sel.focus()
+      else {
+        const chk = td.querySelector("input[type=checkbox]") as HTMLInputElement | null
+        if (chk) chk.focus()
+        else td.focus()
+      }
     }
   }, [focusedCell, columnOrder])
 
