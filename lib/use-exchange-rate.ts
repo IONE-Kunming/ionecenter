@@ -57,8 +57,9 @@ export function useExchangeRate(): ExchangeRateResult {
         if (!res.ok) throw new Error("API error")
         const data = await res.json()
         if (!cancelled && data?.rates?.CNY) {
-          setRate(data.rates.CNY)
-          setCachedRate(data.rates.CNY)
+          const rounded = Math.round(data.rates.CNY * 100) / 100
+          setRate(rounded)
+          setCachedRate(rounded)
         }
       } catch {
         // Use fallback rate
