@@ -618,7 +618,11 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                 }} />
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">1 USD = {exchangeRate.toFixed(2)} CNY ({isLiveRate ? t("liveRate") : t("fallbackRate")})</p>
+            <p className="text-xs text-muted-foreground">
+              1 USD = {exchangeRate.toFixed(2)} CNY ({isLiveRate ? t("liveRate") : t("fallbackRate")})
+              <br />
+              <span className="text-[11px] italic opacity-75">{t("exchangeRateNote")}</span>
+            </p>
             <div className="grid sm:grid-cols-1 gap-4">
               <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" placeholder="0" value={newProduct.stock || ""} onChange={(e) => setNewProduct((p) => ({ ...p, stock: Number(e.target.value) }))} /></div>
             </div>
@@ -768,7 +772,11 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                 }} />
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">1 USD = {exchangeRate.toFixed(2)} CNY ({isLiveRate ? t("liveRate") : t("fallbackRate")})</p>
+            <p className="text-xs text-muted-foreground">
+              1 USD = {exchangeRate.toFixed(2)} CNY ({isLiveRate ? t("liveRate") : t("fallbackRate")})
+              <br />
+              <span className="text-[11px] italic opacity-75">{t("exchangeRateNote")}</span>
+            </p>
             <div className="grid sm:grid-cols-1 gap-4">
               <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" value={editForm.stock || ""} onChange={(e) => setEditForm((f) => ({ ...f, stock: Number(e.target.value) }))} /></div>
             </div>

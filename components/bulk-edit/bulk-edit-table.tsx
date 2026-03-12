@@ -19,6 +19,7 @@ import { uploadProductImage } from "@/lib/actions/products"
 import type { CategoryData } from "@/lib/categories"
 import { getSubcategoriesFromData, isMainCategoryInData, getMainCategoryForSubcategoryInData } from "@/lib/categories"
 import { CustomCategoryTabs, filterByCustomCategoryTab, type CustomCategoryTab } from "@/components/custom-category-tabs"
+import { useExchangeRate } from "@/lib/use-exchange-rate"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface BulkEditProduct {
@@ -307,6 +308,7 @@ export function BulkEditTable({
 }: BulkEditTableProps) {
   const t = useTranslations("bulkEdit")
   const tCommon = useTranslations("common")
+  const { rate: exchangeRate, isLive: isLiveRate } = useExchangeRate()
 
   const [products, setProducts] = useState<BulkEditProduct[]>(initialProducts)
   const [originalData, setOriginalData] = useState<BulkEditProduct[]>(() => JSON.parse(JSON.stringify(initialProducts)))
@@ -1186,6 +1188,13 @@ export function BulkEditTable({
         </button>
         <span className="text-xs text-muted-foreground">{filtered.length} of {products.length}</span>
       </div>
+
+      {/* Exchange rate note */}
+      <p className="text-xs text-muted-foreground px-3 -mt-4 pb-1">
+        1 USD = {exchangeRate.toFixed(2)} CNY
+        {" · "}
+        <span className="text-[11px] italic opacity-75">{t("exchangeRateNote")}</span>
+      </p>
 
       {/* Custom category tabs */}
       {useCustomCategory && (

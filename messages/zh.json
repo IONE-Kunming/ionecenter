@@ -652,7 +652,8 @@
     "deleteImageConfirm": "您确定要删除这张图片吗？",
     "deleteImage": "删除图片",
     "productImages": "产品图片",
-    "noImages": "此产品没有分配图片。"
+    "noImages": "此产品没有分配图片。",
+    "exchangeRateNote": "汇率每24小时更新一次"
   },
   "branches": {
     "title": "分支机构",
@@ -692,7 +693,8 @@
     "importError": "导入错误：{error}",
     "importFailed": "导入CSV文件失败。",
     "bulkEditTitle": "批量编辑",
-    "bulkEditSubtitle": "我的产品 — 内联编辑器"
+    "bulkEditSubtitle": "我的产品 — 内联编辑器",
+    "exchangeRateNote": "汇率每24小时更新一次"
   },
   "adminDashboard": {
     "totalUsers": "总用户数",

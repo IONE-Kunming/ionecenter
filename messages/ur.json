@@ -652,7 +652,8 @@
     "deleteImageConfirm": "کیا آپ واقعی یہ تصویر حذف کرنا چاہتے ہیں؟",
     "deleteImage": "تصویر حذف کریں",
     "productImages": "مصنوعات کی تصاویر",
-    "noImages": "اس مصنوعات کے لیے کوئی تصویر نہیں ہے۔"
+    "noImages": "اس مصنوعات کے لیے کوئی تصویر نہیں ہے۔",
+    "exchangeRateNote": "شرح مبادلہ ہر 24 گھنٹے اپ ڈیٹ ہوتا ہے"
   },
   "branches": {
     "title": "شاخیں",
@@ -692,7 +693,8 @@
     "importError": "درآمد میں خرابی: {error}",
     "importFailed": "CSV فائل درآمد کرنے میں ناکامی۔",
     "bulkEditTitle": "بلک ترمیم",
-    "bulkEditSubtitle": "میری مصنوعات — ان لائن ایڈیٹر"
+    "bulkEditSubtitle": "میری مصنوعات — ان لائن ایڈیٹر",
+    "exchangeRateNote": "شرح مبادلہ ہر 24 گھنٹے اپ ڈیٹ ہوتا ہے"
   },
   "adminDashboard": {
     "totalUsers": "کل صارفین",

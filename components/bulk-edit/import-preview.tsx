@@ -426,6 +426,8 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
                 <span className={isLive ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"}>
                   {isLive ? t("rateLive", { rate: rate.toFixed(2) }) : rateLoading ? t("rateLoading", { rate: rate.toFixed(2) }) : t("rateFallback", { rate: rate.toFixed(2) })}
                 </span>
+                {" · "}
+                <span className="text-[11px] italic opacity-75">{t("exchangeRateNote")}</span>
               </p>
             </div>
           </div>
