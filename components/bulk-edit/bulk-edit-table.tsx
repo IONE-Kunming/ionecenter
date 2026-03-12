@@ -19,9 +19,7 @@ import { uploadProductImage } from "@/lib/actions/products"
 import type { CategoryData } from "@/lib/categories"
 import { getSubcategoriesFromData, isMainCategoryInData, getMainCategoryForSubcategoryInData } from "@/lib/categories"
 import { CustomCategoryTabs, filterByCustomCategoryTab, type CustomCategoryTab } from "@/components/custom-category-tabs"
-import { usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
-
-const FALLBACK_RATE = 7.25
+import { useExchangeRate, usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface BulkEditProduct {
@@ -331,29 +329,7 @@ export function BulkEditTable({
   const [showPreview, setShowPreview] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [currencyMode, setCurrencyMode] = useState<CurrencyMode>("usd")
-  const [rate, setRate] = useState(FALLBACK_RATE)
-  const [rateLoading, setRateLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-    async function fetchRate() {
-      try {
-        const res = await fetch("https://api.exchangerate-api.com/v4/latest/USD")
-        if (!res.ok) throw new Error("API error")
-        const data = await res.json()
-        if (!cancelled && data.rates?.CNY) {
-          console.log('rate:', data.rates.CNY)
-          setRate(data.rates.CNY)
-        }
-      } catch {
-        // Use fallback rate
-      } finally {
-        if (!cancelled) setRateLoading(false)
-      }
-    }
-    fetchRate()
-    return () => { cancelled = true }
-  }, [])
+  const { rate, loading: rateLoading } = useExchangeRate()
   const [customCategoryTab, setCustomCategoryTab] = useState<CustomCategoryTab>("all")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
