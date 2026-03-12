@@ -15,7 +15,7 @@ export default async function PublicProductDetailPage({ params }: { params: Prom
   const { id } = await params
   const locale = await getLocale()
   const intlLocale = getIntlLocale(locale)
-  const [product, liveRate, tCatalog, tProduct, tOrders] = await Promise.all([
+  const [product, rate, tCatalog, tProduct, tOrders] = await Promise.all([
     getProduct(id),
     getExchangeRate(),
     getTranslations("catalog"),
@@ -64,7 +64,7 @@ export default async function PublicProductDetailPage({ params }: { params: Prom
 
             <div className="mt-6">
               <span className="text-3xl font-bold text-primary">
-                {formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, liveRate, intlLocale)}
+                {formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, rate, intlLocale)}
               </span>
             </div>
 
@@ -120,7 +120,7 @@ export default async function PublicProductDetailPage({ params }: { params: Prom
               </div>
               <div className="flex justify-between py-2 border-b">
                 <span className="text-muted-foreground">{tProduct("price")}</span>
-                <span className="font-medium">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, liveRate, intlLocale)}</span>
+                <span className="font-medium">{formatDualPrice(product.price_per_meter, product.price_cny, product.pricing_type, rate, intlLocale)}</span>
               </div>
             </div>
           </CardContent>

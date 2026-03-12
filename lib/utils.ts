@@ -17,14 +17,14 @@ export function formatDualPrice(
   priceUsd: number,
   priceCny: number | null,
   pricingType: PricingType = "standard",
-  liveRate?: number,
+  rate?: number,
   locale = "en-US"
 ): string {
   const usd = formatCurrency(priceUsd, "USD", locale)
-  const liveCny = liveRate != null
-    ? Math.round(priceUsd * liveRate * 100) / 100
+  const convertedCny = rate != null
+    ? Math.round(priceUsd * rate * 100) / 100
     : priceCny
-  const cny = liveCny != null ? formatCurrency(liveCny, "CNY", locale) : null
+  const cny = convertedCny != null ? formatCurrency(convertedCny, "CNY", locale) : null
   const suffix = pricingType === "customized" ? "/m" : ""
   if (cny != null) {
     return `${usd}${suffix} | ${cny}${suffix}`

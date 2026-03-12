@@ -34,13 +34,11 @@ function setCachedRate(rate: number): void {
 
 interface ExchangeRateResult {
   rate: number
-  isLive: boolean
   loading: boolean
 }
 
 export function useExchangeRate(): ExchangeRateResult {
   const [rate, setRate] = useState(FALLBACK_RATE)
-  const [isLive, setIsLive] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -49,7 +47,6 @@ export function useExchangeRate(): ExchangeRateResult {
     const cached = getCachedRate()
     if (cached) {
       setRate(cached.rate)
-      setIsLive(true)
       setLoading(false)
       return () => { cancelled = true }
     }
@@ -61,7 +58,6 @@ export function useExchangeRate(): ExchangeRateResult {
         const data = await res.json()
         if (!cancelled && data?.rates?.CNY) {
           setRate(data.rates.CNY)
-          setIsLive(true)
           setCachedRate(data.rates.CNY)
         }
       } catch {
@@ -74,7 +70,7 @@ export function useExchangeRate(): ExchangeRateResult {
     return () => { cancelled = true }
   }, [])
 
-  return { rate, isLive, loading }
+  return { rate, loading }
 }
 
 export function usdToCny(usd: number, rate: number): number {
