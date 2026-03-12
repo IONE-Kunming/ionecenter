@@ -48,7 +48,7 @@ export function useExchangeRate(): ExchangeRateResult {
 
     const cached = getCachedRate()
     if (cached) {
-      setRate(cached.rate)
+      setRate(Math.round(cached.rate * 100) / 100)
       setIsLive(true)
       setLoading(false)
       return () => { cancelled = true }
@@ -60,9 +60,10 @@ export function useExchangeRate(): ExchangeRateResult {
         if (!res.ok) throw new Error("API error")
         const data = await res.json()
         if (!cancelled && data?.rates?.CNY) {
-          setRate(data.rates.CNY)
+          const rounded = Math.round(data.rates.CNY * 100) / 100
+          setRate(rounded)
           setIsLive(true)
-          setCachedRate(data.rates.CNY)
+          setCachedRate(rounded)
         }
       } catch {
         // Use fallback rate
