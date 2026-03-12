@@ -63,7 +63,7 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
   const [draggedRow, setDraggedRow] = useState<number | null>(null)
   const [dragOverRow, setDragOverRow] = useState<number | null>(null)
   const fileRefs = useRef<(HTMLInputElement | null)[]>([])
-  const { rate, isLive, loading: rateLoading } = useExchangeRate()
+  const { rate, loading: rateLoading } = useExchangeRate()
 
   // ─── Gallery picker state ─────────────────────────────────────────────
   const [galleryOpenForRow, setGalleryOpenForRow] = useState<number | null>(null)
@@ -423,8 +423,8 @@ export function ImportPreview({ open, onClose, initialRows, onFinishImport, impo
               <p className="text-xs text-muted-foreground">
                 {t("importPreviewDesc", { count: rows.length })}
                 {" · "}
-                <span className={isLive ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"}>
-                  {isLive ? t("rateLive", { rate: rate.toFixed(2) }) : rateLoading ? t("rateLoading", { rate: rate.toFixed(2) }) : t("rateFallback", { rate: rate.toFixed(2) })}
+                <span className="text-muted-foreground">
+                  1 USD = {rate.toFixed(2)} CNY · {t("exchangeRateNote")}
                 </span>
               </p>
             </div>

@@ -646,8 +646,7 @@
     "pricingCustomized": "حسب ضرورت",
     "priceUsd": "قیمت (USD $)",
     "priceCny": "قیمت (CNY ¥)",
-    "liveRate": "لائیو ریٹ",
-    "fallbackRate": "فال بیک ریٹ",
+    "exchangeRateNote": "ایکسچینج ریٹ ہر 24 گھنٹے میں اپ ڈیٹ ہوتا ہے",
     "price": "قیمت",
     "deleteImageConfirm": "کیا آپ واقعی یہ تصویر حذف کرنا چاہتے ہیں؟",
     "deleteImage": "تصویر حذف کریں",
@@ -692,7 +691,8 @@
     "importError": "درآمد میں خرابی: {error}",
     "importFailed": "CSV فائل درآمد کرنے میں ناکامی۔",
     "bulkEditTitle": "بلک ترمیم",
-    "bulkEditSubtitle": "میری مصنوعات — ان لائن ایڈیٹر"
+    "bulkEditSubtitle": "میری مصنوعات — ان لائن ایڈیٹر",
+    "exchangeRateNote": "ایکسچینج ریٹ ہر 24 گھنٹے میں اپ ڈیٹ ہوتا ہے"
   },
   "adminDashboard": {
     "totalUsers": "کل صارفین",

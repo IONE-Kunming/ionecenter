@@ -328,7 +328,7 @@ export function BulkEditTable({
   const [showPreview, setShowPreview] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [currencyMode, setCurrencyMode] = useState<CurrencyMode>("usd")
-  const { rate: exchangeRate, isLive: isLiveRate } = useExchangeRate()
+  const { rate: exchangeRate } = useExchangeRate()
   const [customCategoryTab, setCustomCategoryTab] = useState<CustomCategoryTab>("all")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
@@ -1186,7 +1186,7 @@ export function BulkEditTable({
             CN¥
           </span>
         </button>
-        <span className="text-xs text-muted-foreground">1 USD = {exchangeRate.toFixed(2)} CNY ({isLiveRate ? "Live" : "Fallback"})</span>
+        <span className="text-xs text-muted-foreground">1 USD = {exchangeRate.toFixed(2)} CNY · {t("exchangeRateNote")}</span>
         <span className="text-xs text-muted-foreground">{filtered.length} of {products.length}</span>
       </div>
 

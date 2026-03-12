@@ -646,8 +646,7 @@
     "pricingCustomized": "定制",
     "priceUsd": "价格 (USD $)",
     "priceCny": "价格 (CNY ¥)",
-    "liveRate": "实时汇率",
-    "fallbackRate": "备用汇率",
+    "exchangeRateNote": "汇率每24小时更新一次",
     "price": "价格",
     "deleteImageConfirm": "您确定要删除这张图片吗？",
     "deleteImage": "删除图片",
@@ -692,7 +691,8 @@
     "importError": "导入错误：{error}",
     "importFailed": "导入CSV文件失败。",
     "bulkEditTitle": "批量编辑",
-    "bulkEditSubtitle": "我的产品 — 内联编辑器"
+    "bulkEditSubtitle": "我的产品 — 内联编辑器",
+    "exchangeRateNote": "汇率每24小时更新一次"
   },
   "adminDashboard": {
     "totalUsers": "总用户数",
