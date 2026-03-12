@@ -13,8 +13,9 @@ export async function getExchangeRate(): Promise<number> {
     if (!res.ok) throw new Error("API error")
     const data = await res.json()
     if (data?.rates?.CNY) {
-      serverCache = { rate: data.rates.CNY, timestamp: Date.now() }
-      return data.rates.CNY
+      const rounded = Math.round(data.rates.CNY * 100) / 100
+      serverCache = { rate: rounded, timestamp: Date.now() }
+      return rounded
     }
   } catch {
     // Use fallback rate
