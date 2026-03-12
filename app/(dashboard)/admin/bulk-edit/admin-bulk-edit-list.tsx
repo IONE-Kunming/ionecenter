@@ -82,6 +82,7 @@ export function AdminBulkEditList({
       </div>
 
       <BulkEditTable
+        key={selectedSellerId}
         initialProducts={filteredProducts}
         onSave={handleSave}
         onDelete={handleDelete}
