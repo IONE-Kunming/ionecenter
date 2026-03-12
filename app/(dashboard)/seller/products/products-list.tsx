@@ -619,7 +619,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                 }} />
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">1 USD = {exchangeRate.toFixed(2)} CNY · {t("exchangeRateNote")}</p>
+            <p className="text-xs text-muted-foreground">1 USD = {exchangeRate} CNY · {t("exchangeRateNote")}</p>
             <div className="grid sm:grid-cols-1 gap-4">
               <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" placeholder="0" value={newProduct.stock || ""} onChange={(e) => setNewProduct((p) => ({ ...p, stock: Number(e.target.value) }))} /></div>
             </div>
@@ -769,7 +769,7 @@ export function SellerProductsList({ initialProducts, initialSearch = "", catego
                 }} />
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">1 USD = {exchangeRate.toFixed(2)} CNY · {t("exchangeRateNote")}</p>
+            <p className="text-xs text-muted-foreground">1 USD = {exchangeRate} CNY · {t("exchangeRateNote")}</p>
             <div className="grid sm:grid-cols-1 gap-4">
               <div className="space-y-2"><Label>{t("stock")}</Label><Input type="number" value={editForm.stock || ""} onChange={(e) => setEditForm((f) => ({ ...f, stock: Number(e.target.value) }))} /></div>
             </div>
