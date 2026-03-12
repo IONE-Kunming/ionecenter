@@ -81,7 +81,6 @@ export function AdminBulkEditList({
           placeholder={t("allSellers")}
           className="w-full max-w-sm"
         />
-        <span className="text-xs text-muted-foreground whitespace-nowrap">1 USD = {exchangeRate} CNY</span>
       </div>
 
       <BulkEditTable
