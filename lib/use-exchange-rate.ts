@@ -76,9 +76,9 @@ export function useExchangeRate(): ExchangeRateResult {
 }
 
 export function usdToCny(usd: number, rate: number): number {
-  return Math.round(usd * rate * 100) / 100
+  return Number((usd * rate).toFixed(2))
 }
 
 export function cnyToUsd(cny: number, rate: number): number {
-  return Math.round((cny / rate) * 100) / 100
+  return Number((cny / rate).toFixed(2))
 }
