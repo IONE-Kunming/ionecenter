@@ -19,6 +19,7 @@ import { uploadProductImage } from "@/lib/actions/products"
 import type { CategoryData } from "@/lib/categories"
 import { getSubcategoriesFromData, isMainCategoryInData, getMainCategoryForSubcategoryInData } from "@/lib/categories"
 import { CustomCategoryTabs, filterByCustomCategoryTab, type CustomCategoryTab } from "@/components/custom-category-tabs"
+import { useExchangeRate, usdToCny, cnyToUsd } from "@/lib/use-exchange-rate"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface BulkEditProduct {
@@ -327,6 +328,7 @@ export function BulkEditTable({
   const [showPreview, setShowPreview] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [currencyMode, setCurrencyMode] = useState<CurrencyMode>("usd")
+  const { rate: exchangeRate, isLive: isLiveRate } = useExchangeRate()
   const [customCategoryTab, setCustomCategoryTab] = useState<CustomCategoryTab>("all")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
@@ -1184,6 +1186,7 @@ export function BulkEditTable({
             CN¥
           </span>
         </button>
+        <span className="text-xs text-muted-foreground">1 USD = {exchangeRate.toFixed(2)} CNY ({isLiveRate ? "Live" : "Fallback"})</span>
         <span className="text-xs text-muted-foreground">{filtered.length} of {products.length}</span>
       </div>
 
@@ -1391,7 +1394,16 @@ export function BulkEditTable({
                               min="0"
                               step="0.01"
                               value={currencyMode === "usd" ? product.price_usd : (product.price_cny ?? "")}
-                              onChange={(e) => updateField(product.id, currencyMode === "usd" ? "price_usd" : "price_cny", Number(e.target.value))}
+                              onChange={(e) => {
+                                const val = Number(e.target.value)
+                                if (currencyMode === "usd") {
+                                  updateField(product.id, "price_usd", val)
+                                  updateField(product.id, "price_cny", usdToCny(val, exchangeRate))
+                                } else {
+                                  updateField(product.id, "price_cny", val)
+                                  updateField(product.id, "price_usd", cnyToUsd(val, exchangeRate))
+                                }
+                              }}
                               className={cn(
                                 "w-full min-w-[160px] bg-transparent border border-transparent rounded pr-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors",
                                 currencyMode === "usd" ? "pl-5" : "pl-9"
