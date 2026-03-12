@@ -647,8 +647,7 @@
     "pricingCustomized": "مخصص",
     "priceUsd": "السعر (USD $)",
     "priceCny": "السعر (CNY ¥)",
-    "liveRate": "سعر مباشر",
-    "fallbackRate": "سعر احتياطي",
+    "exchangeRateNote": "يتم تحديث سعر الصرف كل 24 ساعة",
     "price": "السعر",
     "deleteImageConfirm": "هل أنت متأكد أنك تريد حذف هذه الصورة؟",
     "deleteImage": "حذف الصورة",
@@ -693,7 +692,8 @@
     "importError": "خطأ في الاستيراد: {error}",
     "importFailed": "فشل استيراد ملف CSV.",
     "bulkEditTitle": "تعديل جماعي",
-    "bulkEditSubtitle": "منتجاتي — محرر مباشر"
+    "bulkEditSubtitle": "منتجاتي — محرر مباشر",
+    "exchangeRateNote": "يتم تحديث سعر الصرف كل 24 ساعة"
   },
   "adminDashboard": {
     "totalUsers": "إجمالي المستخدمين",
