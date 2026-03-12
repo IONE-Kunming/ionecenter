@@ -187,9 +187,8 @@ export async function getProductCountsBySubcategory(): Promise<Record<string, nu
     .from("products")
     .select("category")
   const counts: Record<string, number> = {}
-  for (const row of data ?? []) {
-    const cat = (row as { category: string }).category
-    if (cat) counts[cat] = (counts[cat] ?? 0) + 1
+  for (const row of (data ?? []) as { category: string }[]) {
+    if (row.category) counts[row.category] = (counts[row.category] ?? 0) + 1
   }
   return counts
 }
