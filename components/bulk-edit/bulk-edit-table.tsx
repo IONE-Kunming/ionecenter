@@ -1321,9 +1321,6 @@ export function BulkEditTable({
                                 <Package className="h-4 w-4 text-muted-foreground/40" />
                               )}
                             </div>
-                            <span className="text-[0.68rem] text-muted-foreground font-mono bg-muted border rounded px-1.5 py-0.5 select-all">
-                              {product.id.slice(0, 8)}…
-                            </span>
                           </div>
                         )}
                         {col.key === "name" && (
