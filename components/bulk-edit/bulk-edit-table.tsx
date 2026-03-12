@@ -95,6 +95,7 @@ const CUSTOM_CATEGORY_BULK_COLUMNS: BulkEditColumnDef[] = [
   { key: "name", label: "Name", hasTextInput: true },
   { key: "model_number", label: "Model #", hasTextInput: true },
   { key: "custom_category", label: "My Category", hasTextInput: true },
+  { key: "category", label: "Category", hasTextInput: false },
   { key: "price", label: "Price", hasTextInput: true },
   { key: "stock", label: "Stock", hasTextInput: true },
   { key: "availability", label: "Availability", hasTextInput: false },
