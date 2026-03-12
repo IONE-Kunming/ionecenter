@@ -95,6 +95,7 @@ const CUSTOM_CATEGORY_BULK_COLUMNS: BulkEditColumnDef[] = [
   { key: "name", label: "Name", hasTextInput: true },
   { key: "model_number", label: "Model #", hasTextInput: true },
   { key: "custom_category", label: "My Category", hasTextInput: true },
+  { key: "category", label: "Category", hasTextInput: false },
   { key: "price", label: "Price", hasTextInput: true },
   { key: "stock", label: "Stock", hasTextInput: true },
   { key: "availability", label: "Availability", hasTextInput: false },
@@ -1374,7 +1375,7 @@ export function BulkEditTable({
                               })
                               scheduleAutoSave(product.id)
                             }}
-                            className="w-full min-w-[140px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors cursor-pointer"
+                            className="w-full min-w-[140px] bg-white text-black border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary transition-colors cursor-pointer"
                           >
                             <option value="">—</option>
                             {categoryData.mainCategories.map((main) => (
