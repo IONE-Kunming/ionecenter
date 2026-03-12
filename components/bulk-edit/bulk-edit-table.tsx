@@ -1343,6 +1343,8 @@ export function BulkEditTable({
                         {col.key === "category" && (
                           <select
                             value={product.category}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
                             onChange={(e) => {
                               const subcat = e.target.value
                               const parent = getMainCategoryForSubcategoryInData(categoryData, subcat)
