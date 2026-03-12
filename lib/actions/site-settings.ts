@@ -180,6 +180,19 @@ export async function getSiteCategories(): Promise<SiteCategory[]> {
   return (data ?? []) as SiteCategory[]
 }
 
+/** Return a map of subcategory name → product count. */
+export async function getProductCountsBySubcategory(): Promise<Record<string, number>> {
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from("products")
+    .select("category")
+  const counts: Record<string, number> = {}
+  for (const row of (data ?? []) as { category: string }[]) {
+    if (row.category) counts[row.category] = (counts[row.category] ?? 0) + 1
+  }
+  return counts
+}
+
 export async function createSiteCategory(
   name: string,
   parentId: string | null,
