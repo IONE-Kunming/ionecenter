@@ -1374,7 +1374,7 @@ export function BulkEditTable({
                               })
                               scheduleAutoSave(product.id)
                             }}
-                            className="w-full min-w-[140px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors cursor-pointer"
+                            className="w-full min-w-[140px] bg-transparent border border-transparent rounded px-2 py-1.5 text-sm outline-none hover:border-border focus:border-primary focus:bg-muted/50 transition-colors cursor-pointer [&_option]:bg-white [&_option]:text-black [&_optgroup]:bg-white [&_optgroup]:text-black"
                           >
                             <option value="">—</option>
                             {categoryData.mainCategories.map((main) => (
