@@ -8,7 +8,7 @@ import { getSellerProducts } from "@/lib/actions/products"
 import { getTranslations, getLocale } from "next-intl/server"
 
 export default async function SellerDashboardPage() {
-  const [stats, products, t, tCommon, liveRate, locale] = await Promise.all([
+  const [stats, products, t, tCommon, rate, locale] = await Promise.all([
     getSellerDashboardStats(),
     getSellerProducts(),
     getTranslations("sellerDashboard"),
@@ -39,7 +39,7 @@ export default async function SellerDashboardPage() {
                   <p className="text-sm text-muted-foreground">{p.model_number}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium">{formatDualPrice(p.price_per_meter, p.price_cny, p.pricing_type, liveRate)}</p>
+                  <p className="font-medium">{formatDualPrice(p.price_per_meter, p.price_cny, p.pricing_type, rate)}</p>
                   <p className="text-xs text-muted-foreground">{t("stock")}: {p.stock}</p>
                 </div>
               </div>

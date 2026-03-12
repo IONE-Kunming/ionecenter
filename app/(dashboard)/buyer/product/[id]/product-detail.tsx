@@ -52,8 +52,8 @@ export function ProductDetail({ product, currentUserId, userRole, productImages 
     if (isNaN(l) || isNaN(w) || l < 0.01 || w < 0.01) return null
     const totalMeters = l + w
     const totalUsd = totalMeters * product.price_per_meter * quantity
-    const liveCny = rate != null ? totalMeters * product.price_per_meter * rate * quantity : null
-    return { totalMeters, totalUsd, totalCny: liveCny }
+    const convertedCny = rate != null ? totalMeters * product.price_per_meter * rate * quantity : null
+    return { totalMeters, totalUsd, totalCny: convertedCny }
   }, [isCustomized, length, width, quantity, product.price_per_meter, rate])
 
   // Build video list

@@ -26,7 +26,7 @@ export function useFormatters() {
       priceUsd: number,
       priceCny: number | null,
       pricingType?: PricingType,
-      liveRate?: number
-    ) => _formatDualPrice(priceUsd, priceCny, pricingType, liveRate, intlLocale),
+      rate?: number
+    ) => _formatDualPrice(priceUsd, priceCny, pricingType, rate, intlLocale),
   }
 }
