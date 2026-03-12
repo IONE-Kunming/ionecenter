@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react"
 
 const FALLBACK_RATE = 7.25
-const API_URL = "https://open.er-api.com/v6/latest/USD"
 const CACHE_KEY = "exchange_rate_usd_cny"
-const CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
 
 interface CachedRate {
   rate: number
@@ -56,13 +55,13 @@ export function useExchangeRate(): ExchangeRateResult {
 
     async function fetchRate() {
       try {
-        const res = await fetch(API_URL)
+        const res = await fetch("/api/exchange-rate")
         if (!res.ok) throw new Error("API error")
         const data = await res.json()
-        if (!cancelled && data?.rates?.CNY) {
-          setRate(data.rates.CNY)
+        if (!cancelled && data?.rate) {
+          setRate(data.rate)
           setIsLive(true)
-          setCachedRate(data.rates.CNY)
+          setCachedRate(data.rate)
         }
       } catch {
         // Use fallback rate
