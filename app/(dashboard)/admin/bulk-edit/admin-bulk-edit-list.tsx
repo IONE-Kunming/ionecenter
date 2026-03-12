@@ -6,6 +6,7 @@ import { BulkEditTable, type BulkEditProduct, type ImportRow } from "@/component
 import { adminBulkUpdateProducts, adminDeleteProduct, adminBulkImportProducts } from "@/lib/actions/admin"
 import { Select } from "@/components/ui/select"
 import type { CategoryData } from "@/lib/categories"
+import { useExchangeRate, usdToCny } from "@/lib/use-exchange-rate"
 
 interface AdminProduct extends BulkEditProduct {
   seller_id: string
@@ -28,6 +29,7 @@ export function AdminBulkEditList({
 }) {
   const t = useTranslations("bulkEdit")
   const [selectedSellerId, setSelectedSellerId] = useState("")
+  const { rate: exchangeRate } = useExchangeRate()
 
   const filteredProducts = useMemo(() => {
     if (!selectedSellerId) return initialProducts
@@ -44,7 +46,7 @@ export function AdminBulkEditList({
         category: p.category,
         price_per_meter: p.price_usd,
         price_usd: p.price_usd,
-        price_cny: p.price_cny ?? null,
+        price_cny: p.price_cny ?? usdToCny(p.price_usd, exchangeRate),
         stock: p.stock,
         is_active: p.is_active,
       }))
@@ -79,6 +81,7 @@ export function AdminBulkEditList({
           placeholder={t("allSellers")}
           className="w-full max-w-sm"
         />
+        <span className="text-xs text-muted-foreground whitespace-nowrap">1 USD = {exchangeRate} CNY</span>
       </div>
 
       <BulkEditTable
