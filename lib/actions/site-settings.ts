@@ -234,10 +234,36 @@ export async function deleteSiteCategory(id: string) {
   if (!user || user.role !== "admin") return { error: "Not authorized" }
 
   const supabase = createAdminClient()
+
+  // Collect all descendant IDs recursively
+  const { data: allCategories, error: fetchError } = await supabase
+    .from("site_categories")
+    .select("id, parent_id")
+
+  if (fetchError) return { error: fetchError.message }
+
+  // Build a parent→children map for efficient traversal
+  const childrenMap = new Map<string, string[]>()
+  for (const c of allCategories ?? []) {
+    if (c.parent_id) {
+      const siblings = childrenMap.get(c.parent_id) ?? []
+      siblings.push(c.id)
+      childrenMap.set(c.parent_id, siblings)
+    }
+  }
+
+  function getDescendantIds(parentId: string): string[] {
+    const children = childrenMap.get(parentId) ?? []
+    return children.flatMap((cid) => [cid, ...getDescendantIds(cid)])
+  }
+
+  const idsToEmpty = [id, ...getDescendantIds(id)]
+
+  // Clear name and image_url instead of deleting
   const { error } = await supabase
     .from("site_categories")
-    .delete()
-    .eq("id", id)
+    .update({ name: "", image_url: null, updated_at: new Date().toISOString() })
+    .in("id", idsToEmpty)
 
   if (error) return { error: error.message }
   return { success: true }
