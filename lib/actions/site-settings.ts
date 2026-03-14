@@ -350,8 +350,11 @@ export async function createCategoryImageSignedUploadUrl(
     const user = await getCurrentUser()
     if (!user || user.role !== "admin") return { error: "Not authorized" }
 
+    // Sanitize extension to prevent path traversal
+    const safeExt = (ext.match(/^[a-zA-Z0-9]+$/) ? ext : "png").toLowerCase()
+
     const supabase = createAdminClient()
-    const filePath = `categories/${categoryId}.${ext}`
+    const filePath = `categories/${categoryId}.${safeExt}`
 
     // Remove any existing files for this category (different extensions)
     const { data: existingFiles } = await supabase.storage.from("site-assets").list("categories")

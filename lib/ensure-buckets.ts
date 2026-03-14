@@ -32,10 +32,13 @@ export async function ensureStorageBuckets(): Promise<{
     if (existingIds.has(bucket.id)) {
       existing.push(bucket.id)
       // Update existing bucket to ensure settings are current
-      await supabase.storage.updateBucket(bucket.id, {
+      const { error: updateError } = await supabase.storage.updateBucket(bucket.id, {
         public: bucket.public,
         fileSizeLimit: bucket.fileSizeLimit,
       })
+      if (updateError) {
+        errors.push(`${bucket.id} (update): ${updateError.message}`)
+      }
       continue
     }
     const { error } = await supabase.storage.createBucket(bucket.id, {

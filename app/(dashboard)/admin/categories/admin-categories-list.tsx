@@ -275,7 +275,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
       const supabase = createClient()
       const { error: uploadError } = await supabase.storage
         .from("site-assets")
-        .uploadToSignedUrl(signedResult.path!, signedResult.token!, file, {
+        .uploadToSignedUrl(signedResult.path ?? "", signedResult.token ?? "", file, {
           contentType: file.type || "image/png",
         })
 
@@ -289,7 +289,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
       }
 
       // Save the public URL to the database
-      const finalResult = await finalizeCategoryImageUpload(target, signedResult.filePath!)
+      const finalResult = await finalizeCategoryImageUpload(target, signedResult.filePath ?? "")
       if (finalResult.error) {
         showToast("error", finalResult.error)
       } else if (finalResult.url) {
