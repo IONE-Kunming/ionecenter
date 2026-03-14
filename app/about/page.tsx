@@ -7,7 +7,12 @@ import {
 import { getTranslations } from "next-intl/server"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { getSiteSetting } from "@/lib/actions/site-settings"
+import { getSiteSetting, getSiteCategories } from "@/lib/actions/site-settings"
+import { getProducts } from "@/lib/actions/products"
+import { buildCategoryData } from "@/lib/categories"
+import { SmartProductFinder } from "@/components/landing/smart-product-finder"
+import { auth } from "@clerk/nextjs/server"
+import { getCurrentUser } from "@/lib/actions/users"
 
 const serviceKeys = [
   { num: "01", title: "secureTrading", desc: "secureTradingDesc" },
@@ -57,6 +62,39 @@ export default async function AboutPage() {
     { quote: testimonialsT("quote2"), author: testimonialsT("author2"), company: testimonialsT("company2") },
     { quote: testimonialsT("quote3"), author: testimonialsT("author3"), company: testimonialsT("company3") },
   ]
+
+  // Fetch products, categories and auth state for the Smart Product Finder
+  const [allProducts, siteCategories] = await Promise.all([
+    getProducts(),
+    getSiteCategories(),
+  ])
+  const categoryData = buildCategoryData(siteCategories)
+  const finderProducts = allProducts.map((p) => ({
+    id: p.id,
+    name: p.name,
+    model_number: p.model_number,
+    main_category: p.main_category,
+    category: p.category,
+    price_per_meter: p.price_per_meter,
+    pricing_type: p.pricing_type,
+    price_cny: p.price_cny,
+    stock: p.stock,
+    image_url: p.image_url,
+    seller_name: p.seller_name ?? null,
+  }))
+
+  let isLoggedIn = false
+  let userRole: string | null = null
+  try {
+    const { userId } = await auth()
+    if (userId) {
+      isLoggedIn = true
+      const user = await getCurrentUser()
+      userRole = user?.role ?? null
+    }
+  } catch {
+    // Clerk not configured or auth failed — treat as guest
+  }
 
   // Fetch video URL from Supabase site settings, fall back to default asset
   const DEFAULT_VIDEO_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/site-assets/videos/homepage-video.mp4`
@@ -112,6 +150,16 @@ export default async function AboutPage() {
           </div>
         </div>
       </header>
+
+      {/* ===== SMART PRODUCT FINDER ===== */}
+      <div className="pt-20">
+        <SmartProductFinder
+          products={finderProducts}
+          categoryData={categoryData}
+          isLoggedIn={isLoggedIn}
+          userRole={userRole}
+        />
+      </div>
 
       {/* ===== HERO SECTION ===== */}
       <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
