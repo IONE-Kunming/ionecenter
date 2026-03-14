@@ -505,3 +505,31 @@ export async function updateSellerCategories(sellerId: string, categoryIds: stri
 
   return { success: true }
 }
+
+// ─── Admin Seller Categories ────────────────────────────────────────────────
+
+export async function adminUpdateSellerCategories(
+  sellerId: string,
+  mainCategory: string,
+  subcategories: string[]
+) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+  const supabase = createAdminClient()
+
+  const { error } = await supabase
+    .from("seller_categories")
+    .upsert(
+      {
+        seller_id: sellerId,
+        main_category: mainCategory,
+        subcategories,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "seller_id" }
+    )
+
+  if (error) return { error: error.message }
+  return { success: true }
+}

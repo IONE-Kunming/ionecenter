@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react"
 import { Store, Search, Pencil, Trash2, Check, X, ChevronDown, ChevronRight } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -17,6 +18,7 @@ import { adminUpdateUser, adminDeleteUser, adminUpdateUserCode, updateSellerCate
 import type { SellerWithDetails } from "@/lib/actions/admin"
 import type { SiteCategory } from "@/lib/actions/site-settings"
 import type { UserRole } from "@/types/database"
+import type { CategoryData } from "@/lib/categories"
 
 function roleBadgeVariant(role: UserRole) {
   if (role === "admin") return "destructive" as const
@@ -144,6 +146,16 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
       setEditUser(null)
       window.location.reload()
     }
+    if (editMainCategory) {
+      const catResult = await adminUpdateSellerCategories(editUser.id, editMainCategory, editSubcategories)
+      if (catResult.error) {
+        setEditSaving(false)
+        return
+      }
+    }
+    setEditSaving(false)
+    setEditUser(null)
+    window.location.reload()
   }
 
   const handleDelete = async () => {
@@ -363,7 +375,7 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
       <Dialog open={!!editUser} onOpenChange={(v) => { if (!v) setEditUser(null) }}>
         <DialogContent>
           <DialogHeader><DialogTitle>Edit User</DialogTitle></DialogHeader>
-          <div className="space-y-4 mt-4">
+          <div className="space-y-4 mt-4 overflow-y-auto max-h-[calc(100vh-12rem)]">
             <div className="space-y-2">
               <Label>Name</Label>
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
