@@ -3,14 +3,16 @@ import { getProducts } from "@/lib/actions/products"
 import { getSiteCategories } from "@/lib/actions/site-settings"
 import { buildCategoryData } from "@/lib/categories"
 import { getPinnedCategories } from "@/lib/actions/pinned-categories"
+import { getSellerMainCategory } from "@/lib/actions/users"
 import { BuyerCatalogBrowser } from "@/app/(dashboard)/buyer/catalog/catalog-browser"
 
 export default async function SellerPreviewPage() {
   const t = await getTranslations("sellerProducts")
-  const [rawProducts, siteCategories, pinnedCats] = await Promise.all([
+  const [rawProducts, siteCategories, pinnedCats, sellerMainCategory] = await Promise.all([
     getProducts(),
     getSiteCategories(),
     getPinnedCategories(),
+    getSellerMainCategory(),
   ])
   const categoryData = buildCategoryData(siteCategories)
   const products = rawProducts.map((p) => ({
@@ -40,6 +42,7 @@ export default async function SellerPreviewPage() {
         categoryData={categoryData}
         isPreviewMode
         initialPinnedCategories={initialPinnedCategories}
+        initialCategory={sellerMainCategory ?? undefined}
       />
     </div>
   )

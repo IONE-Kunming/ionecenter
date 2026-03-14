@@ -10,13 +10,15 @@ import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
 import { Copy, Check, Users, Search, Mail, Hash, ShoppingCart } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { updateUserProfile } from "@/lib/actions/users"
+import { toCategoryKey } from "@/lib/categories"
+import { updateUserProfile, updateSellerMainCategory } from "@/lib/actions/users"
 import { getSellerBuyers, type SellerBuyer } from "@/lib/actions/orders"
 import type { User } from "@/types/database"
 
-export default function SellerProfileForm({ user, sellerCode }: { user: User; sellerCode: string | null }) {
+export default function SellerProfileForm({ user, sellerCode, mainCategories, currentMainCategory }: { user: User; sellerCode: string | null; mainCategories: string[]; currentMainCategory: string | null }) {
   const t = useTranslations("profile")
   const tCommon = useTranslations("common")
+  const tCatNames = useTranslations("categoryNames")
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [copied, setCopied] = useState(false)
@@ -24,6 +26,8 @@ export default function SellerProfileForm({ user, sellerCode }: { user: User; se
   const [buyers, setBuyers] = useState<SellerBuyer[]>([])
   const [buyersLoading, setBuyersLoading] = useState(false)
   const [buyerSearch, setBuyerSearch] = useState("")
+  const [selectedMainCategory, setSelectedMainCategory] = useState<string>(currentMainCategory ?? "")
+  const [categorySaving, setCategorySaving] = useState(false)
 
   useEffect(() => {
     if (showBuyers && buyers.length === 0) {
@@ -73,6 +77,26 @@ export default function SellerProfileForm({ user, sellerCode }: { user: User; se
   const [bankAddress, setBankAddress] = useState(user.bank_address ?? "")
   const [currency, setCurrency] = useState(user.currency)
   const [paymentNotes, setPaymentNotes] = useState(user.payment_notes ?? "")
+
+  const translateCat = (name: string): string => {
+    const key = toCategoryKey(name)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const translated = (tCatNames as any)(key)
+    return typeof translated === "string" && translated !== key ? translated : name
+  }
+
+  const handleCategoryChange = async (value: string) => {
+    const newCategory = value || null
+    setSelectedMainCategory(value)
+    setCategorySaving(true)
+    setMessage(null)
+    const result = await updateSellerMainCategory(newCategory)
+    setCategorySaving(false)
+    if (result.error) {
+      setMessage({ type: "error", text: result.error })
+      setSelectedMainCategory(currentMainCategory ?? "")
+    }
+  }
 
   const handleSave = async () => {
     setSaving(true)
@@ -172,6 +196,22 @@ export default function SellerProfileForm({ user, sellerCode }: { user: User; se
           </div>
         </DialogContent>
       </Dialog>
+
+      <Card>
+        <CardHeader><CardTitle>{t("myCategory")}</CardTitle></CardHeader>
+        <CardContent className="space-y-2">
+          <Label>{t("selectMainCategory")}</Label>
+          <Select
+            value={selectedMainCategory}
+            onChange={(e) => handleCategoryChange(e.target.value)}
+            options={[
+              { value: "", label: t("noCategorySelected") },
+              ...mainCategories.map((cat) => ({ value: cat, label: translateCat(cat) })),
+            ]}
+          />
+          {categorySaving && <p className="text-sm text-muted-foreground">{tCommon("saving")}</p>}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle>{t("personalInfo")}</CardTitle></CardHeader>

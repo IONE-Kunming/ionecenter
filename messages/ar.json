@@ -437,7 +437,10 @@
     "buyerEmail": "البريد الإلكتروني",
     "ordersCount": "الطلبات",
     "noBuyersFound": "لم يتم العثور على مشترين",
-    "noBuyersYet": "لا يوجد مشترون بعد"
+    "noBuyersYet": "لا يوجد مشترون بعد",
+    "myCategory": "فئتي",
+    "selectMainCategory": "اختر فئتك الرئيسية",
+    "noCategorySelected": "— لا شيء —"
   },
   "sellerDirectory": {
     "searchSellers": "البحث عن البائعين...",

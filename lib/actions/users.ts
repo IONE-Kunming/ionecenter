@@ -177,3 +177,55 @@ export async function ensureSellerCode(user: User): Promise<string | null> {
   }
   return code
 }
+
+/**
+ * Get the current seller's main category from the seller_categories table.
+ */
+export async function getSellerMainCategory(): Promise<string | null> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return null
+
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from("seller_categories")
+    .select("main_category")
+    .eq("seller_id", user.id)
+    .maybeSingle()
+
+  return data?.main_category ?? null
+}
+
+/**
+ * Update the current seller's main category in the seller_categories table.
+ * Pass null to clear the selection.
+ */
+export async function updateSellerMainCategory(mainCategory: string | null) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return { error: "Not authorized" }
+
+  const supabase = createAdminClient()
+
+  if (!mainCategory) {
+    const { error } = await supabase
+      .from("seller_categories")
+      .delete()
+      .eq("seller_id", user.id)
+    if (error) return { error: error.message }
+    return { success: true }
+  }
+
+  const { error } = await supabase
+    .from("seller_categories")
+    .upsert(
+      {
+        seller_id: user.id,
+        main_category: mainCategory,
+        subcategories: [],
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "seller_id" }
+    )
+
+  if (error) return { error: error.message }
+  return { success: true }
+}

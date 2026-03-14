@@ -460,7 +460,10 @@
     "buyerEmail": "Email",
     "ordersCount": "Orders",
     "noBuyersFound": "No buyers found",
-    "noBuyersYet": "No buyers yet"
+    "noBuyersYet": "No buyers yet",
+    "myCategory": "My Category",
+    "selectMainCategory": "Select your main category",
+    "noCategorySelected": "— None —"
   },
   "sellerDirectory": {
     "searchSellers": "Search sellers...",
