@@ -146,16 +146,6 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
       setEditUser(null)
       window.location.reload()
     }
-    if (editMainCategory) {
-      const catResult = await adminUpdateSellerCategories(editUser.id, editMainCategory, editSubcategories)
-      if (catResult.error) {
-        setEditSaving(false)
-        return
-      }
-    }
-    setEditSaving(false)
-    setEditUser(null)
-    window.location.reload()
   }
 
   const handleDelete = async () => {
