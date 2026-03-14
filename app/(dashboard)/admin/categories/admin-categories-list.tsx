@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo, useCallback } from "react"
 /* eslint-disable @next/next/no-img-element */
 import { useTranslations } from "next-intl"
 import {
   FolderTree, Plus, Pencil, Trash2, GripVertical,
-  Upload, X, Image as ImageIcon, ChevronDown, ChevronRight, Video,
+  Upload, X, Image as ImageIcon, ChevronDown, ChevronRight, Video, Search,
 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -25,6 +25,7 @@ import {
   removeSiteVideo,
 } from "@/lib/actions/site-settings"
 import { createClient } from "@/lib/supabase/client"
+import { useCategoriesSearch } from "@/components/layout/categories-search-context"
 
 interface Props {
   categories: SiteCategory[]
@@ -38,6 +39,15 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
   const [videoUrl, setVideoUrl] = useState(initialVideoUrl)
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null)
+
+  // Categories search context (shared with dashboard header)
+  const categoriesSearch = useCategoriesSearch()
+
+  useEffect(() => {
+    categoriesSearch.registerCategoriesPage()
+    return () => categoriesSearch.unregisterCategoriesPage()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Dialog states
   const [addOpen, setAddOpen] = useState(false)
@@ -61,9 +71,66 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
   const imageTargetRef = useRef<string | null>(null)
   const [imageInputKey, setImageInputKey] = useState(0)
 
-  const mainCategories = categories.filter((c) => !c.parent_id).sort((a, b) => a.sort_order - b.sort_order)
-  const getSubcategories = (parentId: string) =>
-    categories.filter((c) => c.parent_id === parentId).sort((a, b) => a.sort_order - b.sort_order)
+  const mainCategories = useMemo(() =>
+    categories.filter((c) => !c.parent_id).sort((a, b) => a.sort_order - b.sort_order),
+    [categories]
+  )
+  const getSubcategories = useCallback((parentId: string) =>
+    categories.filter((c) => c.parent_id === parentId).sort((a, b) => a.sort_order - b.sort_order),
+    [categories]
+  )
+
+  // Search filtering: determine which main categories to show and which to auto-expand
+  const searchQuery = categoriesSearch.search.trim().toLowerCase()
+
+  const { filteredMainCategories, searchExpandedIds } = useMemo(() => {
+    if (!searchQuery) {
+      return { filteredMainCategories: mainCategories, searchExpandedIds: new Set<string>() }
+    }
+
+    const matchingMainIds = new Set<string>()
+    const expandIds = new Set<string>()
+
+    for (const main of mainCategories) {
+      const mainMatch = main.name.toLowerCase().includes(searchQuery)
+      const subs = getSubcategories(main.id)
+      let subMatched = false
+
+      for (const sub of subs) {
+        const subMatch = sub.name.toLowerCase().includes(searchQuery)
+        const subSubs = getSubcategories(sub.id)
+        let subSubMatched = false
+
+        for (const subSub of subSubs) {
+          if (subSub.name.toLowerCase().includes(searchQuery)) {
+            subSubMatched = true
+            break
+          }
+        }
+
+        if (subMatch || subSubMatched) {
+          subMatched = true
+          // Auto-expand the main category and the matching subcategory
+          expandIds.add(main.id)
+          if (subSubMatched) {
+            expandIds.add(sub.id)
+          }
+        }
+      }
+
+      if (mainMatch || subMatched) {
+        matchingMainIds.add(main.id)
+        if (subMatched) {
+          expandIds.add(main.id)
+        }
+      }
+    }
+
+    return {
+      filteredMainCategories: mainCategories.filter((c) => matchingMainIds.has(c.id)),
+      searchExpandedIds: expandIds,
+    }
+  }, [searchQuery, categories, mainCategories, getSubcategories])
 
   function showToast(type: "success" | "error", msg: string) {
     setToast({ type, msg })
@@ -296,7 +363,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
 
   function CategoryRow({ cat, level }: { cat: SiteCategory; level: number }) {
     const children = level < 2 ? getSubcategories(cat.id) : []
-    const isExpanded = expanded.has(cat.id)
+    const isExpanded = expanded.has(cat.id) || (searchQuery !== "" && searchExpandedIds.has(cat.id))
     const siblings = cat.parent_id ? getSubcategories(cat.parent_id) : mainCategories
     const idx = siblings.findIndex((c) => c.id === cat.id)
 
@@ -625,9 +692,15 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
             title={t("noCategories")}
             description={t("noCategoriesDesc")}
           />
+        ) : filteredMainCategories.length === 0 ? (
+          <EmptyState
+            icon={Search}
+            title={t("noCategoriesFound")}
+            description={t("noCategoriesFoundDesc")}
+          />
         ) : (
           <div className="border border-border rounded-lg overflow-hidden">
-            {mainCategories.map((cat) => (
+            {filteredMainCategories.map((cat) => (
               <CategoryRow key={cat.id} cat={cat} level={0} />
             ))}
           </div>

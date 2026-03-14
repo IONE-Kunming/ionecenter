@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { usePageTitle } from "./page-title-context"
 import { useProductsPageHeader } from "./products-page-context"
 import { usePreviewSearch } from "./preview-search-context"
+import { useCategoriesSearch } from "./categories-search-context"
 import { ProductSearchDropdown } from "@/components/product-search-dropdown"
 
 export function DashboardHeader() {
@@ -55,6 +56,7 @@ export function DashboardHeader() {
   const title = pageTitle || fallbackTitle
 
   const previewCtx = usePreviewSearch()
+  const categoriesCtx = useCategoriesSearch()
   const [searchQuery, setSearchQuery] = useState("")
 
   const role = parts[0] === "buyer" ? "buyer" : parts[0] === "seller" ? "seller" : "admin"
@@ -68,6 +70,7 @@ export function DashboardHeader() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (previewCtx.isPreviewPage) return
+    if (categoriesCtx.isCategoriesPage) return
     if (!searchQuery.trim()) return
     router.push(`${getSearchPath()}?search=${encodeURIComponent(searchQuery.trim())}`)
   }
@@ -76,6 +79,8 @@ export function DashboardHeader() {
     setSearchQuery(value)
     if (previewCtx.isPreviewPage) {
       previewCtx.setSearch(value)
+    } else if (categoriesCtx.isCategoriesPage) {
+      categoriesCtx.setSearch(value)
     }
   }
 

@@ -1408,7 +1408,9 @@
     "subsCount": "{count} subs",
     "productCount": "{count} product",
     "productsCount": "{count} products",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "noCategoriesFound": "No categories found",
+    "noCategoriesFoundDesc": "No categories match your search."
   },
   "adminProfile": {
     "personalInfo": "Personal Information",
