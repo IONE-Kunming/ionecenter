@@ -130,7 +130,7 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
     const oldSubs = seller.subcategories ?? []
 
     if (oldMain && oldMain !== editMainCategory) {
-      // Main category changed — all products from old main category should be deleted
+      // Main category changed or deselected — all products from old main category should be deleted
       removedMainCategory = oldMain
     } else if (oldMain && oldMain === editMainCategory) {
       // Same main category — check for removed subcategories
@@ -515,7 +515,7 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
       </Dialog>
 
       {/* Category removal confirmation dialog */}
-      <Dialog open={showCategoryWarning} onOpenChange={(v) => { if (!v) setShowCategoryWarning(false) }}>
+      <Dialog open={showCategoryWarning} onOpenChange={setShowCategoryWarning}>
         <DialogContent>
           <DialogHeader><DialogTitle>Warning: Products will be deleted</DialogTitle></DialogHeader>
           <div className="mt-4">

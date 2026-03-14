@@ -387,9 +387,11 @@ export async function getSellersWithDetails(): Promise<SellerWithDetails[]> {
 
   const sellerCatMap: Record<string, { main_category: string; subcategories: string[] }> = {}
   for (const row of sellerCatRows ?? []) {
-    sellerCatMap[row.seller_id] = {
-      main_category: row.main_category,
-      subcategories: row.subcategories ?? [],
+    if (row.main_category) {
+      sellerCatMap[row.seller_id] = {
+        main_category: row.main_category,
+        subcategories: row.subcategories ?? [],
+      }
     }
   }
 
