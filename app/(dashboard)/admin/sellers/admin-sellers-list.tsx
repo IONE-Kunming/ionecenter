@@ -476,14 +476,19 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
               })()}
 
               {/* Category removal warning */}
-              {showCategoryWarning && (
-                <div className="mt-3 rounded-md border border-destructive/50 bg-destructive/10 p-3 flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
-                  <p className="text-sm text-destructive">
-                    Removing this category will delete all products in it for this seller. Are you sure?
-                  </p>
-                </div>
-              )}
+              {showCategoryWarning && (() => {
+                const { mainCategoryChanged, removedSubcategories } = getCategoryChanges()
+                return (
+                  <div className="mt-3 rounded-md border border-destructive/50 bg-destructive/10 p-3 flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                    <p className="text-sm text-destructive">
+                      {mainCategoryChanged
+                        ? `Changing the main category will delete all products under "${editUser?.main_category}" for this seller. Are you sure?`
+                        : `Removing ${removedSubcategories.length === 1 ? `subcategory "${removedSubcategories[0]}"` : `${removedSubcategories.length} subcategories`} will delete all products in ${removedSubcategories.length === 1 ? "it" : "them"} for this seller. Are you sure?`}
+                    </p>
+                  </div>
+                )
+              })()}
             </div>
           </div>
           <DialogFooter>
