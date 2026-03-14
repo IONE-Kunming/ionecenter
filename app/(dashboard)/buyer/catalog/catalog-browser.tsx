@@ -462,9 +462,11 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {(categoryData.categoryMap[selectedCategory] ?? [])
               .filter((sub) => !isPreviewMode || !pinnedSubcategories.includes(sub))
-              .map((sub, subIdx) => {
+              .map((sub) => {
+              const allSubs = categoryData.categoryMap[selectedCategory] ?? []
+              const originalIdx = allSubs.indexOf(sub)
               const parentIdx = categoryData.mainCategories.indexOf(selectedCategory) + 1
-              const subcategoryCode = `${parentIdx}:${subIdx + 1}`
+              const subcategoryCode = `${parentIdx}:${originalIdx + 1}`
               const subImageUrl = categoryData.categoryImageMap[sub] ?? null
               const isSubPinned = pinnedSubcategories.includes(sub)
               return (

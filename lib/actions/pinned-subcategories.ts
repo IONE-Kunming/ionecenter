@@ -98,7 +98,7 @@ export async function savePinnedSubcategories(subcategoryNames: string[]) {
     if (categoryId) rows.push({ seller_id: user.id, category_id: categoryId })
   }
 
-  if (rows.length === 0) return { error: "No matching subcategories found" }
+  if (rows.length === 0) return { error: "No valid subcategories found" }
 
   const { error } = await supabase.from("seller_pinned_subcategories").insert(rows)
   if (error) return { error: error.message }
