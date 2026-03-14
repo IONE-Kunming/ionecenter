@@ -1603,6 +1603,8 @@
     "closeResults": "Close",
     "signInToContinue": "Please sign in to continue",
     "signInToContinueDesc": "You need to sign in or create an account to perform this action.",
-    "seller": "Seller"
+    "seller": "Seller",
+    "label": "Smart Product Finder",
+    "noSubcategories": "No subcategories available. Click Next to continue."
   }
 }

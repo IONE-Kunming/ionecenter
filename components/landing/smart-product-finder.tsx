@@ -86,8 +86,12 @@ export function SmartProductFinder({
 
   /* ── Perform add-to-cart (extracted for reuse by auto-trigger) ── */
   const performAddToCart = useCallback((productId: string) => {
-    if (addingIds.has(productId)) return
-    setAddingIds((prev) => new Set(prev).add(productId))
+    setAddingIds((prev) => {
+      if (prev.has(productId)) return prev
+      const next = new Set(prev)
+      next.add(productId)
+      return next
+    })
     startTransition(async () => {
       try {
         const result = await addToCart(productId, 1)
@@ -109,8 +113,7 @@ export function SmartProductFinder({
         })
       }
     })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [startTransition])
 
   /* ── Auto-trigger pending action after login ── */
   useEffect(() => {
@@ -251,7 +254,7 @@ export function SmartProductFinder({
               </div>
             ) : (
               <p className="text-sm text-muted-foreground py-8 text-center">
-                No subcategories available. Click Next to continue.
+                {t("noSubcategories")}
               </p>
             )}
           </div>
@@ -316,7 +319,7 @@ export function SmartProductFinder({
           <div className="flex items-center justify-center gap-2 mb-4">
             <Search className="h-5 w-5 text-primary" />
             <span className="text-[14px] uppercase tracking-[3px] text-primary font-medium">
-              Smart Product Finder
+              {t("label")}
             </span>
           </div>
           <h2 className="text-[28px] md:text-[40px] leading-[1.2] max-w-2xl mx-auto">
