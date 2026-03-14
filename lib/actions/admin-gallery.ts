@@ -240,7 +240,7 @@ export async function linkImageToCategory(
 
 /* ── Auto-match ──────────────────────────────────────────────────── */
 
-function normalise(s: string): string {
+function normalize(s: string): string {
   return s
     .toLowerCase()
     .replace(/\.[^.]+$/, "") // strip file extension
@@ -269,14 +269,14 @@ export async function autoMatchFolderImages(
   // Build lookup: normalised name → category
   const catMap = new Map<string, { id: string; name: string }>()
   for (const cat of categories) {
-    catMap.set(normalise(cat.name), { id: cat.id, name: cat.name })
+    catMap.set(normalize(cat.name), { id: cat.id, name: cat.name })
   }
 
   let matched = 0
   let unmatched = 0
 
   for (const img of images) {
-    const normName = normalise(img.name)
+    const normName = normalize(img.name)
     const cat = catMap.get(normName)
     if (cat) {
       await supabase

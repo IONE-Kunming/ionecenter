@@ -241,6 +241,12 @@ export function AdminGallery({ initialFolders, categories }: Props) {
 
   /* ── filtered categories ────────────────────────────────── */
 
+  function handleBackToFolders() {
+    setActiveFolder(null)
+    setFolderImages([])
+    setMatchResult(null)
+  }
+
   const filteredMainCats = mainCategories.filter((c) =>
     c.name.toLowerCase().includes(catSearch.toLowerCase())
   )
@@ -376,7 +382,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
         <div className="space-y-4">
           {/* Breadcrumb + actions */}
           <div className="flex items-center gap-2 flex-wrap">
-            <Button variant="ghost" size="sm" onClick={() => { setActiveFolder(null); setFolderImages([]); setMatchResult(null) }}>
+            <Button variant="ghost" size="sm" onClick={handleBackToFolders}>
               <ArrowLeft className="h-4 w-4 mr-1" /> {t("back")}
             </Button>
             <span className="text-lg font-semibold">{activeFolder.folder_name}</span>
