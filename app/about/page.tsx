@@ -9,7 +9,10 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { getSiteSetting, getSiteCategories } from "@/lib/actions/site-settings"
 import { buildCategoryData, toCategoryKey } from "@/lib/categories"
+import type { CategoryData } from "@/lib/categories"
 import { Card, CardContent } from "@/components/ui/card"
+
+const MAX_DISPLAYED_CATEGORIES = 5
 
 const serviceKeys = [
   { num: "01", title: "secureTrading", desc: "secureTradingDesc" },
@@ -83,7 +86,7 @@ export default async function AboutPage() {
     "video/mp4"
 
   // Fetch site categories with error handling
-  let categoryData = { mainCategories: [] as string[], categoryMap: {} as Record<string, string[]>, categoryImageMap: {} as Record<string, string | null> }
+  let categoryData: CategoryData = { mainCategories: [], categoryMap: {}, categoryImageMap: {} }
   try {
     const siteCategories = await getSiteCategories()
     categoryData = buildCategoryData(siteCategories)
@@ -251,7 +254,7 @@ export default async function AboutPage() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-              {categoryData.mainCategories.slice(0, 5).map((categoryName) => {
+              {categoryData.mainCategories.slice(0, MAX_DISPLAYED_CATEGORIES).map((categoryName) => {
                 const subcategories = categoryData.categoryMap[categoryName] ?? []
                 const imageUrl = categoryData.categoryImageMap[categoryName] ?? null
                 const displayName = translateCat(categoryName)
