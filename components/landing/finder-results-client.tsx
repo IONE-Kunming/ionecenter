@@ -132,9 +132,10 @@ export function FinderResultsClient({
           {category && (
             <Badge variant="secondary">{t("businessField")}: {category}</Badge>
           )}
-          {subcategory && subcategory.split(",").map((sub) => (
-            <Badge key={sub.trim()} variant="secondary">{t("productType")}: {sub.trim()}</Badge>
-          ))}
+          {subcategory && subcategory.split(",").map((raw) => {
+            const sub = raw.trim()
+            return <Badge key={sub} variant="secondary">{t("productType")}: {sub}</Badge>
+          })}
           {region && (
             <Badge variant="secondary">{t("region")}: {region}</Badge>
           )}

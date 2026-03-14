@@ -258,6 +258,14 @@ export function SmartProductFinder({
 
       case 2: {
         const allSelected = subcategories.length > 0 && selectedTypes.length === subcategories.length
+        const toggleSubcategory = (sub: string) => {
+          setSelectedTypes((prev) =>
+            prev.includes(sub) ? prev.filter((s) => s !== sub) : [...prev, sub]
+          )
+        }
+        const toggleAll = () => {
+          setSelectedTypes(allSelected ? [] : [...subcategories])
+        }
         return (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">{t("step2Desc")}</p>
@@ -265,13 +273,7 @@ export function SmartProductFinder({
               <div className="grid grid-cols-2 gap-2 max-h-[340px] overflow-y-auto">
                 {/* All option */}
                 <button
-                  onClick={() => {
-                    if (allSelected) {
-                      setSelectedTypes([])
-                    } else {
-                      setSelectedTypes([...subcategories])
-                    }
-                  }}
+                  onClick={toggleAll}
                   className={`rounded-xl border p-3 text-sm text-start transition-all hover:border-primary hover:bg-primary/5 flex items-center gap-2 col-span-2 ${
                     allSelected ? "border-primary bg-primary/10 font-medium" : "border-border"
                   }`}
@@ -284,13 +286,7 @@ export function SmartProductFinder({
                   return (
                     <button
                       key={sub}
-                      onClick={() => {
-                        if (isSelected) {
-                          setSelectedTypes(selectedTypes.filter((s) => s !== sub))
-                        } else {
-                          setSelectedTypes([...selectedTypes, sub])
-                        }
-                      }}
+                      onClick={() => toggleSubcategory(sub)}
                       className={`rounded-xl border p-3 text-sm text-start transition-all hover:border-primary hover:bg-primary/5 flex items-center gap-2 ${
                         isSelected ? "border-primary bg-primary/10 font-medium" : "border-border"
                       }`}
