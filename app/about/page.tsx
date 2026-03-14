@@ -1,13 +1,18 @@
 import Link from "@/components/ui/link"
 import Image from "next/image"
 import {
-  Globe, Users,
+  Globe, Users, Package,
   ArrowRight, CheckCircle, Twitter, Linkedin, Instagram, Mail,
 } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { getSiteSetting } from "@/lib/actions/site-settings"
+import { getSiteSetting, getSiteCategories } from "@/lib/actions/site-settings"
+import { buildCategoryData, toCategoryKey } from "@/lib/categories"
+import type { CategoryData } from "@/lib/categories"
+import { Card, CardContent } from "@/components/ui/card"
+
+const MAX_DISPLAYED_CATEGORIES = 5
 
 const serviceKeys = [
   { num: "01", title: "secureTrading", desc: "secureTradingDesc" },
@@ -51,6 +56,8 @@ export default async function AboutPage() {
   const footerT = await getTranslations("footer")
   const teamT = await getTranslations("team")
   const testimonialsT = await getTranslations("testimonials")
+  const tCatNames = await getTranslations("categoryNames")
+  const tCategories = await getTranslations("categories")
 
   const testimonials = [
     { quote: testimonialsT("quote1"), author: testimonialsT("author1"), company: testimonialsT("company1") },
@@ -77,6 +84,22 @@ export default async function AboutPage() {
     videoExt === "ogg" || videoExt === "ogv" ? "video/ogg" :
     videoExt === "mov" ? "video/quicktime" :
     "video/mp4"
+
+  // Fetch site categories with error handling
+  let categoryData: CategoryData = { mainCategories: [], categoryMap: {}, categoryImageMap: {} }
+  try {
+    const siteCategories = await getSiteCategories()
+    categoryData = buildCategoryData(siteCategories)
+  } catch {
+    // Keep empty categories if fetch fails – the section will simply not render
+  }
+
+  function translateCat(name: string): string {
+    const key = toCategoryKey(name)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const translated = (tCatNames as any)(key)
+    return typeof translated === "string" && translated !== key ? translated : name
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -214,6 +237,77 @@ export default async function AboutPage() {
           </div>
         </div>
       </section>
+
+      {/* ===== BROWSE CATEGORIES SECTION ===== */}
+      {categoryData.mainCategories.length > 0 && (
+        <section className="border-b bg-muted/30">
+          <div className="max-w-[1320px] mx-auto px-6 py-16 md:py-20">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-[28px] md:text-[36px] font-bold leading-[1.2]">{tCategories("browseCategories")}</h2>
+                <p className="text-muted-foreground mt-2">{tCategories("browseCategoriesDesc")}</p>
+              </div>
+              <Link href="/guest/categories" className="hidden sm:inline-flex items-center gap-2 rounded-full border border-border px-6 py-2.5 text-sm font-medium hover:bg-accent transition-colors">
+                {tCategories("viewAllCategories")}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+              {categoryData.mainCategories.slice(0, MAX_DISPLAYED_CATEGORIES).map((categoryName) => {
+                const subcategories = categoryData.categoryMap[categoryName] ?? []
+                const imageUrl = categoryData.categoryImageMap[categoryName] ?? null
+                const displayName = translateCat(categoryName)
+                return (
+                  <Link
+                    key={categoryName}
+                    href={`/guest/catalog?category=${encodeURIComponent(categoryName)}`}
+                  >
+                    <Card className="group hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer h-full overflow-hidden">
+                      {imageUrl ? (
+                        <div className="relative h-[140px] md:h-[170px]">
+                          <Image
+                            src={imageUrl}
+                            alt={displayName}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                          <div className="absolute bottom-3 left-3 right-3">
+                            <h3 className="font-semibold text-white text-sm md:text-base line-clamp-1">{displayName}</h3>
+                            <p className="text-xs text-white/80 mt-0.5">
+                              {tCategories("subcategoryCount", { count: subcategories.length })}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <CardContent className="p-4 md:p-5 flex flex-col items-start h-full">
+                          <div className="rounded-full bg-primary/10 p-3 group-hover:bg-primary/20 transition-colors">
+                            <Package className="h-6 w-6 text-primary" />
+                          </div>
+                          <h3 className="mt-3 font-semibold text-sm md:text-base line-clamp-1">{displayName}</h3>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {tCategories("subcategoryCount", { count: subcategories.length })}
+                          </p>
+                        </CardContent>
+                      )}
+                    </Card>
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* Mobile "View All" button */}
+            <div className="mt-6 text-center sm:hidden">
+              <Link href="/guest/categories" className="inline-flex items-center gap-2 rounded-full border border-border px-6 py-2.5 text-sm font-medium hover:bg-accent transition-colors">
+                {tCategories("viewAllCategories")}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ===== ABOUT SECTION WITH STATS ===== */}
       <section id="about" className="py-24 md:py-32 bg-muted/50 relative overflow-hidden">
