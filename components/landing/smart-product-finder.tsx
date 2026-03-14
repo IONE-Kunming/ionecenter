@@ -86,7 +86,7 @@ function CountryDropdown({
 
   return (
     <div ref={containerRef} className="relative">
-      <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground z-10 pointer-events-none" />
+      <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
       <Input
         ref={inputRef}
         value={open ? search : value}
@@ -95,6 +95,9 @@ function CountryDropdown({
         placeholder={placeholder}
         className="pl-9 pr-9"
         autoComplete="off"
+        role="combobox"
+        aria-expanded={open}
+        aria-haspopup="listbox"
       />
       <button
         type="button"
@@ -106,10 +109,13 @@ function CountryDropdown({
       </button>
 
       {open && (
-        <ul className="absolute z-50 mt-1 w-full max-h-[200px] overflow-y-auto rounded-xl border bg-popover shadow-md">
+        <ul
+          role="listbox"
+          className="absolute z-50 mt-1 w-full max-h-[200px] overflow-y-auto rounded-xl border bg-popover shadow-md"
+        >
           {filtered.length > 0 ? (
             filtered.map((country) => (
-              <li key={country}>
+              <li key={country} role="option" aria-selected={value === country}>
                 <button
                   type="button"
                   className={`flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors ${
