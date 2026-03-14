@@ -28,10 +28,10 @@ export default function SellerProfileForm({ user, sellerCode }: { user: User; se
   useEffect(() => {
     if (showBuyers && buyers.length === 0) {
       setBuyersLoading(true)
-      getSellerBuyers().then((data) => {
-        setBuyers(data)
-        setBuyersLoading(false)
-      })
+      getSellerBuyers()
+        .then((data) => setBuyers(data))
+        .catch(() => {})
+        .finally(() => setBuyersLoading(false))
     }
   }, [showBuyers, buyers.length])
 

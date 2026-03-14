@@ -53,12 +53,12 @@ export async function getSellerBuyers(): Promise<SellerBuyer[]> {
   if (!user) return []
 
   const supabase = createAdminClient()
-  const { data: orders } = await supabase
+  const { data: orders, error } = await supabase
     .from("orders")
     .select("buyer_id, buyer:users!buyer_id(display_name, user_code, email)")
     .eq("seller_id", user.id)
 
-  if (!orders || orders.length === 0) return []
+  if (error || !orders || orders.length === 0) return []
 
   const buyerMap = new Map<string, SellerBuyer>()
   for (const order of orders) {
