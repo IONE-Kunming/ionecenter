@@ -36,9 +36,10 @@ async function requireAdmin() {
 /** Sanitise a user-supplied file name so it is safe for storage paths. */
 function sanitizeFileName(name: string): string {
   return name
-    .replace(/\s+/g, "-")          // spaces → hyphens
+    .replace(/\s+/g, "-")            // spaces → hyphens
     .replace(/[^a-zA-Z0-9._-]/g, "") // strip anything unsafe
-    .replace(/-{2,}/g, "-")         // collapse consecutive hyphens
+    .replace(/-{2,}/g, "-")           // collapse consecutive hyphens
+    .replace(/^[.-]+/, "")            // strip leading dots/hyphens (prevent path traversal)
     .toLowerCase()
 }
 
@@ -193,6 +194,7 @@ export async function uploadImageToFolder(
 
   const supabase = createAdminClient()
   const safeName = sanitizeFileName(file.name)
+  if (!safeName) return { error: "Invalid file name" }
   const storagePath = `${folderPath}/${Date.now()}-${safeName}`
 
   const { data, error } = await supabase.storage
