@@ -234,10 +234,24 @@ export async function deleteSiteCategory(id: string) {
   if (!user || user.role !== "admin") return { error: "Not authorized" }
 
   const supabase = createAdminClient()
+
+  // Collect all descendant IDs recursively
+  const { data: allCategories } = await supabase
+    .from("site_categories")
+    .select("id, parent_id")
+
+  function getDescendantIds(parentId: string): string[] {
+    const children = (allCategories ?? []).filter((c: { id: string; parent_id: string | null }) => c.parent_id === parentId)
+    return children.flatMap((c: { id: string; parent_id: string | null }) => [c.id, ...getDescendantIds(c.id)])
+  }
+
+  const idsToEmpty = [id, ...getDescendantIds(id)]
+
+  // Clear name and image_url instead of deleting
   const { error } = await supabase
     .from("site_categories")
-    .delete()
-    .eq("id", id)
+    .update({ name: "", image_url: null, updated_at: new Date().toISOString() })
+    .in("id", idsToEmpty)
 
   if (error) return { error: error.message }
   return { success: true }

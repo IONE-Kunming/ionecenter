@@ -141,10 +141,12 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
           const children = prev.filter((c) => c.parent_id === parentId)
           return children.flatMap((c) => [c.id, ...getDescendantIds(c.id)])
         }
-        const idsToRemove = new Set([selectedCategory.id, ...getDescendantIds(selectedCategory.id)])
-        return prev.filter((c) => !idsToRemove.has(c.id))
+        const idsToEmpty = new Set([selectedCategory.id, ...getDescendantIds(selectedCategory.id)])
+        return prev.map((c) =>
+          idsToEmpty.has(c.id) ? { ...c, name: "", image_url: null } : c
+        )
       })
-      showToast("success", `Deleted "${selectedCategory.name}"`)
+      showToast("success", `Cleared "${selectedCategory.name}"`)
       setDeleteOpen(false)
     }
     setLoading(false)
@@ -366,8 +368,8 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
           )}
 
           {/* Name */}
-          <span className={`flex-1 text-sm ${level === 0 ? "font-medium" : "text-muted-foreground"}`}>
-            {cat.name}
+          <span className={`flex-1 text-sm ${level === 0 ? "font-medium" : "text-muted-foreground"} ${!cat.name ? "italic opacity-50" : ""}`}>
+            {cat.name || "Empty"}
           </span>
 
           {/* Child count for main categories and subcategories */}
