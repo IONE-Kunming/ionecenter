@@ -16,7 +16,7 @@ export default async function ProductDetailLayout({ children }: { children: Reac
             <Image src="/logo.svg" alt="IONE Center" width={130} height={36} className="h-9 w-auto" />
           </Link>
           <div className="flex items-center gap-2">
-            <Link href="/about" className="hidden md:inline-flex text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5">
+            <Link href="/" className="hidden md:inline-flex text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5">
               {tNav("aboutUs")}
             </Link>
             <LanguageSwitcher />

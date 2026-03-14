@@ -118,7 +118,7 @@ export function FinderResultsClient({
     <div className="container mx-auto px-4 py-8">
       {/* ===== HEADER WITH BACK BUTTON ===== */}
       <div className="mb-8">
-        <Link href="/about">
+        <Link href="/">
           <Button variant="outline" size="sm" className="gap-1 mb-4">
             <ChevronLeft className="h-4 w-4" /> {t("backToHome")}
           </Button>
