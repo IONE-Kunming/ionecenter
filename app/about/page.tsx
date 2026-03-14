@@ -9,7 +9,6 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { getSiteSetting, getSiteCategories } from "@/lib/actions/site-settings"
 import { getProducts } from "@/lib/actions/products"
-import { buildCategoryData } from "@/lib/categories"
 import { SmartProductFinder } from "@/components/landing/smart-product-finder"
 import { auth } from "@clerk/nextjs/server"
 import { getCurrentUser } from "@/lib/actions/users"
@@ -71,11 +70,18 @@ export default async function AboutPage() {
   ]
 
   // Fetch products, categories and auth state for the Smart Product Finder
-  const [allProducts, siteCategories] = await Promise.all([
-    getProducts(),
-    getSiteCategories(),
-  ])
-  const categoryData = buildCategoryData(siteCategories)
+  let allProducts: Awaited<ReturnType<typeof getProducts>> = []
+  let categoryData: CategoryData = { mainCategories: [], categoryMap: {}, categoryImageMap: {} }
+  try {
+    const [products, siteCategories] = await Promise.all([
+      getProducts(),
+      getSiteCategories(),
+    ])
+    allProducts = products
+    categoryData = buildCategoryData(siteCategories)
+  } catch {
+    // Keep empty defaults if fetch fails – sections will simply not render
+  }
   const finderProducts = allProducts.map((p) => ({
     id: p.id,
     name: p.name,
@@ -122,15 +128,6 @@ export default async function AboutPage() {
     videoExt === "ogg" || videoExt === "ogv" ? "video/ogg" :
     videoExt === "mov" ? "video/quicktime" :
     "video/mp4"
-
-  // Fetch site categories with error handling
-  let categoryData: CategoryData = { mainCategories: [], categoryMap: {}, categoryImageMap: {} }
-  try {
-    const siteCategories = await getSiteCategories()
-    categoryData = buildCategoryData(siteCategories)
-  } catch {
-    // Keep empty categories if fetch fails – the section will simply not render
-  }
 
   function translateCat(name: string): string {
     const key = toCategoryKey(name)
