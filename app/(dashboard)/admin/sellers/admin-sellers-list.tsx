@@ -87,22 +87,26 @@ export function AdminSellersList({ sellers, categoryData }: { sellers: SellerWit
   const handleEditSave = async () => {
     if (!editUser) return
     setEditSaving(true)
-    const results = await Promise.all([
-      adminUpdateUser(editUser.id, {
-        display_name: editName,
-        email: editEmail,
-        role: editRole,
-        company: editCompany,
-      }),
-      editMainCategory
-        ? adminUpdateSellerCategories(editUser.id, editMainCategory, editSubcategories)
-        : Promise.resolve({ success: true }),
-    ])
-    setEditSaving(false)
-    if (!results[0].error && !("error" in results[1] && results[1].error)) {
-      setEditUser(null)
-      window.location.reload()
+    const userResult = await adminUpdateUser(editUser.id, {
+      display_name: editName,
+      email: editEmail,
+      role: editRole,
+      company: editCompany,
+    })
+    if (userResult.error) {
+      setEditSaving(false)
+      return
     }
+    if (editMainCategory) {
+      const catResult = await adminUpdateSellerCategories(editUser.id, editMainCategory, editSubcategories)
+      if (catResult.error) {
+        setEditSaving(false)
+        return
+      }
+    }
+    setEditSaving(false)
+    setEditUser(null)
+    window.location.reload()
   }
 
   const handleDelete = async () => {
