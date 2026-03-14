@@ -89,6 +89,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
   // auto-match
   const [matching, setMatching] = useState(false)
   const [matchResult, setMatchResult] = useState<{ matched: number; unmatched: number } | null>(null)
+  const [matchingCardFolder, setMatchingCardFolder] = useState<string | null>(null)
 
   // toast
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null)
@@ -239,6 +240,20 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     setMatching(false)
   }
 
+  async function handleAutoMatchFromCard(folder: AdminGalleryFolder) {
+    setMatchingCardFolder(folder.id)
+    const result = await autoMatchFolderImages(folder.folder_path)
+    if (result.error) {
+      showToast("error", result.error)
+    } else {
+      showToast(
+        "success",
+        t("matchSummary", { matched: result.matched, unmatched: result.unmatched })
+      )
+    }
+    setMatchingCardFolder(null)
+  }
+
   /* ── filtered categories ────────────────────────────────── */
 
   function handleBackToFolders() {
@@ -316,61 +331,83 @@ export function AdminGallery({ initialFolders, categories }: Props) {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {folders.map((folder) => (
-                <Card
+                <div
                   key={folder.id}
-                  className="group relative overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                  className={cn(
+                    "relative rounded-lg border transition-colors group cursor-pointer",
+                    folder.cover_image
+                      ? "overflow-hidden aspect-square"
+                      : "flex flex-col items-center gap-2 p-3 hover:bg-accent text-center"
+                  )}
                 >
-                  {/* Main click area */}
-                  <div onClick={() => openFolder(folder)} className="p-4 flex flex-col items-center gap-2">
-                    {folder.cover_image ? (
-                      <div className="relative w-full aspect-square rounded-md overflow-hidden bg-muted">
-                        <NextImage
-                          src={folder.cover_image}
-                          alt={folder.folder_name}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
+                  {folder.cover_image ? (
+                    <button
+                      onClick={() => openFolder(folder)}
+                      className="relative w-full h-full"
+                    >
+                      <NextImage
+                        src={folder.cover_image}
+                        alt={folder.folder_name}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-2 pt-8">
+                        <span className="text-sm font-bold truncate block text-white">
+                          {folder.folder_name}
+                        </span>
                       </div>
-                    ) : (
-                      <div className="w-full aspect-square rounded-md bg-muted flex items-center justify-center">
-                        <FolderOpen className="h-12 w-12 text-muted-foreground/40" />
-                      </div>
-                    )}
-                    <span className="text-sm font-medium truncate w-full text-center">
-                      {folder.folder_name}
-                    </span>
-                  </div>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => openFolder(folder)}
+                      className="flex flex-col items-center gap-2 w-full"
+                    >
+                      <FolderOpen className="h-10 w-10 text-yellow-500 group-hover:text-yellow-400" />
+                      <span className="text-sm font-bold truncate w-full">
+                        {folder.folder_name}
+                      </span>
+                    </button>
+                  )}
 
                   {/* Action buttons overlay */}
-                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="h-7 w-7 p-0"
-                      title={t("editCover")}
+                  <div className="absolute top-1 end-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleAutoMatchFromCard(folder)
+                      }}
+                      disabled={matchingCardFolder === folder.id}
+                      className="p-1 rounded bg-violet-500/80 hover:bg-violet-500"
+                      title={t("matchAll")}
+                    >
+                      {matchingCardFolder === folder.id
+                        ? <Loader2 className="h-3 w-3 text-white animate-spin" />
+                        : <Wand2 className="h-3 w-3 text-white" />}
+                    </button>
+                    <button
                       onClick={(e) => {
                         e.stopPropagation()
                         setEditCoverFolder(folder)
                         setTimeout(() => coverInputRef.current?.click(), 50)
                       }}
+                      className="p-1 rounded bg-emerald-500/80 hover:bg-emerald-500"
+                      title={t("editCover")}
                     >
-                      <Camera className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="h-7 w-7 p-0"
-                      title={t("deleteFolder")}
+                      <Camera className="h-3 w-3 text-white" />
+                    </button>
+                    <button
                       onClick={(e) => {
                         e.stopPropagation()
                         setDeletingFolder(folder)
                       }}
+                      className="p-1 rounded bg-destructive/80 hover:bg-destructive"
+                      title={t("deleteFolder")}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                      <Trash2 className="h-3 w-3 text-white" />
+                    </button>
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           )}
