@@ -13,9 +13,10 @@ export default async function FinderResultsPage({
   /* Fetch products filtered by main category (the "category" param maps to main_category) */
   const allProducts = await getProducts(category ? { category } : undefined)
 
-  /* Further filter by subcategory if provided */
-  const filtered = subcategory
-    ? allProducts.filter((p) => p.category === subcategory)
+  /* Further filter by subcategory if provided (supports comma-separated list) */
+  const subcategoryList = subcategory ? subcategory.split(",").map((s) => s.trim()).filter(Boolean) : []
+  const filtered = subcategoryList.length > 0
+    ? allProducts.filter((p) => subcategoryList.includes(p.category))
     : allProducts
 
   const finderProducts = filtered.map((p) => ({
