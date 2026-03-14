@@ -358,6 +358,7 @@ export interface SellerWithDetails {
   user_code: string | null
   created_at: string
   categories: string[]
+  assignedCategoryIds: string[]
   buyers: { id: string; display_name: string }[]
 }
 
@@ -378,11 +379,22 @@ export async function getSellersWithDetails(): Promise<SellerWithDetails[]> {
 
   const sellerIds = sellers.map((s) => s.id)
 
-  // Get categories from products for each seller
-  const { data: products } = await supabase
-    .from("products")
-    .select("seller_id, category")
+  // Get assigned categories from seller_categories table
+  const { data: sellerCatRows } = await supabase
+    .from("seller_categories")
+    .select("seller_id, category_id")
     .in("seller_id", sellerIds)
+
+  // Get all site categories to resolve names
+  const { data: allSiteCats } = await supabase
+    .from("site_categories")
+    .select("id, name, parent_id")
+    .order("sort_order", { ascending: true })
+
+  const siteCatMap: Record<string, { name: string; parent_id: string | null }> = {}
+  for (const c of allSiteCats ?? []) {
+    siteCatMap[c.id] = { name: c.name, parent_id: c.parent_id }
+  }
 
   // Get unique buyers from orders for each seller
   const { data: orders } = await supabase
@@ -410,12 +422,12 @@ export async function getSellersWithDetails(): Promise<SellerWithDetails[]> {
   }
 
   // Build per-seller data
-  const sellerCategories: Record<string, Set<string>> = {}
+  const sellerAssignedCatIds: Record<string, Set<string>> = {}
   const sellerBuyers: Record<string, Set<string>> = {}
 
-  for (const p of products ?? []) {
-    if (!sellerCategories[p.seller_id]) sellerCategories[p.seller_id] = new Set()
-    if (p.category) sellerCategories[p.seller_id].add(p.category)
+  for (const row of sellerCatRows ?? []) {
+    if (!sellerAssignedCatIds[row.seller_id]) sellerAssignedCatIds[row.seller_id] = new Set()
+    sellerAssignedCatIds[row.seller_id].add(row.category_id)
   }
 
   for (const o of orders ?? []) {
@@ -423,17 +435,73 @@ export async function getSellersWithDetails(): Promise<SellerWithDetails[]> {
     if (o.buyer_id) sellerBuyers[o.seller_id].add(o.buyer_id)
   }
 
-  return sellers.map((s) => ({
-    id: s.id,
-    display_name: s.display_name,
-    email: s.email,
-    role: "seller" as const,
-    company: s.company,
-    user_code: s.user_code,
-    created_at: s.created_at,
-    categories: Array.from(sellerCategories[s.id] ?? []),
-    buyers: Array.from(sellerBuyers[s.id] ?? [])
-      .map((buyerId) => buyerMap[buyerId])
-      .filter(Boolean),
-  }))
+  return sellers.map((s) => {
+    const assignedIds = Array.from(sellerAssignedCatIds[s.id] ?? [])
+    // Build display category names from assigned category IDs
+    const categoryNames: string[] = []
+    for (const catId of assignedIds) {
+      const cat = siteCatMap[catId]
+      if (cat) categoryNames.push(cat.name)
+    }
+
+    return {
+      id: s.id,
+      display_name: s.display_name,
+      email: s.email,
+      role: "seller" as const,
+      company: s.company,
+      user_code: s.user_code,
+      created_at: s.created_at,
+      categories: categoryNames,
+      assignedCategoryIds: assignedIds,
+      buyers: Array.from(sellerBuyers[s.id] ?? [])
+        .map((buyerId) => buyerMap[buyerId])
+        .filter(Boolean),
+    }
+  })
+}
+
+// ─── Seller Category Management ─────────────────────────────────────────────
+
+export async function getSellerCategoryIds(sellerId: string): Promise<string[]> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return []
+
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from("seller_categories")
+    .select("category_id")
+    .eq("seller_id", sellerId)
+
+  return (data ?? []).map((r) => r.category_id)
+}
+
+export async function updateSellerCategories(sellerId: string, categoryIds: string[]) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+  const supabase = createAdminClient()
+
+  // Delete existing assignments
+  const { error: deleteError } = await supabase
+    .from("seller_categories")
+    .delete()
+    .eq("seller_id", sellerId)
+
+  if (deleteError) return { error: deleteError.message }
+
+  // Insert new assignments
+  if (categoryIds.length > 0) {
+    const rows = categoryIds.map((categoryId) => ({
+      seller_id: sellerId,
+      category_id: categoryId,
+    }))
+    const { error: insertError } = await supabase
+      .from("seller_categories")
+      .insert(rows)
+
+    if (insertError) return { error: insertError.message }
+  }
+
+  return { success: true }
 }

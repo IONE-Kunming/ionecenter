@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Store, Search, Pencil, Trash2, Check, X, ChevronDown, ChevronRight } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
@@ -13,8 +13,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useFormatters } from "@/lib/use-formatters"
-import { adminUpdateUser, adminDeleteUser, adminUpdateUserCode } from "@/lib/actions/admin"
+import { adminUpdateUser, adminDeleteUser, adminUpdateUserCode, updateSellerCategories } from "@/lib/actions/admin"
 import type { SellerWithDetails } from "@/lib/actions/admin"
+import type { SiteCategory } from "@/lib/actions/site-settings"
 import type { UserRole } from "@/types/database"
 
 function roleBadgeVariant(role: UserRole) {
@@ -23,12 +24,24 @@ function roleBadgeVariant(role: UserRole) {
   return "default" as const
 }
 
-export function AdminSellersList({ sellers }: { sellers: SellerWithDetails[] }) {
+export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerWithDetails[]; siteCategories: SiteCategory[] }) {
   const t = useTranslations("adminSellers")
   const tCommon = useTranslations("common")
   const { formatDate } = useFormatters()
   const [search, setSearch] = useState("")
   const [expandedSellers, setExpandedSellers] = useState<Set<string>>(new Set())
+
+  // Build category hierarchy from siteCategories
+  const { mainCats, subCatMap } = useMemo(() => {
+    const mains = siteCategories.filter((c) => !c.parent_id).sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+    const subs: Record<string, SiteCategory[]> = {}
+    for (const main of mains) {
+      subs[main.id] = siteCategories
+        .filter((c) => c.parent_id === main.id)
+        .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+    }
+    return { mainCats: mains, subCatMap: subs }
+  }, [siteCategories])
 
   // Edit modal state
   const [editUser, setEditUser] = useState<SellerWithDetails | null>(null)
@@ -36,6 +49,7 @@ export function AdminSellersList({ sellers }: { sellers: SellerWithDetails[] }) 
   const [editEmail, setEditEmail] = useState("")
   const [editRole, setEditRole] = useState("")
   const [editCompany, setEditCompany] = useState("")
+  const [editCategoryIds, setEditCategoryIds] = useState<Set<string>>(new Set())
   const [editSaving, setEditSaving] = useState(false)
 
   // Delete modal state
@@ -76,19 +90,57 @@ export function AdminSellersList({ sellers }: { sellers: SellerWithDetails[] }) 
     setEditEmail(seller.email)
     setEditRole(seller.role)
     setEditCompany(seller.company ?? "")
+    setEditCategoryIds(new Set(seller.assignedCategoryIds))
+  }
+
+  const toggleCategory = (categoryId: string) => {
+    setEditCategoryIds((prev) => {
+      const next = new Set(prev)
+      const cat = siteCategories.find((c) => c.id === categoryId)
+      if (!cat) return next
+
+      if (cat.parent_id === null) {
+        // It's a main category - toggle it and all its subcategories
+        const subs = subCatMap[categoryId] ?? []
+        if (next.has(categoryId)) {
+          next.delete(categoryId)
+          for (const sub of subs) next.delete(sub.id)
+        } else {
+          next.add(categoryId)
+          for (const sub of subs) next.add(sub.id)
+        }
+      } else {
+        // It's a subcategory - toggle individually
+        if (next.has(categoryId)) {
+          next.delete(categoryId)
+          // If no subcategories of this parent remain, remove the parent too
+          const parentSubs = subCatMap[cat.parent_id] ?? []
+          const anySubSelected = parentSubs.some((s) => s.id !== categoryId && next.has(s.id))
+          if (!anySubSelected) next.delete(cat.parent_id)
+        } else {
+          next.add(categoryId)
+          // Also ensure the parent main category is selected
+          next.add(cat.parent_id)
+        }
+      }
+      return next
+    })
   }
 
   const handleEditSave = async () => {
     if (!editUser) return
     setEditSaving(true)
-    const result = await adminUpdateUser(editUser.id, {
-      display_name: editName,
-      email: editEmail,
-      role: editRole,
-      company: editCompany,
-    })
+    const [userResult, catResult] = await Promise.all([
+      adminUpdateUser(editUser.id, {
+        display_name: editName,
+        email: editEmail,
+        role: editRole,
+        company: editCompany,
+      }),
+      updateSellerCategories(editUser.id, Array.from(editCategoryIds)),
+    ])
     setEditSaving(false)
-    if (!result.error) {
+    if (!userResult.error && !catResult.error) {
       setEditUser(null)
       window.location.reload()
     }
@@ -135,6 +187,22 @@ export function AdminSellersList({ sellers }: { sellers: SellerWithDetails[] }) 
     }
   }
 
+  // Build hierarchical display for a seller's assigned categories
+  const buildCategoryDisplay = (assignedCategoryIds: string[]) => {
+    const idSet = new Set(assignedCategoryIds)
+    const display: { main: string; subs: string[] }[] = []
+
+    for (const main of mainCats) {
+      if (idSet.has(main.id)) {
+        const subs = (subCatMap[main.id] ?? [])
+          .filter((s) => idSet.has(s.id))
+          .map((s) => s.name)
+        display.push({ main: main.name, subs })
+      }
+    }
+    return display
+  }
+
   // Total number of columns in the table (must match TableHead count below)
   const columnCount = 10
 
@@ -167,6 +235,7 @@ export function AdminSellersList({ sellers }: { sellers: SellerWithDetails[] }) 
             <TableBody>
               {filtered.map((seller, index) => {
                 const isExpanded = expandedSellers.has(seller.id)
+                const catDisplay = buildCategoryDisplay(seller.assignedCategoryIds)
                 return (
                   <>
                     <TableRow key={seller.id}>
@@ -235,12 +304,19 @@ export function AdminSellersList({ sellers }: { sellers: SellerWithDetails[] }) 
                       </TableCell>
                       <TableCell className="text-muted-foreground">{seller.company ?? "—"}</TableCell>
                       <TableCell>
-                        {seller.categories.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {seller.categories.map((cat) => (
-                              <Badge key={cat} variant="secondary" className="text-xs">
-                                {cat}
-                              </Badge>
+                        {catDisplay.length > 0 ? (
+                          <div className="text-sm space-y-1">
+                            {catDisplay.map((entry) => (
+                              <div key={entry.main}>
+                                <span className="font-medium">• {entry.main}</span>
+                                {entry.subs.length > 0 && (
+                                  <div className="ml-3 text-muted-foreground">
+                                    {entry.subs.map((sub) => (
+                                      <div key={sub}>- {sub}</div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
                             ))}
                           </div>
                         ) : (
@@ -311,6 +387,67 @@ export function AdminSellersList({ sellers }: { sellers: SellerWithDetails[] }) 
             <div className="space-y-2">
               <Label>Company</Label>
               <Input value={editCompany} onChange={(e) => setEditCompany(e.target.value)} />
+            </div>
+
+            {/* Categories multi-select section */}
+            <div className="space-y-2">
+              <Label>Categories</Label>
+              <div className="flex flex-wrap gap-2">
+                {mainCats.map((main) => {
+                  const isSelected = editCategoryIds.has(main.id)
+                  return (
+                    <button
+                      key={main.id}
+                      type="button"
+                      onClick={() => toggleCategory(main.id)}
+                      className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${
+                        isSelected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-secondary text-secondary-foreground border-transparent hover:bg-secondary/80"
+                      }`}
+                    >
+                      {main.name}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Show selected categories hierarchically with subcategory toggles */}
+              {mainCats.filter((m) => editCategoryIds.has(m.id)).length > 0 && (
+                <div className="mt-3 rounded-md border p-3 space-y-2 max-h-48 overflow-y-auto">
+                  {mainCats
+                    .filter((m) => editCategoryIds.has(m.id))
+                    .map((main) => {
+                      const subs = subCatMap[main.id] ?? []
+                      return (
+                        <div key={main.id}>
+                          <div className="font-medium text-sm">• {main.name}</div>
+                          {subs.length > 0 && (
+                            <div className="ml-4 mt-1 flex flex-wrap gap-1.5">
+                              {subs.map((sub) => {
+                                const subSelected = editCategoryIds.has(sub.id)
+                                return (
+                                  <button
+                                    key={sub.id}
+                                    type="button"
+                                    onClick={() => toggleCategory(sub.id)}
+                                    className={`px-2 py-0.5 rounded text-xs border transition-colors ${
+                                      subSelected
+                                        ? "bg-primary/80 text-primary-foreground border-primary/80"
+                                        : "bg-muted text-muted-foreground border-transparent hover:bg-muted/80"
+                                    }`}
+                                  >
+                                    {sub.name}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
