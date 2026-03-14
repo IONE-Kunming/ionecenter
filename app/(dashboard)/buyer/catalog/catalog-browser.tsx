@@ -52,7 +52,7 @@ const CATEGORY_BADGE_BASE = "rounded-full bg-primary text-primary-foreground fle
 const CATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE}`
 const SUBCATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE} text-[10px]`
 
-export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = [], isPreviewMode = false, initialPinnedCategories = [] }: { products: CatalogProduct[]; categoryData: CategoryData; wishlistedIds?: string[]; isPreviewMode?: boolean; initialPinnedCategories?: string[] }) {
+export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = [], isPreviewMode = false, initialPinnedCategories = [], initialCategory }: { products: CatalogProduct[]; categoryData: CategoryData; wishlistedIds?: string[]; isPreviewMode?: boolean; initialPinnedCategories?: string[]; initialCategory?: string }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
@@ -135,8 +135,8 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
     const translated = (tCatNames as any)(key)
     return typeof translated === "string" && translated !== key ? translated : name
   }
-  const [level, setLevel] = useState<BrowseLevel>("categories")
-  const [selectedCategory, setSelectedCategory] = useState("")
+  const [level, setLevel] = useState<BrowseLevel>(initialCategory && categoryData.mainCategories.includes(initialCategory) ? "subcategories" : "categories")
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory && categoryData.mainCategories.includes(initialCategory) ? initialCategory : "")
   const [selectedSubcategory, setSelectedSubcategory] = useState("")
   const [search, setSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)

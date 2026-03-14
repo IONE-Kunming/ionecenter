@@ -436,7 +436,10 @@
     "buyerEmail": "邮箱",
     "ordersCount": "订单数",
     "noBuyersFound": "未找到买家",
-    "noBuyersYet": "暂无买家"
+    "noBuyersYet": "暂无买家",
+    "myCategory": "我的类别",
+    "selectMainCategory": "选择您的主类别",
+    "noCategorySelected": "— 无 —"
   },
   "sellerDirectory": {
     "searchSellers": "搜索卖家...",

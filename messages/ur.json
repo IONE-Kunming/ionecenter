@@ -436,7 +436,10 @@
     "buyerEmail": "ای میل",
     "ordersCount": "آرڈرز",
     "noBuyersFound": "کوئی خریدار نہیں ملا",
-    "noBuyersYet": "ابھی تک کوئی خریدار نہیں"
+    "noBuyersYet": "ابھی تک کوئی خریدار نہیں",
+    "myCategory": "میری زمرہ",
+    "selectMainCategory": "اپنی اہم زمرہ منتخب کریں",
+    "noCategorySelected": "— کوئی نہیں —"
   },
   "sellerDirectory": {
     "searchSellers": "فروخت کنندگان تلاش کریں...",
