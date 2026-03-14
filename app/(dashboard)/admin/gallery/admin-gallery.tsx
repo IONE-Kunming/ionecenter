@@ -105,12 +105,15 @@ export function AdminGallery({ initialFolders, categories }: Props) {
   // toast
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null)
 
+  // Pre-compute parent lookup for O(n) category classification
+  const parentIdMap = new Map<string, string | null>()
+  for (const c of categories) parentIdMap.set(c.id, c.parent_id)
+
   const mainCategories = categories.filter((c) => !c.parent_id)
-  const subCategories = categories.filter((c) => c.parent_id && !categories.find((p) => p.id === c.parent_id)?.parent_id)
+  const subCategories = categories.filter((c) => c.parent_id && !parentIdMap.get(c.parent_id))
   const subSubCategories = categories.filter((c) => {
     if (!c.parent_id) return false
-    const parent = categories.find((p) => p.id === c.parent_id)
-    return parent?.parent_id != null
+    return parentIdMap.get(c.parent_id) != null
   })
 
   /* ── helpers ────────────────────────────────────────────── */

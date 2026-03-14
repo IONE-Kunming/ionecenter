@@ -342,7 +342,7 @@ export async function autoMatchFolderImages(
   function getLevel(cat: { id: string; parent_id: string | null }): CatLevel {
     if (!cat.parent_id) return "category"
     const grandParentId = parentMap.get(cat.parent_id)
-    if (grandParentId) return "subSubcategory"
+    if (grandParentId != null) return "subSubcategory"
     return "subcategory"
   }
 
