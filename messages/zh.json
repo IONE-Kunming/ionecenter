@@ -1440,7 +1440,7 @@
     "step1Title": "您的业务领域是什么？",
     "step1Desc": "选择与您的行业最匹配的类别。",
     "step2Title": "您在寻找什么类型的产品？",
-    "step2Desc": "在所选领域中选择具体的产品类型。",
+    "step2Desc": "在所选领域中选择一个或多个产品类型。",
     "step3Title": "您的地区/国家是什么？",
     "step3Desc": "输入您的地区或国家以查找附近的供应商。",
     "step4Title": "确认您的选择",
@@ -1464,6 +1464,8 @@
     "seller": "卖家",
     "label": "智能产品查找器",
     "noSubcategories": "没有可用的子类别。点击下一步继续。",
-    "backToHome": "返回首页"
+    "backToHome": "返回首页",
+    "all": "全部",
+    "subcategories": "子类别"
   }
 }

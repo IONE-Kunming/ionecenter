@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import Image from "next/image"
 import {
-  Package, Search, X, ArrowRight, ChevronLeft, MapPin, Check, ChevronsUpDown,
+  Package, Search, X, ArrowRight, ChevronLeft, MapPin, Check, ChevronsUpDown, CheckCircle2,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog"
@@ -154,7 +155,7 @@ export function SmartProductFinder({
   const [wizardOpen, setWizardOpen] = useState(false)
   const [step, setStep] = useState(1)
   const [selectedField, setSelectedField] = useState("")
-  const [selectedType, setSelectedType] = useState("")
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [region, setRegion] = useState("")
 
   /* ── Helpers ── */
@@ -174,16 +175,16 @@ export function SmartProductFinder({
     if (!selectedField) return []
     return products.filter((p) => {
       const matchesCategory = p.main_category === selectedField
-      const matchesSubcategory = !selectedType || p.category === selectedType
+      const matchesSubcategory = selectedTypes.length === 0 || selectedTypes.includes(p.category)
       return matchesCategory && matchesSubcategory
     })
-  }, [products, selectedField, selectedType])
+  }, [products, selectedField, selectedTypes])
 
   /* ── Wizard navigation ── */
   const resetWizard = () => {
     setStep(1)
     setSelectedField("")
-    setSelectedType("")
+    setSelectedTypes([])
     setRegion("")
   }
 
@@ -196,7 +197,7 @@ export function SmartProductFinder({
     setWizardOpen(false)
     const params = new URLSearchParams()
     if (selectedField) params.set("category", selectedField)
-    if (selectedType) params.set("subcategory", selectedType)
+    if (selectedTypes.length > 0) params.set("subcategory", selectedTypes.join(","))
     if (region) params.set("region", region)
     router.push(`/guest/finder-results?${params.toString()}`)
   }
@@ -208,54 +209,97 @@ export function SmartProductFinder({
         return (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">{t("step1Desc")}</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[340px] overflow-y-auto">
-              {categoryData.mainCategories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => { setSelectedField(cat); setSelectedType(""); setStep(2) }}
-                  className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-center text-sm transition-all hover:border-primary hover:bg-primary/5 ${
-                    selectedField === cat ? "border-primary bg-primary/10 font-medium" : "border-border"
-                  }`}
-                >
-                  {categoryData.categoryImageMap[cat] ? (
-                    <div className="relative h-10 w-10 rounded-lg overflow-hidden">
-                      <Image
-                        src={categoryData.categoryImageMap[cat]!}
-                        alt={translateCat(cat)}
-                        fill
-                        className="object-cover"
-                        sizes="40px"
-                      />
-                    </div>
-                  ) : (
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Package className="h-5 w-5 text-primary" />
-                    </div>
-                  )}
-                  <span className="line-clamp-2 leading-tight">{translateCat(cat)}</span>
-                </button>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[420px] overflow-y-auto pr-1">
+              {categoryData.mainCategories.map((cat) => {
+                const subs = categoryData.categoryMap[cat] ?? []
+                const imageUrl = categoryData.categoryImageMap[cat] ?? null
+                return (
+                  <Card
+                    key={cat}
+                    onClick={() => { setSelectedField(cat); setSelectedTypes([]); setStep(2) }}
+                    className={`cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden ${
+                      selectedField === cat ? "ring-2 ring-primary" : ""
+                    }`}
+                  >
+                    <CardContent className="p-0 relative">
+                      {imageUrl ? (
+                        <div className="relative h-[140px]">
+                          <Image
+                            src={imageUrl}
+                            alt={translateCat(cat)}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                          <div className="absolute bottom-3 left-4 right-4">
+                            <h3 className="font-semibold text-white text-sm">{translateCat(cat)}</h3>
+                            <p className="text-xs text-white/80">
+                              {subs.length} {t("subcategories")}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-6 text-center">
+                          <Package className="h-10 w-10 mx-auto text-primary" />
+                          <h3 className="mt-3 font-semibold text-sm">{translateCat(cat)}</h3>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {subs.length} {t("subcategories")}
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           </div>
         )
 
-      case 2:
+      case 2: {
+        const allSelected = subcategories.length > 0 && selectedTypes.length === subcategories.length
         return (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">{t("step2Desc")}</p>
             {subcategories.length > 0 ? (
               <div className="grid grid-cols-2 gap-2 max-h-[340px] overflow-y-auto">
-                {subcategories.map((sub) => (
-                  <button
-                    key={sub}
-                    onClick={() => { setSelectedType(sub); setStep(3) }}
-                    className={`rounded-xl border p-3 text-sm text-start transition-all hover:border-primary hover:bg-primary/5 ${
-                      selectedType === sub ? "border-primary bg-primary/10 font-medium" : "border-border"
-                    }`}
-                  >
-                    {translateCat(sub)}
-                  </button>
-                ))}
+                {/* All option */}
+                <button
+                  onClick={() => {
+                    if (allSelected) {
+                      setSelectedTypes([])
+                    } else {
+                      setSelectedTypes([...subcategories])
+                    }
+                  }}
+                  className={`rounded-xl border p-3 text-sm text-start transition-all hover:border-primary hover:bg-primary/5 flex items-center gap-2 col-span-2 ${
+                    allSelected ? "border-primary bg-primary/10 font-medium" : "border-border"
+                  }`}
+                >
+                  <CheckCircle2 className={`h-4 w-4 shrink-0 ${allSelected ? "text-primary" : "text-muted-foreground"}`} />
+                  {t("all")}
+                </button>
+                {subcategories.map((sub) => {
+                  const isSelected = selectedTypes.includes(sub)
+                  return (
+                    <button
+                      key={sub}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedTypes(selectedTypes.filter((s) => s !== sub))
+                        } else {
+                          setSelectedTypes([...selectedTypes, sub])
+                        }
+                      }}
+                      className={`rounded-xl border p-3 text-sm text-start transition-all hover:border-primary hover:bg-primary/5 flex items-center gap-2 ${
+                        isSelected ? "border-primary bg-primary/10 font-medium" : "border-border"
+                      }`}
+                    >
+                      <CheckCircle2 className={`h-4 w-4 shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                      {translateCat(sub)}
+                    </button>
+                  )
+                })}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground py-8 text-center">
@@ -264,6 +308,7 @@ export function SmartProductFinder({
             )}
           </div>
         )
+      }
 
       case 3:
         return (
@@ -286,10 +331,10 @@ export function SmartProductFinder({
                 <span className="text-muted-foreground">{t("businessField")}</span>
                 <span className="font-medium">{translateCat(selectedField)}</span>
               </div>
-              {selectedType && (
+              {selectedTypes.length > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t("productType")}</span>
-                  <span className="font-medium">{translateCat(selectedType)}</span>
+                  <span className="font-medium text-end">{selectedTypes.map(translateCat).join(", ")}</span>
                 </div>
               )}
               {region && (
@@ -343,7 +388,7 @@ export function SmartProductFinder({
 
       {/* ===== WIZARD DIALOG ===== */}
       <Dialog open={wizardOpen} onOpenChange={setWizardOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div>
