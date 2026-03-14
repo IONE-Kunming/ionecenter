@@ -1501,10 +1501,17 @@
     "uploadSuccess": "تصاویر کامیابی سے اپ لوڈ ہو گئیں",
     "linkToCategory": "زمرے سے لنک کریں",
     "linkToSubcategory": "ذیلی زمرے سے لنک کریں",
+    "linkToSubSubcategory": "ذیلی ذیلی زمرے سے لنک کریں",
     "searchCategories": "زمرے تلاش کریں...",
     "noResults": "کوئی زمرے نہیں ملے",
     "imageLinked": "تصویر زمرے کو تفویض کر دی گئی",
     "matchAll": "سب کو ملائیں",
-    "matchSummary": "{matched} زمرے مطابق ہوئے، {unmatched} مطابق نہیں ہوئے"
+    "matchSummary": "{matched} زمرے مطابق ہوئے، {unmatched} مطابق نہیں ہوئے",
+    "matchSummaryDetailed": "{matched} مطابق ہوئے ({categories} زمرے، {subcategories} ذیلی زمرے، {subSubcategories} ذیلی ذیلی زمرے)، {unmatched} مطابق نہیں ہوئے",
+    "rename": "نام تبدیل کریں",
+    "renameImagePlaceholder": "نئے فائل کا نام درج کریں",
+    "imageRenamed": "تصویر کا نام کامیابی سے تبدیل ہو گیا",
+    "deleteImage": "تصویر حذف کریں",
+    "deleteImageConfirm": "کیا آپ واقعی \"{name}\" حذف کرنا چاہتے ہیں؟"
   }
 }

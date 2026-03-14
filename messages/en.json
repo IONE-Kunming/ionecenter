@@ -1650,10 +1650,17 @@
     "uploadSuccess": "Images uploaded successfully",
     "linkToCategory": "Link to Category",
     "linkToSubcategory": "Link to Subcategory",
+    "linkToSubSubcategory": "Link to Sub-subcategory",
     "searchCategories": "Search categories...",
     "noResults": "No categories found",
     "imageLinked": "Image assigned to category",
     "matchAll": "Match All",
-    "matchSummary": "{matched} categories matched, {unmatched} not matched"
+    "matchSummary": "{matched} categories matched, {unmatched} not matched",
+    "matchSummaryDetailed": "{matched} matched ({categories} categories, {subcategories} subcategories, {subSubcategories} sub-subcategories), {unmatched} not matched",
+    "rename": "Rename",
+    "renameImagePlaceholder": "Enter new file name",
+    "imageRenamed": "Image renamed successfully",
+    "deleteImage": "Delete Image",
+    "deleteImageConfirm": "Are you sure you want to delete \"{name}\"?"
   }
 }
