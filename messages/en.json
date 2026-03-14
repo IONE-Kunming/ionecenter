@@ -1416,7 +1416,9 @@
     "productsCount": "{count} products",
     "cancel": "Cancel",
     "noCategoriesFound": "No categories found",
-    "noCategoriesFoundDesc": "No categories match your search."
+    "noCategoriesFoundDesc": "No categories match your search.",
+    "sellerActive": "Seller assigned",
+    "sellerInactive": "No seller assigned"
   },
   "adminProfile": {
     "personalInfo": "Personal Information",

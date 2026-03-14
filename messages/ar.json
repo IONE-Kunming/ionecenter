@@ -779,7 +779,9 @@
     "noCategoriesFoundDesc": "حاول تعديل معايير البحث.",
     "pinSubcategory": "تثبيت",
     "unpinSubcategory": "إلغاء التثبيت",
-    "dropHereToPinSubcategory": "اسحب الفئة الفرعية هنا لتثبيتها"
+    "dropHereToPinSubcategory": "اسحب الفئة الفرعية هنا لتثبيتها",
+    "sellerActive": "تم تعيين بائع",
+    "sellerInactive": "لم يتم تعيين بائع"
   },
   "categoryNames": {
     "construction": "البناء",
