@@ -1,6 +1,8 @@
 import { listAdminGalleryFolders, getAllSiteCategories } from "@/lib/actions/admin-gallery"
 import { AdminGallery } from "./admin-gallery"
 
+export const dynamic = "force-dynamic"
+
 export default async function AdminGalleryPage() {
   let folders: Awaited<ReturnType<typeof listAdminGalleryFolders>> = []
   let categories: Awaited<ReturnType<typeof getAllSiteCategories>> = []

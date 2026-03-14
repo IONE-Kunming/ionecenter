@@ -33,6 +33,16 @@ async function requireAdmin() {
   return user
 }
 
+/** Sanitise a user-supplied file name so it is safe for storage paths. */
+function sanitizeFileName(name: string): string {
+  return name
+    .replace(/\s+/g, "-")            // spaces → hyphens
+    .replace(/[^a-zA-Z0-9._-]/g, "") // strip anything unsafe
+    .replace(/-{2,}/g, "-")           // collapse consecutive hyphens
+    .replace(/^[.-]+/, "")            // strip leading dots/hyphens (prevent path traversal)
+    .toLowerCase()
+}
+
 /* ── Folder CRUD ─────────────────────────────────────────────────── */
 
 export async function listAdminGalleryFolders(): Promise<AdminGalleryFolder[]> {
@@ -146,9 +156,12 @@ export async function listFolderImages(
   await requireAdmin()
   const supabase = createAdminClient()
 
+  // Normalise: strip any accidental trailing slashes
+  const normPath = folderPath.replace(/\/+$/, "")
+
   const { data, error } = await supabase.storage
     .from(GALLERY_BUCKET)
-    .list(folderPath, { limit: 500, sortBy: { column: "name", order: "asc" } })
+    .list(normPath, { limit: 500, sortBy: { column: "name", order: "asc" } })
   if (error) return { images: [], error: error.message }
 
   const images: AdminGalleryImage[] = []
@@ -157,7 +170,7 @@ export async function listFolderImages(
     const ext = item.name.split(".").pop()?.toLowerCase() ?? ""
     if (!["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "avif"].includes(ext)) continue
 
-    const storagePath = `${folderPath}/${item.name}`
+    const storagePath = `${normPath}/${item.name}`
     const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(storagePath)
     images.push({
       name: item.name,
@@ -180,18 +193,20 @@ export async function uploadImageToFolder(
   if (!file.type.startsWith("image/")) return { error: "Only images are allowed" }
 
   const supabase = createAdminClient()
-  const storagePath = `${folderPath}/${Date.now()}-${file.name}`
+  const safeName = sanitizeFileName(file.name)
+  if (!safeName) return { error: "Invalid file name" }
+  const storagePath = `${folderPath}/${Date.now()}-${safeName}`
 
   const { data, error } = await supabase.storage
     .from(GALLERY_BUCKET)
     .upload(storagePath, file, { contentType: file.type })
   if (error || !data) return { error: error?.message ?? "Upload failed" }
 
-  const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(data.path)
+  const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(storagePath)
   return {
     image: {
-      name: data.path.split("/").pop() ?? file.name,
-      fullPath: data.path,
+      name: storagePath.split("/").pop() ?? safeName,
+      fullPath: storagePath,
       publicUrl: urlData.publicUrl,
       size: file.size,
       createdAt: new Date().toISOString(),
@@ -245,8 +260,8 @@ export async function renameAdminGalleryImage(
   newName: string
 ): Promise<{ image?: AdminGalleryImage; error?: string }> {
   await requireAdmin()
-  const cleanName = newName.trim()
-  if (!cleanName) return { error: "Invalid file name" }
+  const safeName = sanitizeFileName(newName.trim())
+  if (!safeName) return { error: "Invalid file name" }
 
   const supabase = createAdminClient()
 
@@ -260,7 +275,7 @@ export async function renameAdminGalleryImage(
   const pathParts = fullPath.split("/")
   pathParts.pop() // remove old filename
   const folderPath = pathParts.join("/")
-  const newFileName = `${Date.now()}-${cleanName}`
+  const newFileName = `${Date.now()}-${safeName}`
   const newStoragePath = `${folderPath}/${newFileName}`
 
   // Upload with new name
