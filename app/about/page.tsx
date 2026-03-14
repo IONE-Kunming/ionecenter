@@ -465,6 +465,39 @@ export default async function AboutPage() {
       </section>
       )}
 
+      {/* ===== TESTIMONIALS ===== */}
+      <section id="testimonials" className="py-24 md:py-32">
+        <div className="max-w-[1320px] mx-auto px-6">
+          <div className="text-center mb-16 fade-in-up">
+            <p className="text-[14px] uppercase tracking-[3px] text-muted-foreground mb-4">
+              {statsT("activeUsers")}
+            </p>
+            <h2 className="text-[36px] md:text-[50px] leading-[1.2]">
+              {ctaT("testimonialsHeading")}
+            </h2>
+          </div>
+          <div className="horizontal-scroll">
+            <div className="horizontal-scroll-track">
+              {[...testimonials, ...testimonials].map((t, i) => (
+                <div key={`testimonial-${i}`} className="testimonial-card min-w-[320px] md:min-w-[420px] max-w-[480px]">
+                  <div className="text-primary text-4xl mb-4">&ldquo;</div>
+                  <p className="leading-relaxed text-lg mb-8">{t.quote}</p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+                      {t.author.split(" ").filter(n => n.length > 0).map(n => n[0]).join("")}
+                    </div>
+                    <div>
+                      <p className="font-medium">{t.author}</p>
+                      <p className="text-muted-foreground text-sm">{t.company}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ===== PORTFOLIO / PRODUCTS SECTION ===== */}
       <section id="portfolio" className="py-24 md:py-32">
         <div className="max-w-[1320px] mx-auto px-6">
@@ -514,39 +547,6 @@ export default async function AboutPage() {
               <Link href="/" className="inline-flex items-center gap-2 text-base uppercase tracking-wider text-primary hover:gap-3 transition-all">
                 {ctaT("exploreProducts")} <ArrowRight className="h-4 w-4" />
               </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== TESTIMONIALS ===== */}
-      <section id="testimonials" className="py-24 md:py-32">
-        <div className="max-w-[1320px] mx-auto px-6">
-          <div className="text-center mb-16 fade-in-up">
-            <p className="text-[14px] uppercase tracking-[3px] text-muted-foreground mb-4">
-              {statsT("activeUsers")}
-            </p>
-            <h2 className="text-[36px] md:text-[50px] leading-[1.2]">
-              {ctaT("testimonialsHeading")}
-            </h2>
-          </div>
-          <div className="horizontal-scroll">
-            <div className="horizontal-scroll-track">
-              {[...testimonials, ...testimonials].map((t, i) => (
-                <div key={`testimonial-${i}`} className="testimonial-card min-w-[320px] md:min-w-[420px] max-w-[480px]">
-                  <div className="text-primary text-4xl mb-4">&ldquo;</div>
-                  <p className="leading-relaxed text-lg mb-8">{t.quote}</p>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
-                      {t.author.split(" ").filter(n => n.length > 0).map(n => n[0]).join("")}
-                    </div>
-                    <div>
-                      <p className="font-medium">{t.author}</p>
-                      <p className="text-muted-foreground text-sm">{t.company}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
