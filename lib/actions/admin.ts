@@ -357,8 +357,8 @@ export interface SellerWithDetails {
   company: string | null
   user_code: string | null
   created_at: string
-  categories: string[]
-  assignedCategoryIds: string[]
+  main_category: string | null
+  subcategories: string[]
   buyers: { id: string; display_name: string }[]
 }
 
@@ -379,21 +379,18 @@ export async function getSellersWithDetails(): Promise<SellerWithDetails[]> {
 
   const sellerIds = sellers.map((s) => s.id)
 
-  // Get assigned categories from seller_categories table
+  // Get assigned categories from seller_categories table (new schema: one row per seller)
   const { data: sellerCatRows } = await supabase
     .from("seller_categories")
-    .select("seller_id, category_id")
+    .select("seller_id, main_category, subcategories")
     .in("seller_id", sellerIds)
 
-  // Get all site categories to resolve names
-  const { data: allSiteCats } = await supabase
-    .from("site_categories")
-    .select("id, name, parent_id")
-    .order("sort_order", { ascending: true })
-
-  const siteCatMap: Record<string, { name: string; parent_id: string | null }> = {}
-  for (const c of allSiteCats ?? []) {
-    siteCatMap[c.id] = { name: c.name, parent_id: c.parent_id }
+  const sellerCatMap: Record<string, { main_category: string; subcategories: string[] }> = {}
+  for (const row of sellerCatRows ?? []) {
+    sellerCatMap[row.seller_id] = {
+      main_category: row.main_category,
+      subcategories: row.subcategories ?? [],
+    }
   }
 
   // Get unique buyers from orders for each seller
@@ -421,29 +418,15 @@ export async function getSellersWithDetails(): Promise<SellerWithDetails[]> {
     }
   }
 
-  // Build per-seller data
-  const sellerAssignedCatIds: Record<string, Set<string>> = {}
+  // Build per-seller buyer data
   const sellerBuyers: Record<string, Set<string>> = {}
-
-  for (const row of sellerCatRows ?? []) {
-    if (!sellerAssignedCatIds[row.seller_id]) sellerAssignedCatIds[row.seller_id] = new Set()
-    sellerAssignedCatIds[row.seller_id].add(row.category_id)
-  }
-
   for (const o of orders ?? []) {
     if (!sellerBuyers[o.seller_id]) sellerBuyers[o.seller_id] = new Set()
     if (o.buyer_id) sellerBuyers[o.seller_id].add(o.buyer_id)
   }
 
   return sellers.map((s) => {
-    const assignedIds = Array.from(sellerAssignedCatIds[s.id] ?? [])
-    // Build display category names from assigned category IDs
-    const categoryNames: string[] = []
-    for (const catId of assignedIds) {
-      const cat = siteCatMap[catId]
-      if (cat) categoryNames.push(cat.name)
-    }
-
+    const catData = sellerCatMap[s.id]
     return {
       id: s.id,
       display_name: s.display_name,
@@ -452,8 +435,8 @@ export async function getSellersWithDetails(): Promise<SellerWithDetails[]> {
       company: s.company,
       user_code: s.user_code,
       created_at: s.created_at,
-      categories: categoryNames,
-      assignedCategoryIds: assignedIds,
+      main_category: catData?.main_category ?? null,
+      subcategories: catData?.subcategories ?? [],
       buyers: Array.from(sellerBuyers[s.id] ?? [])
         .map((buyerId) => buyerMap[buyerId])
         .filter(Boolean),
@@ -463,44 +446,36 @@ export async function getSellersWithDetails(): Promise<SellerWithDetails[]> {
 
 // ─── Seller Category Management ─────────────────────────────────────────────
 
-export async function getSellerCategoryIds(sellerId: string): Promise<string[]> {
-  const user = await getCurrentUser()
-  if (!user || user.role !== "admin") return []
-
-  const supabase = createAdminClient()
-  const { data } = await supabase
-    .from("seller_categories")
-    .select("category_id")
-    .eq("seller_id", sellerId)
-
-  return (data ?? []).map((r) => r.category_id)
-}
-
-export async function updateSellerCategories(sellerId: string, categoryIds: string[]) {
+export async function adminDeleteProductsByCategory(
+  sellerId: string,
+  mainCategory: string | null,
+  subcategories: string[]
+) {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return { error: "Not authorized" }
 
   const supabase = createAdminClient()
 
-  // Delete existing assignments
-  const { error: deleteError } = await supabase
-    .from("seller_categories")
-    .delete()
-    .eq("seller_id", sellerId)
+  // Delete products matching removed main category
+  if (mainCategory) {
+    const { error } = await supabase
+      .from("products")
+      .delete()
+      .eq("seller_id", sellerId)
+      .eq("main_category", mainCategory)
 
-  if (deleteError) return { error: "Failed to clear existing category assignments: " + deleteError.message }
+    if (error) return { error: "Failed to delete products for main category: " + error.message }
+  }
 
-  // Insert new assignments
-  if (categoryIds.length > 0) {
-    const rows = categoryIds.map((categoryId) => ({
-      seller_id: sellerId,
-      category_id: categoryId,
-    }))
-    const { error: insertError } = await supabase
-      .from("seller_categories")
-      .insert(rows)
+  // Delete products matching removed subcategories
+  if (subcategories.length > 0) {
+    const { error } = await supabase
+      .from("products")
+      .delete()
+      .eq("seller_id", sellerId)
+      .in("category", subcategories)
 
-    if (insertError) return { error: "Failed to save category assignments: " + insertError.message }
+    if (error) return { error: "Failed to delete products for subcategories: " + error.message }
   }
 
   return { success: true }
