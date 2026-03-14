@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
-import NextImage from "next/image"
+/* eslint-disable @next/next/no-img-element */
 import { useTranslations } from "next-intl"
 import {
   FolderTree, Plus, Pencil, Trash2, GripVertical,
@@ -302,13 +302,12 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
 
           {/* Category image */}
           {cat.image_url ? (
-            <NextImage
+            <img
               src={cat.image_url}
               alt={cat.name}
               width={48}
               height={48}
               className="h-12 w-12 rounded-md object-cover border border-border shrink-0"
-              unoptimized
             />
           ) : (
             <div className="h-12 w-12 rounded-md bg-muted flex items-center justify-center border border-border shrink-0">
