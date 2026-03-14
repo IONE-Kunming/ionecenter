@@ -488,7 +488,7 @@ export async function updateSellerCategories(sellerId: string, categoryIds: stri
     .delete()
     .eq("seller_id", sellerId)
 
-  if (deleteError) return { error: deleteError.message }
+  if (deleteError) return { error: "Failed to clear existing category assignments: " + deleteError.message }
 
   // Insert new assignments
   if (categoryIds.length > 0) {
@@ -500,7 +500,7 @@ export async function updateSellerCategories(sellerId: string, categoryIds: stri
       .from("seller_categories")
       .insert(rows)
 
-    if (insertError) return { error: insertError.message }
+    if (insertError) return { error: "Failed to save category assignments: " + insertError.message }
   }
 
   return { success: true }
