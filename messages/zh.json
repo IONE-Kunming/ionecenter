@@ -428,7 +428,15 @@
     "yourSellerCode": "您的卖家代码",
     "copyCode": "复制代码",
     "showCategoryNumbers": "显示类别编号",
-    "catalogPreferences": "目录偏好"
+    "catalogPreferences": "目录偏好",
+    "myBuyers": "我的买家",
+    "searchBuyers": "按名称、代码或邮箱搜索...",
+    "buyerName": "名称",
+    "buyerCode": "代码",
+    "buyerEmail": "邮箱",
+    "ordersCount": "订单数",
+    "noBuyersFound": "未找到买家",
+    "noBuyersYet": "暂无买家"
   },
   "sellerDirectory": {
     "searchSellers": "搜索卖家...",

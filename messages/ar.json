@@ -429,7 +429,15 @@
     "yourSellerCode": "رمز البائع الخاص بك",
     "copyCode": "نسخ الرمز",
     "showCategoryNumbers": "إظهار أرقام الفئات",
-    "catalogPreferences": "تفضيلات الكتالوج"
+    "catalogPreferences": "تفضيلات الكتالوج",
+    "myBuyers": "المشترون",
+    "searchBuyers": "البحث بالاسم أو الرمز أو البريد الإلكتروني...",
+    "buyerName": "الاسم",
+    "buyerCode": "الرمز",
+    "buyerEmail": "البريد الإلكتروني",
+    "ordersCount": "الطلبات",
+    "noBuyersFound": "لم يتم العثور على مشترين",
+    "noBuyersYet": "لا يوجد مشترون بعد"
   },
   "sellerDirectory": {
     "searchSellers": "البحث عن البائعين...",

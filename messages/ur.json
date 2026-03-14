@@ -428,7 +428,15 @@
     "yourSellerCode": "آپ کا بیچنے والے کا کوڈ",
     "copyCode": "کوڈ کاپی کریں",
     "showCategoryNumbers": "زمرے کے نمبر دکھائیں",
-    "catalogPreferences": "کیٹلاگ کی ترجیحات"
+    "catalogPreferences": "کیٹلاگ کی ترجیحات",
+    "myBuyers": "میرے خریدار",
+    "searchBuyers": "نام، کوڈ یا ای میل سے تلاش کریں...",
+    "buyerName": "نام",
+    "buyerCode": "کوڈ",
+    "buyerEmail": "ای میل",
+    "ordersCount": "آرڈرز",
+    "noBuyersFound": "کوئی خریدار نہیں ملا",
+    "noBuyersYet": "ابھی تک کوئی خریدار نہیں"
   },
   "sellerDirectory": {
     "searchSellers": "فروخت کنندگان تلاش کریں...",

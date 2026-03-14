@@ -1,15 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/select"
-import { Copy, Check } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
+import { Copy, Check, Users, Search, Mail, Hash, ShoppingCart } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { updateUserProfile } from "@/lib/actions/users"
+import { getSellerBuyers, type SellerBuyer } from "@/lib/actions/orders"
 import type { User } from "@/types/database"
 
 export default function SellerProfileForm({ user, sellerCode }: { user: User; sellerCode: string | null }) {
@@ -18,6 +20,31 @@ export default function SellerProfileForm({ user, sellerCode }: { user: User; se
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [copied, setCopied] = useState(false)
+  const [showBuyers, setShowBuyers] = useState(false)
+  const [buyers, setBuyers] = useState<SellerBuyer[]>([])
+  const [buyersLoading, setBuyersLoading] = useState(false)
+  const [buyerSearch, setBuyerSearch] = useState("")
+
+  useEffect(() => {
+    if (showBuyers && buyers.length === 0) {
+      setBuyersLoading(true)
+      getSellerBuyers().then((data) => {
+        setBuyers(data)
+        setBuyersLoading(false)
+      })
+    }
+  }, [showBuyers, buyers.length])
+
+  const filteredBuyers = useMemo(() => {
+    if (!buyerSearch.trim()) return buyers
+    const q = buyerSearch.toLowerCase()
+    return buyers.filter(
+      (b) =>
+        b.display_name.toLowerCase().includes(q) ||
+        (b.user_code && b.user_code.toLowerCase().includes(q)) ||
+        b.email.toLowerCase().includes(q)
+    )
+  }, [buyers, buyerSearch])
 
   const handleCopyCode = async () => {
     if (!sellerCode) return
@@ -88,10 +115,63 @@ export default function SellerProfileForm({ user, sellerCode }: { user: User; se
               <Button variant="outline" size="icon" onClick={handleCopyCode} title={t("copyCode")}>
                 {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
               </Button>
+              <Button variant="outline" onClick={() => setShowBuyers(true)}>
+                <Users className="h-4 w-4 mr-2" />
+                {t("myBuyers")}
+              </Button>
             </div>
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={showBuyers} onOpenChange={setShowBuyers}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogClose onClick={() => setShowBuyers(false)} />
+          <DialogHeader>
+            <DialogTitle>{t("myBuyers")}</DialogTitle>
+          </DialogHeader>
+          <div className="relative mt-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={buyerSearch}
+              onChange={(e) => setBuyerSearch(e.target.value)}
+              placeholder={t("searchBuyers")}
+              className="pl-9"
+            />
+          </div>
+          <div className="mt-3 max-h-80 overflow-y-auto space-y-2">
+            {buyersLoading ? (
+              <p className="text-sm text-muted-foreground text-center py-6">{tCommon("loading")}</p>
+            ) : filteredBuyers.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">
+                {buyers.length === 0 ? t("noBuyersYet") : t("noBuyersFound")}
+              </p>
+            ) : (
+              filteredBuyers.map((b) => (
+                <div key={b.buyer_id} className="rounded-lg border p-3 space-y-1">
+                  <p className="font-medium">{b.display_name}</p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                    {b.user_code && (
+                      <span className="inline-flex items-center gap-1">
+                        <Hash className="h-3 w-3" />
+                        {b.user_code}
+                      </span>
+                    )}
+                    <span className="inline-flex items-center gap-1">
+                      <Mail className="h-3 w-3" />
+                      {b.email}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <ShoppingCart className="h-3 w-3" />
+                      {b.order_count} {t("ordersCount")}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader><CardTitle>{t("personalInfo")}</CardTitle></CardHeader>
