@@ -135,7 +135,7 @@ export function AdminSellersList({ sellers }: { sellers: SellerWithDetails[] }) 
     }
   }
 
-  // Column count for the buyers sub-row
+  // Total number of columns in the table (must match TableHead count below)
   const columnCount = 10
 
   return (
