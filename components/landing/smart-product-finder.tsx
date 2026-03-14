@@ -1,23 +1,17 @@
 "use client"
 
-import { useState, useMemo, useTransition, useEffect, useCallback } from "react"
+import { useState, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
-import Link from "@/components/ui/link"
 import Image from "next/image"
 import {
-  Package, Search, ShoppingCart, Check, Loader2, X, ArrowRight, ChevronLeft, MapPin,
+  Package, Search, X, ArrowRight, ChevronLeft, MapPin,
 } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog"
-import { EmptyState } from "@/components/ui/empty-state"
-import { formatDualPrice } from "@/lib/utils"
-import { useExchangeRate } from "@/lib/use-exchange-rate"
-import { addToCart } from "@/lib/actions/cart"
 import type { CategoryData } from "@/lib/categories"
 import { toCategoryKey } from "@/lib/categories"
 import type { PricingType } from "@/types/database"
@@ -50,15 +44,10 @@ export interface SmartProductFinderProps {
 export function SmartProductFinder({
   products,
   categoryData,
-  isLoggedIn,
-  userRole,
 }: SmartProductFinderProps) {
   const t = useTranslations("productFinder")
-  const tNav = useTranslations("nav")
-  const tCommon = useTranslations("common")
-  const tCart = useTranslations("cart")
   const tCatNames = useTranslations("categoryNames")
-  const { rate } = useExchangeRate()
+  const router = useRouter()
 
   /* ── Wizard state ── */
   const [wizardOpen, setWizardOpen] = useState(false)
@@ -67,15 +56,6 @@ export function SmartProductFinder({
   const [selectedType, setSelectedType] = useState("")
   const [region, setRegion] = useState("")
 
-  /* ── Results state ── */
-  const [showResults, setShowResults] = useState(false)
-
-  /* ── Cart / sign-in state ── */
-  const [, startTransition] = useTransition()
-  const [addingIds, setAddingIds] = useState<Set<string>>(new Set())
-  const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
-  const [showSignInDialog, setShowSignInDialog] = useState(false)
-
   /* ── Helpers ── */
   const translateCat = (name: string): string => {
     const key = toCategoryKey(name)
@@ -83,53 +63,6 @@ export function SmartProductFinder({
     const translated = (tCatNames as any)(key)
     return typeof translated === "string" && translated !== key ? translated : name
   }
-
-  /* ── Perform add-to-cart (extracted for reuse by auto-trigger) ── */
-  const performAddToCart = useCallback((productId: string) => {
-    setAddingIds((prev) => {
-      if (prev.has(productId)) return prev
-      const next = new Set(prev)
-      next.add(productId)
-      return next
-    })
-    startTransition(async () => {
-      try {
-        const result = await addToCart(productId, 1)
-        if (!result.error) {
-          setAddedIds((prev) => new Set(prev).add(productId))
-          setTimeout(() => {
-            setAddedIds((prev) => {
-              const next = new Set(prev)
-              next.delete(productId)
-              return next
-            })
-          }, 2000)
-        }
-      } finally {
-        setAddingIds((prev) => {
-          const next = new Set(prev)
-          next.delete(productId)
-          return next
-        })
-      }
-    })
-  }, [startTransition])
-
-  /* ── Auto-trigger pending action after login ── */
-  useEffect(() => {
-    if (!isLoggedIn || userRole !== "buyer") return
-    try {
-      const raw = localStorage.getItem("smartFinderPendingAction")
-      if (!raw) return
-      const saved = JSON.parse(raw) as { productId: string; action: string }
-      localStorage.removeItem("smartFinderPendingAction")
-      if (saved.action === "addToCart" && saved.productId) {
-        performAddToCart(saved.productId)
-      }
-    } catch {
-      // ignore parse errors
-    }
-  }, [isLoggedIn, userRole, performAddToCart])
 
   const subcategories = useMemo(
     () => (selectedField ? categoryData.categoryMap[selectedField] ?? [] : []),
@@ -155,45 +88,16 @@ export function SmartProductFinder({
 
   const openWizard = () => {
     resetWizard()
-    setShowResults(false)
     setWizardOpen(true)
   }
 
   const handleFindProducts = () => {
     setWizardOpen(false)
-    setShowResults(true)
-  }
-
-  const handleTryAgain = () => {
-    setShowResults(false)
-    openWizard()
-  }
-
-  const handleCloseResults = () => {
-    setShowResults(false)
-  }
-
-  /* ── Cart actions ── */
-  const handleAddToCart = (productId: string) => {
-    if (!isLoggedIn || userRole !== "buyer") {
-      try {
-        localStorage.setItem("smartFinderPendingAction", JSON.stringify({ productId, action: "addToCart" }))
-      } catch {
-        // localStorage may be unavailable
-      }
-      setShowSignInDialog(true)
-      return
-    }
-    performAddToCart(productId)
-  }
-
-  /* Build sign-in redirect URL — return to /about so auto-trigger can fire */
-  const getSignInUrl = () => {
-    return `/sign-in?redirect_url=${encodeURIComponent("/about")}`
-  }
-
-  const getSignUpUrl = () => {
-    return `/sign-up?redirect_url=${encodeURIComponent("/about")}`
+    const params = new URLSearchParams()
+    if (selectedField) params.set("category", selectedField)
+    if (selectedType) params.set("subcategory", selectedType)
+    if (region) params.set("region", region)
+    router.push(`/guest/finder-results?${params.toString()}`)
   }
 
   /* ── Wizard step content ── */
@@ -400,119 +304,6 @@ export function SmartProductFinder({
                 <Search className="h-4 w-4" /> {t("findProducts")}
               </Button>
             )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ===== RESULTS SECTION ===== */}
-      {showResults && (
-        <section className="py-12 md:py-16 border-b bg-background">
-          <div className="max-w-[1320px] mx-auto px-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold">{t("matchingResults")}</h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {t("matchingResultsDesc", { count: String(matchingProducts.length) })}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={handleTryAgain}>
-                  {t("tryAgain")}
-                </Button>
-                <Button variant="ghost" size="sm" onClick={handleCloseResults}>
-                  {t("closeResults")}
-                </Button>
-              </div>
-            </div>
-
-            {matchingProducts.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                {matchingProducts.map((product) => (
-                  <Card key={product.id} className="group hover:shadow-md transition-all">
-                    <CardContent className="p-0">
-                      <Link href={isLoggedIn && userRole === "buyer" ? `/buyer/product/${product.id}` : `/product/${product.id}`}>
-                        <div className="aspect-square relative bg-card rounded-t-xl flex items-center justify-center overflow-hidden">
-                          {product.image_url ? (
-                            <Image
-                              src={product.image_url}
-                              alt={product.name}
-                              fill
-                              className="object-contain"
-                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-                            />
-                          ) : (
-                            <Package className="h-10 w-10 text-muted-foreground/30" />
-                          )}
-                        </div>
-                      </Link>
-                      <div className="p-3">
-                        <Badge variant="secondary" className="text-xs mb-1">{product.category}</Badge>
-                        <Link href={isLoggedIn && userRole === "buyer" ? `/buyer/product/${product.id}` : `/product/${product.id}`}>
-                          <h3 className="font-semibold text-sm line-clamp-1 hover:underline">{product.name}</h3>
-                        </Link>
-                        <p className="text-xs text-muted-foreground mt-0.5">{product.model_number}</p>
-                        <p className="font-bold text-primary text-sm mt-2">
-                          {formatDualPrice(product.price_per_meter, product.price_cny ?? null, product.pricing_type ?? "standard", rate)}
-                        </p>
-                        {product.seller_name && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {t("seller")}: {product.seller_name}
-                          </p>
-                        )}
-                        <Button
-                          size="sm"
-                          variant={addedIds.has(product.id) ? "default" : "outline"}
-                          className="w-full mt-2 text-xs h-8"
-                          onClick={() => handleAddToCart(product.id)}
-                          disabled={addingIds.has(product.id) || product.stock <= 0}
-                        >
-                          {addingIds.has(product.id) ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : product.stock <= 0 ? (
-                            tCart("outOfStock")
-                          ) : addedIds.has(product.id) ? (
-                            <><Check className="h-3 w-3 mr-1" />{tCart("addedToCart")}</>
-                          ) : (
-                            <><ShoppingCart className="h-3 w-3 mr-1" />{tCart("addToCart")}</>
-                          )}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                icon={Package}
-                title={t("noMatchingProducts")}
-                description={t("noMatchingProductsDesc")}
-              />
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* ===== SIGN-IN DIALOG ===== */}
-      <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("signInToContinue")}</DialogTitle>
-            <DialogDescription>{t("signInToContinueDesc")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setShowSignInDialog(false)}>
-              {tCommon("cancel")}
-            </Button>
-            <Link href={getSignInUrl()}>
-              <Button variant="outline" className="w-full sm:w-auto">
-                {tNav("logIn")}
-              </Button>
-            </Link>
-            <Link href={getSignUpUrl()}>
-              <Button className="w-full sm:w-auto">
-                {tNav("signUpFree")}
-              </Button>
-            </Link>
           </DialogFooter>
         </DialogContent>
       </Dialog>
