@@ -162,7 +162,8 @@
     "exportDocuments": "برآمدی دستاویزات",
     "contracts": "معاہدے",
     "packingList": "پیکنگ لسٹ",
-    "productImages": "پروڈکٹ تصاویر"
+    "productImages": "پروڈکٹ تصاویر",
+    "buyers": "خریدار"
   },
   "common": {
     "search": "تلاش...",
@@ -721,7 +722,10 @@
     "orders": "آرڈرز",
     "location": "مقام",
     "joined": "شامل ہوئے",
-    "noSellers": "کوئی فروخت کنندہ نہیں ملا"
+    "noSellers": "کوئی فروخت کنندہ نہیں ملا",
+    "role": "کردار",
+    "category": "زمرہ",
+    "buyersListTitle": "اس فروخت کنندہ سے خریداری کرنے والے خریدار"
   },
   "adminProducts": {
     "seller": "فروخت کنندہ",

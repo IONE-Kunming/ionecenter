@@ -332,3 +332,108 @@ export async function adminDeleteUser(userId: string) {
   if (error) return { error: error.message }
   return { success: true }
 }
+
+// ─── Buyers & Sellers Split ─────────────────────────────────────────────────
+
+export async function getAllBuyers(): Promise<User[]> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return []
+
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from("users")
+    .select("*")
+    .eq("role", "buyer")
+    .order("created_at", { ascending: false })
+
+  return data ?? []
+}
+
+export interface SellerWithDetails {
+  id: string
+  display_name: string
+  email: string
+  role: "seller"
+  company: string | null
+  user_code: string | null
+  created_at: string
+  categories: string[]
+  buyers: { id: string; display_name: string }[]
+}
+
+export async function getSellersWithDetails(): Promise<SellerWithDetails[]> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return []
+
+  const supabase = createAdminClient()
+
+  // Get all sellers
+  const { data: sellers } = await supabase
+    .from("users")
+    .select("*")
+    .eq("role", "seller")
+    .order("created_at", { ascending: false })
+
+  if (!sellers || sellers.length === 0) return []
+
+  const sellerIds = sellers.map((s) => s.id)
+
+  // Get categories from products for each seller
+  const { data: products } = await supabase
+    .from("products")
+    .select("seller_id, category")
+    .in("seller_id", sellerIds)
+
+  // Get unique buyers from orders for each seller
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("seller_id, buyer_id")
+    .in("seller_id", sellerIds)
+
+  // Collect unique buyer IDs
+  const allBuyerIds = new Set<string>()
+  for (const o of orders ?? []) {
+    if (o.buyer_id) allBuyerIds.add(o.buyer_id)
+  }
+
+  // Fetch buyer details
+  const buyerMap: Record<string, { id: string; display_name: string }> = {}
+  if (allBuyerIds.size > 0) {
+    const { data: buyers } = await supabase
+      .from("users")
+      .select("id, display_name")
+      .in("id", Array.from(allBuyerIds))
+
+    for (const b of buyers ?? []) {
+      buyerMap[b.id] = { id: b.id, display_name: b.display_name }
+    }
+  }
+
+  // Build per-seller data
+  const sellerCategories: Record<string, Set<string>> = {}
+  const sellerBuyers: Record<string, Set<string>> = {}
+
+  for (const p of products ?? []) {
+    if (!sellerCategories[p.seller_id]) sellerCategories[p.seller_id] = new Set()
+    if (p.category) sellerCategories[p.seller_id].add(p.category)
+  }
+
+  for (const o of orders ?? []) {
+    if (!sellerBuyers[o.seller_id]) sellerBuyers[o.seller_id] = new Set()
+    if (o.buyer_id) sellerBuyers[o.seller_id].add(o.buyer_id)
+  }
+
+  return sellers.map((s) => ({
+    id: s.id,
+    display_name: s.display_name,
+    email: s.email,
+    role: "seller" as const,
+    company: s.company,
+    user_code: s.user_code,
+    created_at: s.created_at,
+    categories: Array.from(sellerCategories[s.id] ?? []),
+    buyers: Array.from(sellerBuyers[s.id] ?? [])
+      .map((buyerId) => buyerMap[buyerId])
+      .filter(Boolean),
+  }))
+}

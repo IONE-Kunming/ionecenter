@@ -120,7 +120,15 @@ function getNavItems(role: UserRole, t: TranslationFn): NavItem[] {
   // Admin
   return [
     { label: t("dashboard"), href: "/admin/dashboard", icon: LayoutDashboard },
-    { label: t("users"), href: "/admin/users", icon: Users },
+    {
+      label: t("users"),
+      href: "/admin/buyers",
+      icon: Users,
+      children: [
+        { label: t("buyers"), href: "/admin/buyers", icon: ShoppingCart },
+        { label: t("sellers"), href: "/admin/sellers", icon: Store },
+      ],
+    },
     { label: t("products"), href: "/admin/products", icon: Package },
     { label: t("bulkEdit"), href: "/admin/bulk-edit", icon: Pencil },
     { label: t("categories"), href: "/admin/categories", icon: FolderTree },
@@ -173,6 +181,10 @@ export function Sidebar({ role }: SidebarProps) {
     if (pathname.includes("/gallery")) {
       const galleryLabel = t("gallery")
       setExpandedItems((prev) => (prev.includes(galleryLabel) ? prev : [...prev, galleryLabel]))
+    }
+    if (pathname.includes("/admin/buyers") || pathname.includes("/admin/sellers")) {
+      const usersLabel = t("users")
+      setExpandedItems((prev) => (prev.includes(usersLabel) ? prev : [...prev, usersLabel]))
     }
   }, [pathname, t])
 
