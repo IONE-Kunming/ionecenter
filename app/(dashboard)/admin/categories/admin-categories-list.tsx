@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 /* eslint-disable @next/next/no-img-element */
 import { useTranslations } from "next-intl"
 import {
@@ -44,6 +44,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [videoDialogOpen, setVideoDialogOpen] = useState(false)
+  const [previewImage, setPreviewImage] = useState<{ url: string; name: string } | null>(null)
 
   // Form states
   const [formName, setFormName] = useState("")
@@ -317,7 +318,16 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
               alt={cat.name}
               width={48}
               height={48}
-              className="h-12 w-12 rounded-md object-cover border border-border shrink-0"
+              className="h-12 w-12 rounded-md object-cover border border-border shrink-0 cursor-pointer"
+              role="button"
+              tabIndex={0}
+              onClick={() => setPreviewImage({ url: cat.image_url!, name: cat.name })}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  setPreviewImage({ url: cat.image_url!, name: cat.name })
+                }
+              }}
             />
           ) : (
             <div className="h-12 w-12 rounded-md bg-muted flex items-center justify-center border border-border shrink-0">
@@ -675,6 +685,52 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ─── Image Preview Lightbox ───────────────────── */}
+      {previewImage && (
+        <ImagePreviewLightbox
+          url={previewImage.url}
+          name={previewImage.name}
+          onClose={() => setPreviewImage(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+// ─── Image Preview Lightbox ────────────────────────────────
+
+function ImagePreviewLightbox({ url, name, onClose }: { url: string; name: string; onClose: () => void }) {
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose()
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [onClose])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-label={name}>
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-black/70" onClick={onClose} />
+
+      {/* Close button */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 z-50 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+        aria-label="Close"
+      >
+        <X className="h-6 w-6" />
+      </button>
+
+      {/* Image */}
+      <div className="relative z-50 max-w-[90vw] max-h-[90vh]">
+        <img
+          src={url}
+          alt={name}
+          className="max-w-full max-h-[90vh] rounded-lg object-contain"
+        />
+      </div>
     </div>
   )
 }
