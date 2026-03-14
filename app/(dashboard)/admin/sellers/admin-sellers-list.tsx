@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Store, Search, Pencil, Trash2, Check, X, ChevronDown, ChevronRight } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -13,9 +14,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useFormatters } from "@/lib/use-formatters"
-import { adminUpdateUser, adminDeleteUser, adminUpdateUserCode } from "@/lib/actions/admin"
+import { adminUpdateUser, adminDeleteUser, adminUpdateUserCode, adminUpdateSellerCategories } from "@/lib/actions/admin"
 import type { SellerWithDetails } from "@/lib/actions/admin"
 import type { UserRole } from "@/types/database"
+import type { CategoryData } from "@/lib/categories"
 
 function roleBadgeVariant(role: UserRole) {
   if (role === "admin") return "destructive" as const
@@ -23,7 +25,7 @@ function roleBadgeVariant(role: UserRole) {
   return "default" as const
 }
 
-export function AdminSellersList({ sellers }: { sellers: SellerWithDetails[] }) {
+export function AdminSellersList({ sellers, categoryData }: { sellers: SellerWithDetails[]; categoryData: CategoryData }) {
   const t = useTranslations("adminSellers")
   const tCommon = useTranslations("common")
   const { formatDate } = useFormatters()
@@ -36,6 +38,8 @@ export function AdminSellersList({ sellers }: { sellers: SellerWithDetails[] }) 
   const [editEmail, setEditEmail] = useState("")
   const [editRole, setEditRole] = useState("")
   const [editCompany, setEditCompany] = useState("")
+  const [editMainCategory, setEditMainCategory] = useState<string | null>(null)
+  const [editSubcategories, setEditSubcategories] = useState<string[]>([])
   const [editSaving, setEditSaving] = useState(false)
 
   // Delete modal state
@@ -76,19 +80,26 @@ export function AdminSellersList({ sellers }: { sellers: SellerWithDetails[] }) 
     setEditEmail(seller.email)
     setEditRole(seller.role)
     setEditCompany(seller.company ?? "")
+    setEditMainCategory(seller.main_category ?? null)
+    setEditSubcategories(seller.subcategories ?? [])
   }
 
   const handleEditSave = async () => {
     if (!editUser) return
     setEditSaving(true)
-    const result = await adminUpdateUser(editUser.id, {
-      display_name: editName,
-      email: editEmail,
-      role: editRole,
-      company: editCompany,
-    })
+    const results = await Promise.all([
+      adminUpdateUser(editUser.id, {
+        display_name: editName,
+        email: editEmail,
+        role: editRole,
+        company: editCompany,
+      }),
+      editMainCategory
+        ? adminUpdateSellerCategories(editUser.id, editMainCategory, editSubcategories)
+        : Promise.resolve({ success: true }),
+    ])
     setEditSaving(false)
-    if (!result.error) {
+    if (!results[0].error && !("error" in results[1] && results[1].error)) {
       setEditUser(null)
       window.location.reload()
     }
@@ -235,7 +246,14 @@ export function AdminSellersList({ sellers }: { sellers: SellerWithDetails[] }) 
                       </TableCell>
                       <TableCell className="text-muted-foreground">{seller.company ?? "—"}</TableCell>
                       <TableCell>
-                        {seller.categories.length > 0 ? (
+                        {seller.main_category ? (
+                          <div className="text-sm">
+                            <div className="font-medium">• {seller.main_category}</div>
+                            {seller.subcategories.map((sub) => (
+                              <div key={sub} className="ml-3 text-muted-foreground text-xs">- {sub}</div>
+                            ))}
+                          </div>
+                        ) : seller.categories.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
                             {seller.categories.map((cat) => (
                               <Badge key={cat} variant="secondary" className="text-xs">
@@ -287,7 +305,7 @@ export function AdminSellersList({ sellers }: { sellers: SellerWithDetails[] }) 
       <Dialog open={!!editUser} onOpenChange={(v) => { if (!v) setEditUser(null) }}>
         <DialogContent>
           <DialogHeader><DialogTitle>Edit User</DialogTitle></DialogHeader>
-          <div className="space-y-4 mt-4">
+          <div className="space-y-4 mt-4 overflow-y-auto max-h-[calc(100vh-12rem)]">
             <div className="space-y-2">
               <Label>Name</Label>
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
@@ -311,6 +329,80 @@ export function AdminSellersList({ sellers }: { sellers: SellerWithDetails[] }) 
             <div className="space-y-2">
               <Label>Company</Label>
               <Input value={editCompany} onChange={(e) => setEditCompany(e.target.value)} />
+            </div>
+
+            {/* Categories Section */}
+            <div className="space-y-3 border-t pt-4">
+              <Label>Categories</Label>
+
+              {/* Step 1: Select main category */}
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Select one main category:</p>
+                <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto p-1">
+                  {categoryData.mainCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => {
+                        if (editMainCategory === cat) return
+                        setEditMainCategory(cat)
+                        setEditSubcategories([])
+                      }}
+                      className={cn(
+                        "px-3 py-1.5 text-sm rounded-md border transition-colors",
+                        editMainCategory === cat
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background hover:bg-muted border-input"
+                      )}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Step 2: Select subcategories */}
+              {editMainCategory && (categoryData.categoryMap[editMainCategory]?.length ?? 0) > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Select subcategories:</p>
+                  <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto p-1">
+                    {categoryData.categoryMap[editMainCategory].map((sub) => {
+                      const isSelected = editSubcategories.includes(sub)
+                      return (
+                        <button
+                          key={sub}
+                          type="button"
+                          onClick={() => {
+                            setEditSubcategories((prev) =>
+                              isSelected
+                                ? prev.filter((s) => s !== sub)
+                                : [...prev, sub]
+                            )
+                          }}
+                          className={cn(
+                            "px-3 py-1.5 text-sm rounded-md border transition-colors",
+                            isSelected
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-background hover:bg-muted border-input"
+                          )}
+                        >
+                          {sub}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Display selected */}
+              {editMainCategory && (
+                <div className="text-sm bg-muted/50 rounded-md p-3">
+                  <div className="font-medium">• {editMainCategory}</div>
+                  {editSubcategories.map((sub) => (
+                    <div key={sub} className="ml-4 text-muted-foreground">- {sub}</div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>

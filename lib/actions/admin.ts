@@ -358,6 +358,8 @@ export interface SellerWithDetails {
   user_code: string | null
   created_at: string
   categories: string[]
+  main_category: string | null
+  subcategories: string[]
   buyers: { id: string; display_name: string }[]
 }
 
@@ -383,6 +385,20 @@ export async function getSellersWithDetails(): Promise<SellerWithDetails[]> {
     .from("products")
     .select("seller_id, category")
     .in("seller_id", sellerIds)
+
+  // Get admin-assigned seller categories
+  const { data: sellerCats } = await supabase
+    .from("seller_categories")
+    .select("seller_id, main_category, subcategories")
+    .in("seller_id", sellerIds)
+
+  const sellerCatMap: Record<string, { main_category: string; subcategories: string[] }> = {}
+  for (const sc of sellerCats ?? []) {
+    sellerCatMap[sc.seller_id] = {
+      main_category: sc.main_category,
+      subcategories: sc.subcategories ?? [],
+    }
+  }
 
   // Get unique buyers from orders for each seller
   const { data: orders } = await supabase
@@ -431,9 +447,41 @@ export async function getSellersWithDetails(): Promise<SellerWithDetails[]> {
     company: s.company,
     user_code: s.user_code,
     created_at: s.created_at,
-    categories: Array.from(sellerCategories[s.id] ?? []),
+    categories: sellerCatMap[s.id]
+      ? [sellerCatMap[s.id].main_category, ...sellerCatMap[s.id].subcategories]
+      : Array.from(sellerCategories[s.id] ?? []),
+    main_category: sellerCatMap[s.id]?.main_category ?? null,
+    subcategories: sellerCatMap[s.id]?.subcategories ?? [],
     buyers: Array.from(sellerBuyers[s.id] ?? [])
       .map((buyerId) => buyerMap[buyerId])
       .filter(Boolean),
   }))
+}
+
+// ─── Admin Seller Categories ────────────────────────────────────────────────
+
+export async function adminUpdateSellerCategories(
+  sellerId: string,
+  mainCategory: string,
+  subcategories: string[]
+) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+  const supabase = createAdminClient()
+
+  const { error } = await supabase
+    .from("seller_categories")
+    .upsert(
+      {
+        seller_id: sellerId,
+        main_category: mainCategory,
+        subcategories,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "seller_id" }
+    )
+
+  if (error) return { error: error.message }
+  return { success: true }
 }
