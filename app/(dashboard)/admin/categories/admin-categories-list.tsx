@@ -131,6 +131,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
   async function handleDelete() {
     if (!selectedCategory) return
     setLoading(true)
+    const categoryName = selectedCategory.name
     const res = await deleteSiteCategory(selectedCategory.id)
     if (res.error) {
       showToast("error", res.error)
@@ -146,7 +147,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
           idsToEmpty.has(c.id) ? { ...c, name: "", image_url: null } : c
         )
       })
-      showToast("success", `Cleared "${selectedCategory.name}"`)
+      showToast("success", `Cleared "${categoryName}"`)
       setDeleteOpen(false)
     }
     setLoading(false)

@@ -236,13 +236,25 @@ export async function deleteSiteCategory(id: string) {
   const supabase = createAdminClient()
 
   // Collect all descendant IDs recursively
-  const { data: allCategories } = await supabase
+  const { data: allCategories, error: fetchError } = await supabase
     .from("site_categories")
     .select("id, parent_id")
 
+  if (fetchError) return { error: fetchError.message }
+
+  // Build a parent→children map for efficient traversal
+  const childrenMap = new Map<string, string[]>()
+  for (const c of allCategories ?? []) {
+    if (c.parent_id) {
+      const siblings = childrenMap.get(c.parent_id) ?? []
+      siblings.push(c.id)
+      childrenMap.set(c.parent_id, siblings)
+    }
+  }
+
   function getDescendantIds(parentId: string): string[] {
-    const children = (allCategories ?? []).filter((c: { id: string; parent_id: string | null }) => c.parent_id === parentId)
-    return children.flatMap((c: { id: string; parent_id: string | null }) => [c.id, ...getDescendantIds(c.id)])
+    const children = childrenMap.get(parentId) ?? []
+    return children.flatMap((cid) => [cid, ...getDescendantIds(cid)])
   }
 
   const idsToEmpty = [id, ...getDescendantIds(id)]
