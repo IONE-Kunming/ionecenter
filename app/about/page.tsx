@@ -93,8 +93,8 @@ export default async function AboutPage() {
             <span className="text-sm text-primary font-medium">
               {footerT("aboutUs")}
             </span>
-            <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              {nav("products")}
+            <Link href="/guest/categories" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              {nav("categories")}
             </Link>
             <Link href="#testimonials" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               {howT("title")}
