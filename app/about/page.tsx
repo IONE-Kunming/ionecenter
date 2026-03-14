@@ -269,29 +269,33 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {/* ===== PORTFOLIO / PRODUCTS SECTION ===== */}
-      <section id="portfolio" className="py-24 md:py-32">
+      {/* ===== TEAM SECTION ===== */}
+      <section className="py-24 md:py-32 bg-muted/50">
         <div className="max-w-[1320px] mx-auto px-6">
           <div className="text-center mb-16 fade-in-up">
             <p className="text-[14px] uppercase tracking-[3px] text-muted-foreground mb-4">
-              {nav("products")}
+              {footerT("company")}
             </p>
             <h2 className="text-[36px] md:text-[50px] leading-[1.2]">
-              {howT("title")}
+              {footerT("aboutUs")}
             </h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {[
-              { step: "01", title: howT("step1Title"), desc: howT("step1Desc") },
-              { step: "02", title: howT("step2Title"), desc: howT("step2Desc") },
-              { step: "03", title: howT("step3Title"), desc: howT("step3Desc") },
-            ].map((s, i) => (
-              <div key={s.step} className="text-center fade-in-up" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary text-primary-foreground text-2xl font-bold">
-                  {s.step}
+        </div>
+        <div className="team-marquee">
+          <div className="team-marquee-content">
+            {teamMembersDouble.map((member, i) => (
+              <div key={`${member.name}-${i}`} className="shrink-0 w-[260px] flex flex-col">
+                <div className="team-card w-full h-[300px] bg-muted/50">
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className={`w-full h-full ${member.contain ? "object-contain" : "object-cover"}`}
+                  />
                 </div>
-                <h3 className="mt-6 text-xl">{s.title}</h3>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
+                <div className="pt-3 text-center">
+                  <h3 className="text-base font-semibold">{member.name}</h3>
+                  <p className="text-primary text-sm mt-0.5">{teamT(member.roleKey)}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -357,33 +361,29 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {/* ===== TEAM SECTION ===== */}
-      <section className="py-24 md:py-32 bg-muted/50">
+      {/* ===== PORTFOLIO / PRODUCTS SECTION ===== */}
+      <section id="portfolio" className="py-24 md:py-32">
         <div className="max-w-[1320px] mx-auto px-6">
           <div className="text-center mb-16 fade-in-up">
             <p className="text-[14px] uppercase tracking-[3px] text-muted-foreground mb-4">
-              {footerT("company")}
+              {nav("products")}
             </p>
             <h2 className="text-[36px] md:text-[50px] leading-[1.2]">
-              {footerT("aboutUs")}
+              {howT("title")}
             </h2>
           </div>
-        </div>
-        <div className="team-marquee">
-          <div className="team-marquee-content">
-            {teamMembersDouble.map((member, i) => (
-              <div key={`${member.name}-${i}`} className="shrink-0 w-[260px] flex flex-col">
-                <div className="team-card w-full h-[300px] bg-muted/50">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className={`w-full h-full ${member.contain ? "object-contain" : "object-cover"}`}
-                  />
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {[
+              { step: "01", title: howT("step1Title"), desc: howT("step1Desc") },
+              { step: "02", title: howT("step2Title"), desc: howT("step2Desc") },
+              { step: "03", title: howT("step3Title"), desc: howT("step3Desc") },
+            ].map((s, i) => (
+              <div key={s.step} className="text-center fade-in-up" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary text-primary-foreground text-2xl font-bold">
+                  {s.step}
                 </div>
-                <div className="pt-3 text-center">
-                  <h3 className="text-base font-semibold">{member.name}</h3>
-                  <p className="text-primary text-sm mt-0.5">{teamT(member.roleKey)}</p>
-                </div>
+                <h3 className="mt-6 text-xl">{s.title}</h3>
+                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
               </div>
             ))}
           </div>
