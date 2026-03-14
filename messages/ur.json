@@ -775,7 +775,10 @@
     "pinnedCategories": "پن شدہ زمرے",
     "dropHereToPin": "پن کرنے کے لیے زمرہ یہاں چھوڑیں",
     "noCategoriesFound": "کوئی زمرے نہیں ملے",
-    "noCategoriesFoundDesc": "اپنے تلاش کے معیار کو ایڈجسٹ کریں۔"
+    "noCategoriesFoundDesc": "اپنے تلاش کے معیار کو ایڈجسٹ کریں۔",
+    "pinSubcategory": "پن کریں",
+    "unpinSubcategory": "ان پن",
+    "dropHereToPinSubcategory": "پن کرنے کے لیے ذیلی زمرہ یہاں چھوڑیں"
   },
   "categoryNames": {
     "construction": "تعمیرات",

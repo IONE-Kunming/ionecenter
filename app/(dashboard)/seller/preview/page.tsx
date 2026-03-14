@@ -3,15 +3,17 @@ import { getProducts } from "@/lib/actions/products"
 import { getSiteCategories } from "@/lib/actions/site-settings"
 import { buildCategoryData } from "@/lib/categories"
 import { getPinnedCategories } from "@/lib/actions/pinned-categories"
+import { getPinnedSubcategories } from "@/lib/actions/pinned-subcategories"
 import { getSellerMainCategory } from "@/lib/actions/users"
 import { BuyerCatalogBrowser } from "@/app/(dashboard)/buyer/catalog/catalog-browser"
 
 export default async function SellerPreviewPage() {
   const t = await getTranslations("sellerProducts")
-  const [rawProducts, siteCategories, pinnedCats, sellerMainCategory] = await Promise.all([
+  const [rawProducts, siteCategories, pinnedCats, pinnedSubs, sellerMainCategory] = await Promise.all([
     getProducts(),
     getSiteCategories(),
     getPinnedCategories(),
+    getPinnedSubcategories(),
     getSellerMainCategory(),
   ])
   const categoryData = buildCategoryData(siteCategories)
@@ -31,6 +33,7 @@ export default async function SellerPreviewPage() {
   }))
 
   const initialPinnedCategories = pinnedCats.map((pc) => pc.category_name)
+  const initialPinnedSubcategories = pinnedSubs.map((ps) => ps.category_name)
 
   return (
     <div className="space-y-4">
@@ -42,6 +45,7 @@ export default async function SellerPreviewPage() {
         categoryData={categoryData}
         isPreviewMode
         initialPinnedCategories={initialPinnedCategories}
+        initialPinnedSubcategories={initialPinnedSubcategories}
         initialCategory={sellerMainCategory ?? undefined}
       />
     </div>
