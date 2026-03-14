@@ -9,7 +9,6 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { getSiteSetting, getSiteCategories } from "@/lib/actions/site-settings"
 import { getProducts } from "@/lib/actions/products"
-import { buildCategoryData } from "@/lib/categories"
 import { SmartProductFinder } from "@/components/landing/smart-product-finder"
 import { auth } from "@clerk/nextjs/server"
 import { getCurrentUser } from "@/lib/actions/users"
@@ -70,12 +69,8 @@ export default async function AboutPage() {
     { quote: testimonialsT("quote3"), author: testimonialsT("author3"), company: testimonialsT("company3") },
   ]
 
-  // Fetch products, categories and auth state for the Smart Product Finder
-  const [allProducts, siteCategories] = await Promise.all([
-    getProducts(),
-    getSiteCategories(),
-  ])
-  const categoryData = buildCategoryData(siteCategories)
+  // Fetch products for the Smart Product Finder
+  const allProducts = await getProducts()
   const finderProducts = allProducts.map((p) => ({
     id: p.id,
     name: p.name,
