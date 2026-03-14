@@ -162,7 +162,8 @@
     "exportDocuments": "出口文件",
     "contracts": "合同",
     "packingList": "装箱单",
-    "productImages": "产品图片"
+    "productImages": "产品图片",
+    "buyers": "买家"
   },
   "common": {
     "search": "搜索...",
@@ -721,7 +722,10 @@
     "orders": "订单",
     "location": "位置",
     "joined": "加入时间",
-    "noSellers": "未找到卖家"
+    "noSellers": "未找到卖家",
+    "role": "角色",
+    "category": "分类",
+    "buyersListTitle": "从该卖家购买的买家"
   },
   "adminProducts": {
     "seller": "卖家",

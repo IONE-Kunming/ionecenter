@@ -162,7 +162,8 @@
     "exportDocuments": "مستندات التصدير",
     "contracts": "العقود",
     "packingList": "قائمة التعبئة",
-    "productImages": "صور المنتجات"
+    "productImages": "صور المنتجات",
+    "buyers": "المشترون"
   },
   "common": {
     "search": "بحث...",
@@ -722,7 +723,10 @@
     "orders": "الطلبات",
     "location": "الموقع",
     "joined": "تاريخ الانضمام",
-    "noSellers": "لم يتم العثور على بائعين"
+    "noSellers": "لم يتم العثور على بائعين",
+    "role": "الدور",
+    "category": "الفئة",
+    "buyersListTitle": "المشترون الذين اشتروا من هذا البائع"
   },
   "adminProducts": {
     "seller": "البائع",

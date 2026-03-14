@@ -162,7 +162,8 @@
     "exportDocuments": "Export Documents",
     "contracts": "Contracts",
     "packingList": "Packing List",
-    "productImages": "Product Images"
+    "productImages": "Product Images",
+    "buyers": "Buyers"
   },
   "common": {
     "search": "Search...",
@@ -792,7 +793,10 @@
     "orders": "Orders",
     "location": "Location",
     "joined": "Joined",
-    "noSellers": "No sellers found"
+    "noSellers": "No sellers found",
+    "role": "Role",
+    "category": "Category",
+    "buyersListTitle": "Buyers who purchased from this seller"
   },
   "adminProducts": {
     "seller": "Seller",
