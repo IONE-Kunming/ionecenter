@@ -10,7 +10,7 @@ export default async function FinderResultsPage({
 }) {
   const { category, subcategory, region } = await searchParams
 
-  /* Fetch products filtered by main category */
+  /* Fetch products filtered by main category (the "category" param maps to main_category) */
   const allProducts = await getProducts(category ? { category } : undefined)
 
   /* Further filter by subcategory if provided */

@@ -104,11 +104,15 @@ export function FinderResultsClient({
     performAddToCart(productId)
   }
 
-  const getSignInUrl = () =>
-    `/sign-in?redirect_url=${encodeURIComponent("/about")}`
+  const getSignInUrl = () => {
+    const returnUrl = `/guest/finder-results?category=${encodeURIComponent(category)}&subcategory=${encodeURIComponent(subcategory)}&region=${encodeURIComponent(region)}`
+    return `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`
+  }
 
-  const getSignUpUrl = () =>
-    `/sign-up?redirect_url=${encodeURIComponent("/about")}`
+  const getSignUpUrl = () => {
+    const returnUrl = `/guest/finder-results?category=${encodeURIComponent(category)}&subcategory=${encodeURIComponent(subcategory)}&region=${encodeURIComponent(region)}`
+    return `/sign-up?redirect_url=${encodeURIComponent(returnUrl)}`
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
