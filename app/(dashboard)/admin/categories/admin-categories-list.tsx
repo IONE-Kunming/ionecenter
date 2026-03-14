@@ -94,17 +94,17 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
     const expandIds = new Set<string>()
 
     for (const main of mainCategories) {
-      const mainMatch = main.name.toLowerCase().includes(searchQuery)
+      const mainMatch = main.name.toLowerCase().startsWith(searchQuery)
       const subs = getSubcategories(main.id)
       let subMatched = false
 
       for (const sub of subs) {
-        const subMatch = sub.name.toLowerCase().includes(searchQuery)
+        const subMatch = sub.name.toLowerCase().startsWith(searchQuery)
         const subSubs = getSubcategories(sub.id)
         let subSubMatched = false
 
         for (const subSub of subSubs) {
-          if (subSub.name.toLowerCase().includes(searchQuery)) {
+          if (subSub.name.toLowerCase().startsWith(searchQuery)) {
             subSubMatched = true
             break
           }
