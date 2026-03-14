@@ -415,7 +415,7 @@ export function LandingPageClient({
                 return (
                   <Link
                     key={categoryName}
-                    href={`/guest/catalog?category=${encodeURIComponent(categoryName)}`}
+                    href={`/guest/categories?category=${encodeURIComponent(categoryName)}`}
                   >
                     <Card className="group hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer h-full overflow-hidden">
                       {imageUrl ? (

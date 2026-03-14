@@ -45,7 +45,7 @@ const CATEGORY_BADGE_BASE = "rounded-full bg-primary text-primary-foreground fle
 const CATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE}`
 const SUBCATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE} text-[10px]`
 
-export function GuestCatalogBrowser({ products, categoryData }: { products: CatalogProduct[]; categoryData: CategoryData }) {
+export function GuestCatalogBrowser({ products, categoryData, initialCategory }: { products: CatalogProduct[]; categoryData: CategoryData; initialCategory?: string }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tCatNames = useTranslations("categoryNames")
@@ -62,8 +62,9 @@ export function GuestCatalogBrowser({ products, categoryData }: { products: Cata
     return typeof translated === "string" && translated !== key ? translated : name
   }
 
-  const [level, setLevel] = useState<BrowseLevel>("categories")
-  const [selectedCategory, setSelectedCategory] = useState("")
+  const validInitial = initialCategory && categoryData.mainCategories.includes(initialCategory) ? initialCategory : ""
+  const [level, setLevel] = useState<BrowseLevel>(validInitial ? "subcategories" : "categories")
+  const [selectedCategory, setSelectedCategory] = useState(validInitial)
   const [selectedSubcategory, setSelectedSubcategory] = useState("")
   const [search, setSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
