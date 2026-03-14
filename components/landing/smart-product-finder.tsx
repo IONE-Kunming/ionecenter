@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import Image from "next/image"
 import {
-  Package, Search, X, ArrowRight, ChevronLeft, MapPin,
+  Package, Search, X, ArrowRight, ChevronLeft, MapPin, Check, ChevronsUpDown,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,7 @@ import {
 import type { CategoryData } from "@/lib/categories"
 import { toCategoryKey } from "@/lib/categories"
 import type { PricingType } from "@/types/database"
+import { COUNTRIES } from "@/lib/countries"
 
 /* ───────── Types ───────── */
 
@@ -37,6 +38,106 @@ export interface SmartProductFinderProps {
   categoryData: CategoryData
   isLoggedIn: boolean
   userRole: string | null
+}
+
+/* ───────── Country Dropdown ───────── */
+
+function CountryDropdown({
+  value,
+  placeholder,
+  onSelect,
+}: {
+  value: string
+  placeholder: string
+  onSelect: (country: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState("")
+  const containerRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const filtered = useMemo(
+    () =>
+      search
+        ? COUNTRIES.filter((c) => c.toLowerCase().includes(search.toLowerCase()))
+        : COUNTRIES,
+    [search],
+  )
+
+  /* Close on outside click */
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
+
+  const handleSelect = useCallback(
+    (country: string) => {
+      setSearch("")
+      setOpen(false)
+      onSelect(country)
+    },
+    [onSelect],
+  )
+
+  return (
+    <div ref={containerRef} className="relative">
+      <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+      <Input
+        ref={inputRef}
+        value={open ? search : value}
+        onChange={(e) => { setSearch(e.target.value); if (!open) setOpen(true) }}
+        onFocus={() => { setOpen(true); setSearch("") }}
+        placeholder={placeholder}
+        className="pl-9 pr-9"
+        autoComplete="off"
+        role="combobox"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+      />
+      <button
+        type="button"
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+        onClick={() => { setOpen(!open); if (!open) inputRef.current?.focus() }}
+        tabIndex={-1}
+      >
+        <ChevronsUpDown className="h-4 w-4" />
+      </button>
+
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute z-50 mt-1 w-full max-h-[200px] overflow-y-auto rounded-xl border bg-popover shadow-md"
+        >
+          {filtered.length > 0 ? (
+            filtered.map((country) => (
+              <li key={country} role="option" aria-selected={value === country}>
+                <button
+                  type="button"
+                  className={`flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors ${
+                    value === country ? "bg-accent/50 font-medium" : ""
+                  }`}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleSelect(country)}
+                >
+                  {value === country && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+                  <span className={value !== country ? "pl-[22px]" : ""}>{country}</span>
+                </button>
+              </li>
+            ))
+          ) : (
+            <li className="px-3 py-6 text-center text-sm text-muted-foreground">
+              No country found.
+            </li>
+          )}
+        </ul>
+      )}
+    </div>
+  )
 }
 
 /* ───────── Component ───────── */
@@ -168,15 +269,11 @@ export function SmartProductFinder({
         return (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">{t("step3Desc")}</p>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={region}
-                onChange={(e) => setRegion(e.target.value)}
-                placeholder={t("regionPlaceholder")}
-                className="pl-9"
-              />
-            </div>
+            <CountryDropdown
+              value={region}
+              placeholder={t("regionPlaceholder")}
+              onSelect={(country) => { setRegion(country); setStep(4) }}
+            />
           </div>
         )
 
