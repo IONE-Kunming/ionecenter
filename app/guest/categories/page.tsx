@@ -4,7 +4,8 @@ import { buildCategoryData } from "@/lib/categories"
 import { getProductsAllImages } from "@/lib/actions/product-images"
 import { GuestCatalogBrowser } from "@/components/catalog/guest-catalog-browser"
 
-export default async function GuestCategoriesPage() {
+export default async function GuestCategoriesPage({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
+  const { category } = await searchParams
   const [products, siteCategories] = await Promise.all([
     getProducts(),
     getSiteCategories(),
@@ -34,7 +35,7 @@ export default async function GuestCategoriesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <GuestCatalogBrowser products={mapped} categoryData={categoryData} />
+      <GuestCatalogBrowser products={mapped} categoryData={categoryData} initialCategory={category} />
     </div>
   )
 }
