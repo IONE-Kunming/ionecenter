@@ -357,6 +357,119 @@ export default async function AboutPage() {
         </section>
       )}
 
+      {/* ===== PORTFOLIO / PRODUCTS SECTION ===== */}
+      <section id="portfolio" className="py-24 md:py-32">
+        <div className="max-w-[1320px] mx-auto px-6">
+          <div className="text-center mb-16 fade-in-up">
+            <p className="text-[14px] uppercase tracking-[3px] text-muted-foreground mb-4">
+              {nav("products")}
+            </p>
+            <h2 className="text-[36px] md:text-[50px] leading-[1.2]">
+              {howT("title")}
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {[
+              { step: "01", title: howT("step1Title"), desc: howT("step1Desc") },
+              { step: "02", title: howT("step2Title"), desc: howT("step2Desc") },
+              { step: "03", title: howT("step3Title"), desc: howT("step3Desc") },
+            ].map((s, i) => (
+              <div key={s.step} className="text-center fade-in-up" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary text-primary-foreground text-2xl font-bold">
+                  {s.step}
+                </div>
+                <h3 className="mt-6 text-xl">{s.title}</h3>
+                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== CTA SECTION ===== */}
+      <section className="py-24 md:py-32 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[150px]" />
+        </div>
+        <div className="relative max-w-[1320px] mx-auto px-6 text-center">
+          <div className="fade-in-up">
+            <h2 className="text-[36px] md:text-[56px] leading-[1.1] max-w-3xl mx-auto">
+              {ctaT("title")}
+            </h2>
+            <p className="mt-6 text-muted-foreground max-w-xl mx-auto text-lg">
+              {ctaT("subtitle")}
+            </p>
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-6">
+              <Link href="/sign-up" className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-base font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+                {ctaT("createAccount")} <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link href="/" className="inline-flex items-center gap-2 text-base uppercase tracking-wider text-primary hover:gap-3 transition-all">
+                {ctaT("exploreProducts")} <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== VIDEO SECTION ===== */}
+      {videoSrc && (
+      <section className="py-24 md:py-32 relative overflow-hidden bg-muted/30">
+        <div className="relative max-w-[1320px] mx-auto px-6 text-center">
+          <div className="fade-in-up">
+            <p className="text-[14px] uppercase tracking-[3px] text-muted-foreground mb-4">
+              {howT("subtitle")}
+            </p>
+            <h2 className="text-[36px] md:text-[56px] leading-[1.1] max-w-3xl mx-auto mb-12">
+              {ctaT("title")}
+            </h2>
+            <div className="max-w-4xl mx-auto rounded-2xl overflow-hidden border border-border">
+              <video
+                className="w-full"
+                controls
+                preload="metadata"
+                playsInline
+              >
+                <source src={videoSrc} type={videoType} />
+              </video>
+            </div>
+          </div>
+        </div>
+      </section>
+      )}
+
+      {/* ===== TESTIMONIALS ===== */}
+      <section id="testimonials" className="py-24 md:py-32">
+        <div className="max-w-[1320px] mx-auto px-6">
+          <div className="text-center mb-16 fade-in-up">
+            <p className="text-[14px] uppercase tracking-[3px] text-muted-foreground mb-4">
+              {statsT("activeUsers")}
+            </p>
+            <h2 className="text-[36px] md:text-[50px] leading-[1.2]">
+              {ctaT("testimonialsHeading")}
+            </h2>
+          </div>
+          <div className="horizontal-scroll">
+            <div className="horizontal-scroll-track">
+              {[...testimonials, ...testimonials].map((t, i) => (
+                <div key={`testimonial-${i}`} className="testimonial-card min-w-[320px] md:min-w-[420px] max-w-[480px]">
+                  <div className="text-primary text-4xl mb-4">&ldquo;</div>
+                  <p className="leading-relaxed text-lg mb-8">{t.quote}</p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+                      {t.author.split(" ").filter(n => n.length > 0).map(n => n[0]).join("")}
+                    </div>
+                    <div>
+                      <p className="font-medium">{t.author}</p>
+                      <p className="text-muted-foreground text-sm">{t.company}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ===== ABOUT SECTION WITH STATS ===== */}
       <section id="about" className="py-24 md:py-32 bg-muted/50 relative overflow-hidden">
         {/* Background decorative element */}
@@ -440,119 +553,6 @@ export default async function AboutPage() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== VIDEO SECTION ===== */}
-      {videoSrc && (
-      <section className="py-24 md:py-32 relative overflow-hidden bg-muted/30">
-        <div className="relative max-w-[1320px] mx-auto px-6 text-center">
-          <div className="fade-in-up">
-            <p className="text-[14px] uppercase tracking-[3px] text-muted-foreground mb-4">
-              {howT("subtitle")}
-            </p>
-            <h2 className="text-[36px] md:text-[56px] leading-[1.1] max-w-3xl mx-auto mb-12">
-              {ctaT("title")}
-            </h2>
-            <div className="max-w-4xl mx-auto rounded-2xl overflow-hidden border border-border">
-              <video
-                className="w-full"
-                controls
-                preload="metadata"
-                playsInline
-              >
-                <source src={videoSrc} type={videoType} />
-              </video>
-            </div>
-          </div>
-        </div>
-      </section>
-      )}
-
-      {/* ===== TESTIMONIALS ===== */}
-      <section id="testimonials" className="py-24 md:py-32">
-        <div className="max-w-[1320px] mx-auto px-6">
-          <div className="text-center mb-16 fade-in-up">
-            <p className="text-[14px] uppercase tracking-[3px] text-muted-foreground mb-4">
-              {statsT("activeUsers")}
-            </p>
-            <h2 className="text-[36px] md:text-[50px] leading-[1.2]">
-              {ctaT("testimonialsHeading")}
-            </h2>
-          </div>
-          <div className="horizontal-scroll">
-            <div className="horizontal-scroll-track">
-              {[...testimonials, ...testimonials].map((t, i) => (
-                <div key={`testimonial-${i}`} className="testimonial-card min-w-[320px] md:min-w-[420px] max-w-[480px]">
-                  <div className="text-primary text-4xl mb-4">&ldquo;</div>
-                  <p className="leading-relaxed text-lg mb-8">{t.quote}</p>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
-                      {t.author.split(" ").filter(n => n.length > 0).map(n => n[0]).join("")}
-                    </div>
-                    <div>
-                      <p className="font-medium">{t.author}</p>
-                      <p className="text-muted-foreground text-sm">{t.company}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== PORTFOLIO / PRODUCTS SECTION ===== */}
-      <section id="portfolio" className="py-24 md:py-32">
-        <div className="max-w-[1320px] mx-auto px-6">
-          <div className="text-center mb-16 fade-in-up">
-            <p className="text-[14px] uppercase tracking-[3px] text-muted-foreground mb-4">
-              {nav("products")}
-            </p>
-            <h2 className="text-[36px] md:text-[50px] leading-[1.2]">
-              {howT("title")}
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {[
-              { step: "01", title: howT("step1Title"), desc: howT("step1Desc") },
-              { step: "02", title: howT("step2Title"), desc: howT("step2Desc") },
-              { step: "03", title: howT("step3Title"), desc: howT("step3Desc") },
-            ].map((s, i) => (
-              <div key={s.step} className="text-center fade-in-up" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary text-primary-foreground text-2xl font-bold">
-                  {s.step}
-                </div>
-                <h3 className="mt-6 text-xl">{s.title}</h3>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== CTA SECTION ===== */}
-      <section className="py-24 md:py-32 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[150px]" />
-        </div>
-        <div className="relative max-w-[1320px] mx-auto px-6 text-center">
-          <div className="fade-in-up">
-            <h2 className="text-[36px] md:text-[56px] leading-[1.1] max-w-3xl mx-auto">
-              {ctaT("title")}
-            </h2>
-            <p className="mt-6 text-muted-foreground max-w-xl mx-auto text-lg">
-              {ctaT("subtitle")}
-            </p>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-6">
-              <Link href="/sign-up" className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-base font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
-                {ctaT("createAccount")} <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link href="/" className="inline-flex items-center gap-2 text-base uppercase tracking-wider text-primary hover:gap-3 transition-all">
-                {ctaT("exploreProducts")} <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
           </div>
         </div>
       </section>
