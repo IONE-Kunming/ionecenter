@@ -48,7 +48,11 @@
     "guestSubtitle": "ہماری وسیع B2B پروڈکٹ کیٹیگریز دیکھیں۔",
     "wantToCreateAccount": "خریدنا چاہتے ہیں؟ اکاؤنٹ بنائیں!",
     "signUpDesc": "پروڈکٹس کو کارٹ میں شامل کرنے اور آرڈر دینے کے لیے خریدار کے طور پر سائن اپ کریں۔",
-    "signUpNow": "ابھی سائن اپ کریں"
+    "signUpNow": "ابھی سائن اپ کریں",
+    "browseCategories": "ہماری اقسام براؤز کریں",
+    "browseCategoriesDesc": "مصنوعات کی ہماری وسیع اقسام دریافت کریں۔",
+    "viewAllCategories": "تمام اقسام دیکھیں",
+    "subcategoryCount": "{count} ذیلی اقسام"
   },
   "howItWorks": {
     "title": "یہ کیسے کام کرتا ہے",

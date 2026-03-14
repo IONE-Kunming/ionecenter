@@ -48,7 +48,11 @@
     "guestSubtitle": "探索我们广泛的B2B产品类别。",
     "wantToCreateAccount": "想要购买？创建账户！",
     "signUpDesc": "注册为买家，将产品添加到购物车并下订单。",
-    "signUpNow": "立即注册"
+    "signUpNow": "立即注册",
+    "browseCategories": "浏览我们的分类",
+    "browseCategoriesDesc": "探索我们丰富的产品分类。",
+    "viewAllCategories": "查看所有分类",
+    "subcategoryCount": "{count} 个子分类"
   },
   "howItWorks": {
     "title": "如何运作",

@@ -48,7 +48,11 @@
     "guestSubtitle": "Explore Our Wide Range B2B Product Categories.",
     "wantToCreateAccount": "Want to purchase? Create an account!",
     "signUpDesc": "Sign up as a buyer to add products to cart and place orders.",
-    "signUpNow": "Sign Up Now"
+    "signUpNow": "Sign Up Now",
+    "browseCategories": "Browse Our Categories",
+    "browseCategoriesDesc": "Explore our wide range of product categories.",
+    "viewAllCategories": "View All Categories",
+    "subcategoryCount": "{count} subcategories"
   },
   "howItWorks": {
     "title": "How It Works",

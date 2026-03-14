@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation"
 import {
   Package, Search, ShoppingCart, ChevronRight, ChevronDown, Menu, X,
   Check, Loader2, User, LogOut, Heart, MessageSquare, Bell, HelpCircle,
-  LayoutDashboard, FileText, Receipt, FileSignature
+  LayoutDashboard, FileText, Receipt, FileSignature, ArrowRight
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -69,6 +69,7 @@ export function LandingPageClient({
   const tCart = useTranslations("cart")
   const tProfile = useTranslations("profileMenu")
   const tCatNames = useTranslations("categoryNames")
+  const tCategories = useTranslations("categories")
   const { rate } = useExchangeRate()
   const { signOut } = useClerk()
   const searchParams = useSearchParams()
@@ -388,6 +389,81 @@ export function LandingPageClient({
           </div>
         </div>
       </header>
+
+      {/* ===== BROWSE CATEGORIES SECTION ===== */}
+      {categoryData.mainCategories.length > 0 && (
+        <section className="border-b bg-muted/30">
+          <div className="max-w-[1480px] mx-auto px-4 py-8 md:py-10">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold">{tCategories("browseCategories")}</h2>
+                <p className="text-sm text-muted-foreground mt-1">{tCategories("browseCategoriesDesc")}</p>
+              </div>
+              <Link href="/guest/categories">
+                <Button variant="outline" size="sm" className="hidden sm:inline-flex gap-1">
+                  {tCategories("viewAllCategories")}
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+              {categoryData.mainCategories.slice(0, 5).map((categoryName) => {
+                const subcategories = categoryData.categoryMap[categoryName] ?? []
+                const imageUrl = categoryData.categoryImageMap[categoryName] ?? null
+                const displayName = translateCat(categoryName)
+                return (
+                  <Link
+                    key={categoryName}
+                    href={`/guest/catalog?category=${encodeURIComponent(categoryName)}`}
+                  >
+                    <Card className="group hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer h-full overflow-hidden">
+                      {imageUrl ? (
+                        <div className="relative h-[140px] md:h-[170px]">
+                          <Image
+                            src={imageUrl}
+                            alt={displayName}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                          <div className="absolute bottom-3 left-3 right-3">
+                            <h3 className="font-semibold text-white text-sm md:text-base line-clamp-1">{displayName}</h3>
+                            <p className="text-xs text-white/80 mt-0.5">
+                              {tCategories("subcategoryCount", { count: subcategories.length })}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <CardContent className="p-4 md:p-5 flex flex-col items-start h-full">
+                          <div className="rounded-full bg-primary/10 p-3 group-hover:bg-primary/20 transition-colors">
+                            <Package className="h-6 w-6 text-primary" />
+                          </div>
+                          <h3 className="mt-3 font-semibold text-sm md:text-base line-clamp-1">{displayName}</h3>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {tCategories("subcategoryCount", { count: subcategories.length })}
+                          </p>
+                        </CardContent>
+                      )}
+                    </Card>
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* Mobile "View All" button */}
+            <div className="mt-4 text-center sm:hidden">
+              <Link href="/guest/categories">
+                <Button variant="outline" size="sm" className="gap-1">
+                  {tCategories("viewAllCategories")}
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ===== MAIN LAYOUT ===== */}
       <div className="flex">

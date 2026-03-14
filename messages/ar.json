@@ -48,7 +48,11 @@
     "guestSubtitle": "استكشف فئاتنا الواسعة من منتجات B2B.",
     "wantToCreateAccount": "هل تريد الشراء؟ أنشئ حسابًا!",
     "signUpDesc": "سجّل كمشترٍ لإضافة المنتجات إلى العربة وتقديم الطلبات.",
-    "signUpNow": "سجّل الآن"
+    "signUpNow": "سجّل الآن",
+    "browseCategories": "تصفح فئاتنا",
+    "browseCategoriesDesc": "استكشف مجموعتنا الواسعة من فئات المنتجات.",
+    "viewAllCategories": "عرض جميع الفئات",
+    "subcategoryCount": "{count} فئات فرعية"
   },
   "howItWorks": {
     "title": "كيف يعمل",
