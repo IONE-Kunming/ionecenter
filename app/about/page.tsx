@@ -255,32 +255,6 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {/* ===== SERVICES SECTION ===== */}
-      <section id="services" className="py-24 md:py-32">
-        <div className="max-w-[1320px] mx-auto px-6">
-          <div className="mb-16 fade-in-up">
-            <p className="text-[14px] uppercase tracking-[3px] text-muted-foreground mb-4">
-              {featuresT("subtitle")}
-            </p>
-            <h2 className="text-[36px] md:text-[50px] leading-[1.2]">
-              {featuresT("title")}
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {serviceKeys.map((sk) => (
-              <div key={sk.num} className="service-card">
-                <div className="service-number">{sk.num}</div>
-                <h3 className="mt-6 text-xl">{featuresT(sk.title)}</h3>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{featuresT(sk.desc)}</p>
-                <div className="mt-6">
-                  <ArrowRight className="h-5 w-5 text-primary" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ===== BROWSE CATEGORIES SECTION ===== */}
       {categoryData.mainCategories.length > 0 && (
         <section className="border-b bg-muted/30">
@@ -351,6 +325,32 @@ export default async function AboutPage() {
           </div>
         </section>
       )}
+
+      {/* ===== SERVICES SECTION ===== */}
+      <section id="services" className="py-24 md:py-32">
+        <div className="max-w-[1320px] mx-auto px-6">
+          <div className="mb-16 fade-in-up">
+            <p className="text-[14px] uppercase tracking-[3px] text-muted-foreground mb-4">
+              {featuresT("subtitle")}
+            </p>
+            <h2 className="text-[36px] md:text-[50px] leading-[1.2]">
+              {featuresT("title")}
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {serviceKeys.map((sk) => (
+              <div key={sk.num} className="service-card">
+                <div className="service-number">{sk.num}</div>
+                <h3 className="mt-6 text-xl">{featuresT(sk.title)}</h3>
+                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{featuresT(sk.desc)}</p>
+                <div className="mt-6">
+                  <ArrowRight className="h-5 w-5 text-primary" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ===== ABOUT SECTION WITH STATS ===== */}
       <section id="about" className="py-24 md:py-32 bg-muted/50 relative overflow-hidden">
