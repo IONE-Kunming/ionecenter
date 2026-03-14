@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl"
 import {
   FolderOpen, FolderPlus, Upload, Trash2, ArrowLeft, Image as ImageIcon,
   Video, Loader2, ChevronRight, File, Pencil, Link2, CheckSquare, Star,
-  Search, Camera,
+  Search, Camera, Zap,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,6 +33,7 @@ import {
   searchSellerProductsForGallery,
   assignImagesToProduct,
   autoMatchFolderToProduct,
+  autoMatchAllFolderImages,
 } from "@/lib/actions/product-images"
 import { createClient } from "@/lib/supabase/client"
 
@@ -88,6 +89,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
   const [linking, setLinking] = useState(false)
   const [autoMatching, setAutoMatching] = useState<string | null>(null)
   const [autoMatchingFile, setAutoMatchingFile] = useState<string | null>(null)
+  const [autoMatchingAll, setAutoMatchingAll] = useState<string | null>(null)
 
   // Bulk select state
   const [selectionMode, setSelectionMode] = useState(false)
@@ -386,6 +388,23 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
       openSingleFileLinkDialogWithMatches(item, matches)
     } else {
       setError(t("autoMatchFileNotFound"))
+    }
+  }
+
+  // ── Match All handler (all images in a folder) ──
+  async function handleMatchAllFolder(folder: GalleryFolder) {
+    setAutoMatchingAll(folder.fullPath)
+    setError(null)
+    setSuccessMsg(null)
+
+    const result = await autoMatchAllFolderImages(folder.fullPath)
+    setAutoMatchingAll(null)
+
+    if (result.error) {
+      setError(result.error)
+    } else {
+      setSuccessMsg(t("matchAllSummary", { matched: result.matched, unmatched: result.unmatched }))
+      fetchFolderStats(folders)
     }
   }
 
@@ -817,6 +836,16 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                         {autoMatching === folder.fullPath
                           ? <Loader2 className="h-3 w-3 text-white animate-spin" />
                           : <Star className="h-3 w-3 text-white" />}
+                      </button>
+                      <button
+                        onClick={() => handleMatchAllFolder(folder)}
+                        disabled={autoMatchingAll === folder.fullPath}
+                        className="p-1 rounded bg-violet-500/80 hover:bg-violet-500"
+                        title={t("matchAll")}
+                      >
+                        {autoMatchingAll === folder.fullPath
+                          ? <Loader2 className="h-3 w-3 text-white animate-spin" />
+                          : <Zap className="h-3 w-3 text-white" />}
                       </button>
                       <button
                         onClick={() => openLinkDialog(folder)}

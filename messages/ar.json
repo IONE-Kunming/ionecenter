@@ -1203,6 +1203,8 @@
     "autoMatching": "جارٍ المطابقة التلقائية...",
     "autoMatchFileFound": "تم مطابقة الصورة تلقائيًا مع المنتج: {product}",
     "autoMatchFileNotFound": "لم يتم العثور على منتج مطابق لاسم هذه الصورة",
+    "matchAll": "مطابقة الكل",
+    "matchAllSummary": "{matched} صور تمت مطابقتها، {unmatched} صور لم تتم مطابقتها",
     "keepExistingPrimary": "انقر على صورة لتعيينها كصورة رئيسية، أو اتركها بدون تحديد للحفاظ على الصورة الرئيسية الحالية",
     "coverImage": "صورة الغلاف",
     "products": "منتجات",
