@@ -79,8 +79,7 @@ export function DashboardHeader() {
     setSearchQuery(value)
     if (previewCtx.isPreviewPage) {
       previewCtx.setSearch(value)
-    }
-    if (categoriesCtx.isCategoriesPage) {
+    } else if (categoriesCtx.isCategoriesPage) {
       categoriesCtx.setSearch(value)
     }
   }

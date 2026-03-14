@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useMemo } from "react"
+import { useState, useRef, useEffect, useMemo, useCallback } from "react"
 /* eslint-disable @next/next/no-img-element */
 import { useTranslations } from "next-intl"
 import {
@@ -71,9 +71,14 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
   const imageTargetRef = useRef<string | null>(null)
   const [imageInputKey, setImageInputKey] = useState(0)
 
-  const mainCategories = categories.filter((c) => !c.parent_id).sort((a, b) => a.sort_order - b.sort_order)
-  const getSubcategories = (parentId: string) =>
-    categories.filter((c) => c.parent_id === parentId).sort((a, b) => a.sort_order - b.sort_order)
+  const mainCategories = useMemo(() =>
+    categories.filter((c) => !c.parent_id).sort((a, b) => a.sort_order - b.sort_order),
+    [categories]
+  )
+  const getSubcategories = useCallback((parentId: string) =>
+    categories.filter((c) => c.parent_id === parentId).sort((a, b) => a.sort_order - b.sort_order),
+    [categories]
+  )
 
   // Search filtering: determine which main categories to show and which to auto-expand
   const searchQuery = categoriesSearch.search.trim().toLowerCase()
@@ -125,8 +130,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
       filteredMainCategories: mainCategories.filter((c) => matchingMainIds.has(c.id)),
       searchExpandedIds: expandIds,
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, categories])
+  }, [searchQuery, categories, mainCategories, getSubcategories])
 
   function showToast(type: "success" | "error", msg: string) {
     setToast({ type, msg })
