@@ -1210,6 +1210,8 @@
     "autoMatching": "自动匹配中...",
     "autoMatchFileFound": "已自动匹配图片到产品: {product}",
     "autoMatchFileNotFound": "未找到与此图片名称匹配的产品",
+    "matchAll": "全部匹配",
+    "matchAllSummary": "{matched} 张图片已匹配，{unmatched} 张图片未匹配",
     "keepExistingPrimary": "点击图片设为主图，或不选择以保留现有主图",
     "coverImage": "封面图片",
     "products": "产品",

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUser } from "./users"
+import { listGallery } from "./gallery"
 import type { ProductImage } from "@/types/database"
 
 /**
@@ -618,4 +619,60 @@ export async function autoMatchFolderToProduct(
   }
 
   return []
+}
+
+/**
+ * Auto-match ALL images in a gallery folder to products at once.
+ *
+ * For each image in the folder:
+ *  - Strip the timestamp prefix to recover the original filename
+ *  - Run the same 4-case matching algorithm as autoMatchFolderToProduct
+ *  - If exactly one match → assign image to that product via assignImagesToProduct
+ *  - If zero or multiple matches → skip (count as unmatched)
+ *
+ * Returns { matched, unmatched } counts.
+ */
+export async function autoMatchAllFolderImages(
+  folderPath: string
+): Promise<{ matched: number; unmatched: number; error?: string }> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "seller") return { matched: 0, unmatched: 0, error: "Not authorized" }
+
+  // List all files in the folder
+  const result = await listGallery(folderPath)
+  if (result.error) return { matched: 0, unmatched: 0, error: result.error }
+
+  const images = result.files.filter((f) => f.type === "image")
+  if (images.length === 0) return { matched: 0, unmatched: 0, error: "No images in folder" }
+
+  let matched = 0
+  let unmatched = 0
+
+  for (const image of images) {
+    // Strip timestamp prefix (e.g. "1710000000000-photo.jpg" → "photo.jpg")
+    const cleanName = image.name.replace(/^\d+-/, "") || image.name
+
+    // Run the same matching algorithm
+    const matches = await autoMatchFolderToProduct(cleanName)
+
+    if (matches.length === 1) {
+      // Single match → auto-assign
+      const assignResult = await assignImagesToProduct([image.publicUrl], matches[0].id, null)
+      if (assignResult.success) {
+        matched++
+      } else {
+        unmatched++
+      }
+    } else {
+      // Zero or multiple matches → cannot auto-assign
+      unmatched++
+    }
+  }
+
+  // Revalidate after bulk operation
+  revalidatePath("/seller/gallery")
+  revalidatePath("/seller/products")
+  revalidatePath("/seller/gallery/product-images")
+
+  return { matched, unmatched }
 }

@@ -1279,6 +1279,8 @@
     "autoMatching": "Auto-matching...",
     "autoMatchFileFound": "Auto-matched image to product: {product}",
     "autoMatchFileNotFound": "No matching product found for this image name",
+    "matchAll": "Match All",
+    "matchAllSummary": "{matched} images matched, {unmatched} images not matched",
     "keepExistingPrimary": "Click an image to set as primary, or leave unselected to keep the existing primary image",
     "coverImage": "Cover Image",
     "products": "products",
