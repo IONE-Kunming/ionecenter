@@ -280,7 +280,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
     return (
       <>
         <div
-          className={`flex items-center gap-2 px-4 py-3 border-b border-border hover:bg-muted/50 transition-colors ${
+          className={`flex items-center gap-3 px-4 py-3 border-b border-border hover:bg-muted/50 transition-colors ${
             !isMain ? "pl-12" : ""
           }`}
         >
@@ -300,19 +300,19 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
             <div className="w-4" />
           )}
 
-          {/* Image thumbnail */}
+          {/* Category image */}
           {cat.image_url ? (
             <NextImage
               src={cat.image_url}
               alt={cat.name}
-              width={32}
-              height={32}
-              className="h-8 w-8 rounded object-cover border border-border shrink-0"
+              width={48}
+              height={48}
+              className="h-12 w-12 rounded-md object-cover border border-border shrink-0"
               unoptimized
             />
           ) : (
-            <div className="h-8 w-8 rounded bg-muted flex items-center justify-center border border-border shrink-0">
-              <ImageIcon className="h-4 w-4 text-muted-foreground" />
+            <div className="h-12 w-12 rounded-md bg-muted flex items-center justify-center border border-border shrink-0">
+              <ImageIcon className="h-5 w-5 text-muted-foreground" />
             </div>
           )}
 
