@@ -93,6 +93,17 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
       showToast("error", res.error)
     } else if (res.category) {
       setCategories((prev) => [...prev, res.category!])
+      // Auto-expand the parent so the new item is visible
+      if (formParentId) {
+        setExpanded((prev) => {
+          const next = new Set(prev)
+          next.add(formParentId)
+          // Also expand the grandparent if it exists
+          const parent = categories.find((c) => c.id === formParentId)
+          if (parent?.parent_id) next.add(parent.parent_id)
+          return next
+        })
+      }
       showToast("success", `Created "${formName.trim()}"`)
       setAddOpen(false)
       setFormName("")
@@ -124,7 +135,15 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
     if (res.error) {
       showToast("error", res.error)
     } else {
-      setCategories((prev) => prev.filter((c) => c.id !== selectedCategory.id && c.parent_id !== selectedCategory.id))
+      setCategories((prev) => {
+        // Recursively collect all descendant IDs
+        function getDescendantIds(parentId: string): string[] {
+          const children = prev.filter((c) => c.parent_id === parentId)
+          return children.flatMap((c) => [c.id, ...getDescendantIds(c.id)])
+        }
+        const idsToRemove = new Set([selectedCategory.id, ...getDescendantIds(selectedCategory.id)])
+        return prev.filter((c) => !idsToRemove.has(c.id))
+      })
       showToast("success", `Deleted "${selectedCategory.name}"`)
       setDeleteOpen(false)
     }
@@ -272,29 +291,40 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
 
   // ─── Category Row ──────────────────────────────────────
 
-  function CategoryRow({ cat, isMain }: { cat: SiteCategory; isMain: boolean }) {
-    const subs = isMain ? getSubcategories(cat.id) : []
+  function CategoryRow({ cat, level }: { cat: SiteCategory; level: number }) {
+    const children = level < 2 ? getSubcategories(cat.id) : []
     const isExpanded = expanded.has(cat.id)
     const siblings = cat.parent_id ? getSubcategories(cat.parent_id) : mainCategories
     const idx = siblings.findIndex((c) => c.id === cat.id)
 
     // Numbering matching the buyer catalog format
-    const categoryCode = isMain
-      ? String(idx + 1).padStart(2, '0')
-      : `${mainCategories.findIndex((c) => c.id === cat.parent_id) + 1}:${idx + 1}`
+    let categoryCode: string
+    if (level === 0) {
+      categoryCode = String(idx + 1).padStart(2, '0')
+    } else if (level === 1) {
+      categoryCode = `${mainCategories.findIndex((c) => c.id === cat.parent_id) + 1}:${idx + 1}`
+    } else {
+      const subParent = categories.find((c) => c.id === cat.parent_id)
+      const mainParentId = subParent?.parent_id ?? null
+      const mainIdx = mainParentId ? mainCategories.findIndex((c) => c.id === mainParentId) + 1 : 0
+      const subSiblings = mainParentId ? getSubcategories(mainParentId) : []
+      const subIdx = subParent ? subSiblings.findIndex((c) => c.id === subParent.id) + 1 : 0
+      categoryCode = `${mainIdx}:${subIdx}:${idx + 1}`
+    }
+
+    // Indentation based on level
+    const indentClass = level === 0 ? "" : level === 1 ? "pl-12" : "pl-20"
 
     return (
       <>
         <div
-          className={`flex items-center gap-3 px-4 py-3 border-b border-border hover:bg-muted/50 transition-colors ${
-            !isMain ? "pl-12" : ""
-          }`}
+          className={`flex items-center gap-3 px-4 py-3 border-b border-border hover:bg-muted/50 transition-colors ${indentClass}`}
         >
           {/* Drag handle indicator */}
           <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
 
-          {/* Expand/collapse for main categories */}
-          {isMain ? (
+          {/* Expand/collapse for categories with children */}
+          {level < 2 && children.length > 0 ? (
             <button onClick={() => toggleExpanded(cat.id)} className="shrink-0">
               {isExpanded ? (
                 <ChevronDown className="h-4 w-4" />
@@ -336,19 +366,19 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
           )}
 
           {/* Name */}
-          <span className={`flex-1 text-sm ${isMain ? "font-medium" : "text-muted-foreground"}`}>
+          <span className={`flex-1 text-sm ${level === 0 ? "font-medium" : "text-muted-foreground"}`}>
             {cat.name}
           </span>
 
-          {/* Sub count */}
-          {isMain && subs.length > 0 && (
+          {/* Child count for main categories and subcategories */}
+          {level < 2 && children.length > 0 && (
             <span className="text-xs text-muted-foreground mr-2">
-              {subs.length !== 1 ? t("subsCount", { count: subs.length }) : t("subCount", { count: subs.length })}
+              {children.length !== 1 ? t("subsCount", { count: children.length }) : t("subCount", { count: children.length })}
             </span>
           )}
 
-          {/* Product count for subcategories */}
-          {!isMain && (
+          {/* Product count for leaf categories (subcategories without children and sub-subcategories) */}
+          {(level === 2 || (level === 1 && children.length === 0)) && (
             <span className="text-xs text-muted-foreground mr-2">
               {(productCounts[cat.name] ?? 0) !== 1
                 ? t("productsCount", { count: productCounts[cat.name] ?? 0 })
@@ -437,8 +467,8 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
 
-            {/* Add subcategory (main only) */}
-            {isMain && (
+            {/* Add subcategory (main categories) */}
+            {level === 0 && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -453,12 +483,29 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
                 <Plus className="h-3.5 w-3.5" />
               </Button>
             )}
+
+            {/* Add sub-subcategory (subcategories) */}
+            {level === 1 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => {
+                  setFormParentId(cat.id)
+                  setFormName("")
+                  setAddOpen(true)
+                }}
+                title={t("addSubSubcategoryBtn")}
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </div>
         </div>
 
-        {/* Subcategories */}
-        {isMain && isExpanded &&
-          subs.map((sub) => <CategoryRow key={sub.id} cat={sub} isMain={false} />)
+        {/* Children (subcategories or sub-subcategories) */}
+        {level < 2 && isExpanded &&
+          children.map((child) => <CategoryRow key={child.id} cat={child} level={level + 1} />)
         }
       </>
     )
@@ -578,7 +625,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
         ) : (
           <div className="border border-border rounded-lg overflow-hidden">
             {mainCategories.map((cat) => (
-              <CategoryRow key={cat.id} cat={cat} isMain />
+              <CategoryRow key={cat.id} cat={cat} level={0} />
             ))}
           </div>
         )}
@@ -589,7 +636,11 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {formParentId ? t("addSubcategory") : t("addCategory")}
+              {formParentId
+                ? (categories.find((c) => c.id === formParentId)?.parent_id
+                    ? t("addSubSubcategory")
+                    : t("addSubcategory"))
+                : t("addCategory")}
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
@@ -653,7 +704,8 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
           </DialogHeader>
           <p className="py-4 text-sm text-muted-foreground">
             {t("deleteConfirm", { name: selectedCategory?.name ?? "" })}
-            {!selectedCategory?.parent_id && " " + t("deleteSubcategoriesWarning")}
+            {selectedCategory && categories.some((c) => c.parent_id === selectedCategory.id) &&
+              " " + t("deleteChildrenWarning")}
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>
