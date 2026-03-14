@@ -1459,6 +1459,7 @@
     "signInToContinueDesc": "您需要登录或创建帐户才能执行此操作。",
     "seller": "卖家",
     "label": "智能产品查找器",
-    "noSubcategories": "没有可用的子类别。点击下一步继续。"
+    "noSubcategories": "没有可用的子类别。点击下一步继续。",
+    "backToHome": "返回首页"
   }
 }
