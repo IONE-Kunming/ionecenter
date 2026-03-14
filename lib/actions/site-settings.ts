@@ -313,9 +313,14 @@ export async function uploadCategoryImage(categoryId: string, formData: FormData
       }
     }
 
+    // Convert File to ArrayBuffer to avoid issues with File shim serialization
+    // in server actions that can cause failures on subsequent uploads
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = new Uint8Array(arrayBuffer)
+
     const { error: uploadError } = await supabase.storage
       .from("site-assets")
-      .upload(filePath, file, { upsert: true, contentType: file.type })
+      .upload(filePath, buffer, { upsert: true, contentType: file.type || "image/png" })
 
     if (uploadError) return { error: uploadError.message }
 
@@ -333,6 +338,66 @@ export async function uploadCategoryImage(categoryId: string, formData: FormData
     return { success: true, url: urlData.publicUrl }
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Upload failed" }
+  }
+}
+
+/** Create a signed upload URL for direct browser-to-storage category image upload. */
+export async function createCategoryImageSignedUploadUrl(
+  categoryId: string,
+  ext: string
+): Promise<{ signedUrl?: string; token?: string; path?: string; filePath?: string; error?: string }> {
+  try {
+    const user = await getCurrentUser()
+    if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+    const supabase = createAdminClient()
+    const filePath = `categories/${categoryId}.${ext}`
+
+    // Remove any existing files for this category (different extensions)
+    const { data: existingFiles } = await supabase.storage.from("site-assets").list("categories")
+    if (existingFiles) {
+      const toRemove = existingFiles
+        .filter((f) => f.name.startsWith(`${categoryId}.`))
+        .map((f) => `categories/${f.name}`)
+      if (toRemove.length > 0) {
+        await supabase.storage.from("site-assets").remove(toRemove)
+      }
+    }
+
+    const { data, error } = await supabase.storage
+      .from("site-assets")
+      .createSignedUploadUrl(filePath)
+
+    if (error) return { error: error.message }
+    return { signedUrl: data.signedUrl, token: data.token, path: data.path, filePath }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to create upload URL" }
+  }
+}
+
+/** Finalize a category image upload by saving the public URL to the database. */
+export async function finalizeCategoryImageUpload(
+  categoryId: string,
+  filePath: string
+): Promise<{ success?: boolean; url?: string; error?: string }> {
+  try {
+    const user = await getCurrentUser()
+    if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+    const supabase = createAdminClient()
+    const { data: urlData } = supabase.storage
+      .from("site-assets")
+      .getPublicUrl(filePath)
+
+    const { error: updateError } = await supabase
+      .from("site_categories")
+      .update({ image_url: urlData.publicUrl, updated_at: new Date().toISOString() })
+      .eq("id", categoryId)
+
+    if (updateError) return { error: updateError.message }
+    return { success: true, url: urlData.publicUrl }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to save image URL" }
   }
 }
 
