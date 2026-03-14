@@ -277,6 +277,11 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
     const siblings = cat.parent_id ? getSubcategories(cat.parent_id) : mainCategories
     const idx = siblings.findIndex((c) => c.id === cat.id)
 
+    // Numbering matching the buyer catalog format
+    const categoryCode = isMain
+      ? String(idx + 1).padStart(2, '0')
+      : `${mainCategories.findIndex((c) => c.id === cat.parent_id) + 1}:${idx + 1}`
+
     return (
       <>
         <div
@@ -299,6 +304,11 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
           ) : (
             <div className="w-4" />
           )}
+
+          {/* Category number */}
+          <span className="inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold h-7 min-w-[1.75rem] px-1 shrink-0">
+            {categoryCode}
+          </span>
 
           {/* Category image */}
           {cat.image_url ? (
