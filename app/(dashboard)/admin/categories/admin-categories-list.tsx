@@ -33,9 +33,10 @@ interface Props {
   categories: SiteCategory[]
   videoUrl: string
   productCounts: Record<string, number>
+  subcategoriesWithSellers: string[]
 }
 
-export function AdminCategoriesList({ categories: initialCategories, videoUrl: initialVideoUrl, productCounts }: Props) {
+export function AdminCategoriesList({ categories: initialCategories, videoUrl: initialVideoUrl, productCounts, subcategoriesWithSellers }: Props) {
   const t = useTranslations("adminCategories")
   const [categories, setCategories] = useState(initialCategories)
   const [videoUrl, setVideoUrl] = useState(initialVideoUrl)
@@ -81,6 +82,8 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
     categories.filter((c) => c.parent_id === parentId).sort((a, b) => a.sort_order - b.sort_order),
     [categories]
   )
+
+  const sellerSubcategorySet = useMemo(() => new Set(subcategoriesWithSellers), [subcategoriesWithSellers])
 
   // Search filtering: determine which main categories to show and which to auto-expand
   const searchQuery = categoriesSearch.search.trim().toLowerCase()
@@ -485,6 +488,25 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
               {(productCounts[cat.name] ?? 0) !== 1
                 ? t("productsCount", { count: productCounts[cat.name] ?? 0 })
                 : t("productCount", { count: 1 })}
+            </span>
+          )}
+
+          {/* Seller status indicator for subcategories */}
+          {level > 0 && (
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium mr-2 select-none ${
+                sellerSubcategorySet.has(cat.name)
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
+              }`}
+              title={sellerSubcategorySet.has(cat.name) ? t("sellerActive") : t("sellerInactive")}
+            >
+              <span
+                className={`inline-block h-2 w-2 rounded-full ${
+                  sellerSubcategorySet.has(cat.name) ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
+                }`}
+              />
+              {sellerSubcategorySet.has(cat.name) ? "ON" : "OFF"}
             </span>
           )}
 

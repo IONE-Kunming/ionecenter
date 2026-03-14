@@ -193,6 +193,20 @@ export async function getProductCountsBySubcategory(): Promise<Record<string, nu
   return counts
 }
 
+export async function getSubcategoriesWithSellers(): Promise<string[]> {
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from("seller_categories")
+    .select("subcategories")
+  const nameSet = new Set<string>()
+  for (const row of (data ?? []) as { subcategories: string[] }[]) {
+    for (const name of row.subcategories ?? []) {
+      if (name) nameSet.add(name)
+    }
+  }
+  return Array.from(nameSet)
+}
+
 export async function createSiteCategory(
   name: string,
   parentId: string | null,

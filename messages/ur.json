@@ -778,7 +778,9 @@
     "noCategoriesFoundDesc": "اپنے تلاش کے معیار کو ایڈجسٹ کریں۔",
     "pinSubcategory": "پن کریں",
     "unpinSubcategory": "ان پن",
-    "dropHereToPinSubcategory": "پن کرنے کے لیے ذیلی زمرہ یہاں چھوڑیں"
+    "dropHereToPinSubcategory": "پن کرنے کے لیے ذیلی زمرہ یہاں چھوڑیں",
+    "sellerActive": "فروخت کنندہ مقرر",
+    "sellerInactive": "کوئی فروخت کنندہ مقرر نہیں"
   },
   "categoryNames": {
     "construction": "تعمیرات",
