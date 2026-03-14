@@ -1501,10 +1501,17 @@
     "uploadSuccess": "图片上传成功",
     "linkToCategory": "链接到分类",
     "linkToSubcategory": "链接到子分类",
+    "linkToSubSubcategory": "链接到子子分类",
     "searchCategories": "搜索分类...",
     "noResults": "未找到分类",
     "imageLinked": "图片已分配到分类",
     "matchAll": "全部匹配",
-    "matchSummary": "{matched} 个分类已匹配，{unmatched} 个未匹配"
+    "matchSummary": "{matched} 个分类已匹配，{unmatched} 个未匹配",
+    "matchSummaryDetailed": "{matched} 个已匹配（{categories} 个分类，{subcategories} 个子分类，{subSubcategories} 个子子分类），{unmatched} 个未匹配",
+    "rename": "重命名",
+    "renameImagePlaceholder": "输入新文件名",
+    "imageRenamed": "图片重命名成功",
+    "deleteImage": "删除图片",
+    "deleteImageConfirm": "确定要删除\"{name}\"吗？"
   }
 }

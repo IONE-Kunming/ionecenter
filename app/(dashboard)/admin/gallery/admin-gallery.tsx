@@ -31,7 +31,7 @@ import {
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import type { SiteCategory } from "@/lib/actions/site-settings"
-import type { AdminGalleryFolder, AdminGalleryImage } from "@/lib/actions/admin-gallery"
+import type { AdminGalleryFolder, AdminGalleryImage, AutoMatchResult } from "@/lib/actions/admin-gallery"
 import {
   createAdminGalleryFolder,
   deleteAdminGalleryFolder,
@@ -41,6 +41,7 @@ import {
   deleteImageFromFolder,
   linkImageToCategory,
   autoMatchFolderImages,
+  renameAdminGalleryImage,
 } from "@/lib/actions/admin-gallery"
 
 /* ────────────────────────── Props ────────────────────────── */
@@ -83,19 +84,37 @@ export function AdminGallery({ initialFolders, categories }: Props) {
   // link category dialog
   const [linkCatOpen, setLinkCatOpen] = useState(false)
   const [linkSubCatOpen, setLinkSubCatOpen] = useState(false)
+  const [linkSubSubCatOpen, setLinkSubSubCatOpen] = useState(false)
   const [linkImage, setLinkImage] = useState<AdminGalleryImage | null>(null)
   const [catSearch, setCatSearch] = useState("")
 
   // auto-match
   const [matching, setMatching] = useState(false)
-  const [matchResult, setMatchResult] = useState<{ matched: number; unmatched: number } | null>(null)
+  const [matchResult, setMatchResult] = useState<AutoMatchResult | null>(null)
   const [matchingCardFolder, setMatchingCardFolder] = useState<string | null>(null)
+
+  // rename
+  const [renamingImage, setRenamingImage] = useState<AdminGalleryImage | null>(null)
+  const [renameValue, setRenameValue] = useState("")
+  const [renameLoading, setRenameLoading] = useState(false)
+
+  // delete confirmation
+  const [deletingImage, setDeletingImage] = useState<AdminGalleryImage | null>(null)
+  const [deletingImageLoading, setDeletingImageLoading] = useState(false)
 
   // toast
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null)
 
+  // Pre-compute parent lookup for O(n) category classification
+  const parentIdMap = new Map<string, string | null>()
+  for (const c of categories) parentIdMap.set(c.id, c.parent_id)
+
   const mainCategories = categories.filter((c) => !c.parent_id)
-  const subCategories = categories.filter((c) => c.parent_id)
+  const subCategories = categories.filter((c) => c.parent_id && !parentIdMap.get(c.parent_id))
+  const subSubCategories = categories.filter((c) => {
+    if (!c.parent_id) return false
+    return parentIdMap.get(c.parent_id) != null
+  })
 
   /* ── helpers ────────────────────────────────────────────── */
 
@@ -189,14 +208,6 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
-  async function handleDeleteImage(img: AdminGalleryImage) {
-    const { error } = await deleteImageFromFolder(img.fullPath)
-    if (error) {
-      showToast("error", error)
-    } else {
-      setFolderImages((prev) => prev.filter((i) => i.fullPath !== img.fullPath))
-    }
-  }
 
   /* ── link to category / subcategory ─────────────────────── */
 
@@ -212,6 +223,12 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     setLinkSubCatOpen(true)
   }
 
+  function openLinkSubSubcategory(img: AdminGalleryImage) {
+    setLinkImage(img)
+    setCatSearch("")
+    setLinkSubSubCatOpen(true)
+  }
+
   async function assignToCategory(categoryId: string) {
     if (!linkImage) return
     const { error } = await linkImageToCategory(linkImage.publicUrl, categoryId)
@@ -222,6 +239,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     }
     setLinkCatOpen(false)
     setLinkSubCatOpen(false)
+    setLinkSubSubCatOpen(false)
     setLinkImage(null)
   }
 
@@ -235,7 +253,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     if (result.error) {
       showToast("error", result.error)
     } else {
-      setMatchResult({ matched: result.matched, unmatched: result.unmatched })
+      setMatchResult(result)
     }
     setMatching(false)
   }
@@ -248,10 +266,57 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     } else {
       showToast(
         "success",
-        t("matchSummary", { matched: result.matched, unmatched: result.unmatched })
+        t("matchSummaryDetailed", {
+          matched: result.matched,
+          unmatched: result.unmatched,
+          categories: result.matchedCategories,
+          subcategories: result.matchedSubcategories,
+          subSubcategories: result.matchedSubSubcategories,
+        })
       )
     }
     setMatchingCardFolder(null)
+  }
+
+  /* ── rename image ─────────────────────────────────────────── */
+
+  function openRenameImage(img: AdminGalleryImage) {
+    // Strip the leading timestamp prefix for the default rename value
+    const nameWithoutTs = img.name.replace(/^\d+-/, "")
+    setRenamingImage(img)
+    setRenameValue(nameWithoutTs)
+  }
+
+  async function handleRenameImage() {
+    if (!renamingImage || !renameValue.trim()) return
+    setRenameLoading(true)
+    const { image, error } = await renameAdminGalleryImage(renamingImage.fullPath, renameValue.trim())
+    if (error) {
+      showToast("error", error)
+    } else if (image) {
+      setFolderImages((prev) =>
+        prev.map((i) => (i.fullPath === renamingImage.fullPath ? image : i))
+      )
+      showToast("success", t("imageRenamed"))
+    }
+    setRenamingImage(null)
+    setRenameValue("")
+    setRenameLoading(false)
+  }
+
+  /* ── delete image with confirmation ─────────────────────── */
+
+  async function handleConfirmDeleteImage() {
+    if (!deletingImage) return
+    setDeletingImageLoading(true)
+    const { error } = await deleteImageFromFolder(deletingImage.fullPath)
+    if (error) {
+      showToast("error", error)
+    } else {
+      setFolderImages((prev) => prev.filter((i) => i.fullPath !== deletingImage.fullPath))
+    }
+    setDeletingImage(null)
+    setDeletingImageLoading(false)
   }
 
   /* ── filtered categories ────────────────────────────────── */
@@ -266,6 +331,9 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     c.name.toLowerCase().includes(catSearch.toLowerCase())
   )
   const filteredSubCats = subCategories.filter((c) =>
+    c.name.toLowerCase().includes(catSearch.toLowerCase())
+  )
+  const filteredSubSubCats = subSubCategories.filter((c) =>
     c.name.toLowerCase().includes(catSearch.toLowerCase())
   )
 
@@ -444,7 +512,13 @@ export function AdminGallery({ initialFolders, categories }: Props) {
           {matchResult && (
             <div className="flex items-center gap-2 p-3 rounded-md bg-muted text-sm">
               <Wand2 className="h-4 w-4" />
-              <span>{t("matchSummary", { matched: matchResult.matched, unmatched: matchResult.unmatched })}</span>
+              <span>{t("matchSummaryDetailed", {
+                matched: matchResult.matched,
+                unmatched: matchResult.unmatched,
+                categories: matchResult.matchedCategories,
+                subcategories: matchResult.matchedSubcategories,
+                subSubcategories: matchResult.matchedSubSubcategories,
+              })}</span>
               <Button size="sm" variant="ghost" className="ml-auto h-6 w-6 p-0" onClick={() => setMatchResult(null)}>
                 <X className="h-3 w-3" />
               </Button>
@@ -485,32 +559,43 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                   <div className="p-2">
                     <p className="text-xs truncate" title={img.name}>{img.name}</p>
                   </div>
-                  {/* Action overlay */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="text-xs"
+                  {/* Action overlay - icon toolbar */}
+                  <div className="absolute inset-x-0 bottom-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1 p-1.5">
+                    <button
                       onClick={() => openLinkCategory(img)}
+                      className="p-1.5 rounded bg-blue-500/80 hover:bg-blue-500 transition-colors"
+                      title={t("linkToCategory")}
                     >
-                      <Link2 className="h-3 w-3 mr-1" /> {t("linkToCategory")}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="text-xs"
+                      <Link2 className="h-3.5 w-3.5 text-white" />
+                    </button>
+                    <button
                       onClick={() => openLinkSubcategory(img)}
+                      className="p-1.5 rounded bg-indigo-500/80 hover:bg-indigo-500 transition-colors"
+                      title={t("linkToSubcategory")}
                     >
-                      <Link2 className="h-3 w-3 mr-1" /> {t("linkToSubcategory")}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="h-7 w-7 p-0"
-                      onClick={() => handleDeleteImage(img)}
+                      <Link2 className="h-3.5 w-3.5 text-white" />
+                    </button>
+                    <button
+                      onClick={() => openLinkSubSubcategory(img)}
+                      className="p-1.5 rounded bg-violet-500/80 hover:bg-violet-500 transition-colors"
+                      title={t("linkToSubSubcategory")}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                      <Link2 className="h-3.5 w-3.5 text-white" />
+                    </button>
+                    <button
+                      onClick={() => openRenameImage(img)}
+                      className="p-1.5 rounded bg-amber-500/80 hover:bg-amber-500 transition-colors"
+                      title={t("rename")}
+                    >
+                      <Pencil className="h-3.5 w-3.5 text-white" />
+                    </button>
+                    <button
+                      onClick={() => setDeletingImage(img)}
+                      className="p-1.5 rounded bg-destructive/80 hover:bg-destructive transition-colors"
+                      title={t("delete")}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 text-white" />
+                    </button>
                   </div>
                 </Card>
               ))}
@@ -641,6 +726,97 @@ export function AdminGallery({ initialFolders, categories }: Props) {
               )
             })}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Link to Sub-subcategory Dialog ─── */}
+      <Dialog open={linkSubSubCatOpen} onOpenChange={setLinkSubSubCatOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("linkToSubSubcategory")}</DialogTitle>
+          </DialogHeader>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              className="pl-9"
+              placeholder={t("searchCategories")}
+              value={catSearch}
+              onChange={(e) => setCatSearch(e.target.value)}
+            />
+          </div>
+          <div className="max-h-64 overflow-y-auto space-y-1">
+            {filteredSubSubCats.length === 0 && (
+              <p className="text-sm text-muted-foreground py-4 text-center">{t("noResults")}</p>
+            )}
+            {filteredSubSubCats.map((cat) => {
+              const parent = categories.find((c) => c.id === cat.parent_id)
+              const grandParent = parent ? categories.find((c) => c.id === parent.parent_id) : null
+              return (
+                <button
+                  key={cat.id}
+                  className="w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2"
+                  onClick={() => assignToCategory(cat.id)}
+                >
+                  {cat.image_url ? (
+                    <NextImage src={cat.image_url} alt="" width={24} height={24} className="rounded object-cover" unoptimized />
+                  ) : (
+                    <div className="w-6 h-6 rounded bg-muted-foreground/10 flex items-center justify-center">
+                      <ImageIcon className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                  )}
+                  <span>
+                    {cat.name}
+                    {parent && (
+                      <span className="text-muted-foreground ml-1">
+                        ({grandParent ? `${grandParent.name} › ` : ""}{parent.name})
+                      </span>
+                    )}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Rename Image Dialog ─── */}
+      <Dialog open={!!renamingImage} onOpenChange={() => { setRenamingImage(null); setRenameValue("") }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("rename")}</DialogTitle>
+          </DialogHeader>
+          <Input
+            placeholder={t("renameImagePlaceholder")}
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleRenameImage()}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setRenamingImage(null); setRenameValue("") }}>{t("cancel")}</Button>
+            <Button onClick={handleRenameImage} disabled={renameLoading || !renameValue.trim()}>
+              {renameLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
+              {t("rename")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Delete Image Confirmation Dialog ─── */}
+      <Dialog open={!!deletingImage} onOpenChange={() => setDeletingImage(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("deleteImage")}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {t("deleteImageConfirm", { name: deletingImage?.name ?? "" })}
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeletingImage(null)}>{t("cancel")}</Button>
+            <Button variant="destructive" onClick={handleConfirmDeleteImage} disabled={deletingImageLoading}>
+              {deletingImageLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
+              {t("delete")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

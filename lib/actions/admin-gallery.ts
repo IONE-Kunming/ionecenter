@@ -238,6 +238,54 @@ export async function linkImageToCategory(
   return {}
 }
 
+/* ── Rename image ─────────────────────────────────────────────────── */
+
+export async function renameAdminGalleryImage(
+  fullPath: string,
+  newName: string
+): Promise<{ image?: AdminGalleryImage; error?: string }> {
+  await requireAdmin()
+  const cleanName = newName.trim()
+  if (!cleanName) return { error: "Invalid file name" }
+
+  const supabase = createAdminClient()
+
+  // Download the old file
+  const { data: fileData, error: downloadErr } = await supabase.storage
+    .from(GALLERY_BUCKET)
+    .download(fullPath)
+  if (downloadErr || !fileData) return { error: downloadErr?.message ?? "Failed to download file" }
+
+  // Build new storage path: same folder, new timestamp-name
+  const pathParts = fullPath.split("/")
+  pathParts.pop() // remove old filename
+  const folderPath = pathParts.join("/")
+  const newFileName = `${Date.now()}-${cleanName}`
+  const newStoragePath = `${folderPath}/${newFileName}`
+
+  // Upload with new name
+  const { error: uploadErr } = await supabase.storage
+    .from(GALLERY_BUCKET)
+    .upload(newStoragePath, fileData, { contentType: fileData.type || "application/octet-stream" })
+  if (uploadErr) return { error: uploadErr.message }
+
+  // Delete old file
+  await supabase.storage.from(GALLERY_BUCKET).remove([fullPath])
+
+  // Build return item
+  const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(newStoragePath)
+
+  return {
+    image: {
+      name: newFileName,
+      fullPath: newStoragePath,
+      publicUrl: urlData.publicUrl,
+      size: fileData.size,
+      createdAt: new Date().toISOString(),
+    },
+  }
+}
+
 /* ── Auto-match ──────────────────────────────────────────────────── */
 
 function normalize(s: string): string {
@@ -249,31 +297,66 @@ function normalize(s: string): string {
     .trim()
 }
 
+export interface AutoMatchResult {
+  matched: number
+  unmatched: number
+  matchedCategories: number
+  matchedSubcategories: number
+  matchedSubSubcategories: number
+  error?: string
+}
+
 export async function autoMatchFolderImages(
   folderPath: string
-): Promise<{ matched: number; unmatched: number; error?: string }> {
+): Promise<AutoMatchResult> {
   await requireAdmin()
   const supabase = createAdminClient()
 
+  const empty: AutoMatchResult = {
+    matched: 0,
+    unmatched: 0,
+    matchedCategories: 0,
+    matchedSubcategories: 0,
+    matchedSubSubcategories: 0,
+  }
+
   // Get all images in folder
   const { images, error: listErr } = await listFolderImages(folderPath)
-  if (listErr) return { matched: 0, unmatched: 0, error: listErr }
+  if (listErr) return { ...empty, error: listErr }
 
   // Get all categories
   const { data: categories } = await supabase
     .from("site_categories")
     .select("*")
     .order("name")
-  if (!categories) return { matched: 0, unmatched: 0, error: "Could not load categories" }
+  if (!categories) return { ...empty, error: "Could not load categories" }
 
-  // Build lookup: normalised name → category
-  const catMap = new Map<string, { id: string; name: string }>()
+  // Classify each category: main / subcategory / sub-subcategory
+  // Sub-subcategory = parent_id is set AND that parent also has a parent_id
+  const parentMap = new Map<string, string | null>()
   for (const cat of categories) {
-    catMap.set(normalize(cat.name), { id: cat.id, name: cat.name })
+    parentMap.set(cat.id, cat.parent_id)
+  }
+
+  type CatLevel = "category" | "subcategory" | "subSubcategory"
+  function getLevel(cat: { id: string; parent_id: string | null }): CatLevel {
+    if (!cat.parent_id) return "category"
+    const grandParentId = parentMap.get(cat.parent_id)
+    if (grandParentId != null) return "subSubcategory"
+    return "subcategory"
+  }
+
+  // Build lookup: normalised name → { id, name, level }
+  const catMap = new Map<string, { id: string; name: string; level: CatLevel }>()
+  for (const cat of categories) {
+    catMap.set(normalize(cat.name), { id: cat.id, name: cat.name, level: getLevel(cat) })
   }
 
   let matched = 0
   let unmatched = 0
+  let matchedCategories = 0
+  let matchedSubcategories = 0
+  let matchedSubSubcategories = 0
 
   for (const img of images) {
     const normName = normalize(img.name)
@@ -284,10 +367,13 @@ export async function autoMatchFolderImages(
         .update({ image_url: img.publicUrl, updated_at: new Date().toISOString() })
         .eq("id", cat.id)
       matched++
+      if (cat.level === "category") matchedCategories++
+      else if (cat.level === "subcategory") matchedSubcategories++
+      else matchedSubSubcategories++
     } else {
       unmatched++
     }
   }
 
-  return { matched, unmatched }
+  return { matched, unmatched, matchedCategories, matchedSubcategories, matchedSubSubcategories }
 }

@@ -1502,10 +1502,17 @@
     "uploadSuccess": "تم رفع الصور بنجاح",
     "linkToCategory": "ربط بالفئة",
     "linkToSubcategory": "ربط بالفئة الفرعية",
+    "linkToSubSubcategory": "ربط بالفئة الفرعية الثانوية",
     "searchCategories": "البحث عن فئات...",
     "noResults": "لا توجد فئات",
     "imageLinked": "تم تعيين الصورة للفئة",
     "matchAll": "مطابقة الكل",
-    "matchSummary": "{matched} فئات تمت مطابقتها، {unmatched} لم تتم مطابقتها"
+    "matchSummary": "{matched} فئات تمت مطابقتها، {unmatched} لم تتم مطابقتها",
+    "matchSummaryDetailed": "{matched} تمت مطابقتها ({categories} فئات، {subcategories} فئات فرعية، {subSubcategories} فئات فرعية ثانوية)، {unmatched} لم تتم مطابقتها",
+    "rename": "إعادة تسمية",
+    "renameImagePlaceholder": "أدخل اسم الملف الجديد",
+    "imageRenamed": "تمت إعادة تسمية الصورة بنجاح",
+    "deleteImage": "حذف الصورة",
+    "deleteImageConfirm": "هل أنت متأكد من حذف \"{name}\"؟"
   }
 }
