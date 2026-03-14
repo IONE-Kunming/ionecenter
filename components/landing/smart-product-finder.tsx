@@ -384,7 +384,7 @@ export function SmartProductFinder({
 
       {/* ===== WIZARD DIALOG ===== */}
       <Dialog open={wizardOpen} onOpenChange={setWizardOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-5xl">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div>
