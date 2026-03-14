@@ -775,7 +775,10 @@
     "pinnedCategories": "固定分类",
     "dropHereToPin": "拖放分类到此处固定",
     "noCategoriesFound": "未找到分类",
-    "noCategoriesFoundDesc": "请调整您的搜索条件。"
+    "noCategoriesFoundDesc": "请调整您的搜索条件。",
+    "pinSubcategory": "固定",
+    "unpinSubcategory": "取消固定",
+    "dropHereToPinSubcategory": "拖放子分类到此处固定"
   },
   "categoryNames": {
     "construction": "建筑",

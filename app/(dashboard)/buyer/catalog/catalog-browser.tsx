@@ -21,11 +21,13 @@ import { useExchangeRate } from "@/lib/use-exchange-rate"
 import { addToCart } from "@/lib/actions/cart"
 import { getOrCreateConversation } from "@/lib/actions/chat"
 import { savePinnedCategories } from "@/lib/actions/pinned-categories"
+import { savePinnedSubcategories } from "@/lib/actions/pinned-subcategories"
 import type { CategoryData } from "@/lib/categories"
 import { toCategoryKey } from "@/lib/categories"
 import type { PricingType } from "@/types/database"
 import { ProductSearchDropdown, matchesProductSearch } from "@/components/product-search-dropdown"
 import { PinnedCategoriesBar } from "@/components/catalog/pinned-categories-bar"
+import { PinnedSubcategoriesBar } from "@/components/catalog/pinned-subcategories-bar"
 import { usePreviewSearch } from "@/components/layout/preview-search-context"
 
 type BrowseLevel = "categories" | "subcategories" | "products"
@@ -52,7 +54,7 @@ const CATEGORY_BADGE_BASE = "rounded-full bg-primary text-primary-foreground fle
 const CATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE}`
 const SUBCATEGORY_BADGE_ABSOLUTE = `absolute top-2 left-2 z-10 w-8 h-8 ${CATEGORY_BADGE_BASE} text-[10px]`
 
-export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = [], isPreviewMode = false, initialPinnedCategories = [], initialCategory }: { products: CatalogProduct[]; categoryData: CategoryData; wishlistedIds?: string[]; isPreviewMode?: boolean; initialPinnedCategories?: string[]; initialCategory?: string }) {
+export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = [], isPreviewMode = false, initialPinnedCategories = [], initialPinnedSubcategories = [], initialCategory }: { products: CatalogProduct[]; categoryData: CategoryData; wishlistedIds?: string[]; isPreviewMode?: boolean; initialPinnedCategories?: string[]; initialPinnedSubcategories?: string[]; initialCategory?: string }) {
   const t = useTranslations("catalog")
   const tCommon = useTranslations("common")
   const tChat = useTranslations("chat")
@@ -129,6 +131,61 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
     }
   }, [categoryData.mainCategories, handlePinCategory])
 
+  // ── Pinned subcategories state (only active in preview mode) ──
+  const [pinnedSubcategories, setPinnedSubcategories] = useState<string[]>(initialPinnedSubcategories)
+  const [isSubDragOver, setIsSubDragOver] = useState(false)
+  const saveSubTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const persistPinnedSubs = useCallback((subs: string[]) => {
+    if (saveSubTimerRef.current) clearTimeout(saveSubTimerRef.current)
+    saveSubTimerRef.current = setTimeout(async () => {
+      const result = await savePinnedSubcategories(subs)
+      if (result.error) {
+        addToast("error", result.error)
+      }
+    }, 500)
+  }, [addToast])
+
+  const handlePinSubcategory = useCallback((sub: string) => {
+    setPinnedSubcategories((prev) => {
+      if (prev.includes(sub)) return prev
+      const next = [...prev, sub]
+      persistPinnedSubs(next)
+      return next
+    })
+  }, [persistPinnedSubs])
+
+  const handleUnpinSubcategory = useCallback((sub: string) => {
+    setPinnedSubcategories((prev) => {
+      const next = prev.filter((s) => s !== sub)
+      persistPinnedSubs(next)
+      return next
+    })
+  }, [persistPinnedSubs])
+
+  const handlePinnedSubSelect = useCallback((sub: string) => {
+    // Find the parent category for this subcategory
+    for (const [mainCat, subs] of Object.entries(categoryData.categoryMap)) {
+      if (subs.includes(sub)) {
+        setSelectedCategory(mainCat)
+        break
+      }
+    }
+    setSelectedSubcategory(sub)
+    setLevel("products")
+    setCurrentPage(1)
+  }, [categoryData.categoryMap])
+
+  const handleSubDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsSubDragOver(true)
+  }, [])
+
+  const handleSubDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsSubDragOver(false)
+  }, [])
+
   const translateCat = (name: string): string => {
     const key = toCategoryKey(name)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -144,6 +201,26 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
   const [cartCount, setCartCount] = useState(0)
   const [showCategoryNumbers, setShowCategoryNumbers] = useState(true)
+
+  const handleSubDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsSubDragOver(false)
+    const sub = e.dataTransfer.getData("text/plain")
+    if (sub) {
+      // Verify it's a valid subcategory of the current category
+      const subs = categoryData.categoryMap[selectedCategory] ?? []
+      if (subs.includes(sub)) {
+        handlePinSubcategory(sub)
+      }
+    }
+  }, [categoryData.categoryMap, selectedCategory, handlePinSubcategory])
+
+  // Filter pinned subcategories to only those belonging to the currently selected category
+  const currentPinnedSubcategories = useMemo(() => {
+    if (!selectedCategory) return []
+    const subs = categoryData.categoryMap[selectedCategory] ?? []
+    return pinnedSubcategories.filter((s) => subs.includes(s))
+  }, [pinnedSubcategories, selectedCategory, categoryData.categoryMap])
 
   const productCountsBySubcategory = useMemo(() => {
     const counts: Record<string, number> = {}
@@ -364,22 +441,51 @@ export function BuyerCatalogBrowser({ products, categoryData, wishlistedIds = []
           <Button variant="ghost" size="sm" onClick={() => { setLevel("categories"); setSelectedCategory("") }}>
             <ArrowLeft className="h-4 w-4 mr-2" /> {tCommon("back")}
           </Button>
+          {/* Pinned subcategories bar */}
+          {isPreviewMode && (
+            <PinnedSubcategoriesBar
+              pinnedSubcategories={currentPinnedSubcategories}
+              categoryImageMap={categoryData.categoryImageMap}
+              productCountsBySubcategory={productCountsBySubcategory}
+              onSelect={handlePinnedSubSelect}
+              onUnpin={handleUnpinSubcategory}
+              isDragOver={isSubDragOver}
+              onDragOver={handleSubDragOver}
+              onDragLeave={handleSubDragLeave}
+              onDrop={handleSubDrop}
+            />
+          )}
           <div className="flex justify-end items-center gap-2">
             <Label htmlFor="showSubNumbers" className="text-sm">{t("showNumbers")}</Label>
             <Switch id="showSubNumbers" checked={showCategoryNumbers} onCheckedChange={setShowCategoryNumbers} />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {(categoryData.categoryMap[selectedCategory] ?? []).map((sub, subIdx) => {
+            {(categoryData.categoryMap[selectedCategory] ?? [])
+              .filter((sub) => !isPreviewMode || !pinnedSubcategories.includes(sub))
+              .map((sub, subIdx) => {
               const parentIdx = categoryData.mainCategories.indexOf(selectedCategory) + 1
               const subcategoryCode = `${parentIdx}:${subIdx + 1}`
               const subImageUrl = categoryData.categoryImageMap[sub] ?? null
+              const isSubPinned = pinnedSubcategories.includes(sub)
               return (
               <Card
                 key={sub}
                 className="cursor-pointer hover:shadow-md transition-all hover:-translate-y-1 overflow-hidden"
+                draggable={isPreviewMode}
+                onDragStart={isPreviewMode ? (e) => { e.dataTransfer.setData("text/plain", sub); e.dataTransfer.effectAllowed = "copy" } : undefined}
                 onClick={() => { setSelectedSubcategory(sub); setLevel("products"); setCurrentPage(1) }}
               >
-                <CardContent className="p-0">
+                <CardContent className="p-0 relative">
+                  {isPreviewMode && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); isSubPinned ? handleUnpinSubcategory(sub) : handlePinSubcategory(sub) }}
+                      className={`absolute top-2 right-2 z-20 w-7 h-7 rounded-full flex items-center justify-center transition-colors shadow-md ${isSubPinned ? "bg-primary text-primary-foreground" : "bg-background/80 text-muted-foreground hover:bg-primary/20 hover:text-primary"}`}
+                      title={isSubPinned ? t("unpinSubcategory") : t("pinSubcategory")}
+                    >
+                      <Pin className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                   {subImageUrl ? (
                     <div className="relative h-[120px]">
                       {showCategoryNumbers && (
