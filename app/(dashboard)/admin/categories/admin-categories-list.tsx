@@ -20,6 +20,8 @@ import {
   reorderSiteCategories,
   uploadCategoryImage,
   removeCategoryImage,
+  createCategoryImageSignedUploadUrl,
+  finalizeCategoryImageUpload,
   createVideoSignedUploadUrl,
   finalizeVideoUpload,
   removeSiteVideo,
@@ -253,16 +255,46 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const target = imageTargetRef.current
     if (!target || !e.target.files?.[0]) return
+    const file = e.target.files[0]
     setLoading(true)
     try {
-      const formData = new FormData()
-      formData.append("file", e.target.files[0])
-      const res = await uploadCategoryImage(target, formData)
-      if (res.error) {
-        showToast("error", res.error)
-      } else if (res.url) {
+      const ext = file.name.split(".").pop() || "png"
+
+      // Get a signed upload URL from the server (avoids Next.js body serialization issues)
+      const signedResult = await createCategoryImageSignedUploadUrl(target, ext)
+      if (signedResult.error) {
+        showToast("error", signedResult.error)
+        imageTargetRef.current = null
+        setImageTarget(null)
+        setLoading(false)
+        setImageInputKey((k) => k + 1)
+        return
+      }
+
+      // Upload the file directly to Supabase Storage using a fresh browser client
+      const supabase = createClient()
+      const { error: uploadError } = await supabase.storage
+        .from("site-assets")
+        .uploadToSignedUrl(signedResult.path ?? "", signedResult.token ?? "", file, {
+          contentType: file.type || "image/png",
+        })
+
+      if (uploadError) {
+        showToast("error", uploadError.message)
+        imageTargetRef.current = null
+        setImageTarget(null)
+        setLoading(false)
+        setImageInputKey((k) => k + 1)
+        return
+      }
+
+      // Save the public URL to the database
+      const finalResult = await finalizeCategoryImageUpload(target, signedResult.filePath ?? "")
+      if (finalResult.error) {
+        showToast("error", finalResult.error)
+      } else if (finalResult.url) {
         // Append cache-busting param so the browser doesn't show a stale cached image
-        const freshUrl = `${res.url!}?t=${Date.now()}`
+        const freshUrl = `${finalResult.url}?t=${Date.now()}`
         setCategories((prev) =>
           prev.map((c) => (c.id === target ? { ...c, image_url: freshUrl } : c))
         )
