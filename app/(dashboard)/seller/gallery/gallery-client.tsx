@@ -392,12 +392,12 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
   }
 
   // ── Match All handler (all images in a folder) ──
-  async function handleMatchAllFolder(folder: GalleryFolder) {
-    setAutoMatchingAll(folder.fullPath)
+  async function handleMatchAllInPath(folderPath: string) {
+    setAutoMatchingAll(folderPath)
     setError(null)
     setSuccessMsg(null)
 
-    const result = await autoMatchAllFolderImages(folder.fullPath)
+    const result = await autoMatchAllFolderImages(folderPath)
     setAutoMatchingAll(null)
 
     if (result.error) {
@@ -592,6 +592,19 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
             <FolderPlus className="h-4 w-4 mr-2" />
             {t("newFolder")}
           </Button>
+          {currentPath && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={autoMatchingAll === currentPath}
+              onClick={() => handleMatchAllInPath(currentPath)}
+            >
+              {autoMatchingAll === currentPath
+                ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                : <Zap className="h-4 w-4 mr-2" />}
+              {t("matchAll")}
+            </Button>
+          )}
           <Button
             size="sm"
             disabled={uploading}
@@ -838,7 +851,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
                           : <Star className="h-3 w-3 text-white" />}
                       </button>
                       <button
-                        onClick={() => handleMatchAllFolder(folder)}
+                        onClick={() => handleMatchAllInPath(folder.fullPath)}
                         disabled={autoMatchingAll === folder.fullPath}
                         className="p-1 rounded bg-violet-500/80 hover:bg-violet-500"
                         title={t("matchAll")}
