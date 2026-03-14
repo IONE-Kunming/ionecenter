@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Store, Search, Pencil, Trash2, Check, X, ChevronDown, ChevronRight } from "lucide-react"
+import { Store, Search, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, AlertTriangle } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -14,11 +13,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useFormatters } from "@/lib/use-formatters"
-import { adminUpdateUser, adminDeleteUser, adminUpdateUserCode, updateSellerCategories } from "@/lib/actions/admin"
+import { adminUpdateUser, adminDeleteUser, adminUpdateUserCode, adminUpdateSellerCategories, adminClearSellerCategories, adminDeleteProductsByRemovedCategories } from "@/lib/actions/admin"
 import type { SellerWithDetails } from "@/lib/actions/admin"
 import type { SiteCategory } from "@/lib/actions/site-settings"
 import type { UserRole } from "@/types/database"
-import type { CategoryData } from "@/lib/categories"
 
 function roleBadgeVariant(role: UserRole) {
   if (role === "admin") return "destructive" as const
@@ -51,8 +49,10 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
   const [editEmail, setEditEmail] = useState("")
   const [editRole, setEditRole] = useState("")
   const [editCompany, setEditCompany] = useState("")
-  const [editCategoryIds, setEditCategoryIds] = useState<Set<string>>(new Set())
+  const [editMainCategory, setEditMainCategory] = useState<string | null>(null)
+  const [editSubcategories, setEditSubcategories] = useState<string[]>([])
   const [editSaving, setEditSaving] = useState(false)
+  const [showCategoryWarning, setShowCategoryWarning] = useState(false)
 
   // Delete modal state
   const [deleteUser, setDeleteUser] = useState<SellerWithDetails | null>(null)
@@ -92,46 +92,82 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
     setEditEmail(seller.email)
     setEditRole(seller.role)
     setEditCompany(seller.company ?? "")
-    setEditCategoryIds(new Set(seller.assignedCategoryIds))
+    setEditMainCategory(seller.main_category)
+    setEditSubcategories([...(seller.subcategories ?? [])])
+    setShowCategoryWarning(false)
   }
 
-  const toggleCategory = (categoryId: string) => {
-    setEditCategoryIds((prev) => {
-      const next = new Set(prev)
-      const cat = siteCategories.find((c) => c.id === categoryId)
-      if (!cat) return next
+  const selectMainCategory = (categoryName: string) => {
+    if (editMainCategory === categoryName) {
+      // Deselect
+      setEditMainCategory(null)
+      setEditSubcategories([])
+    } else {
+      // Select new main category, clear subcategories
+      setEditMainCategory(categoryName)
+      setEditSubcategories([])
+    }
+    setShowCategoryWarning(false)
+  }
 
-      if (cat.parent_id === null) {
-        // It's a main category - toggle it and all its subcategories
-        const subs = subCatMap[categoryId] ?? []
-        if (next.has(categoryId)) {
-          next.delete(categoryId)
-          for (const sub of subs) next.delete(sub.id)
-        } else {
-          next.add(categoryId)
-          for (const sub of subs) next.add(sub.id)
-        }
-      } else {
-        // It's a subcategory - toggle individually
-        if (next.has(categoryId)) {
-          next.delete(categoryId)
-          // If no subcategories of this parent remain, remove the parent too
-          const parentSubs = subCatMap[cat.parent_id] ?? []
-          const anySubSelected = parentSubs.some((s) => s.id !== categoryId && next.has(s.id))
-          if (!anySubSelected) next.delete(cat.parent_id)
-        } else {
-          next.add(categoryId)
-          // Also ensure the parent main category is selected
-          next.add(cat.parent_id)
-        }
-      }
-      return next
-    })
+  const toggleSubcategory = (subcategoryName: string) => {
+    setEditSubcategories((prev) =>
+      prev.includes(subcategoryName)
+        ? prev.filter((s) => s !== subcategoryName)
+        : [...prev, subcategoryName]
+    )
+    setShowCategoryWarning(false)
+  }
+
+  // Detect if saving would remove categories and require product deletion
+  const getCategoryChanges = () => {
+    if (!editUser) return { needsWarning: false, mainCategoryChanged: false, removedSubcategories: [] as string[] }
+    const oldMain = editUser.main_category
+    const oldSubs = editUser.subcategories ?? []
+    const newMain = editMainCategory
+    const newSubs = editSubcategories
+
+    const mainCategoryChanged = !!oldMain && oldMain !== newMain
+    const removedSubcategories = oldMain === newMain
+      ? oldSubs.filter((s) => !newSubs.includes(s))
+      : []
+
+    return {
+      needsWarning: mainCategoryChanged || removedSubcategories.length > 0,
+      mainCategoryChanged,
+      removedSubcategories,
+    }
   }
 
   const handleEditSave = async () => {
     if (!editUser) return
+
+    const { needsWarning, mainCategoryChanged, removedSubcategories } = getCategoryChanges()
+
+    // Show confirmation if categories were removed and warning not yet acknowledged
+    if (needsWarning && !showCategoryWarning) {
+      setShowCategoryWarning(true)
+      return
+    }
+
     setEditSaving(true)
+    setShowCategoryWarning(false)
+
+    // Delete products from removed categories
+    if (mainCategoryChanged || removedSubcategories.length > 0) {
+      const deleteResult = await adminDeleteProductsByRemovedCategories(
+        editUser.id,
+        editUser.main_category,
+        editMainCategory,
+        removedSubcategories
+      )
+      if (deleteResult.error) {
+        setEditSaving(false)
+        return
+      }
+    }
+
+    // Save user info and categories in parallel
     const [userResult, catResult] = await Promise.all([
       adminUpdateUser(editUser.id, {
         display_name: editName,
@@ -139,7 +175,9 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
         role: editRole,
         company: editCompany,
       }),
-      updateSellerCategories(editUser.id, Array.from(editCategoryIds)),
+      editMainCategory
+        ? adminUpdateSellerCategories(editUser.id, editMainCategory, editSubcategories)
+        : adminClearSellerCategories(editUser.id),
     ])
     setEditSaving(false)
     if (!userResult.error && !catResult.error) {
@@ -189,20 +227,13 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
     }
   }
 
-  // Build hierarchical display for a seller's assigned categories
-  const buildCategoryDisplay = (assignedCategoryIds: string[]) => {
-    const idSet = new Set(assignedCategoryIds)
-    const display: { main: string; subs: string[] }[] = []
-
-    for (const main of mainCats) {
-      if (idSet.has(main.id)) {
-        const subs = (subCatMap[main.id] ?? [])
-          .filter((s) => idSet.has(s.id))
-          .map((s) => s.name)
-        display.push({ main: main.name, subs })
-      }
+  // Build hierarchical display for a seller's categories
+  const buildCategoryDisplay = (seller: SellerWithDetails) => {
+    if (!seller.main_category) return null
+    return {
+      main: seller.main_category,
+      subs: seller.subcategories ?? [],
     }
-    return display
   }
 
   // Total number of columns in the table (must match TableHead count below)
@@ -237,7 +268,7 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
             <TableBody>
               {filtered.map((seller, index) => {
                 const isExpanded = expandedSellers.has(seller.id)
-                const catDisplay = buildCategoryDisplay(seller.assignedCategoryIds)
+                const catDisplay = buildCategoryDisplay(seller)
                 return (
                   <>
                     <TableRow key={seller.id}>
@@ -306,20 +337,18 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
                       </TableCell>
                       <TableCell className="text-muted-foreground">{seller.company ?? "—"}</TableCell>
                       <TableCell>
-                        {catDisplay.length > 0 ? (
+                        {catDisplay ? (
                           <div className="text-sm space-y-1">
-                            {catDisplay.map((entry) => (
-                              <div key={entry.main}>
-                                <span className="font-medium">• {entry.main}</span>
-                                {entry.subs.length > 0 && (
-                                  <div className="ml-3 text-muted-foreground">
-                                    {entry.subs.map((sub) => (
-                                      <div key={sub}>- {sub}</div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
+                            <div>
+                              <span className="font-medium">• {catDisplay.main}</span>
+                              {catDisplay.subs.length > 0 && (
+                                <div className="ml-3 text-muted-foreground">
+                                  {catDisplay.subs.map((sub) => (
+                                    <div key={sub}>- {sub}</div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         ) : (
                           <span className="text-muted-foreground">—</span>
@@ -391,17 +420,17 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
               <Input value={editCompany} onChange={(e) => setEditCompany(e.target.value)} />
             </div>
 
-            {/* Categories multi-select section */}
+            {/* Categories section — single main category + multi-select subcategories */}
             <div className="space-y-2">
-              <Label>Categories</Label>
+              <Label>Main Category</Label>
               <div className="flex flex-wrap gap-2">
                 {mainCats.map((main) => {
-                  const isSelected = editCategoryIds.has(main.id)
+                  const isSelected = editMainCategory === main.name
                   return (
                     <button
                       key={main.id}
                       type="button"
-                      onClick={() => toggleCategory(main.id)}
+                      onClick={() => selectMainCategory(main.name)}
                       className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${
                         isSelected
                           ? "bg-primary text-primary-foreground border-primary"
@@ -414,48 +443,53 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
                 })}
               </div>
 
-              {/* Show selected categories hierarchically with subcategory toggles */}
-              {mainCats.filter((m) => editCategoryIds.has(m.id)).length > 0 && (
-                <div className="mt-3 rounded-md border p-3 space-y-2 max-h-48 overflow-y-auto">
-                  {mainCats
-                    .filter((m) => editCategoryIds.has(m.id))
-                    .map((main) => {
-                      const subs = subCatMap[main.id] ?? []
-                      return (
-                        <div key={main.id}>
-                          <div className="font-medium text-sm">• {main.name}</div>
-                          {subs.length > 0 && (
-                            <div className="ml-4 mt-1 flex flex-wrap gap-1.5">
-                              {subs.map((sub) => {
-                                const subSelected = editCategoryIds.has(sub.id)
-                                return (
-                                  <button
-                                    key={sub.id}
-                                    type="button"
-                                    onClick={() => toggleCategory(sub.id)}
-                                    className={`px-2 py-0.5 rounded text-xs border transition-colors ${
-                                      subSelected
-                                        ? "bg-primary/80 text-primary-foreground border-primary/80"
-                                        : "bg-muted text-muted-foreground border-transparent hover:bg-muted/80"
-                                    }`}
-                                  >
-                                    {sub.name}
-                                  </button>
-                                )
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
+              {/* Show subcategories for the selected main category */}
+              {editMainCategory && (() => {
+                const mainCat = mainCats.find((m) => m.name === editMainCategory)
+                if (!mainCat) return null
+                const subs = subCatMap[mainCat.id] ?? []
+                if (subs.length === 0) return null
+                return (
+                  <div className="mt-3 rounded-md border p-3 space-y-2 max-h-48 overflow-y-auto">
+                    <div className="font-medium text-sm mb-2">Subcategories</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {subs.map((sub) => {
+                        const subSelected = editSubcategories.includes(sub.name)
+                        return (
+                          <button
+                            key={sub.id}
+                            type="button"
+                            onClick={() => toggleSubcategory(sub.name)}
+                            className={`px-2 py-0.5 rounded text-xs border transition-colors ${
+                              subSelected
+                                ? "bg-primary/80 text-primary-foreground border-primary/80"
+                                : "bg-muted text-muted-foreground border-transparent hover:bg-muted/80"
+                            }`}
+                          >
+                            {sub.name}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* Category removal warning */}
+              {showCategoryWarning && (
+                <div className="mt-3 rounded-md border border-destructive/50 bg-destructive/10 p-3 flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                  <p className="text-sm text-destructive">
+                    Removing this category will delete all products in it for this seller. Are you sure?
+                  </p>
                 </div>
               )}
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditUser(null)}>{tCommon("cancel")}</Button>
-            <Button onClick={handleEditSave} disabled={editSaving}>
-              {editSaving ? tCommon("saving") : tCommon("save")}
+            <Button variant="outline" onClick={() => { setEditUser(null); setShowCategoryWarning(false) }}>{tCommon("cancel")}</Button>
+            <Button onClick={handleEditSave} disabled={editSaving} variant={showCategoryWarning ? "destructive" : "default"}>
+              {editSaving ? tCommon("saving") : showCategoryWarning ? "Confirm & Save" : tCommon("save")}
             </Button>
           </DialogFooter>
         </DialogContent>
