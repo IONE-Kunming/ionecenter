@@ -6,7 +6,7 @@ import { getCurrentUser } from "./users"
 export interface PinnedSubcategory {
   id: string
   seller_id: string
-  category_id: string
+  subcategory_id: string
   category_name: string
   parent_category_name: string
   created_at: string
@@ -21,14 +21,14 @@ export async function getPinnedSubcategories(): Promise<PinnedSubcategory[]> {
 
   const { data: pinned } = await supabase
     .from("seller_pinned_subcategories")
-    .select("id, seller_id, category_id, created_at")
+    .select("id, seller_id, subcategory_id, created_at")
     .eq("seller_id", user.id)
     .order("created_at", { ascending: true })
 
   if (!pinned || pinned.length === 0) return []
 
   // Join with site_categories to get subcategory names and parent names
-  const categoryIds = pinned.map((p: { category_id: string }) => p.category_id)
+  const categoryIds = pinned.map((p: { subcategory_id: string }) => p.subcategory_id)
   const { data: categories } = await supabase
     .from("site_categories")
     .select("id, name, parent_id")
@@ -53,12 +53,12 @@ export async function getPinnedSubcategories(): Promise<PinnedSubcategory[]> {
     ])
   )
 
-  return pinned.map((row: { id: string; seller_id: string; category_id: string; created_at: string }) => ({
+  return pinned.map((row: { id: string; seller_id: string; subcategory_id: string; created_at: string }) => ({
     id: row.id,
     seller_id: row.seller_id,
-    category_id: row.category_id,
-    category_name: categoryMap.get(row.category_id)?.name ?? "",
-    parent_category_name: categoryMap.get(row.category_id)?.parent_name ?? "",
+    subcategory_id: row.subcategory_id,
+    category_name: categoryMap.get(row.subcategory_id)?.name ?? "",
+    parent_category_name: categoryMap.get(row.subcategory_id)?.parent_name ?? "",
     created_at: row.created_at,
   }))
 }
@@ -91,11 +91,11 @@ export async function savePinnedSubcategories(subcategoryNames: string[]) {
     (categories ?? []).map((c: { id: string; name: string }) => [c.name, c.id])
   )
 
-  // Insert new pinned subcategories using category_id
-  const rows: { seller_id: string; category_id: string }[] = []
+  // Insert new pinned subcategories using subcategory_id
+  const rows: { seller_id: string; subcategory_id: string }[] = []
   for (const name of subcategoryNames) {
     const categoryId = nameToId.get(name)
-    if (categoryId) rows.push({ seller_id: user.id, category_id: categoryId })
+    if (categoryId) rows.push({ seller_id: user.id, subcategory_id: categoryId })
   }
 
   if (rows.length === 0) return { error: "No valid subcategories found" }
