@@ -452,7 +452,15 @@
     "yourSellerCode": "Your Seller Code",
     "copyCode": "Copy code",
     "showCategoryNumbers": "Show Category Numbers",
-    "catalogPreferences": "Catalog Preferences"
+    "catalogPreferences": "Catalog Preferences",
+    "myBuyers": "My Buyers",
+    "searchBuyers": "Search by name, code, or email...",
+    "buyerName": "Name",
+    "buyerCode": "Code",
+    "buyerEmail": "Email",
+    "ordersCount": "Orders",
+    "noBuyersFound": "No buyers found",
+    "noBuyersYet": "No buyers yet"
   },
   "sellerDirectory": {
     "searchSellers": "Search sellers...",

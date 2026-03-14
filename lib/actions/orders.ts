@@ -40,6 +40,47 @@ export async function getSellerOrders(): Promise<Order[]> {
   }))
 }
 
+export interface SellerBuyer {
+  buyer_id: string
+  display_name: string
+  user_code: string | null
+  email: string
+  order_count: number
+}
+
+export async function getSellerBuyers(): Promise<SellerBuyer[]> {
+  const user = await getCurrentUser()
+  if (!user) return []
+
+  const supabase = createAdminClient()
+  const { data: orders, error } = await supabase
+    .from("orders")
+    .select("buyer_id, buyer:users!buyer_id(display_name, user_code, email)")
+    .eq("seller_id", user.id)
+
+  if (error || !orders || orders.length === 0) return []
+
+  const buyerMap = new Map<string, SellerBuyer>()
+  for (const order of orders) {
+    const buyer = order.buyer as unknown as { display_name: string; user_code: string | null; email: string }
+    if (!buyer) continue
+    const existing = buyerMap.get(order.buyer_id)
+    if (existing) {
+      existing.order_count += 1
+    } else {
+      buyerMap.set(order.buyer_id, {
+        buyer_id: order.buyer_id,
+        display_name: buyer.display_name,
+        user_code: buyer.user_code,
+        email: buyer.email,
+        order_count: 1,
+      })
+    }
+  }
+
+  return Array.from(buyerMap.values())
+}
+
 export async function getOrder(id: string): Promise<(Order & { items: OrderItem[] }) | null> {
   const user = await getCurrentUser()
   if (!user) return null
