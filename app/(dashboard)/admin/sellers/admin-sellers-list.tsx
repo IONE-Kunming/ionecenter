@@ -327,7 +327,8 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
       a.download = `${seller.display_name}-products.xlsx`
       a.click()
       URL.revokeObjectURL(url)
-    } catch {
+    } catch (err) {
+      console.error("Excel export failed:", err)
       alert("Failed to export Excel")
     }
     setExporting(false)
@@ -390,7 +391,8 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
       }
 
       pdf.save(`${seller.display_name}-products.pdf`)
-    } catch {
+    } catch (err) {
+      console.error("PDF export failed:", err)
       alert("Failed to export PDF")
     }
     setExporting(false)
