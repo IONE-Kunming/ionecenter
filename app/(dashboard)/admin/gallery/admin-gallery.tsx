@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useMemo } from "react"
 import NextImage from "next/image"
 import { useTranslations } from "next-intl"
 import {
@@ -125,6 +125,60 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     if (!c.parent_id) return false
     return parentIdMap.get(c.parent_id) != null
   })
+
+  // Build category code map: id → code (e.g. "01", "0101", "010101")
+  const categoryCodeMap = useMemo(() => {
+    const codeMap = new Map<string, string>()
+    const childrenOf = new Map<string | "root", SiteCategory[]>()
+    for (const cat of categories) {
+      const key = cat.parent_id ?? "root"
+      const arr = childrenOf.get(key) ?? []
+      arr.push(cat)
+      childrenOf.set(key, arr)
+    }
+    const mains = childrenOf.get("root") ?? []
+    mains.forEach((cat, idx) => {
+      codeMap.set(cat.id, String(idx + 1).padStart(2, '0'))
+    })
+    for (const main of mains) {
+      const subs = childrenOf.get(main.id) ?? []
+      subs.forEach((sub, idx) => {
+        codeMap.set(sub.id, `${codeMap.get(main.id)}${String(idx + 1).padStart(2, '0')}`)
+      })
+      for (const sub of subs) {
+        const subSubs = childrenOf.get(sub.id) ?? []
+        subSubs.forEach((subSub, idx) => {
+          codeMap.set(subSub.id, `${codeMap.get(sub.id)}${String(idx + 1).padStart(2, '0')}`)
+        })
+      }
+    }
+    return codeMap
+  }, [categories])
+
+  // Normalize helper for client-side matching
+  function clientNormalize(s: string): string {
+    return s
+      .toLowerCase()
+      .replace(/\.[^.]+$/, "")
+      .replace(/^\d+-/, "")
+      .replace(/[-_ ]+/g, "")
+      .trim()
+  }
+
+  // Auto-suggest: find best matching category for an image name
+  function findSuggestedCategory(img: AdminGalleryImage, catList: SiteCategory[]): string | null {
+    const normName = clientNormalize(img.name)
+    // Try matching by numeric code first
+    for (const cat of catList) {
+      const code = categoryCodeMap.get(cat.id)
+      if (code && code === normName) return cat.id
+    }
+    // Then try matching by normalized name
+    for (const cat of catList) {
+      if (clientNormalize(cat.name) === normName) return cat.id
+    }
+    return null
+  }
 
   /* ── helpers ────────────────────────────────────────────── */
 
@@ -854,6 +908,9 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                     <ImageIcon className="h-3 w-3 text-muted-foreground" />
                   </div>
                 )}
+                <span className="inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold h-5 min-w-[1.25rem] px-1">
+                  {categoryCodeMap.get(cat.id) ?? ""}
+                </span>
                 {cat.name}
               </button>
             ))}
@@ -904,6 +961,9 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                       <ImageIcon className="h-3 w-3 text-muted-foreground" />
                     </div>
                   )}
+                  <span className="inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold h-5 min-w-[1.25rem] px-1">
+                    {categoryCodeMap.get(cat.id) ?? ""}
+                  </span>
                   <span>
                     {cat.name}
                     {parent && <span className={cn("ml-1", selectedCatId === cat.id ? "text-primary-foreground/70" : "text-muted-foreground")}>({parent.name})</span>}
@@ -959,6 +1019,9 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                       <ImageIcon className="h-3 w-3 text-muted-foreground" />
                     </div>
                   )}
+                  <span className="inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold h-5 min-w-[1.25rem] px-1">
+                    {categoryCodeMap.get(cat.id) ?? ""}
+                  </span>
                   <span>
                     {cat.name}
                     {parent && (

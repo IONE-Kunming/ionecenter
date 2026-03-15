@@ -208,7 +208,7 @@ export function GuestCatalogBrowser({ products, categoryData, initialCategory }:
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {(categoryData.categoryMap[selectedCategory] ?? []).map((sub, subIdx) => {
               const parentIdx = categoryData.mainCategories.indexOf(selectedCategory) + 1
-              const subcategoryCode = `${parentIdx}:${subIdx + 1}`
+              const subcategoryCode = `${String(parentIdx).padStart(2, '0')}${String(subIdx + 1).padStart(2, '0')}`
               const subImageUrl = categoryData.categoryImageMap[sub] ?? null
               return (
                 <Card

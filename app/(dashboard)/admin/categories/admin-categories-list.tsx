@@ -407,14 +407,15 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
     if (level === 0) {
       categoryCode = String(idx + 1).padStart(2, '0')
     } else if (level === 1) {
-      categoryCode = `${mainCategories.findIndex((c) => c.id === cat.parent_id) + 1}:${idx + 1}`
+      const parentCode = String(mainCategories.findIndex((c) => c.id === cat.parent_id) + 1).padStart(2, '0')
+      categoryCode = `${parentCode}${String(idx + 1).padStart(2, '0')}`
     } else {
       const subParent = categories.find((c) => c.id === cat.parent_id)
       const mainParentId = subParent?.parent_id ?? null
-      const mainIdx = mainParentId ? mainCategories.findIndex((c) => c.id === mainParentId) + 1 : 0
+      const mainCode = String(mainParentId ? mainCategories.findIndex((c) => c.id === mainParentId) + 1 : 0).padStart(2, '0')
       const subSiblings = mainParentId ? getSubcategories(mainParentId) : []
-      const subIdx = subParent ? subSiblings.findIndex((c) => c.id === subParent.id) + 1 : 0
-      categoryCode = `${mainIdx}:${subIdx}:${idx + 1}`
+      const subCode = String(subParent ? subSiblings.findIndex((c) => c.id === subParent.id) + 1 : 0).padStart(2, '0')
+      categoryCode = `${mainCode}${subCode}${String(idx + 1).padStart(2, '0')}`
     }
 
     // Indentation based on level
