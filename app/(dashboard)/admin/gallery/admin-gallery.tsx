@@ -345,6 +345,12 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     }
   }
 
+  function resetMatchNameState() {
+    setMatchNameConfirmOpen(false)
+    setMatchNameImage(null)
+    setMatchNameResult(null)
+  }
+
   async function handleConfirmMatchName() {
     if (!matchNameImage || !matchNameResult?.categoryId) return
     const { error } = await linkImageToCategory(matchNameImage.publicUrl, matchNameResult.categoryId)
@@ -353,15 +359,11 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     } else {
       showToast("success", t("imageLinked"))
     }
-    setMatchNameConfirmOpen(false)
-    setMatchNameImage(null)
-    setMatchNameResult(null)
+    resetMatchNameState()
   }
 
   function handleCancelMatchName() {
-    setMatchNameConfirmOpen(false)
-    setMatchNameImage(null)
-    setMatchNameResult(null)
+    resetMatchNameState()
   }
 
   /* ── rename image ─────────────────────────────────────────── */
