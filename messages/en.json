@@ -467,7 +467,11 @@
     "sellerLogo": "Seller Logo",
     "uploadLogo": "Upload Logo",
     "logoUploaded": "Logo uploaded successfully",
-    "logoUploadFailed": "Failed to upload logo"
+    "logoUploadFailed": "Failed to upload logo",
+    "deleteLogo": "Delete Logo",
+    "deleteLogoConfirm": "Are you sure you want to delete the seller logo?",
+    "logoDeleted": "Logo deleted successfully",
+    "logoDeleteFailed": "Failed to delete logo"
   },
   "sellerDirectory": {
     "searchSellers": "Search sellers...",

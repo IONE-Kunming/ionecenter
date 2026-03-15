@@ -443,7 +443,11 @@
     "sellerLogo": "卖家标志",
     "uploadLogo": "上传标志",
     "logoUploaded": "标志上传成功",
-    "logoUploadFailed": "标志上传失败"
+    "logoUploadFailed": "标志上传失败",
+    "deleteLogo": "删除标志",
+    "deleteLogoConfirm": "确定要删除卖家标志吗？",
+    "logoDeleted": "标志已成功删除",
+    "logoDeleteFailed": "删除标志失败"
   },
   "sellerDirectory": {
     "searchSellers": "搜索卖家...",

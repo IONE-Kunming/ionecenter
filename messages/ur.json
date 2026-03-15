@@ -443,7 +443,11 @@
     "sellerLogo": "سیلر لوگو",
     "uploadLogo": "لوگو اپ لوڈ کریں",
     "logoUploaded": "لوگو کامیابی سے اپ لوڈ ہو گیا",
-    "logoUploadFailed": "لوگو اپ لوڈ ناکام ہو گیا"
+    "logoUploadFailed": "لوگو اپ لوڈ ناکام ہو گیا",
+    "deleteLogo": "لوگو حذف کریں",
+    "deleteLogoConfirm": "کیا آپ واقعی سیلر لوگو حذف کرنا چاہتے ہیں؟",
+    "logoDeleted": "لوگو کامیابی سے حذف ہو گیا",
+    "logoDeleteFailed": "لوگو حذف کرنے میں ناکامی"
   },
   "sellerDirectory": {
     "searchSellers": "فروخت کنندگان تلاش کریں...",
