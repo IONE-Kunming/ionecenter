@@ -220,9 +220,13 @@ export async function getSubcategoriesWithSellers(): Promise<Record<string, stri
     for (const name of row.subcategories ?? []) {
       if (name) {
         if (!result[name]) result[name] = []
-        if (!result[name].includes(sellerName)) result[name].push(sellerName)
+        result[name].push(sellerName)
       }
     }
+  }
+  // Deduplicate seller names per subcategory
+  for (const key of Object.keys(result)) {
+    result[key] = [...new Set(result[key])]
   }
   return result
 }

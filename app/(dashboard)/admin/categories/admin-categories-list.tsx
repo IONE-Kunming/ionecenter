@@ -511,7 +511,9 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
                 />
                 {isActive ? "ON" : "OFF"}
                 {isActive && (
-                  <span className="ml-1">{sellers.join(", ")}</span>
+                  <span className="ml-1" title={sellers.join(", ")}>
+                    {sellers.length <= 3 ? sellers.join(", ") : `${sellers.slice(0, 3).join(", ")} +${sellers.length - 3}`}
+                  </span>
                 )}
               </span>
             )
