@@ -156,19 +156,31 @@ export async function listFolderImages(
   await requireAdmin()
   const supabase = createAdminClient()
 
-  // Normalise: strip any accidental trailing slashes
-  const normPath = folderPath.replace(/\/+$/, "")
+  // Normalise: collapse consecutive slashes and strip trailing slashes
+  const normPath = folderPath.replace(/\/{2,}/g, "/").replace(/\/+$/, "")
 
   const { data, error } = await supabase.storage
     .from(GALLERY_BUCKET)
     .list(normPath, { limit: 500, sortBy: { column: "name", order: "asc" } })
-  if (error) return { images: [], error: error.message }
+  if (error) {
+    console.error("[listFolderImages] Storage list error for path:", normPath, error.message)
+    return { images: [], error: error.message }
+  }
+  if (!data || data.length === 0) {
+    console.warn("[listFolderImages] No items returned for path:", normPath)
+    return { images: [] }
+  }
 
+  const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "avif"])
   const images: AdminGalleryImage[] = []
-  for (const item of data ?? []) {
-    if (item.name === ".keep" || item.metadata === null) continue
+  for (const item of data) {
+    // Skip the folder placeholder
+    if (item.name === ".keep") continue
+    // Skip sub-directory entries (they have no id); do NOT rely on metadata
+    // being null — uploaded files may temporarily have null metadata
+    if (!item.id) continue
     const ext = item.name.split(".").pop()?.toLowerCase() ?? ""
-    if (!["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "avif"].includes(ext)) continue
+    if (!IMAGE_EXTENSIONS.has(ext)) continue
 
     const storagePath = `${normPath}/${item.name}`
     const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(storagePath)
@@ -195,12 +207,19 @@ export async function uploadImageToFolder(
   const supabase = createAdminClient()
   const safeName = sanitizeFileName(file.name)
   if (!safeName) return { error: "Invalid file name" }
-  const storagePath = `${folderPath}/${Date.now()}-${safeName}`
+
+  // Normalise folder path the same way listFolderImages does so upload
+  // and fetch always target the exact same storage prefix.
+  const normPath = folderPath.replace(/\/{2,}/g, "/").replace(/\/+$/, "")
+  const storagePath = `${normPath}/${Date.now()}-${safeName}`
 
   const { data, error } = await supabase.storage
     .from(GALLERY_BUCKET)
     .upload(storagePath, file, { contentType: file.type })
-  if (error || !data) return { error: error?.message ?? "Upload failed" }
+  if (error || !data) {
+    console.error("[uploadImageToFolder] Upload failed for path:", storagePath, error?.message)
+    return { error: error?.message ?? "Upload failed" }
+  }
 
   const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(storagePath)
   return {
