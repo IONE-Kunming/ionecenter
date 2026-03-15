@@ -787,7 +787,11 @@
     "noImagesInFolder": "No images found in this folder.",
     "selectImage": "Select",
     "filterBySeller": "Filter by seller:",
-    "allSellers": "All Sellers"
+    "allSellers": "All Sellers",
+    "galleryDropZoneText": "Drag & drop folders or images here to upload",
+    "gallerySelectFiles": "Select Images",
+    "galleryUploading": "Uploading {current} of {total}...",
+    "galleryUploadSuccess": "{count} images uploaded"
   },
   "adminDashboard": {
     "totalUsers": "Total Users",

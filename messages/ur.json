@@ -716,7 +716,11 @@
     "importFailed": "CSV فائل درآمد کرنے میں ناکامی۔",
     "bulkEditTitle": "بلک ترمیم",
     "bulkEditSubtitle": "میری مصنوعات — ان لائن ایڈیٹر",
-    "exchangeRateNote": "ایکسچینج ریٹ ہر 24 گھنٹے میں اپ ڈیٹ ہوتا ہے"
+    "exchangeRateNote": "ایکسچینج ریٹ ہر 24 گھنٹے میں اپ ڈیٹ ہوتا ہے",
+    "galleryDropZoneText": "فولڈرز یا تصاویر یہاں ڈراپ کریں",
+    "gallerySelectFiles": "تصاویر منتخب کریں",
+    "galleryUploading": "{current} میں سے {total} اپلوڈ ہو رہی ہیں...",
+    "galleryUploadSuccess": "{count} تصاویر اپلوڈ ہو گئیں"
   },
   "adminDashboard": {
     "totalUsers": "کل صارفین",
