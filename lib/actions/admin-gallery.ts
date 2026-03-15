@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/actions/users"
 import type { SiteCategory } from "@/lib/actions/site-settings"
 
 const GALLERY_BUCKET = "site-assets"
+const GALLERY_PREFIX = "admin-gallery"
 
 /* ── Types ───────────────────────────────────────────────────────── */
 
@@ -31,6 +32,11 @@ async function requireAdmin() {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") throw new Error("Not authorized")
   return user
+}
+
+/** Normalise a storage path: collapse consecutive slashes and strip trailing slashes. */
+function normalizePath(p: string): string {
+  return p.replace(/\/{2,}/g, "/").replace(/\/+$/, "")
 }
 
 /** Sanitise a user-supplied file name so it is safe for storage paths. */
@@ -63,7 +69,7 @@ export async function createAdminGalleryFolder(
   if (!cleanName) return { error: "Invalid folder name" }
 
   const supabase = createAdminClient()
-  const folderPath = `admin-gallery/${cleanName}`
+  const folderPath = `${GALLERY_PREFIX}/${cleanName}`
 
   // Create a .keep file so the storage folder exists
   const keepFile = new Blob([""], { type: "text/plain" })
@@ -101,11 +107,12 @@ export async function deleteAdminGalleryFolder(
   if (!folder) return { error: "Folder not found" }
 
   // Remove all files in storage
+  const normPath = normalizePath(folder.folder_path)
   const { data: storageFiles } = await supabase.storage
     .from(GALLERY_BUCKET)
-    .list(folder.folder_path, { limit: 500 })
+    .list(normPath, { limit: 500 })
   if (storageFiles && storageFiles.length > 0) {
-    const paths = storageFiles.map((f: { name: string }) => `${folder.folder_path}/${f.name}`)
+    const paths = storageFiles.map((f: { name: string }) => `${normPath}/${f.name}`)
     await supabase.storage.from(GALLERY_BUCKET).remove(paths)
   }
 
@@ -130,7 +137,7 @@ export async function updateAdminFolderCover(
   if (!file.type.startsWith("image/")) return { error: "Only images are allowed" }
 
   const supabase = createAdminClient()
-  const storagePath = `admin-gallery/_covers/${folderId}-${Date.now()}.${file.name.split(".").pop() || "png"}`
+  const storagePath = `${GALLERY_PREFIX}/_covers/${folderId}-${Date.now()}.${file.name.split(".").pop() || "png"}`
 
   const { data, error: uploadErr } = await supabase.storage
     .from(GALLERY_BUCKET)
@@ -157,7 +164,7 @@ export async function listFolderImages(
   const supabase = createAdminClient()
 
   // Normalise: collapse consecutive slashes and strip trailing slashes
-  const normPath = folderPath.replace(/\/{2,}/g, "/").replace(/\/+$/, "")
+  const normPath = normalizePath(folderPath)
 
   const { data, error } = await supabase.storage
     .from(GALLERY_BUCKET)
@@ -210,7 +217,7 @@ export async function uploadImageToFolder(
 
   // Normalise folder path the same way listFolderImages does so upload
   // and fetch always target the exact same storage prefix.
-  const normPath = folderPath.replace(/\/{2,}/g, "/").replace(/\/+$/, "")
+  const normPath = normalizePath(folderPath)
   const storagePath = `${normPath}/${Date.now()}-${safeName}`
 
   const { data, error } = await supabase.storage
