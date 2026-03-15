@@ -193,18 +193,42 @@ export async function getProductCountsBySubcategory(): Promise<Record<string, nu
   return counts
 }
 
-export async function getSubcategoriesWithSellers(): Promise<string[]> {
+export async function getSubcategoriesWithSellers(): Promise<Record<string, string[]>> {
   const supabase = createAdminClient()
   const { data } = await supabase
     .from("seller_categories")
-    .select("subcategories")
-  const nameSet = new Set<string>()
-  for (const row of (data ?? []) as { subcategories: string[] }[]) {
+    .select("subcategories, seller_id")
+
+  if (!data || data.length === 0) return {}
+
+  // Collect seller IDs
+  const sellerIds = [...new Set((data as { seller_id: string }[]).map((r) => r.seller_id))]
+  // Fetch display names
+  const { data: users } = await supabase
+    .from("users")
+    .select("id, display_name")
+    .in("id", sellerIds)
+  const nameMap: Record<string, string> = {}
+  for (const u of (users ?? []) as { id: string; display_name: string }[]) {
+    nameMap[u.id] = u.display_name
+  }
+
+  // Build subcategory → seller names mapping
+  const result: Record<string, string[]> = {}
+  for (const row of data as { subcategories: string[]; seller_id: string }[]) {
+    const sellerName = nameMap[row.seller_id] ?? row.seller_id
     for (const name of row.subcategories ?? []) {
-      if (name) nameSet.add(name)
+      if (name) {
+        if (!result[name]) result[name] = []
+        result[name].push(sellerName)
+      }
     }
   }
-  return Array.from(nameSet)
+  // Deduplicate seller names per subcategory
+  for (const key of Object.keys(result)) {
+    result[key] = [...new Set(result[key])]
+  }
+  return result
 }
 
 export async function createSiteCategory(
