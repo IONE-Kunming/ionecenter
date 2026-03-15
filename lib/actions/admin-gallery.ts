@@ -498,18 +498,19 @@ export async function matchSingleImage(
   const { idToCode } = buildCategoryCodeMap(categories)
   const normName = normalize(imageName)
 
-  // Try matching by normalized name first, then by numeric code
+  // Try matching by normalized name or numeric code in a single pass
+  let codeMatch: { categoryId: string; categoryName: string; level: string } | null = null
   for (const cat of categories) {
     if (normalize(cat.name) === normName) {
       return { categoryId: cat.id, categoryName: cat.name, level: getLevel(cat) }
     }
-  }
-  for (const cat of categories) {
-    const code = idToCode.get(cat.id)
-    if (code && code === normName) {
-      return { categoryId: cat.id, categoryName: cat.name, level: getLevel(cat) }
+    if (!codeMatch) {
+      const code = idToCode.get(cat.id)
+      if (code && code === normName) {
+        codeMatch = { categoryId: cat.id, categoryName: cat.name, level: getLevel(cat) }
+      }
     }
   }
 
-  return null
+  return codeMatch
 }

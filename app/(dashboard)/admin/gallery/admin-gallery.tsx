@@ -260,28 +260,34 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     setLinkImage(img)
     setCatSearch("")
     setSuggestedCategoryId(null)
-    // Auto-suggest based on image filename
-    const match = await matchSingleImage(img.name)
-    if (match && match.level === "category") setSuggestedCategoryId(match.categoryId)
     setLinkCatOpen(true)
+    // Auto-suggest based on image filename
+    try {
+      const match = await matchSingleImage(img.name)
+      if (match && match.level === "category") setSuggestedCategoryId(match.categoryId)
+    } catch { /* ignore suggestion errors */ }
   }
 
   async function openLinkSubcategory(img: AdminGalleryImage) {
     setLinkImage(img)
     setCatSearch("")
     setSuggestedCategoryId(null)
-    const match = await matchSingleImage(img.name)
-    if (match && match.level === "subcategory") setSuggestedCategoryId(match.categoryId)
     setLinkSubCatOpen(true)
+    try {
+      const match = await matchSingleImage(img.name)
+      if (match && match.level === "subcategory") setSuggestedCategoryId(match.categoryId)
+    } catch { /* ignore suggestion errors */ }
   }
 
   async function openLinkSubSubcategory(img: AdminGalleryImage) {
     setLinkImage(img)
     setCatSearch("")
     setSuggestedCategoryId(null)
-    const match = await matchSingleImage(img.name)
-    if (match && match.level === "subSubcategory") setSuggestedCategoryId(match.categoryId)
     setLinkSubSubCatOpen(true)
+    try {
+      const match = await matchSingleImage(img.name)
+      if (match && match.level === "subSubcategory") setSuggestedCategoryId(match.categoryId)
+    } catch { /* ignore suggestion errors */ }
   }
 
   async function assignToCategory(categoryId: string) {
