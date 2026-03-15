@@ -130,7 +130,6 @@ function getNavItems(role: UserRole, t: TranslationFn): NavItem[] {
       ],
     },
     { label: t("products"), href: "/admin/products", icon: Package },
-    { label: t("bulkEdit"), href: "/admin/bulk-edit", icon: Pencil },
     { label: t("categories"), href: "/admin/categories", icon: FolderTree },
     { label: t("gallery"), href: "/admin/gallery", icon: Images },
     { label: t("orders"), href: "/admin/orders", icon: FileText },
