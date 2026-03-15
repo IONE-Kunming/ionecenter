@@ -1528,6 +1528,11 @@
     "renameImagePlaceholder": "نئے فائل کا نام درج کریں",
     "imageRenamed": "تصویر کا نام کامیابی سے تبدیل ہو گیا",
     "deleteImage": "تصویر حذف کریں",
-    "deleteImageConfirm": "کیا آپ واقعی \"{name}\" حذف کرنا چاہتے ہیں؟"
+    "deleteImageConfirm": "کیا آپ واقعی \"{name}\" حذف کرنا چاہتے ہیں؟",
+    "matchName": "نام ملائیں",
+    "matchConfirm": "مطابقت: {name} — تصدیق کریں؟",
+    "noMatchFound": "کوئی مطابقت نہیں ملی",
+    "yes": "ہاں",
+    "escape": "فرار"
   }
 }

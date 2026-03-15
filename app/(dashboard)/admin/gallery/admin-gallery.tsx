@@ -31,7 +31,7 @@ import {
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import type { SiteCategory } from "@/lib/actions/site-settings"
-import type { AdminGalleryFolder, AdminGalleryImage, AutoMatchResult } from "@/lib/actions/admin-gallery"
+import type { AdminGalleryFolder, AdminGalleryImage, AutoMatchResult, SingleMatchResult } from "@/lib/actions/admin-gallery"
 import {
   createAdminGalleryFolder,
   deleteAdminGalleryFolder,
@@ -42,6 +42,7 @@ import {
   linkImageToCategory,
   autoMatchFolderImages,
   renameAdminGalleryImage,
+  autoMatchSingleImage,
 } from "@/lib/actions/admin-gallery"
 
 /* ────────────────────────── Props ────────────────────────── */
@@ -101,6 +102,11 @@ export function AdminGallery({ initialFolders, categories }: Props) {
   // delete confirmation
   const [deletingImage, setDeletingImage] = useState<AdminGalleryImage | null>(null)
   const [deletingImageLoading, setDeletingImageLoading] = useState(false)
+
+  // single-image match name
+  const [matchNameLoading, setMatchNameLoading] = useState<string | null>(null) // fullPath of loading image
+  const [matchNameImage, setMatchNameImage] = useState<AdminGalleryImage | null>(null)
+  const [matchNameResult, setMatchNameResult] = useState<SingleMatchResult | null>(null)
 
   // toast
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null)
@@ -317,6 +323,37 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     }
     setDeletingImage(null)
     setDeletingImageLoading(false)
+  }
+
+  /* ── single-image match name ────────────────────────────── */
+
+  async function handleMatchName(img: AdminGalleryImage) {
+    setMatchNameLoading(img.fullPath)
+    const { match, error } = await autoMatchSingleImage(img.name)
+    setMatchNameLoading(null)
+    if (error) {
+      showToast("error", error)
+      return
+    }
+    if (match) {
+      setMatchNameImage(img)
+      setMatchNameResult(match)
+    } else {
+      setToast({ type: "error", msg: t("noMatchFound") })
+      setTimeout(() => setToast(null), 2000)
+    }
+  }
+
+  async function handleConfirmMatchName() {
+    if (!matchNameImage || !matchNameResult) return
+    const { error } = await linkImageToCategory(matchNameImage.publicUrl, matchNameResult.categoryId)
+    if (error) {
+      showToast("error", error)
+    } else {
+      showToast("success", t("imageLinked"))
+    }
+    setMatchNameImage(null)
+    setMatchNameResult(null)
   }
 
   /* ── filtered categories ────────────────────────────────── */
@@ -583,6 +620,16 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                       <Link2 className="h-3.5 w-3.5 text-white" />
                     </button>
                     <button
+                      onClick={() => handleMatchName(img)}
+                      disabled={matchNameLoading === img.fullPath}
+                      className="p-1.5 rounded bg-emerald-500/80 hover:bg-emerald-500 transition-colors"
+                      title={t("matchName")}
+                    >
+                      {matchNameLoading === img.fullPath
+                        ? <Loader2 className="h-3.5 w-3.5 text-white animate-spin" />
+                        : <Wand2 className="h-3.5 w-3.5 text-white" />}
+                    </button>
+                    <button
                       onClick={() => openRenameImage(img)}
                       className="p-1.5 rounded bg-amber-500/80 hover:bg-amber-500 transition-colors"
                       title={t("rename")}
@@ -816,6 +863,22 @@ export function AdminGallery({ initialFolders, categories }: Props) {
               {deletingImageLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
               {t("delete")}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Match Name Confirmation Dialog ─── */}
+      <Dialog open={!!matchNameResult} onOpenChange={() => { setMatchNameResult(null); setMatchNameImage(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("matchName")}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {t("matchConfirm", { name: matchNameResult?.categoryName ?? "" })}
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setMatchNameResult(null); setMatchNameImage(null) }}>{t("escape")}</Button>
+            <Button onClick={handleConfirmMatchName}>{t("yes")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1529,6 +1529,11 @@
     "renameImagePlaceholder": "أدخل اسم الملف الجديد",
     "imageRenamed": "تمت إعادة تسمية الصورة بنجاح",
     "deleteImage": "حذف الصورة",
-    "deleteImageConfirm": "هل أنت متأكد من حذف \"{name}\"؟"
+    "deleteImageConfirm": "هل أنت متأكد من حذف \"{name}\"؟",
+    "matchName": "مطابقة الاسم",
+    "matchConfirm": "تمت المطابقة: {name} — تأكيد؟",
+    "noMatchFound": "لم يتم العثور على مطابقة",
+    "yes": "نعم",
+    "escape": "إلغاء"
   }
 }

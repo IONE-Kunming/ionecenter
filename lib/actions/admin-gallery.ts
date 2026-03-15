@@ -392,3 +392,48 @@ export async function autoMatchFolderImages(
 
   return { matched, unmatched, matchedCategories, matchedSubcategories, matchedSubSubcategories }
 }
+
+/* ── Single-image auto-match ─────────────────────────────────────── */
+
+export interface SingleMatchResult {
+  categoryId: string
+  categoryName: string
+  level: "category" | "subcategory" | "subSubcategory"
+}
+
+export async function autoMatchSingleImage(
+  imageName: string
+): Promise<{ match?: SingleMatchResult; error?: string }> {
+  await requireAdmin()
+  const supabase = createAdminClient()
+
+  const { data: categories } = await supabase
+    .from("site_categories")
+    .select("*")
+    .order("name")
+  if (!categories) return { error: "Could not load categories" }
+
+  const parentMap = new Map<string, string | null>()
+  for (const cat of categories) {
+    parentMap.set(cat.id, cat.parent_id)
+  }
+
+  type CatLevel = "category" | "subcategory" | "subSubcategory"
+  function getLevel(cat: { id: string; parent_id: string | null }): CatLevel {
+    if (!cat.parent_id) return "category"
+    const grandParentId = parentMap.get(cat.parent_id)
+    if (grandParentId != null) return "subSubcategory"
+    return "subcategory"
+  }
+
+  const catMap = new Map<string, { id: string; name: string; level: CatLevel }>()
+  for (const cat of categories) {
+    catMap.set(normalize(cat.name), { id: cat.id, name: cat.name, level: getLevel(cat) })
+  }
+
+  const normName = normalize(imageName)
+  const cat = catMap.get(normName)
+  if (!cat) return {}
+
+  return { match: { categoryId: cat.id, categoryName: cat.name, level: cat.level } }
+}
