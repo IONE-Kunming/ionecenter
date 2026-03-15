@@ -1679,6 +1679,9 @@
     "renameImagePlaceholder": "Enter new file name",
     "imageRenamed": "Image renamed successfully",
     "deleteImage": "Delete Image",
-    "deleteImageConfirm": "Are you sure you want to delete \"{name}\"?"
+    "deleteImageConfirm": "Are you sure you want to delete \"{name}\"?",
+    "suggestedMatch": "Auto-suggested match based on filename",
+    "ok": "OK",
+    "escape": "Escape"
   }
 }

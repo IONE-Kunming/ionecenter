@@ -1528,6 +1528,9 @@
     "renameImagePlaceholder": "输入新文件名",
     "imageRenamed": "图片重命名成功",
     "deleteImage": "删除图片",
-    "deleteImageConfirm": "确定要删除\"{name}\"吗？"
+    "deleteImageConfirm": "确定要删除\"{name}\"吗？",
+    "suggestedMatch": "根据文件名自动建议匹配",
+    "ok": "确定",
+    "escape": "取消"
   }
 }
