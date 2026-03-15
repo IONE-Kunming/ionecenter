@@ -683,7 +683,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
       </Dialog>
 
       {/* ─── Link to Category Dialog ─── */}
-      <Dialog open={linkCatOpen} onOpenChange={(open) => { if (!open) dismissLinkDialogs(); else setLinkCatOpen(true) }}>
+      <Dialog open={linkCatOpen} onOpenChange={(open) => { if (!open) dismissLinkDialogs() }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("linkToCategory")}</DialogTitle>
@@ -734,7 +734,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
       </Dialog>
 
       {/* ─── Link to Subcategory Dialog ─── */}
-      <Dialog open={linkSubCatOpen} onOpenChange={(open) => { if (!open) dismissLinkDialogs(); else setLinkSubCatOpen(true) }}>
+      <Dialog open={linkSubCatOpen} onOpenChange={(open) => { if (!open) dismissLinkDialogs() }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("linkToSubcategory")}</DialogTitle>
@@ -791,7 +791,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
       </Dialog>
 
       {/* ─── Link to Sub-subcategory Dialog ─── */}
-      <Dialog open={linkSubSubCatOpen} onOpenChange={(open) => { if (!open) dismissLinkDialogs(); else setLinkSubSubCatOpen(true) }}>
+      <Dialog open={linkSubSubCatOpen} onOpenChange={(open) => { if (!open) dismissLinkDialogs() }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("linkToSubSubcategory")}</DialogTitle>
