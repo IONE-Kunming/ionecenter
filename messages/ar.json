@@ -717,7 +717,11 @@
     "importFailed": "فشل استيراد ملف CSV.",
     "bulkEditTitle": "تعديل جماعي",
     "bulkEditSubtitle": "منتجاتي — محرر مباشر",
-    "exchangeRateNote": "يتم تحديث سعر الصرف كل 24 ساعة"
+    "exchangeRateNote": "يتم تحديث سعر الصرف كل 24 ساعة",
+    "galleryDropZoneText": "اسحب وأفلت المجلدات أو الصور هنا للرفع",
+    "gallerySelectFiles": "اختر صور",
+    "galleryUploading": "جاري الرفع {current} من {total}...",
+    "galleryUploadSuccess": "تم رفع {count} صور"
   },
   "adminDashboard": {
     "totalUsers": "إجمالي المستخدمين",

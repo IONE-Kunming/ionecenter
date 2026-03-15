@@ -716,7 +716,11 @@
     "importFailed": "导入CSV文件失败。",
     "bulkEditTitle": "批量编辑",
     "bulkEditSubtitle": "我的产品 — 内联编辑器",
-    "exchangeRateNote": "汇率每24小时更新一次"
+    "exchangeRateNote": "汇率每24小时更新一次",
+    "galleryDropZoneText": "拖放文件夹或图片到此处上传",
+    "gallerySelectFiles": "选择图片",
+    "galleryUploading": "正在上传 {current}/{total}...",
+    "galleryUploadSuccess": "已上传 {count} 张图片"
   },
   "adminDashboard": {
     "totalUsers": "总用户数",
