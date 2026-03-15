@@ -189,6 +189,10 @@ export function AdminGallery({ initialFolders, categories }: Props) {
 
   /* ── helpers ────────────────────────────────────────────── */
 
+  function stripTimestampPrefix(name: string): string {
+    return name.replace(/^\d{10,}-/, "")
+  }
+
   function showToast(type: "success" | "error", msg: string) {
     setToast({ type, msg })
     setTimeout(() => setToast(null), 4000)
@@ -987,14 +991,14 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                   <div className="relative w-full aspect-square bg-muted">
                     <NextImage
                       src={img.publicUrl}
-                      alt={img.name}
+                      alt={stripTimestampPrefix(img.name)}
                       fill
                       className="object-cover"
                       unoptimized
                     />
                   </div>
                   <div className="p-2">
-                    <p className="text-xs truncate" title={img.name}>{img.name}</p>
+                    <p className="text-xs truncate" title={stripTimestampPrefix(img.name)}>{stripTimestampPrefix(img.name)}</p>
                   </div>
                   {/* Action overlay - icon toolbar */}
                   <div className="absolute inset-x-0 bottom-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1 p-1.5">
