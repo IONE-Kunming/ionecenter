@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Store, Search, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, AlertTriangle, ImageIcon, ArrowRightLeft, Download, FileSpreadsheet, FileText, Plus } from "lucide-react"
+import { Store, Search, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, AlertTriangle, ImageIcon, ArrowRightLeft, Download, FileSpreadsheet, FileText, Plus, Building2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -78,6 +78,7 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
 
   // Create Seller modal state
   const [showCreateSeller, setShowCreateSeller] = useState(false)
+  const [createIsCompanyAccount, setCreateIsCompanyAccount] = useState(false)
   const [createFullName, setCreateFullName] = useState("")
   const [createEmail, setCreateEmail] = useState("")
   const [createPassword, setCreatePassword] = useState("")
@@ -96,6 +97,20 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
       (s.company?.toLowerCase().includes(term) ?? false)
     )
   })
+
+  const regularSellers = filtered.filter((s) => !s.is_company_account)
+  const companyAccounts = filtered.filter((s) => s.is_company_account)
+
+  // Group company accounts by main category
+  const companyAccountsByCategory = useMemo(() => {
+    const grouped: Record<string, SellerWithDetails[]> = {}
+    for (const seller of companyAccounts) {
+      const category = seller.main_category ?? "Uncategorized"
+      if (!grouped[category]) grouped[category] = []
+      grouped[category].push(seller)
+    }
+    return grouped
+  }, [companyAccounts])
 
   const toggleExpand = (sellerId: string) => {
     setExpandedSellers((prev) => {
@@ -430,7 +445,7 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
 
   // ─── Create Seller ──────────────────────────────────────────────────────────
 
-  const openCreateSeller = () => {
+  const openCreateSeller = (isCompany = false) => {
     setCreateFullName("")
     setCreateEmail("")
     setCreatePassword("")
@@ -438,6 +453,7 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
     setCreateMainCategory(null)
     setCreateSubcategories([])
     setCreateError(null)
+    setCreateIsCompanyAccount(isCompany)
     setShowCreateSeller(true)
   }
 
@@ -469,6 +485,7 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
       company: createCompany,
       mainCategory: createMainCategory,
       subcategories: createSubcategories,
+      isCompanyAccount: createIsCompanyAccount,
     })
     setCreateSaving(false)
     if (result.error) {
@@ -482,6 +499,163 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
   // Total number of columns in the table (must match TableHead count below)
   const columnCount = 11
 
+  // Render a sellers table for a list of sellers (shared by both sections)
+  const renderSellersTable = (sellersList: SellerWithDetails[], startIndex = 0) => (
+    <Card>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-10"></TableHead>
+            <TableHead className="w-12">#</TableHead>
+            <TableHead className="w-[50px]">Logo</TableHead>
+            <TableHead>{tCommon("name")}</TableHead>
+            <TableHead>{tCommon("email")}</TableHead>
+            <TableHead>{t("role")}</TableHead>
+            <TableHead>User Code</TableHead>
+            <TableHead>{tCommon("company")}</TableHead>
+            <TableHead>{t("category")}</TableHead>
+            <TableHead>{t("joined")}</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sellersList.map((seller, index) => {
+            const isExpanded = expandedSellers.has(seller.id)
+            const catDisplay = buildCategoryDisplay(seller)
+            return (
+              <>
+                <TableRow key={seller.id}>
+                  <TableCell className="w-10 px-2">
+                    {seller.buyers.length > 0 ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => toggleExpand(seller.id)}
+                        title={isExpanded ? "Collapse" : "Expand buyers"}
+                      >
+                        {isExpanded ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </Button>
+                    ) : (
+                      <span className="inline-block h-7 w-7" />
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{startIndex + index + 1}</TableCell>
+                  <TableCell>
+                    <div className="h-10 w-10 rounded border bg-muted flex items-center justify-center overflow-hidden">
+                      {seller.logo_url ? (
+                        <img src={seller.logo_url} alt={`Logo for ${seller.display_name}`} className="h-full w-full object-contain" />
+                      ) : (
+                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium">{seller.display_name}</TableCell>
+                  <TableCell>{seller.email}</TableCell>
+                  <TableCell>
+                    <Badge variant={roleBadgeVariant(seller.role)}>
+                      {seller.role.charAt(0).toUpperCase() + seller.role.slice(1)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {editingCodeUserId === seller.id ? (
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1">
+                          <Input
+                            value={editingCodeValue}
+                            onChange={(e) => setEditingCodeValue(e.target.value)}
+                            className="h-7 w-24 text-sm"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleSaveCode(seller.id)
+                              if (e.key === "Escape") cancelEditCode()
+                            }}
+                            disabled={codeSaving}
+                            autoFocus
+                          />
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleSaveCode(seller.id)} disabled={codeSaving}>
+                            <Check className="h-3.5 w-3.5 text-green-600" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelEditCode} disabled={codeSaving}>
+                            <X className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        </div>
+                        {codeError && (
+                          <p className="text-xs text-destructive max-w-[200px]">{codeError}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        className="text-sm hover:underline cursor-pointer text-left"
+                        onClick={() => startEditCode(seller)}
+                        title={tCommon("clickToEditCode")}
+                      >
+                        {seller.user_code || <span className="text-muted-foreground italic">Set code</span>}
+                      </button>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{seller.company ?? "—"}</TableCell>
+                  <TableCell>
+                    {catDisplay ? (
+                      <div className="text-sm space-y-1">
+                        <div>
+                          <span className="font-medium">• {catDisplay.main}</span>
+                          {catDisplay.subs.length > 0 && (
+                            <div className="ml-3 text-muted-foreground">
+                              {catDisplay.subs.map((sub) => (
+                                <div key={sub}>- {sub}</div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{formatDate(seller.created_at)}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openTransfer(seller)} title="Transfer Products">
+                        <ArrowRightLeft className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setExportSeller(seller)} title="Export Products">
+                        <Download className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(seller)} title="Edit">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteUser(seller)} title="Delete">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+                {isExpanded && seller.buyers.length > 0 && (
+                  <TableRow key={`${seller.id}-buyers`} className="bg-muted/50">
+                    <TableCell colSpan={columnCount} className="py-3 px-8">
+                      <div className="text-sm font-medium mb-2">{t("buyersListTitle")}</div>
+                      <ul className="space-y-1">
+                        {seller.buyers.map((buyer) => (
+                          <li key={buyer.id} className="text-sm text-muted-foreground pl-2">
+                            • {buyer.display_name}
+                          </li>
+                        ))}
+                      </ul>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </>
+            )
+          })}
+        </TableBody>
+      </Table>
+    </Card>
+  )
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -489,169 +663,50 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchSellers")} className="pl-9" />
         </div>
-        <Button onClick={openCreateSeller} className="gap-2">
+        <Button onClick={() => openCreateSeller(false)} className="gap-2">
           <Plus className="h-4 w-4" />
           Create Seller
         </Button>
+        <Button onClick={() => openCreateSeller(true)} variant="outline" className="gap-2">
+          <Building2 className="h-4 w-4" />
+          Create Company Account
+        </Button>
       </div>
 
-      {filtered.length > 0 ? (
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-10"></TableHead>
-                <TableHead className="w-12">#</TableHead>
-                <TableHead className="w-[50px]">Logo</TableHead>
-                <TableHead>{tCommon("name")}</TableHead>
-                <TableHead>{tCommon("email")}</TableHead>
-                <TableHead>{t("role")}</TableHead>
-                <TableHead>User Code</TableHead>
-                <TableHead>{tCommon("company")}</TableHead>
-                <TableHead>{t("category")}</TableHead>
-                <TableHead>{t("joined")}</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((seller, index) => {
-                const isExpanded = expandedSellers.has(seller.id)
-                const catDisplay = buildCategoryDisplay(seller)
-                return (
-                  <>
-                    <TableRow key={seller.id}>
-                      <TableCell className="w-10 px-2">
-                        {seller.buyers.length > 0 ? (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => toggleExpand(seller.id)}
-                            title={isExpanded ? "Collapse" : "Expand buyers"}
-                          >
-                            {isExpanded ? (
-                              <ChevronDown className="h-4 w-4" />
-                            ) : (
-                              <ChevronRight className="h-4 w-4" />
-                            )}
-                          </Button>
-                        ) : (
-                          <span className="inline-block h-7 w-7" />
-                        )}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{index + 1}</TableCell>
-                      <TableCell>
-                        <div className="h-10 w-10 rounded border bg-muted flex items-center justify-center overflow-hidden">
-                          {seller.logo_url ? (
-                            <img src={seller.logo_url} alt={`Logo for ${seller.display_name}`} className="h-full w-full object-contain" />
-                          ) : (
-                            <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-medium">{seller.display_name}</TableCell>
-                      <TableCell>{seller.email}</TableCell>
-                      <TableCell>
-                        <Badge variant={roleBadgeVariant(seller.role)}>
-                          {seller.role.charAt(0).toUpperCase() + seller.role.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {editingCodeUserId === seller.id ? (
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1">
-                              <Input
-                                value={editingCodeValue}
-                                onChange={(e) => setEditingCodeValue(e.target.value)}
-                                className="h-7 w-24 text-sm"
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") handleSaveCode(seller.id)
-                                  if (e.key === "Escape") cancelEditCode()
-                                }}
-                                disabled={codeSaving}
-                                autoFocus
-                              />
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleSaveCode(seller.id)} disabled={codeSaving}>
-                                <Check className="h-3.5 w-3.5 text-green-600" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelEditCode} disabled={codeSaving}>
-                                <X className="h-3.5 w-3.5 text-destructive" />
-                              </Button>
-                            </div>
-                            {codeError && (
-                              <p className="text-xs text-destructive max-w-[200px]">{codeError}</p>
-                            )}
-                          </div>
-                        ) : (
-                          <button
-                            className="text-sm hover:underline cursor-pointer text-left"
-                            onClick={() => startEditCode(seller)}
-                            title={tCommon("clickToEditCode")}
-                          >
-                            {seller.user_code || <span className="text-muted-foreground italic">Set code</span>}
-                          </button>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{seller.company ?? "—"}</TableCell>
-                      <TableCell>
-                        {catDisplay ? (
-                          <div className="text-sm space-y-1">
-                            <div>
-                              <span className="font-medium">• {catDisplay.main}</span>
-                              {catDisplay.subs.length > 0 && (
-                                <div className="ml-3 text-muted-foreground">
-                                  {catDisplay.subs.map((sub) => (
-                                    <div key={sub}>- {sub}</div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>{formatDate(seller.created_at)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openTransfer(seller)} title="Transfer Products">
-                            <ArrowRightLeft className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setExportSeller(seller)} title="Export Products">
-                            <Download className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(seller)} title="Edit">
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteUser(seller)} title="Delete">
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                    {isExpanded && seller.buyers.length > 0 && (
-                      <TableRow key={`${seller.id}-buyers`} className="bg-muted/50">
-                        <TableCell colSpan={columnCount} className="py-3 px-8">
-                          <div className="text-sm font-medium mb-2">{t("buyersListTitle")}</div>
-                          <ul className="space-y-1">
-                            {seller.buyers.map((buyer) => (
-                              <li key={buyer.id} className="text-sm text-muted-foreground pl-2">
-                                • {buyer.display_name}
-                              </li>
-                            ))}
-                          </ul>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </Card>
-      ) : (
-        <EmptyState icon={Store} title={t("noSellers")} description={tCommon("noSellersMatch")} />
-      )}
+      {/* Sellers Section */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Store className="h-5 w-5" />
+          Sellers
+          <Badge variant="secondary" className="ml-1">{regularSellers.length}</Badge>
+        </h2>
+        {regularSellers.length > 0 ? (
+          renderSellersTable(regularSellers)
+        ) : (
+          <EmptyState icon={Store} title={t("noSellers")} description={tCommon("noSellersMatch")} />
+        )}
+      </div>
+
+      {/* Company Accounts Section */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Building2 className="h-5 w-5" />
+          Company Accounts
+          <Badge variant="secondary" className="ml-1">{companyAccounts.length}</Badge>
+        </h2>
+        {companyAccounts.length > 0 ? (
+          <div className="space-y-4">
+            {(Object.entries(companyAccountsByCategory) as [string, SellerWithDetails[]][]).map(([category, categorySellers]) => (
+              <div key={category} className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground pl-1">{category}</h3>
+                {renderSellersTable(categorySellers)}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState icon={Building2} title="No Company Accounts" description="No company accounts match your search." />
+        )}
+      </div>
 
       {/* Edit User Modal */}
       <Dialog open={!!editUser} onOpenChange={(v) => { if (!v) setEditUser(null) }}>
@@ -867,7 +922,7 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
       {/* Create Seller Dialog */}
       <Dialog open={showCreateSeller} onOpenChange={(v) => { if (!v) setShowCreateSeller(false) }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Create Seller Account</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{createIsCompanyAccount ? "Create Company Account" : "Create Seller Account"}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4 overflow-y-auto max-h-[calc(100vh-12rem)]">
             {createError && (
               <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 flex items-start gap-2">
@@ -951,7 +1006,7 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreateSeller(false)}>{tCommon("cancel")}</Button>
             <Button onClick={handleCreateSeller} disabled={createSaving}>
-              {createSaving ? tCommon("saving") : "Create Seller"}
+              {createSaving ? tCommon("saving") : createIsCompanyAccount ? "Create Company Account" : "Create Seller"}
             </Button>
           </DialogFooter>
         </DialogContent>
