@@ -444,7 +444,11 @@
     "sellerLogo": "شعار البائع",
     "uploadLogo": "تحميل الشعار",
     "logoUploaded": "تم تحميل الشعار بنجاح",
-    "logoUploadFailed": "فشل تحميل الشعار"
+    "logoUploadFailed": "فشل تحميل الشعار",
+    "deleteLogo": "حذف الشعار",
+    "deleteLogoConfirm": "هل أنت متأكد أنك تريد حذف شعار البائع؟",
+    "logoDeleted": "تم حذف الشعار بنجاح",
+    "logoDeleteFailed": "فشل في حذف الشعار"
   },
   "sellerDirectory": {
     "searchSellers": "البحث عن البائعين...",

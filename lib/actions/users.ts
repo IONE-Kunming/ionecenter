@@ -255,6 +255,38 @@ export async function finalizeSellerLogoUpload(
   }
 }
 
+/** Delete the current seller's logo from storage and clear logo_url in the database. */
+export async function deleteSellerLogo(): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const user = await getCurrentUser()
+    if (!user || user.role !== "seller") return { error: "Not authorized" }
+
+    const supabase = createAdminClient()
+
+    // Remove any existing logo files for this seller
+    const { data: existingFiles } = await supabase.storage.from("site-assets").list("sellers")
+    if (existingFiles) {
+      const toRemove = existingFiles
+        .filter((f) => f.name.startsWith(`${user.id}.`))
+        .map((f) => `sellers/${f.name}`)
+      if (toRemove.length > 0) {
+        await supabase.storage.from("site-assets").remove(toRemove)
+      }
+    }
+
+    // Clear logo_url in the database
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ logo_url: null, updated_at: new Date().toISOString() })
+      .eq("id", user.id)
+
+    if (updateError) return { error: updateError.message }
+    return { success: true }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to delete logo" }
+  }
+}
+
 /**
  * Update the current seller's main category in the seller_categories table.
  * Pass null to clear the selection.

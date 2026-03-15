@@ -8,10 +8,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
-import { Copy, Check, Users, Search, Mail, Hash, ShoppingCart, Upload, ImageIcon } from "lucide-react"
+import { Copy, Check, Users, Search, Mail, Hash, ShoppingCart, Upload, ImageIcon, Trash2, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toCategoryKey } from "@/lib/categories"
-import { updateUserProfile, updateSellerMainCategory, createSellerLogoSignedUploadUrl, finalizeSellerLogoUpload } from "@/lib/actions/users"
+import { updateUserProfile, updateSellerMainCategory, createSellerLogoSignedUploadUrl, finalizeSellerLogoUpload, deleteSellerLogo } from "@/lib/actions/users"
 import { getSellerBuyers, type SellerBuyer } from "@/lib/actions/orders"
 import { createClient } from "@/lib/supabase/client"
 import type { User } from "@/types/database"
@@ -31,6 +31,9 @@ export default function SellerProfileForm({ user, sellerCode, mainCategories, cu
   const [categorySaving, setCategorySaving] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(user.logo_url ?? null)
   const [logoUploading, setLogoUploading] = useState(false)
+  const [logoDeleting, setLogoDeleting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showLightbox, setShowLightbox] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -132,6 +135,24 @@ export default function SellerProfileForm({ user, sellerCode, mainCategories, cu
     if (logoInputRef.current) logoInputRef.current.value = ""
   }
 
+  const handleLogoDelete = async () => {
+    setShowDeleteConfirm(false)
+    setLogoDeleting(true)
+    setMessage(null)
+    try {
+      const result = await deleteSellerLogo()
+      if (result.error) {
+        setMessage({ type: "error", text: result.error })
+      } else {
+        setLogoUrl(null)
+        setMessage({ type: "success", text: t("logoDeleted") })
+      }
+    } catch {
+      setMessage({ type: "error", text: t("logoDeleteFailed") })
+    }
+    setLogoDeleting(false)
+  }
+
   const handleCategoryChange = async (value: string) => {
     const newCategory = value || null
     setSelectedMainCategory(value)
@@ -199,9 +220,25 @@ export default function SellerProfileForm({ user, sellerCode, mainCategories, cu
             <CardHeader><CardTitle>{t("sellerLogo")}</CardTitle></CardHeader>
             <CardContent>
               <div className="flex items-center gap-4">
-                <div className="h-20 w-20 rounded-lg border bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                <div className="relative h-20 w-20 rounded-lg border bg-muted flex items-center justify-center overflow-hidden shrink-0 group">
                   {logoUrl ? (
-                    <img src={logoUrl} alt={t("sellerLogo")} className="h-full w-full object-contain" />
+                    <>
+                      <img
+                        src={logoUrl}
+                        alt={t("sellerLogo")}
+                        className="h-full w-full object-contain cursor-pointer"
+                        onClick={() => setShowLightbox(true)}
+                      />
+                      <button
+                        type="button"
+                        className="absolute top-0.5 right-0.5 rounded-full bg-black/60 p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                        onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true) }}
+                        title={t("deleteLogo")}
+                        disabled={logoDeleting}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </>
                   ) : (
                     <ImageIcon className="h-8 w-8 text-muted-foreground" />
                   )}
@@ -217,11 +254,11 @@ export default function SellerProfileForm({ user, sellerCode, mainCategories, cu
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={logoUploading}
+                    disabled={logoUploading || logoDeleting}
                     onClick={() => logoInputRef.current?.click()}
                   >
                     <Upload className="h-4 w-4 mr-2" />
-                    {logoUploading ? tCommon("saving") : t("uploadLogo")}
+                    {logoUploading ? tCommon("saving") : logoDeleting ? tCommon("saving") : t("uploadLogo")}
                   </Button>
                 </div>
               </div>
@@ -278,6 +315,53 @@ export default function SellerProfileForm({ user, sellerCode, mainCategories, cu
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete logo confirmation dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogClose onClick={() => setShowDeleteConfirm(false)} />
+          <DialogHeader>
+            <DialogTitle>{t("deleteLogo")}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">{t("deleteLogoConfirm")}</p>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" size="sm" onClick={() => setShowDeleteConfirm(false)}>
+              {tCommon("cancel")}
+            </Button>
+            <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white" onClick={handleLogoDelete}>
+              {t("deleteLogo")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Lightbox for full-size logo preview */}
+      {showLightbox && logoUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          onClick={() => setShowLightbox(false)}
+          onKeyDown={(e) => { if (e.key === "Escape") setShowLightbox(false) }}
+          role="dialog"
+          aria-modal="true"
+          tabIndex={0}
+          ref={(el) => el?.focus()}
+        >
+          <button
+            type="button"
+            className="absolute top-4 right-4 rounded-full bg-black/60 p-2 text-white hover:bg-black/80 transition-colors"
+            onClick={() => setShowLightbox(false)}
+            aria-label="Close"
+          >
+            <X className="h-6 w-6" />
+          </button>
+          <img
+            src={logoUrl}
+            alt={t("sellerLogo")}
+            className="max-h-[80vh] max-w-[90vw] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       <Card>
         <CardHeader><CardTitle>{t("myCategory")}</CardTitle></CardHeader>
