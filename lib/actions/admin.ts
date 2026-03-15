@@ -523,3 +523,64 @@ export async function adminDeleteProductsByRemovedCategories(
 
   return { success: true }
 }
+
+// ─── Transfer Products Between Sellers ──────────────────────────────────────
+
+export async function adminGetSellerProductCount(sellerId: string): Promise<number> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return 0
+
+  const supabase = createAdminClient()
+  const { count } = await supabase
+    .from("products")
+    .select("id", { count: "exact", head: true })
+    .eq("seller_id", sellerId)
+
+  return count ?? 0
+}
+
+export async function adminTransferProducts(
+  sourceSellerId: string,
+  targetSellerId: string
+): Promise<{ error?: string; transferred?: number }> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+  if (sourceSellerId === targetSellerId) return { error: "Source and target seller cannot be the same" }
+
+  const supabase = createAdminClient()
+
+  // Count products first
+  const { count } = await supabase
+    .from("products")
+    .select("id", { count: "exact", head: true })
+    .eq("seller_id", sourceSellerId)
+
+  if (!count || count === 0) return { error: "No products to transfer" }
+
+  // Update seller_id for all products of source seller
+  const { error } = await supabase
+    .from("products")
+    .update({ seller_id: targetSellerId, updated_at: new Date().toISOString() })
+    .eq("seller_id", sourceSellerId)
+
+  if (error) return { error: "Failed to transfer products: " + error.message }
+
+  return { transferred: count }
+}
+
+// ─── Export Seller Products ─────────────────────────────────────────────────
+
+export async function adminGetSellerProducts(sellerId: string) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return []
+
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from("products")
+    .select("name, model_number, category, price_usd, price_cny, stock")
+    .eq("seller_id", sellerId)
+    .order("name")
+
+  return data ?? []
+}

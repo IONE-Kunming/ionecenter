@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Store, Search, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, AlertTriangle, ImageIcon } from "lucide-react"
+import { Store, Search, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, AlertTriangle, ImageIcon, ArrowRightLeft, Download, FileSpreadsheet, FileText } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useFormatters } from "@/lib/use-formatters"
-import { adminUpdateUser, adminDeleteUser, adminUpdateUserCode, adminUpdateSellerCategories, adminClearSellerCategories, adminDeleteProductsByRemovedCategories } from "@/lib/actions/admin"
+import { adminUpdateUser, adminDeleteUser, adminUpdateUserCode, adminUpdateSellerCategories, adminClearSellerCategories, adminDeleteProductsByRemovedCategories, adminGetSellerProductCount, adminTransferProducts, adminGetSellerProducts } from "@/lib/actions/admin"
 import type { SellerWithDetails } from "@/lib/actions/admin"
 import type { SiteCategory } from "@/lib/actions/site-settings"
 import type { UserRole } from "@/types/database"
@@ -63,6 +63,18 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
   const [editingCodeValue, setEditingCodeValue] = useState("")
   const [codeSaving, setCodeSaving] = useState(false)
   const [codeError, setCodeError] = useState<string | null>(null)
+
+  // Transfer Products state
+  const [transferSource, setTransferSource] = useState<SellerWithDetails | null>(null)
+  const [transferProductCount, setTransferProductCount] = useState(0)
+  const [transferTargetId, setTransferTargetId] = useState("")
+  const [transferTargetSearch, setTransferTargetSearch] = useState("")
+  const [transferring, setTransferring] = useState(false)
+  const [transferConfirmed, setTransferConfirmed] = useState(false)
+
+  // Export Products state
+  const [exportSeller, setExportSeller] = useState<SellerWithDetails | null>(null)
+  const [exporting, setExporting] = useState(false)
 
   const filtered = sellers.filter((s) => {
     const term = search.toLowerCase()
@@ -236,6 +248,155 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
     }
   }
 
+  // ─── Transfer Products ──────────────────────────────────────────────────────
+
+  const openTransfer = async (seller: SellerWithDetails) => {
+    setTransferSource(seller)
+    setTransferTargetId("")
+    setTransferTargetSearch("")
+    setTransferring(false)
+    setTransferConfirmed(false)
+    const count = await adminGetSellerProductCount(seller.id)
+    setTransferProductCount(count)
+  }
+
+  const handleTransfer = async () => {
+    if (!transferSource || !transferTargetId) return
+    if (!transferConfirmed) {
+      setTransferConfirmed(true)
+      return
+    }
+    setTransferring(true)
+    const result = await adminTransferProducts(transferSource.id, transferTargetId)
+    setTransferring(false)
+    if (result.error) {
+      alert(result.error)
+    } else {
+      const targetSeller = sellers.find((s) => s.id === transferTargetId)
+      alert(`${result.transferred} products transferred from ${transferSource.display_name} to ${targetSeller?.display_name}`)
+      setTransferSource(null)
+      window.location.reload()
+    }
+  }
+
+  const filteredTargetSellers = sellers.filter((s) => {
+    if (transferSource && s.id === transferSource.id) return false
+    if (!transferTargetSearch) return true
+    const term = transferTargetSearch.toLowerCase()
+    return (
+      s.display_name.toLowerCase().includes(term) ||
+      s.email.toLowerCase().includes(term) ||
+      (s.company?.toLowerCase().includes(term) ?? false)
+    )
+  })
+
+  // ─── Export Products ────────────────────────────────────────────────────────
+
+  const handleExportExcel = async (seller: SellerWithDetails) => {
+    setExporting(true)
+    try {
+      const products = await adminGetSellerProducts(seller.id)
+      const ExcelJS = await import("exceljs")
+      const workbook = new ExcelJS.Workbook()
+      const sheet = workbook.addWorksheet("Products")
+      sheet.columns = [
+        { header: "Name", key: "name", width: 30 },
+        { header: "Model Number", key: "model_number", width: 20 },
+        { header: "Category", key: "category", width: 20 },
+        { header: "Price USD", key: "price_usd", width: 15 },
+        { header: "Price CNY", key: "price_cny", width: 15 },
+        { header: "Stock", key: "stock", width: 10 },
+      ]
+      for (const p of products) {
+        sheet.addRow({
+          name: p.name,
+          model_number: p.model_number,
+          category: p.category,
+          price_usd: p.price_usd ?? "",
+          price_cny: p.price_cny ?? "",
+          stock: p.stock ?? 0,
+        })
+      }
+      // Style header row
+      sheet.getRow(1).font = { bold: true }
+      const buffer = await workbook.xlsx.writeBuffer()
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `${seller.display_name}-products.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      alert("Failed to export Excel")
+    }
+    setExporting(false)
+    setExportSeller(null)
+  }
+
+  const handleExportPDF = async (seller: SellerWithDetails) => {
+    setExporting(true)
+    try {
+      const products = await adminGetSellerProducts(seller.id)
+      const jsPDF = (await import("jspdf")).default
+      const pdf = new jsPDF("l", "mm", "a4")
+      const pageWidth = pdf.internal.pageSize.getWidth()
+
+      // Title
+      pdf.setFontSize(16)
+      pdf.text(`Products - ${seller.display_name}`, 14, 20)
+      pdf.setFontSize(10)
+      pdf.text(`Total: ${products.length} products`, 14, 28)
+
+      // Table header
+      const startY = 36
+      const colWidths = [70, 40, 40, 30, 30, 25]
+      const headers = ["Name", "Model Number", "Category", "Price USD", "Price CNY", "Stock"]
+      let y = startY
+
+      pdf.setFillColor(240, 240, 240)
+      pdf.rect(14, y - 5, pageWidth - 28, 8, "F")
+      pdf.setFontSize(9)
+      pdf.setFont("helvetica", "bold")
+      let x = 14
+      for (let i = 0; i < headers.length; i++) {
+        pdf.text(headers[i], x, y)
+        x += colWidths[i]
+      }
+
+      // Table rows
+      pdf.setFont("helvetica", "normal")
+      pdf.setFontSize(8)
+      y += 8
+      for (const p of products) {
+        if (y > pdf.internal.pageSize.getHeight() - 15) {
+          pdf.addPage()
+          y = 20
+        }
+        x = 14
+        const row = [
+          (p.name ?? "").substring(0, 40),
+          p.model_number ?? "",
+          p.category ?? "",
+          p.price_usd != null ? String(p.price_usd) : "",
+          p.price_cny != null ? String(p.price_cny) : "",
+          String(p.stock ?? 0),
+        ]
+        for (let i = 0; i < row.length; i++) {
+          pdf.text(row[i], x, y)
+          x += colWidths[i]
+        }
+        y += 6
+      }
+
+      pdf.save(`${seller.display_name}-products.pdf`)
+    } catch {
+      alert("Failed to export PDF")
+    }
+    setExporting(false)
+    setExportSeller(null)
+  }
+
   // Total number of columns in the table (must match TableHead count below)
   const columnCount = 11
 
@@ -367,6 +528,12 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
                       <TableCell>{formatDate(seller.created_at)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openTransfer(seller)} title="Transfer Products">
+                            <ArrowRightLeft className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setExportSeller(seller)} title="Export Products">
+                            <Download className="h-3.5 w-3.5" />
+                          </Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(seller)} title="Edit">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
@@ -525,6 +692,89 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
               {deleting ? tCommon("deleting") : tCommon("deleteUser")}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transfer Products Dialog */}
+      <Dialog open={!!transferSource} onOpenChange={(v) => { if (!v) { setTransferSource(null); setTransferConfirmed(false) } }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Transfer Products</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-4">
+            <p className="text-sm text-muted-foreground">
+              <strong>{transferSource?.display_name}</strong> has <strong>{transferProductCount}</strong> product{transferProductCount !== 1 ? "s" : ""}.
+            </p>
+            <div className="space-y-2">
+              <Label>Transfer to seller</Label>
+              <Input
+                placeholder="Search sellers..."
+                value={transferTargetSearch}
+                onChange={(e) => { setTransferTargetSearch(e.target.value); setTransferConfirmed(false) }}
+              />
+              <div className="border rounded-md max-h-48 overflow-y-auto">
+                {filteredTargetSellers.length > 0 ? (
+                  filteredTargetSellers.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => { setTransferTargetId(s.id); setTransferConfirmed(false) }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors ${
+                        transferTargetId === s.id ? "bg-primary/10 font-medium" : ""
+                      }`}
+                    >
+                      {s.display_name}{s.company ? ` (${s.company})` : ""}
+                    </button>
+                  ))
+                ) : (
+                  <p className="px-3 py-2 text-sm text-muted-foreground">No sellers found</p>
+                )}
+              </div>
+            </div>
+            {transferConfirmed && transferTargetId && (
+              <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                <p className="text-sm text-destructive">
+                  Are you sure you want to transfer all {transferProductCount} products from <strong>{transferSource?.display_name}</strong> to <strong>{sellers.find((s) => s.id === transferTargetId)?.display_name}</strong>? Products will be removed from {transferSource?.display_name}.
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setTransferSource(null); setTransferConfirmed(false) }}>{tCommon("cancel")}</Button>
+            <Button
+              onClick={handleTransfer}
+              disabled={!transferTargetId || transferProductCount === 0 || transferring}
+              variant={transferConfirmed ? "destructive" : "default"}
+            >
+              {transferring ? "Transferring..." : transferConfirmed ? "Confirm Transfer" : "Transfer Products"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Export Products Dialog */}
+      <Dialog open={!!exportSeller} onOpenChange={(v) => { if (!v) setExportSeller(null) }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Export Products — {exportSeller?.display_name}</DialogTitle></DialogHeader>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button
+              variant="outline"
+              className="justify-start gap-3 h-12"
+              onClick={() => exportSeller && handleExportExcel(exportSeller)}
+              disabled={exporting}
+            >
+              <FileSpreadsheet className="h-5 w-5 text-green-600" />
+              Export as Excel
+            </Button>
+            <Button
+              variant="outline"
+              className="justify-start gap-3 h-12"
+              onClick={() => exportSeller && handleExportPDF(exportSeller)}
+              disabled={exporting}
+            >
+              <FileText className="h-5 w-5 text-red-600" />
+              Export as PDF
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
