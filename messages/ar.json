@@ -1243,6 +1243,7 @@
     "dropSelectFiles": "اختر صور",
     "dropUploading": "جاري الرفع {current} من {total}...",
     "dropUploadSuccess": "تم رفع {count} صور",
+    "dropUploadPartial": "تم رفع {uploaded} صور ({failed} فشل)",
     "dropUploadFailed": "فشل الرفع"
   },
   "invoiceCreate": {

@@ -1242,6 +1242,7 @@
     "dropSelectFiles": "تصاویر منتخب کریں",
     "dropUploading": "{current} میں سے {total} اپلوڈ ہو رہی ہیں...",
     "dropUploadSuccess": "{count} تصاویر اپلوڈ ہو گئیں",
+    "dropUploadPartial": "{uploaded} تصاویر اپلوڈ ہو گئیں ({failed} ناکام)",
     "dropUploadFailed": "اپلوڈ ناکام ہو گیا"
   },
   "invoiceCreate": {

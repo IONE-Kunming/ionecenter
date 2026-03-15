@@ -654,7 +654,7 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
     setGalleryUploadProgress(null)
 
     if (failed > 0 && uploaded > 0) {
-      setGalleryUploadResult(t("dropUploadSuccess", { count: uploaded }) + ` (${failed} failed)`)
+      setGalleryUploadResult(t("dropUploadPartial", { uploaded, failed }))
     } else if (failed > 0 && uploaded === 0) {
       setGalleryUploadResult(t("dropUploadFailed"))
     } else {

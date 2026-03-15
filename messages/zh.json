@@ -1242,6 +1242,7 @@
     "dropSelectFiles": "选择图片",
     "dropUploading": "正在上传 {current}/{total}...",
     "dropUploadSuccess": "已上传 {count} 张图片",
+    "dropUploadPartial": "已上传 {uploaded} 张图片（{failed} 张失败）",
     "dropUploadFailed": "上传失败"
   },
   "invoiceCreate": {

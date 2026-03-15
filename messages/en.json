@@ -1309,6 +1309,7 @@
     "dropSelectFiles": "Select Images",
     "dropUploading": "Uploading {current} of {total}...",
     "dropUploadSuccess": "{count} images uploaded",
+    "dropUploadPartial": "{uploaded} images uploaded ({failed} failed)",
     "dropUploadFailed": "Upload failed"
   },
   "invoiceCreate": {
