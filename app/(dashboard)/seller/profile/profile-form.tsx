@@ -37,6 +37,15 @@ export default function SellerProfileForm({ user, sellerCode, mainCategories, cu
   const logoInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    if (!showLightbox) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowLightbox(false)
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [showLightbox])
+
+  useEffect(() => {
     if (showBuyers && buyers.length === 0) {
       setBuyersLoading(true)
       getSellerBuyers()
@@ -258,7 +267,7 @@ export default function SellerProfileForm({ user, sellerCode, mainCategories, cu
                     onClick={() => logoInputRef.current?.click()}
                   >
                     <Upload className="h-4 w-4 mr-2" />
-                    {logoUploading ? tCommon("saving") : logoDeleting ? tCommon("saving") : t("uploadLogo")}
+                    {logoUploading || logoDeleting ? tCommon("saving") : t("uploadLogo")}
                   </Button>
                 </div>
               </div>
@@ -340,11 +349,8 @@ export default function SellerProfileForm({ user, sellerCode, mainCategories, cu
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
           onClick={() => setShowLightbox(false)}
-          onKeyDown={(e) => { if (e.key === "Escape") setShowLightbox(false) }}
           role="dialog"
           aria-modal="true"
-          tabIndex={0}
-          ref={(el) => el?.focus()}
         >
           <button
             type="button"
