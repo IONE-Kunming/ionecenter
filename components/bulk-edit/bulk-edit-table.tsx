@@ -1096,32 +1096,38 @@ export function BulkEditTable({
 
   // ─── Gallery drag & drop upload helpers ─────────────────────────────────
 
+  const SUPPORTED_IMAGE_EXTENSIONS = /\.(jpe?g|png|gif|webp|svg|bmp|ico|avif)$/i
+
   /** Read all files from a dropped directory entry recursively. */
   async function readDirectoryFiles(dirEntry: FileSystemDirectoryEntry): Promise<File[]> {
-    const reader = dirEntry.createReader()
-    const allFiles: File[] = []
-    let batch: FileSystemEntry[] = []
-    do {
-      batch = await new Promise<FileSystemEntry[]>((resolve, reject) =>
-        reader.readEntries(resolve, reject)
-      )
-      for (const entry of batch) {
-        if (entry.isFile) {
-          const file = await new Promise<File>((resolve, reject) =>
-            (entry as FileSystemFileEntry).file(resolve, reject)
-          )
-          allFiles.push(file)
-        } else if (entry.isDirectory) {
-          const nested = await readDirectoryFiles(entry as FileSystemDirectoryEntry)
-          allFiles.push(...nested)
+    try {
+      const reader = dirEntry.createReader()
+      const allFiles: File[] = []
+      let batch: FileSystemEntry[] = []
+      do {
+        batch = await new Promise<FileSystemEntry[]>((resolve, reject) =>
+          reader.readEntries(resolve, reject)
+        )
+        for (const entry of batch) {
+          if (entry.isFile) {
+            const file = await new Promise<File>((resolve, reject) =>
+              (entry as FileSystemFileEntry).file(resolve, reject)
+            )
+            allFiles.push(file)
+          } else if (entry.isDirectory) {
+            const nested = await readDirectoryFiles(entry as FileSystemDirectoryEntry)
+            allFiles.push(...nested)
+          }
         }
-      }
-    } while (batch.length > 0)
-    return allFiles
+      } while (batch.length > 0)
+      return allFiles
+    } catch {
+      return []
+    }
   }
 
   function isImageFile(file: File): boolean {
-    return file.type.startsWith("image/") || /\.(jpe?g|png|gif|webp|svg|bmp|ico|avif)$/i.test(file.name)
+    return file.type.startsWith("image/") || SUPPORTED_IMAGE_EXTENSIONS.test(file.name)
   }
 
   /** Upload an array of image files to the seller's gallery. */
@@ -1134,20 +1140,38 @@ export function BulkEditTable({
     setGalleryUploadResult(null)
 
     let uploaded = 0
+    let failed = 0
     for (const file of images) {
-      const formData = new FormData()
-      formData.append("file", file)
-      formData.append("folderPath", "")
-      await uploadGalleryFile(formData)
-      uploaded++
-      setGalleryUploadProgress({ current: uploaded, total: images.length })
+      try {
+        const formData = new FormData()
+        formData.append("file", file)
+        formData.append("folderPath", "")
+        const result = await uploadGalleryFile(formData)
+        if (result.error) {
+          failed++
+        } else {
+          uploaded++
+        }
+      } catch {
+        failed++
+      }
+      setGalleryUploadProgress({ current: uploaded + failed, total: images.length })
     }
 
     setGalleryUploading(false)
     setGalleryUploadProgress(null)
-    setGalleryUploadResult(
-      t("galleryUploadSuccess", { count: uploaded })
-    )
+
+    if (failed > 0 && uploaded > 0) {
+      setGalleryUploadResult(
+        t("galleryUploadSuccess", { count: uploaded }) + ` (${failed} failed)`
+      )
+    } else if (failed > 0 && uploaded === 0) {
+      setGalleryUploadResult(`Upload failed`)
+    } else {
+      setGalleryUploadResult(
+        t("galleryUploadSuccess", { count: uploaded })
+      )
+    }
     setTimeout(() => setGalleryUploadResult(null), 5000)
   }
 
@@ -1168,31 +1192,36 @@ export function BulkEditTable({
     e.stopPropagation()
     setIsDragOverGallery(false)
 
-    // Try to detect folders via webkitGetAsEntry
-    const items = Array.from(e.dataTransfer.items)
-    const allFiles: File[] = []
+    try {
+      // Try to detect folders via webkitGetAsEntry
+      const items = Array.from(e.dataTransfer.items)
+      const allFiles: File[] = []
 
-    let hasFolders = false
-    for (const item of items) {
-      const entry = (item as DataTransferItem & { webkitGetAsEntry?: () => FileSystemEntry | null }).webkitGetAsEntry?.() ?? null
-      if (entry && entry.isDirectory) {
-        hasFolders = true
-        const dirFiles = await readDirectoryFiles(entry as FileSystemDirectoryEntry)
-        allFiles.push(...dirFiles)
-      } else if (entry && entry.isFile) {
-        const file = await new Promise<File>((resolve, reject) =>
-          (entry as FileSystemFileEntry).file(resolve, reject)
-        )
-        allFiles.push(file)
+      let hasFolders = false
+      for (const item of items) {
+        const entry = (item as DataTransferItem & { webkitGetAsEntry?: () => FileSystemEntry | null }).webkitGetAsEntry?.() ?? null
+        if (entry && entry.isDirectory) {
+          hasFolders = true
+          const dirFiles = await readDirectoryFiles(entry as FileSystemDirectoryEntry)
+          allFiles.push(...dirFiles)
+        } else if (entry && entry.isFile) {
+          const file = await new Promise<File>((resolve, reject) =>
+            (entry as FileSystemFileEntry).file(resolve, reject)
+          )
+          allFiles.push(file)
+        }
       }
-    }
 
-    // Fallback for browsers without webkitGetAsEntry
-    if (!hasFolders && allFiles.length === 0) {
-      allFiles.push(...Array.from(e.dataTransfer.files))
-    }
+      // Fallback for browsers without webkitGetAsEntry
+      if (!hasFolders && allFiles.length === 0) {
+        allFiles.push(...Array.from(e.dataTransfer.files))
+      }
 
-    await uploadGalleryImages(allFiles)
+      await uploadGalleryImages(allFiles)
+    } catch {
+      setGalleryUploadResult("Upload failed")
+      setTimeout(() => setGalleryUploadResult(null), 5000)
+    }
   }
 
   async function handleGalleryFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
