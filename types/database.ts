@@ -41,6 +41,7 @@ export interface User {
   show_category_numbers: boolean
   user_code: string | null
   logo_url: string | null
+  is_company_account: boolean
   created_at: string
   updated_at: string
 }

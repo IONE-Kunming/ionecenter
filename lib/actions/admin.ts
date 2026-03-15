@@ -343,6 +343,7 @@ export async function adminCreateSeller(input: {
   company: string
   mainCategory: string | null
   subcategories: string[]
+  isCompanyAccount?: boolean
 }): Promise<{ error?: string; success?: boolean }> {
   const user = await getCurrentUser()
   if (!user || user.role !== "admin") return { error: "Not authorized" }
@@ -384,6 +385,7 @@ export async function adminCreateSeller(input: {
       role: "seller",
       company: input.company.trim() || null,
       user_code: sellerCode,
+      is_company_account: input.isCompanyAccount ?? false,
     })
     .select()
     .single()
@@ -497,6 +499,7 @@ export interface SellerWithDetails {
   company: string | null
   user_code: string | null
   logo_url: string | null
+  is_company_account: boolean
   created_at: string
   main_category: string | null
   subcategories: string[]
@@ -575,6 +578,7 @@ export async function getSellersWithDetails(): Promise<SellerWithDetails[]> {
       company: s.company,
       user_code: s.user_code,
       logo_url: s.logo_url ?? null,
+      is_company_account: s.is_company_account ?? false,
       created_at: s.created_at,
       main_category: catData?.main_category ?? null,
       subcategories: catData?.subcategories ?? [],
