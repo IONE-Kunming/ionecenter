@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useMemo } from "react"
 import NextImage from "next/image"
 import { useTranslations } from "next-intl"
 import {
@@ -90,6 +90,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
   const [linkSubSubCatOpen, setLinkSubSubCatOpen] = useState(false)
   const [linkImage, setLinkImage] = useState<AdminGalleryImage | null>(null)
   const [catSearch, setCatSearch] = useState("")
+  const [suggestedCatId, setSuggestedCatId] = useState<string | null>(null)
 
   // auto-match
   const [matching, setMatching] = useState(false)
@@ -124,6 +125,60 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     if (!c.parent_id) return false
     return parentIdMap.get(c.parent_id) != null
   })
+
+  // Build category code map: id → code (e.g. "01", "0101", "010101")
+  const categoryCodeMap = useMemo(() => {
+    const codeMap = new Map<string, string>()
+    const childrenOf = new Map<string | "root", SiteCategory[]>()
+    for (const cat of categories) {
+      const key = cat.parent_id ?? "root"
+      const arr = childrenOf.get(key) ?? []
+      arr.push(cat)
+      childrenOf.set(key, arr)
+    }
+    const mains = childrenOf.get("root") ?? []
+    mains.forEach((cat, idx) => {
+      codeMap.set(cat.id, String(idx + 1).padStart(2, '0'))
+    })
+    for (const main of mains) {
+      const subs = childrenOf.get(main.id) ?? []
+      subs.forEach((sub, idx) => {
+        codeMap.set(sub.id, `${codeMap.get(main.id)}${String(idx + 1).padStart(2, '0')}`)
+      })
+      for (const sub of subs) {
+        const subSubs = childrenOf.get(sub.id) ?? []
+        subSubs.forEach((subSub, idx) => {
+          codeMap.set(subSub.id, `${codeMap.get(sub.id)}${String(idx + 1).padStart(2, '0')}`)
+        })
+      }
+    }
+    return codeMap
+  }, [categories])
+
+  // Normalize helper for client-side matching
+  function clientNormalize(s: string): string {
+    return s
+      .toLowerCase()
+      .replace(/\.[^.]+$/, "")
+      .replace(/^\d+-/, "")
+      .replace(/[-_ ]+/g, "")
+      .trim()
+  }
+
+  // Auto-suggest: find best matching category for an image name
+  function findSuggestedCategory(img: AdminGalleryImage, catList: SiteCategory[]): string | null {
+    const normName = clientNormalize(img.name)
+    // Try matching by numeric code first
+    for (const cat of catList) {
+      const code = categoryCodeMap.get(cat.id)
+      if (code && code === normName) return cat.id
+    }
+    // Then try matching by normalized name
+    for (const cat of catList) {
+      if (clientNormalize(cat.name) === normName) return cat.id
+    }
+    return null
+  }
 
   /* ── helpers ────────────────────────────────────────────── */
 
@@ -257,18 +312,24 @@ export function AdminGallery({ initialFolders, categories }: Props) {
   function openLinkCategory(img: AdminGalleryImage) {
     setLinkImage(img)
     setCatSearch("")
+    const suggested = findSuggestedCategory(img, mainCategories)
+    setSuggestedCatId(suggested)
     setLinkCatOpen(true)
   }
 
   function openLinkSubcategory(img: AdminGalleryImage) {
     setLinkImage(img)
     setCatSearch("")
+    const suggested = findSuggestedCategory(img, subCategories)
+    setSuggestedCatId(suggested)
     setLinkSubCatOpen(true)
   }
 
   function openLinkSubSubcategory(img: AdminGalleryImage) {
     setLinkImage(img)
     setCatSearch("")
+    const suggested = findSuggestedCategory(img, subSubCategories)
+    setSuggestedCatId(suggested)
     setLinkSubSubCatOpen(true)
   }
 
@@ -284,6 +345,15 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     setLinkSubCatOpen(false)
     setLinkSubSubCatOpen(false)
     setLinkImage(null)
+    setSuggestedCatId(null)
+  }
+
+  function cancelLinkDialog() {
+    setLinkCatOpen(false)
+    setLinkSubCatOpen(false)
+    setLinkSubSubCatOpen(false)
+    setLinkImage(null)
+    setSuggestedCatId(null)
   }
 
   /* ── auto-match ─────────────────────────────────────────── */
@@ -786,7 +856,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
       </Dialog>
 
       {/* ─── Link to Category Dialog ─── */}
-      <Dialog open={linkCatOpen} onOpenChange={setLinkCatOpen}>
+      <Dialog open={linkCatOpen} onOpenChange={(open) => { if (!open) cancelLinkDialog() }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("linkToCategory")}</DialogTitle>
@@ -807,8 +877,11 @@ export function AdminGallery({ initialFolders, categories }: Props) {
             {filteredMainCats.map((cat) => (
               <button
                 key={cat.id}
-                className="w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2"
-                onClick={() => assignToCategory(cat.id)}
+                className={cn(
+                  "w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2",
+                  suggestedCatId === cat.id && "ring-2 ring-primary bg-primary/10"
+                )}
+                onClick={() => setSuggestedCatId(cat.id)}
               >
                 {cat.image_url ? (
                   <NextImage src={cat.image_url} alt="" width={24} height={24} className="rounded object-cover" unoptimized />
@@ -817,15 +890,22 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                     <ImageIcon className="h-3 w-3 text-muted-foreground" />
                   </div>
                 )}
+                <span className="inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold h-5 min-w-[1.25rem] px-1">
+                  {categoryCodeMap.get(cat.id) ?? ""}
+                </span>
                 {cat.name}
               </button>
             ))}
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelLinkDialog}>{t("escape")}</Button>
+            <Button onClick={() => suggestedCatId && assignToCategory(suggestedCatId)} disabled={!suggestedCatId}>{t("yes")}</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* ─── Link to Subcategory Dialog ─── */}
-      <Dialog open={linkSubCatOpen} onOpenChange={setLinkSubCatOpen}>
+      <Dialog open={linkSubCatOpen} onOpenChange={(open) => { if (!open) cancelLinkDialog() }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("linkToSubcategory")}</DialogTitle>
@@ -848,8 +928,11 @@ export function AdminGallery({ initialFolders, categories }: Props) {
               return (
                 <button
                   key={cat.id}
-                  className="w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2"
-                  onClick={() => assignToCategory(cat.id)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2",
+                    suggestedCatId === cat.id && "ring-2 ring-primary bg-primary/10"
+                  )}
+                  onClick={() => setSuggestedCatId(cat.id)}
                 >
                   {cat.image_url ? (
                     <NextImage src={cat.image_url} alt="" width={24} height={24} className="rounded object-cover" unoptimized />
@@ -858,6 +941,9 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                       <ImageIcon className="h-3 w-3 text-muted-foreground" />
                     </div>
                   )}
+                  <span className="inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold h-5 min-w-[1.25rem] px-1">
+                    {categoryCodeMap.get(cat.id) ?? ""}
+                  </span>
                   <span>
                     {cat.name}
                     {parent && <span className="text-muted-foreground ml-1">({parent.name})</span>}
@@ -866,11 +952,15 @@ export function AdminGallery({ initialFolders, categories }: Props) {
               )
             })}
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelLinkDialog}>{t("escape")}</Button>
+            <Button onClick={() => suggestedCatId && assignToCategory(suggestedCatId)} disabled={!suggestedCatId}>{t("yes")}</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* ─── Link to Sub-subcategory Dialog ─── */}
-      <Dialog open={linkSubSubCatOpen} onOpenChange={setLinkSubSubCatOpen}>
+      <Dialog open={linkSubSubCatOpen} onOpenChange={(open) => { if (!open) cancelLinkDialog() }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("linkToSubSubcategory")}</DialogTitle>
@@ -894,8 +984,11 @@ export function AdminGallery({ initialFolders, categories }: Props) {
               return (
                 <button
                   key={cat.id}
-                  className="w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2"
-                  onClick={() => assignToCategory(cat.id)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2",
+                    suggestedCatId === cat.id && "ring-2 ring-primary bg-primary/10"
+                  )}
+                  onClick={() => setSuggestedCatId(cat.id)}
                 >
                   {cat.image_url ? (
                     <NextImage src={cat.image_url} alt="" width={24} height={24} className="rounded object-cover" unoptimized />
@@ -904,6 +997,9 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                       <ImageIcon className="h-3 w-3 text-muted-foreground" />
                     </div>
                   )}
+                  <span className="inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold h-5 min-w-[1.25rem] px-1">
+                    {categoryCodeMap.get(cat.id) ?? ""}
+                  </span>
                   <span>
                     {cat.name}
                     {parent && (
@@ -916,6 +1012,10 @@ export function AdminGallery({ initialFolders, categories }: Props) {
               )
             })}
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelLinkDialog}>{t("escape")}</Button>
+            <Button onClick={() => suggestedCatId && assignToCategory(suggestedCatId)} disabled={!suggestedCatId}>{t("yes")}</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
