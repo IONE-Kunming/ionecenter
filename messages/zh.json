@@ -1537,6 +1537,7 @@
     "matchNameConfirm": "匹配到：{name} — 确认？",
     "noMatchFound": "未找到匹配",
     "yes": "是",
-    "escape": "取消"
+    "escape": "取消",
+    "ok": "确定"
   }
 }

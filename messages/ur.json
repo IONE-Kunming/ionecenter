@@ -1537,6 +1537,7 @@
     "matchNameConfirm": "مطابقت: {name} — تصدیق کریں؟",
     "noMatchFound": "کوئی مطابقت نہیں ملی",
     "yes": "ہاں",
-    "escape": "منسوخ"
+    "escape": "منسوخ",
+    "ok": "ٹھیک ہے"
   }
 }
