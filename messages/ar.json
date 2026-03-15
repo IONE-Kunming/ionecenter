@@ -1238,7 +1238,12 @@
     "products": "منتجات",
     "editCover": "تعديل الغلاف",
     "chooseCoverImage": "اختر صورة الغلاف",
-    "updateCover": "تحديث الغلاف"
+    "updateCover": "تحديث الغلاف",
+    "dropZoneText": "اسحب وأفلت المجلدات أو الصور هنا للرفع",
+    "dropSelectFiles": "اختر صور",
+    "dropUploading": "جاري الرفع {current} من {total}...",
+    "dropUploadSuccess": "تم رفع {count} صور",
+    "dropUploadFailed": "فشل الرفع"
   },
   "invoiceCreate": {
     "backToInvoices": "العودة إلى الفواتير",

@@ -5,7 +5,7 @@ import { createPortal } from "react-dom"
 import Image from "next/image"
 import {
   Upload, Download, Search, FileSpreadsheet,
-  RotateCcw, Package, Trash2, GripVertical, ImagePlus, Loader2, CheckCircle2,
+  RotateCcw, Package, Trash2, GripVertical, Loader2,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import readXlsxFile from "read-excel-file"
@@ -16,7 +16,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { cn } from "@/lib/utils"
 import { ImportPreview } from "./import-preview"
 import { uploadProductImage } from "@/lib/actions/products"
-import { uploadGalleryFile } from "@/lib/actions/gallery"
 import type { CategoryData } from "@/lib/categories"
 import { getSubcategoriesFromData, isMainCategoryInData, getMainCategoryForSubcategoryInData } from "@/lib/categories"
 import { CustomCategoryTabs, filterByCustomCategoryTab, type CustomCategoryTab } from "@/components/custom-category-tabs"
@@ -332,12 +331,6 @@ export function BulkEditTable({
   const [currencyMode, setCurrencyMode] = useState<CurrencyMode>("usd")
   const { rate, loading: rateLoading } = useExchangeRate()
   const [customCategoryTab, setCustomCategoryTab] = useState<CustomCategoryTab>("all")
-  // ─── Gallery drag & drop upload state ─────────────────────────────────────
-  const [isDragOverGallery, setIsDragOverGallery] = useState(false)
-  const [galleryUploading, setGalleryUploading] = useState(false)
-  const [galleryUploadProgress, setGalleryUploadProgress] = useState<{ current: number; total: number } | null>(null)
-  const [galleryUploadResult, setGalleryUploadResult] = useState<string | null>(null)
-  const galleryInputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
   const toastCounter = useRef(0)
@@ -1094,144 +1087,6 @@ export function BulkEditTable({
     }
   }, [focusedCell, columnOrder])
 
-  // ─── Gallery drag & drop upload helpers ─────────────────────────────────
-
-  const SUPPORTED_IMAGE_EXTENSIONS = /\.(jpe?g|png|gif|webp|svg|bmp|ico|avif)$/i
-
-  /** Read all files from a dropped directory entry recursively. */
-  async function readDirectoryFiles(dirEntry: FileSystemDirectoryEntry): Promise<File[]> {
-    try {
-      const reader = dirEntry.createReader()
-      const allFiles: File[] = []
-      let batch: FileSystemEntry[] = []
-      do {
-        batch = await new Promise<FileSystemEntry[]>((resolve, reject) =>
-          reader.readEntries(resolve, reject)
-        )
-        for (const entry of batch) {
-          if (entry.isFile) {
-            const file = await new Promise<File>((resolve, reject) =>
-              (entry as FileSystemFileEntry).file(resolve, reject)
-            )
-            allFiles.push(file)
-          } else if (entry.isDirectory) {
-            const nested = await readDirectoryFiles(entry as FileSystemDirectoryEntry)
-            allFiles.push(...nested)
-          }
-        }
-      } while (batch.length > 0)
-      return allFiles
-    } catch {
-      return []
-    }
-  }
-
-  function isImageFile(file: File): boolean {
-    return file.type.startsWith("image/") || SUPPORTED_IMAGE_EXTENSIONS.test(file.name)
-  }
-
-  /** Upload an array of image files to the seller's gallery. */
-  async function uploadGalleryImages(files: File[]) {
-    const images = files.filter(isImageFile)
-    if (images.length === 0) return
-
-    setGalleryUploading(true)
-    setGalleryUploadProgress({ current: 0, total: images.length })
-    setGalleryUploadResult(null)
-
-    let uploaded = 0
-    let failed = 0
-    for (const file of images) {
-      try {
-        const formData = new FormData()
-        formData.append("file", file)
-        formData.append("folderPath", "")
-        const result = await uploadGalleryFile(formData)
-        if (result.error) {
-          failed++
-        } else {
-          uploaded++
-        }
-      } catch {
-        failed++
-      }
-      setGalleryUploadProgress({ current: uploaded + failed, total: images.length })
-    }
-
-    setGalleryUploading(false)
-    setGalleryUploadProgress(null)
-
-    if (failed > 0 && uploaded > 0) {
-      setGalleryUploadResult(
-        t("galleryUploadSuccess", { count: uploaded }) + ` (${failed} failed)`
-      )
-    } else if (failed > 0 && uploaded === 0) {
-      setGalleryUploadResult(`Upload failed`)
-    } else {
-      setGalleryUploadResult(
-        t("galleryUploadSuccess", { count: uploaded })
-      )
-    }
-    setTimeout(() => setGalleryUploadResult(null), 5000)
-  }
-
-  function handleGalleryDragOver(e: React.DragEvent) {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragOverGallery(true)
-  }
-
-  function handleGalleryDragLeave(e: React.DragEvent) {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragOverGallery(false)
-  }
-
-  async function handleGalleryDrop(e: React.DragEvent) {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragOverGallery(false)
-
-    try {
-      // Try to detect folders via webkitGetAsEntry
-      const items = Array.from(e.dataTransfer.items)
-      const allFiles: File[] = []
-
-      let hasFolders = false
-      for (const item of items) {
-        const entry = (item as DataTransferItem & { webkitGetAsEntry?: () => FileSystemEntry | null }).webkitGetAsEntry?.() ?? null
-        if (entry && entry.isDirectory) {
-          hasFolders = true
-          const dirFiles = await readDirectoryFiles(entry as FileSystemDirectoryEntry)
-          allFiles.push(...dirFiles)
-        } else if (entry && entry.isFile) {
-          const file = await new Promise<File>((resolve, reject) =>
-            (entry as FileSystemFileEntry).file(resolve, reject)
-          )
-          allFiles.push(file)
-        }
-      }
-
-      // Fallback for browsers without webkitGetAsEntry
-      if (!hasFolders && allFiles.length === 0) {
-        allFiles.push(...Array.from(e.dataTransfer.files))
-      }
-
-      await uploadGalleryImages(allFiles)
-    } catch {
-      setGalleryUploadResult("Upload failed")
-      setTimeout(() => setGalleryUploadResult(null), 5000)
-    }
-  }
-
-  async function handleGalleryFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const selected = Array.from(e.target.files ?? [])
-    if (selected.length === 0) return
-    await uploadGalleryImages(selected)
-    // Reset input so the same files can be selected again
-    e.target.value = ""
-  }
-
   const filterBtns: { key: FilterMode; label: string }[] = [
     { key: "all", label: "All" },
     { key: "available", label: "Available" },
@@ -1284,59 +1139,6 @@ export function BulkEditTable({
             </Button>
           </div>
         </div>
-      </div>
-
-      {/* ─── Gallery drag & drop upload zone ─── */}
-      <div
-        onDragOver={handleGalleryDragOver}
-        onDragLeave={handleGalleryDragLeave}
-        onDrop={handleGalleryDrop}
-        className={cn(
-          "relative rounded-lg border-2 border-dashed p-6 text-center transition-colors",
-          isDragOverGallery
-            ? "border-primary bg-primary/5"
-            : "border-muted-foreground/25 hover:border-muted-foreground/50"
-        )}
-      >
-        {galleryUploading ? (
-          <div className="flex flex-col items-center gap-2">
-            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm font-medium text-primary">
-              {t("galleryUploading", {
-                current: galleryUploadProgress?.current ?? 0,
-                total: galleryUploadProgress?.total ?? 0,
-              })}
-            </p>
-          </div>
-        ) : galleryUploadResult ? (
-          <div className="flex flex-col items-center gap-2">
-            <CheckCircle2 className="mx-auto h-8 w-8 text-green-500" />
-            <p className="text-sm font-medium text-green-600 dark:text-green-400">{galleryUploadResult}</p>
-          </div>
-        ) : (
-          <>
-            <ImagePlus className={cn("mx-auto h-8 w-8 mb-2", isDragOverGallery ? "text-primary" : "text-muted-foreground")} />
-            <p className={cn("text-sm font-medium", isDragOverGallery ? "text-primary" : "text-muted-foreground")}>
-              {t("galleryDropZoneText")}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-3 gap-1.5"
-              onClick={() => galleryInputRef.current?.click()}
-            >
-              <Upload className="h-3.5 w-3.5" /> {t("gallerySelectFiles")}
-            </Button>
-            <input
-              ref={galleryInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handleGalleryFileSelect}
-            />
-          </>
-        )}
       </div>
 
       {/* Keyboard hints */}
