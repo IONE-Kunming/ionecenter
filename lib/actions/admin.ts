@@ -356,6 +356,7 @@ export interface SellerWithDetails {
   role: "seller"
   company: string | null
   user_code: string | null
+  logo_url: string | null
   created_at: string
   main_category: string | null
   subcategories: string[]
@@ -433,6 +434,7 @@ export async function getSellersWithDetails(): Promise<SellerWithDetails[]> {
       role: "seller" as const,
       company: s.company,
       user_code: s.user_code,
+      logo_url: s.logo_url ?? null,
       created_at: s.created_at,
       main_category: catData?.main_category ?? null,
       subcategories: catData?.subcategories ?? [],

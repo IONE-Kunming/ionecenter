@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Store, Search, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, AlertTriangle } from "lucide-react"
+import { Store, Search, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, AlertTriangle, ImageIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -237,7 +237,7 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
   }
 
   // Total number of columns in the table (must match TableHead count below)
-  const columnCount = 10
+  const columnCount = 11
 
   return (
     <div className="space-y-6">
@@ -255,6 +255,7 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
               <TableRow>
                 <TableHead className="w-10"></TableHead>
                 <TableHead className="w-12">#</TableHead>
+                <TableHead className="w-[50px]">Logo</TableHead>
                 <TableHead>{tCommon("name")}</TableHead>
                 <TableHead>{tCommon("email")}</TableHead>
                 <TableHead>{t("role")}</TableHead>
@@ -292,6 +293,15 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
                         )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">{index + 1}</TableCell>
+                      <TableCell>
+                        <div className="h-10 w-10 rounded border bg-muted flex items-center justify-center overflow-hidden">
+                          {seller.logo_url ? (
+                            <img src={seller.logo_url} alt={`Logo for ${seller.display_name}`} className="h-full w-full object-contain" />
+                          ) : (
+                            <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="font-medium">{seller.display_name}</TableCell>
                       <TableCell>{seller.email}</TableCell>
                       <TableCell>
