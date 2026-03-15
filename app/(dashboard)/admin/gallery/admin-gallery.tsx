@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useCallback } from "react"
 import NextImage from "next/image"
 import { useTranslations } from "next-intl"
 import {
@@ -17,6 +17,7 @@ import {
   Camera,
   Wand2,
   X,
+  Check,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -89,6 +90,8 @@ export function AdminGallery({ initialFolders, categories }: Props) {
   const [linkSubSubCatOpen, setLinkSubSubCatOpen] = useState(false)
   const [linkImage, setLinkImage] = useState<AdminGalleryImage | null>(null)
   const [catSearch, setCatSearch] = useState("")
+  const [selectedCatId, setSelectedCatId] = useState<string | null>(null)
+  const [linkLoading, setLinkLoading] = useState(false)
 
   // auto-match
   const [matching, setMatching] = useState(false)
@@ -119,6 +122,29 @@ export function AdminGallery({ initialFolders, categories }: Props) {
   })
 
   /* ── helpers ────────────────────────────────────────────── */
+
+  /** Normalise a string for fuzzy filename↔category matching (mirrors server-side logic). */
+  const normalizeName = useCallback((s: string): string => {
+    return s
+      .toLowerCase()
+      .replace(/\.[^.]+$/, "")   // strip file extension
+      .replace(/^\d+-/, "")       // strip leading timestamp prefix
+      .replace(/[-_ ]+/g, "")    // collapse dashes, underscores, spaces
+      .trim()
+  }, [])
+
+  /** Find a matching category id from a list based on normalised image filename. */
+  const findAutoMatch = useCallback(
+    (imageName: string, catList: SiteCategory[]): string | null => {
+      const normImg = normalizeName(imageName)
+      if (!normImg) return null
+      for (const cat of catList) {
+        if (normalizeName(cat.name) === normImg) return cat.id
+      }
+      return null
+    },
+    [normalizeName]
+  )
 
   function showToast(type: "success" | "error", msg: string) {
     setToast({ type, msg })
@@ -250,23 +276,27 @@ export function AdminGallery({ initialFolders, categories }: Props) {
   function openLinkCategory(img: AdminGalleryImage) {
     setLinkImage(img)
     setCatSearch("")
+    setSelectedCatId(findAutoMatch(img.name, mainCategories))
     setLinkCatOpen(true)
   }
 
   function openLinkSubcategory(img: AdminGalleryImage) {
     setLinkImage(img)
     setCatSearch("")
+    setSelectedCatId(findAutoMatch(img.name, subCategories))
     setLinkSubCatOpen(true)
   }
 
   function openLinkSubSubcategory(img: AdminGalleryImage) {
     setLinkImage(img)
     setCatSearch("")
+    setSelectedCatId(findAutoMatch(img.name, subSubCategories))
     setLinkSubSubCatOpen(true)
   }
 
   async function assignToCategory(categoryId: string) {
     if (!linkImage) return
+    setLinkLoading(true)
     const { error } = await linkImageToCategory(linkImage.publicUrl, categoryId)
     if (error) {
       showToast("error", error)
@@ -277,6 +307,22 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     setLinkSubCatOpen(false)
     setLinkSubSubCatOpen(false)
     setLinkImage(null)
+    setSelectedCatId(null)
+    setLinkLoading(false)
+  }
+
+  /** Confirm the current selection from the link dialog. */
+  function handleConfirmLink() {
+    if (selectedCatId) assignToCategory(selectedCatId)
+  }
+
+  /** Dismiss the link dialog without saving. */
+  function handleDismissLink() {
+    setLinkCatOpen(false)
+    setLinkSubCatOpen(false)
+    setLinkSubSubCatOpen(false)
+    setLinkImage(null)
+    setSelectedCatId(null)
   }
 
   /* ── auto-match ─────────────────────────────────────────── */
@@ -722,7 +768,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
       </Dialog>
 
       {/* ─── Link to Category Dialog ─── */}
-      <Dialog open={linkCatOpen} onOpenChange={setLinkCatOpen}>
+      <Dialog open={linkCatOpen} onOpenChange={(open) => { if (!open) handleDismissLink() }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("linkToCategory")}</DialogTitle>
@@ -743,8 +789,13 @@ export function AdminGallery({ initialFolders, categories }: Props) {
             {filteredMainCats.map((cat) => (
               <button
                 key={cat.id}
-                className="w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2"
-                onClick={() => assignToCategory(cat.id)}
+                className={cn(
+                  "w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2",
+                  selectedCatId === cat.id
+                    ? "bg-primary/10 ring-2 ring-primary font-medium"
+                    : "hover:bg-muted"
+                )}
+                onClick={() => setSelectedCatId(cat.id)}
               >
                 {cat.image_url ? (
                   <NextImage src={cat.image_url} alt="" width={24} height={24} className="rounded object-cover" unoptimized />
@@ -753,15 +804,28 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                     <ImageIcon className="h-3 w-3 text-muted-foreground" />
                   </div>
                 )}
-                {cat.name}
+                <span className="flex-1">{cat.name}</span>
+                {selectedCatId === cat.id && <Check className="h-4 w-4 text-primary shrink-0" />}
               </button>
             ))}
           </div>
+          {selectedCatId && linkImage && findAutoMatch(linkImage.name, mainCategories) === selectedCatId && (
+            <p className="text-xs text-primary flex items-center gap-1">
+              <Wand2 className="h-3 w-3" /> {t("suggestedMatch")}
+            </p>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={handleDismissLink}>{t("escape")}</Button>
+            <Button onClick={handleConfirmLink} disabled={!selectedCatId || linkLoading}>
+              {linkLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
+              {t("ok")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* ─── Link to Subcategory Dialog ─── */}
-      <Dialog open={linkSubCatOpen} onOpenChange={setLinkSubCatOpen}>
+      <Dialog open={linkSubCatOpen} onOpenChange={(open) => { if (!open) handleDismissLink() }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("linkToSubcategory")}</DialogTitle>
@@ -784,8 +848,13 @@ export function AdminGallery({ initialFolders, categories }: Props) {
               return (
                 <button
                   key={cat.id}
-                  className="w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2"
-                  onClick={() => assignToCategory(cat.id)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2",
+                    selectedCatId === cat.id
+                      ? "bg-primary/10 ring-2 ring-primary font-medium"
+                      : "hover:bg-muted"
+                  )}
+                  onClick={() => setSelectedCatId(cat.id)}
                 >
                   {cat.image_url ? (
                     <NextImage src={cat.image_url} alt="" width={24} height={24} className="rounded object-cover" unoptimized />
@@ -794,19 +863,32 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                       <ImageIcon className="h-3 w-3 text-muted-foreground" />
                     </div>
                   )}
-                  <span>
+                  <span className="flex-1">
                     {cat.name}
                     {parent && <span className="text-muted-foreground ml-1">({parent.name})</span>}
                   </span>
+                  {selectedCatId === cat.id && <Check className="h-4 w-4 text-primary shrink-0" />}
                 </button>
               )
             })}
           </div>
+          {selectedCatId && linkImage && findAutoMatch(linkImage.name, subCategories) === selectedCatId && (
+            <p className="text-xs text-primary flex items-center gap-1">
+              <Wand2 className="h-3 w-3" /> {t("suggestedMatch")}
+            </p>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={handleDismissLink}>{t("escape")}</Button>
+            <Button onClick={handleConfirmLink} disabled={!selectedCatId || linkLoading}>
+              {linkLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
+              {t("ok")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* ─── Link to Sub-subcategory Dialog ─── */}
-      <Dialog open={linkSubSubCatOpen} onOpenChange={setLinkSubSubCatOpen}>
+      <Dialog open={linkSubSubCatOpen} onOpenChange={(open) => { if (!open) handleDismissLink() }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("linkToSubSubcategory")}</DialogTitle>
@@ -830,8 +912,13 @@ export function AdminGallery({ initialFolders, categories }: Props) {
               return (
                 <button
                   key={cat.id}
-                  className="w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2"
-                  onClick={() => assignToCategory(cat.id)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2",
+                    selectedCatId === cat.id
+                      ? "bg-primary/10 ring-2 ring-primary font-medium"
+                      : "hover:bg-muted"
+                  )}
+                  onClick={() => setSelectedCatId(cat.id)}
                 >
                   {cat.image_url ? (
                     <NextImage src={cat.image_url} alt="" width={24} height={24} className="rounded object-cover" unoptimized />
@@ -840,7 +927,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                       <ImageIcon className="h-3 w-3 text-muted-foreground" />
                     </div>
                   )}
-                  <span>
+                  <span className="flex-1">
                     {cat.name}
                     {parent && (
                       <span className="text-muted-foreground ml-1">
@@ -848,10 +935,23 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                       </span>
                     )}
                   </span>
+                  {selectedCatId === cat.id && <Check className="h-4 w-4 text-primary shrink-0" />}
                 </button>
               )
             })}
           </div>
+          {selectedCatId && linkImage && findAutoMatch(linkImage.name, subSubCategories) === selectedCatId && (
+            <p className="text-xs text-primary flex items-center gap-1">
+              <Wand2 className="h-3 w-3" /> {t("suggestedMatch")}
+            </p>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={handleDismissLink}>{t("escape")}</Button>
+            <Button onClick={handleConfirmLink} disabled={!selectedCatId || linkLoading}>
+              {linkLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
+              {t("ok")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
