@@ -1538,6 +1538,11 @@
     "noMatchFound": "未找到匹配",
     "yes": "是",
     "escape": "取消",
-    "ok": "确定"
+    "ok": "确定",
+    "uploadFolder": "上传文件夹",
+    "folderUploadSummary": "{images} 张图片已上传到 {folders} 个文件夹",
+    "dropFolderZoneText": "拖放文件夹到此处以上传其内容",
+    "dropFolderZoneActive": "松开以上传文件夹",
+    "noImagesInFolders": "所选文件夹中未找到图片"
   }
 }
