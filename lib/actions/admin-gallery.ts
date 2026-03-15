@@ -321,6 +321,57 @@ export interface AutoMatchResult {
   error?: string
 }
 
+/**
+ * Compute the numeric code for each category based on sort_order position.
+ * Main: 01-99, Sub: 0101, Sub-sub: 010101
+ */
+function buildCategoryCodeMap(
+  categories: { id: string; parent_id: string | null; sort_order: number; name: string }[]
+): { codeMap: Map<string, string>; idToCode: Map<string, string> } {
+  const parentMap = new Map<string, string | null>()
+  for (const cat of categories) parentMap.set(cat.id, cat.parent_id)
+
+  // Group children by parent_id, sorted by sort_order then name
+  const childrenOf = new Map<string | null, typeof categories>()
+  for (const cat of categories) {
+    const pid = cat.parent_id ?? null
+    if (!childrenOf.has(pid)) childrenOf.set(pid, [])
+    childrenOf.get(pid)!.push(cat)
+  }
+  for (const children of childrenOf.values()) {
+    children.sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+  }
+
+  const idToCode = new Map<string, string>()
+  const codeMap = new Map<string, string>() // code → id
+
+  // Main categories (level 0)
+  const mains = childrenOf.get(null) ?? []
+  for (let i = 0; i < mains.length; i++) {
+    const code = String(i + 1).padStart(2, '0')
+    idToCode.set(mains[i].id, code)
+    codeMap.set(code, mains[i].id)
+
+    // Subcategories (level 1)
+    const subs = childrenOf.get(mains[i].id) ?? []
+    for (let j = 0; j < subs.length; j++) {
+      const subCode = `${code}${String(j + 1).padStart(2, '0')}`
+      idToCode.set(subs[j].id, subCode)
+      codeMap.set(subCode, subs[j].id)
+
+      // Sub-subcategories (level 2)
+      const subSubs = childrenOf.get(subs[j].id) ?? []
+      for (let k = 0; k < subSubs.length; k++) {
+        const subSubCode = `${subCode}${String(k + 1).padStart(2, '0')}`
+        idToCode.set(subSubs[k].id, subSubCode)
+        codeMap.set(subSubCode, subSubs[k].id)
+      }
+    }
+  }
+
+  return { codeMap, idToCode }
+}
+
 export async function autoMatchFolderImages(
   folderPath: string
 ): Promise<AutoMatchResult> {
@@ -343,15 +394,13 @@ export async function autoMatchFolderImages(
   const { data: categories } = await supabase
     .from("site_categories")
     .select("*")
-    .order("name")
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true })
   if (!categories) return { ...empty, error: "Could not load categories" }
 
-  // Classify each category: main / subcategory / sub-subcategory
-  // Sub-subcategory = parent_id is set AND that parent also has a parent_id
+  // Classify each category level
   const parentMap = new Map<string, string | null>()
-  for (const cat of categories) {
-    parentMap.set(cat.id, cat.parent_id)
-  }
+  for (const cat of categories) parentMap.set(cat.id, cat.parent_id)
 
   type CatLevel = "category" | "subcategory" | "subSubcategory"
   function getLevel(cat: { id: string; parent_id: string | null }): CatLevel {
@@ -361,10 +410,35 @@ export async function autoMatchFolderImages(
     return "subcategory"
   }
 
-  // Build lookup: normalised name → { id, name, level }
-  const catMap = new Map<string, { id: string; name: string; level: CatLevel }>()
+  // Build code map and name lookup
+  const { codeMap, idToCode } = buildCategoryCodeMap(categories)
+
+  // Determine the folder name code (e.g. "01", "0101", "010101")
+  const folderName = folderPath.split("/").pop() ?? ""
+  const folderCode = folderName.replace(/[^0-9]/g, "")
+
+  // Filter categories to match against based on folder code
+  let targetCategoryIds: Set<string> | null = null
+  if (folderCode && codeMap.has(folderCode)) {
+    targetCategoryIds = new Set<string>()
+    // Include the folder's own category and all descendants whose codes start with folderCode
+    for (const [code, catId] of codeMap.entries()) {
+      if (code.startsWith(folderCode)) {
+        targetCategoryIds.add(catId)
+      }
+    }
+  }
+
+  // Build lookup maps: normalised name → { id, level } and code → { id, level }
+  const nameMap = new Map<string, { id: string; level: CatLevel }>()
+  const codeToInfo = new Map<string, { id: string; level: CatLevel }>()
   for (const cat of categories) {
-    catMap.set(normalize(cat.name), { id: cat.id, name: cat.name, level: getLevel(cat) })
+    const level = getLevel(cat)
+    // Skip if folder code filtering is active and category is not in target set
+    if (targetCategoryIds && !targetCategoryIds.has(cat.id)) continue
+    nameMap.set(normalize(cat.name), { id: cat.id, level })
+    const code = idToCode.get(cat.id)
+    if (code) codeToInfo.set(code, { id: cat.id, level })
   }
 
   let matched = 0
@@ -375,15 +449,16 @@ export async function autoMatchFolderImages(
 
   for (const img of images) {
     const normName = normalize(img.name)
-    const cat = catMap.get(normName)
-    if (cat) {
+    // Try matching by name first, then by numeric code
+    const match = nameMap.get(normName) ?? codeToInfo.get(normName)
+    if (match) {
       await supabase
         .from("site_categories")
         .update({ image_url: img.publicUrl, updated_at: new Date().toISOString() })
-        .eq("id", cat.id)
+        .eq("id", match.id)
       matched++
-      if (cat.level === "category") matchedCategories++
-      else if (cat.level === "subcategory") matchedSubcategories++
+      if (match.level === "category") matchedCategories++
+      else if (match.level === "subcategory") matchedSubcategories++
       else matchedSubSubcategories++
     } else {
       unmatched++
@@ -391,4 +466,50 @@ export async function autoMatchFolderImages(
   }
 
   return { matched, unmatched, matchedCategories, matchedSubcategories, matchedSubSubcategories }
+}
+
+/**
+ * Match a single image filename against all categories by numeric code or name.
+ * Returns the matched category info or null if no match.
+ */
+export async function matchSingleImage(
+  imageName: string
+): Promise<{ categoryId: string; categoryName: string; level: string } | null> {
+  await requireAdmin()
+  const supabase = createAdminClient()
+
+  const { data: categories } = await supabase
+    .from("site_categories")
+    .select("*")
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true })
+  if (!categories) return null
+
+  const parentMap = new Map<string, string | null>()
+  for (const cat of categories) parentMap.set(cat.id, cat.parent_id)
+
+  function getLevel(cat: { id: string; parent_id: string | null }): string {
+    if (!cat.parent_id) return "category"
+    const grandParentId = parentMap.get(cat.parent_id)
+    if (grandParentId != null) return "subSubcategory"
+    return "subcategory"
+  }
+
+  const { idToCode } = buildCategoryCodeMap(categories)
+  const normName = normalize(imageName)
+
+  // Try matching by normalized name first, then by numeric code
+  for (const cat of categories) {
+    if (normalize(cat.name) === normName) {
+      return { categoryId: cat.id, categoryName: cat.name, level: getLevel(cat) }
+    }
+  }
+  for (const cat of categories) {
+    const code = idToCode.get(cat.id)
+    if (code && code === normName) {
+      return { categoryId: cat.id, categoryName: cat.name, level: getLevel(cat) }
+    }
+  }
+
+  return null
 }

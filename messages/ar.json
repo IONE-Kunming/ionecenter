@@ -1533,6 +1533,12 @@
     "dropZoneText": "اسحب وأفلت الصور هنا، أو انقر رفع صور",
     "dropZoneActive": "أفلت الصور هنا للرفع",
     "uploadingProgress": "جاري رفع {current} من {total}...",
-    "onlyImagesAllowed": "يُسمح فقط بملفات الصور"
+    "onlyImagesAllowed": "يُسمح فقط بملفات الصور",
+    "matchName": "مطابقة الاسم",
+    "matchFound": "تمت المطابقة: {name}",
+    "noMatchFound": "لم يتم العثور على مطابقة",
+    "suggested": "مقترح",
+    "ok": "موافق",
+    "escape": "إلغاء"
   }
 }

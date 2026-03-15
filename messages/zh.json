@@ -1532,6 +1532,12 @@
     "dropZoneText": "拖放图片到此处，或点击上传图片",
     "dropZoneActive": "松开以上传图片",
     "uploadingProgress": "正在上传 {current} / {total}...",
-    "onlyImagesAllowed": "仅允许上传图片文件"
+    "onlyImagesAllowed": "仅允许上传图片文件",
+    "matchName": "匹配名称",
+    "matchFound": "已匹配: {name}",
+    "noMatchFound": "未找到匹配",
+    "suggested": "建议",
+    "ok": "确定",
+    "escape": "取消"
   }
 }

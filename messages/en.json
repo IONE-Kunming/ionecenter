@@ -1683,6 +1683,12 @@
     "dropZoneText": "Drag & drop images here, or click Upload Images",
     "dropZoneActive": "Drop images here to upload",
     "uploadingProgress": "Uploading {current} of {total}...",
-    "onlyImagesAllowed": "Only image files are allowed"
+    "onlyImagesAllowed": "Only image files are allowed",
+    "matchName": "Match Name",
+    "matchFound": "Matched: {name}",
+    "noMatchFound": "No match found",
+    "suggested": "Suggested",
+    "ok": "OK",
+    "escape": "Escape"
   }
 }

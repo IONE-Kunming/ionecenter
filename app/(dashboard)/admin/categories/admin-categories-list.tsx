@@ -402,19 +402,22 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
     const siblings = cat.parent_id ? getSubcategories(cat.parent_id) : mainCategories
     const idx = siblings.findIndex((c) => c.id === cat.id)
 
-    // Numbering matching the buyer catalog format
+    // Numbering: main=01..99, sub=0101, sub-sub=010101 (no separators)
     let categoryCode: string
     if (level === 0) {
       categoryCode = String(idx + 1).padStart(2, '0')
     } else if (level === 1) {
-      categoryCode = `${mainCategories.findIndex((c) => c.id === cat.parent_id) + 1}:${idx + 1}`
+      const mainIdx = String(mainCategories.findIndex((c) => c.id === cat.parent_id) + 1).padStart(2, '0')
+      const subIdx = String(idx + 1).padStart(2, '0')
+      categoryCode = `${mainIdx}${subIdx}`
     } else {
       const subParent = categories.find((c) => c.id === cat.parent_id)
       const mainParentId = subParent?.parent_id ?? null
-      const mainIdx = mainParentId ? mainCategories.findIndex((c) => c.id === mainParentId) + 1 : 0
+      const mainIdx = String(mainParentId ? mainCategories.findIndex((c) => c.id === mainParentId) + 1 : 0).padStart(2, '0')
       const subSiblings = mainParentId ? getSubcategories(mainParentId) : []
-      const subIdx = subParent ? subSiblings.findIndex((c) => c.id === subParent.id) + 1 : 0
-      categoryCode = `${mainIdx}:${subIdx}:${idx + 1}`
+      const subIdx = String(subParent ? subSiblings.findIndex((c) => c.id === subParent.id) + 1 : 0).padStart(2, '0')
+      const subSubIdx = String(idx + 1).padStart(2, '0')
+      categoryCode = `${mainIdx}${subIdx}${subSubIdx}`
     }
 
     // Indentation based on level

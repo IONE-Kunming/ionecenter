@@ -42,6 +42,7 @@ import {
   linkImageToCategory,
   autoMatchFolderImages,
   renameAdminGalleryImage,
+  matchSingleImage,
 } from "@/lib/actions/admin-gallery"
 
 /* ────────────────────────── Props ────────────────────────── */
@@ -94,6 +95,14 @@ export function AdminGallery({ initialFolders, categories }: Props) {
   const [matching, setMatching] = useState(false)
   const [matchResult, setMatchResult] = useState<AutoMatchResult | null>(null)
   const [matchingCardFolder, setMatchingCardFolder] = useState<string | null>(null)
+
+  // individual image match
+  const [matchNameLoading, setMatchNameLoading] = useState<string | null>(null)
+  const [matchNameResult, setMatchNameResult] = useState<{ image: AdminGalleryImage; categoryName: string; categoryId: string } | null>(null)
+  const [matchNameNoResult, setMatchNameNoResult] = useState(false)
+
+  // auto-suggest for link dialogs
+  const [suggestedCategoryId, setSuggestedCategoryId] = useState<string | null>(null)
 
   // rename
   const [renamingImage, setRenamingImage] = useState<AdminGalleryImage | null>(null)
@@ -247,21 +256,31 @@ export function AdminGallery({ initialFolders, categories }: Props) {
 
   /* ── link to category / subcategory ─────────────────────── */
 
-  function openLinkCategory(img: AdminGalleryImage) {
+  async function openLinkCategory(img: AdminGalleryImage) {
     setLinkImage(img)
     setCatSearch("")
+    setSuggestedCategoryId(null)
+    // Auto-suggest based on image filename
+    const match = await matchSingleImage(img.name)
+    if (match && match.level === "category") setSuggestedCategoryId(match.categoryId)
     setLinkCatOpen(true)
   }
 
-  function openLinkSubcategory(img: AdminGalleryImage) {
+  async function openLinkSubcategory(img: AdminGalleryImage) {
     setLinkImage(img)
     setCatSearch("")
+    setSuggestedCategoryId(null)
+    const match = await matchSingleImage(img.name)
+    if (match && match.level === "subcategory") setSuggestedCategoryId(match.categoryId)
     setLinkSubCatOpen(true)
   }
 
-  function openLinkSubSubcategory(img: AdminGalleryImage) {
+  async function openLinkSubSubcategory(img: AdminGalleryImage) {
     setLinkImage(img)
     setCatSearch("")
+    setSuggestedCategoryId(null)
+    const match = await matchSingleImage(img.name)
+    if (match && match.level === "subSubcategory") setSuggestedCategoryId(match.categoryId)
     setLinkSubSubCatOpen(true)
   }
 
@@ -277,6 +296,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     setLinkSubCatOpen(false)
     setLinkSubSubCatOpen(false)
     setLinkImage(null)
+    setSuggestedCategoryId(null)
   }
 
   /* ── auto-match ─────────────────────────────────────────── */
@@ -312,6 +332,31 @@ export function AdminGallery({ initialFolders, categories }: Props) {
       )
     }
     setMatchingCardFolder(null)
+  }
+
+  /* ── individual image match name ────────────────────────── */
+
+  async function handleMatchImageName(img: AdminGalleryImage) {
+    setMatchNameLoading(img.fullPath)
+    const match = await matchSingleImage(img.name)
+    setMatchNameLoading(null)
+    if (match) {
+      setMatchNameResult({ image: img, categoryName: match.categoryName, categoryId: match.categoryId })
+    } else {
+      setMatchNameNoResult(true)
+      setTimeout(() => setMatchNameNoResult(false), 2000)
+    }
+  }
+
+  async function confirmMatchName() {
+    if (!matchNameResult) return
+    const { error } = await linkImageToCategory(matchNameResult.image.publicUrl, matchNameResult.categoryId)
+    if (error) {
+      showToast("error", error)
+    } else {
+      showToast("success", t("imageLinked"))
+    }
+    setMatchNameResult(null)
   }
 
   /* ── rename image ─────────────────────────────────────────── */
@@ -659,6 +704,16 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                       <Link2 className="h-3.5 w-3.5 text-white" />
                     </button>
                     <button
+                      onClick={() => handleMatchImageName(img)}
+                      disabled={matchNameLoading === img.fullPath}
+                      className="p-1.5 rounded bg-emerald-500/80 hover:bg-emerald-500 transition-colors"
+                      title={t("matchName")}
+                    >
+                      {matchNameLoading === img.fullPath
+                        ? <Loader2 className="h-3.5 w-3.5 text-white animate-spin" />
+                        : <Search className="h-3.5 w-3.5 text-white" />}
+                    </button>
+                    <button
                       onClick={() => openRenameImage(img)}
                       className="p-1.5 rounded bg-amber-500/80 hover:bg-amber-500 transition-colors"
                       title={t("rename")}
@@ -722,7 +777,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
       </Dialog>
 
       {/* ─── Link to Category Dialog ─── */}
-      <Dialog open={linkCatOpen} onOpenChange={setLinkCatOpen}>
+      <Dialog open={linkCatOpen} onOpenChange={(open) => { setLinkCatOpen(open); if (!open) setSuggestedCategoryId(null) }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("linkToCategory")}</DialogTitle>
@@ -743,7 +798,10 @@ export function AdminGallery({ initialFolders, categories }: Props) {
             {filteredMainCats.map((cat) => (
               <button
                 key={cat.id}
-                className="w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2"
+                className={cn(
+                  "w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2",
+                  suggestedCategoryId === cat.id && "ring-2 ring-primary bg-primary/10"
+                )}
                 onClick={() => assignToCategory(cat.id)}
               >
                 {cat.image_url ? (
@@ -754,14 +812,21 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                   </div>
                 )}
                 {cat.name}
+                {suggestedCategoryId === cat.id && <span className="ml-auto text-xs text-primary font-medium">{t("suggested")}</span>}
               </button>
             ))}
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setLinkCatOpen(false); setSuggestedCategoryId(null) }}>{t("escape")}</Button>
+            {suggestedCategoryId && (
+              <Button onClick={() => assignToCategory(suggestedCategoryId)}>{t("ok")}</Button>
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* ─── Link to Subcategory Dialog ─── */}
-      <Dialog open={linkSubCatOpen} onOpenChange={setLinkSubCatOpen}>
+      <Dialog open={linkSubCatOpen} onOpenChange={(open) => { setLinkSubCatOpen(open); if (!open) setSuggestedCategoryId(null) }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("linkToSubcategory")}</DialogTitle>
@@ -784,7 +849,10 @@ export function AdminGallery({ initialFolders, categories }: Props) {
               return (
                 <button
                   key={cat.id}
-                  className="w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2"
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2",
+                    suggestedCategoryId === cat.id && "ring-2 ring-primary bg-primary/10"
+                  )}
                   onClick={() => assignToCategory(cat.id)}
                 >
                   {cat.image_url ? (
@@ -798,15 +866,22 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                     {cat.name}
                     {parent && <span className="text-muted-foreground ml-1">({parent.name})</span>}
                   </span>
+                  {suggestedCategoryId === cat.id && <span className="ml-auto text-xs text-primary font-medium">{t("suggested")}</span>}
                 </button>
               )
             })}
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setLinkSubCatOpen(false); setSuggestedCategoryId(null) }}>{t("escape")}</Button>
+            {suggestedCategoryId && (
+              <Button onClick={() => assignToCategory(suggestedCategoryId)}>{t("ok")}</Button>
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* ─── Link to Sub-subcategory Dialog ─── */}
-      <Dialog open={linkSubSubCatOpen} onOpenChange={setLinkSubSubCatOpen}>
+      <Dialog open={linkSubSubCatOpen} onOpenChange={(open) => { setLinkSubSubCatOpen(open); if (!open) setSuggestedCategoryId(null) }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("linkToSubSubcategory")}</DialogTitle>
@@ -830,7 +905,10 @@ export function AdminGallery({ initialFolders, categories }: Props) {
               return (
                 <button
                   key={cat.id}
-                  className="w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2"
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-md hover:bg-muted text-sm flex items-center gap-2",
+                    suggestedCategoryId === cat.id && "ring-2 ring-primary bg-primary/10"
+                  )}
                   onClick={() => assignToCategory(cat.id)}
                 >
                   {cat.image_url ? (
@@ -848,10 +926,17 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                       </span>
                     )}
                   </span>
+                  {suggestedCategoryId === cat.id && <span className="ml-auto text-xs text-primary font-medium">{t("suggested")}</span>}
                 </button>
               )
             })}
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setLinkSubSubCatOpen(false); setSuggestedCategoryId(null) }}>{t("escape")}</Button>
+            {suggestedCategoryId && (
+              <Button onClick={() => assignToCategory(suggestedCategoryId)}>{t("ok")}</Button>
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -895,6 +980,29 @@ export function AdminGallery({ initialFolders, categories }: Props) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ─── Match Name Confirmation Dialog ─── */}
+      <Dialog open={!!matchNameResult} onOpenChange={() => setMatchNameResult(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("matchName")}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm">
+            {t("matchFound", { name: matchNameResult?.categoryName ?? "" })}
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMatchNameResult(null)}>{t("escape")}</Button>
+            <Button onClick={confirmMatchName}>{t("ok")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── No Match Found toast ─── */}
+      {matchNameNoResult && (
+        <div className="fixed top-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg text-sm font-medium bg-amber-600 text-white">
+          {t("noMatchFound")}
+        </div>
+      )}
     </div>
   )
 }
