@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useCallback } from "react"
 import NextImage from "next/image"
 import { useTranslations } from "next-intl"
 import {
@@ -79,6 +79,8 @@ export function AdminGallery({ initialFolders, categories }: Props) {
 
   // uploading images
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null)
+  const [isDragOver, setIsDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // link category dialog
@@ -189,13 +191,19 @@ export function AdminGallery({ initialFolders, categories }: Props) {
 
   /* ── upload images to folder ────────────────────────────── */
 
-  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    if (!activeFolder || !e.target.files?.length) return
+  async function processFiles(files: File[]) {
+    if (!activeFolder || files.length === 0) return
+    const imageFiles = files.filter((f) => f.type.startsWith("image/"))
+    if (imageFiles.length === 0) {
+      showToast("error", t("onlyImagesAllowed"))
+      return
+    }
     setUploading(true)
-    const files = Array.from(e.target.files)
-    for (const file of files) {
+    setUploadProgress({ current: 0, total: imageFiles.length })
+    for (let i = 0; i < imageFiles.length; i++) {
+      setUploadProgress({ current: i + 1, total: imageFiles.length })
       const formData = new FormData()
-      formData.append("file", file)
+      formData.append("file", imageFiles[i])
       const { image, error } = await uploadImageToFolder(activeFolder.folder_path, formData)
       if (error) {
         showToast("error", error)
@@ -205,8 +213,40 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     }
     showToast("success", t("uploadSuccess"))
     setUploading(false)
+    setUploadProgress(null)
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!activeFolder || !e.target.files?.length) return
+    await processFiles(Array.from(e.target.files))
+  }
+
+  /* ── drag & drop handlers ───────────────────────────────── */
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+  }, [])
+
+  const handleDrop = useCallback(
+    async (e: React.DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setIsDragOver(false)
+      const files = Array.from(e.dataTransfer.files) as File[]
+      await processFiles(files)
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeFolder]
+  )
 
 
   /* ── link to category / subcategory ─────────────────────── */
@@ -484,7 +524,12 @@ export function AdminGallery({ initialFolders, categories }: Props) {
 
       {/* ─── Inside a folder ─── */}
       {activeFolder && (
-        <div className="space-y-4">
+        <div
+          className="space-y-4"
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           {/* Breadcrumb + actions */}
           <div className="flex items-center gap-2 flex-wrap">
             <Button variant="ghost" size="sm" onClick={handleBackToFolders}>
@@ -507,6 +552,41 @@ export function AdminGallery({ initialFolders, categories }: Props) {
               </Button>
             </div>
           </div>
+
+          {/* Drag & drop zone */}
+          <div
+            className={cn(
+              "relative rounded-lg border-2 border-dashed p-6 text-center transition-colors",
+              isDragOver
+                ? "border-primary bg-primary/5"
+                : "border-muted-foreground/25 hover:border-muted-foreground/50"
+            )}
+            onClick={() => !uploading && fileInputRef.current?.click()}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
+          >
+            <Upload className={cn("mx-auto h-8 w-8 mb-2", isDragOver ? "text-primary" : "text-muted-foreground")} />
+            <p className={cn("text-sm font-medium", isDragOver ? "text-primary" : "text-muted-foreground")}>
+              {isDragOver ? t("dropZoneActive") : t("dropZoneText")}
+            </p>
+          </div>
+
+          {/* Upload progress */}
+          {uploading && uploadProgress && (
+            <div className="space-y-2 rounded-md bg-muted p-3">
+              <div className="flex items-center gap-2 text-sm">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>{t("uploadingProgress", { current: uploadProgress.current, total: uploadProgress.total })}</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted-foreground/20">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-300"
+                  style={{ width: `${Math.round((uploadProgress.current / uploadProgress.total) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Match result summary */}
           {matchResult && (
@@ -533,7 +613,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
           )}
 
           {/* Empty folder */}
-          {!loadingImages && folderImages.length === 0 && (
+          {!loadingImages && folderImages.length === 0 && !uploading && (
             <EmptyState
               icon={ImageIcon}
               title={t("emptyFolder")}
