@@ -326,7 +326,7 @@ function normalize(s: string): string {
   return s
     .toLowerCase()
     .replace(/\.[^.]+$/, "") // strip file extension
-    .replace(/^\d+-/, "")     // strip leading timestamp prefix (e.g. 1234567890-)
+    .replace(/^\d{10,}-/, "") // strip leading timestamp prefix (10+ digits)
     .replace(/[-_ ]+/g, "")  // collapse dashes, underscores, spaces
     .trim()
 }
@@ -410,6 +410,48 @@ function buildCategoryLookup(categories: SiteCategory[]): {
   return { entries, byNormName, byCode }
 }
 
+/**
+ * Match an image filename against all category codes and names.
+ * Priority:
+ *  1. If the cleaned filename is purely numeric, try it as a code (longest first).
+ *  2. Extract digit groups from the filename and try each as a code (longest first).
+ *  3. Fallback: match by normalized category name (case-insensitive, ignoring separators).
+ */
+function findMatchInLookup(
+  imageName: string,
+  byCode: Map<string, CatEntry>,
+  byNormName: Map<string, CatEntry>
+): CatEntry | null {
+  // Clean filename: strip extension and leading storage-timestamp (10+ digits)
+  const cleaned = imageName
+    .replace(/\.[^.]+$/, "")      // strip file extension
+    .replace(/^\d{10,}-/, "")      // strip timestamp prefix (10+ digits)
+    .trim()
+
+  // Step 1: If cleaned name is entirely numeric, try as a code directly
+  if (/^\d+$/.test(cleaned)) {
+    for (let len = Math.min(cleaned.length, 6); len >= 2; len -= 2) {
+      const match = byCode.get(cleaned.substring(0, len))
+      if (match) return match
+    }
+  }
+
+  // Step 2: Extract all digit sequences (≥2 digits) and try matching as codes
+  const digitGroups = cleaned.match(/\d{2,}/g) ?? []
+  // Try longer groups first for more specific matches
+  digitGroups.sort((a, b) => b.length - a.length)
+  for (const group of digitGroups) {
+    for (let len = Math.min(group.length, 6); len >= 2; len -= 2) {
+      const match = byCode.get(group.substring(0, len))
+      if (match) return match
+    }
+  }
+
+  // Step 3: Fallback to name match (case-insensitive, ignore spaces/dashes/underscores)
+  const normName = cleaned.toLowerCase().replace(/[-_ ]+/g, "").trim()
+  return byNormName.get(normName) ?? null
+}
+
 export interface AutoMatchResult {
   matched: number
   unmatched: number
@@ -447,25 +489,6 @@ export async function autoMatchFolderImages(
 
   const lookup = buildCategoryLookup(categories as SiteCategory[])
 
-  // Determine folder code from the folder name for scoped matching
-  // e.g. folder_path "admin-gallery/01" → folderCode "01"
-  const folderName = folderPath.split("/").pop() ?? ""
-  const folderCode = /^\d+$/.test(folderName) ? folderName : null
-
-  // Filter categories to match scope based on folder code
-  let scopedEntries = lookup.entries
-  if (folderCode) {
-    scopedEntries = lookup.entries.filter((e) => e.code.startsWith(folderCode))
-  }
-
-  // Build scoped lookup maps
-  const scopedByNormName = new Map<string, CatEntry>()
-  const scopedByCode = new Map<string, CatEntry>()
-  for (const e of scopedEntries) {
-    scopedByNormName.set(normalize(e.name), e)
-    scopedByCode.set(e.code, e)
-  }
-
   let matched = 0
   let unmatched = 0
   let matchedCategories = 0
@@ -473,9 +496,7 @@ export async function autoMatchFolderImages(
   let matchedSubSubcategories = 0
 
   for (const img of images) {
-    const normName = normalize(img.name)
-    // Try matching by numeric code first, then by normalized name
-    const cat = scopedByCode.get(normName) ?? scopedByNormName.get(normName)
+    const cat = findMatchInLookup(img.name, lookup.byCode, lookup.byNormName)
     if (cat) {
       await supabase
         .from("site_categories")
@@ -521,10 +542,8 @@ export async function autoMatchSingleImage(
   if (!categories) return { found: false, error: "Could not load categories" }
 
   const lookup = buildCategoryLookup(categories as SiteCategory[])
-  const normName = normalize(imageName)
 
-  // Try matching by numeric code first, then by normalized name
-  const cat = lookup.byCode.get(normName) ?? lookup.byNormName.get(normName)
+  const cat = findMatchInLookup(imageName, lookup.byCode, lookup.byNormName)
   if (cat) {
     return { found: true, categoryId: cat.id, categoryName: cat.name }
   }
