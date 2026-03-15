@@ -132,9 +132,14 @@ export async function updateAdminFolderCover(
   const supabase = createAdminClient()
   const storagePath = `admin-gallery/_covers/${folderId}-${Date.now()}.${file.name.split(".").pop() || "png"}`
 
+  // Convert File to ArrayBuffer → Uint8Array to avoid File-shim serialization
+  // issues in Next.js server actions that can cause empty/corrupt uploads.
+  const arrayBuffer = await file.arrayBuffer()
+  const buffer = new Uint8Array(arrayBuffer)
+
   const { data, error: uploadErr } = await supabase.storage
     .from(GALLERY_BUCKET)
-    .upload(storagePath, file, { contentType: file.type, upsert: true })
+    .upload(storagePath, buffer, { contentType: file.type, upsert: true })
   if (uploadErr || !data) return { error: uploadErr?.message ?? "Upload failed" }
 
   const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(data.path)
@@ -158,6 +163,8 @@ export async function listFolderImages(
 
   // Normalise: collapse consecutive slashes and strip trailing slashes
   const normPath = folderPath.replace(/\/{2,}/g, "/").replace(/\/+$/, "")
+
+  console.log("[listFolderImages] fetch path:", normPath, "| bucket:", GALLERY_BUCKET)
 
   const { data, error } = await supabase.storage
     .from(GALLERY_BUCKET)
@@ -213,9 +220,16 @@ export async function uploadImageToFolder(
   const normPath = folderPath.replace(/\/{2,}/g, "/").replace(/\/+$/, "")
   const storagePath = `${normPath}/${Date.now()}-${safeName}`
 
+  console.log("[uploadImageToFolder] upload path:", storagePath, "| bucket:", GALLERY_BUCKET)
+
+  // Convert File to ArrayBuffer → Uint8Array to avoid File-shim serialization
+  // issues in Next.js server actions that can cause empty/corrupt uploads.
+  const arrayBuffer = await file.arrayBuffer()
+  const buffer = new Uint8Array(arrayBuffer)
+
   const { data, error } = await supabase.storage
     .from(GALLERY_BUCKET)
-    .upload(storagePath, file, { contentType: file.type })
+    .upload(storagePath, buffer, { contentType: file.type })
   if (error || !data) {
     console.error("[uploadImageToFolder] Upload failed for path:", storagePath, error?.message)
     return { error: error?.message ?? "Upload failed" }
