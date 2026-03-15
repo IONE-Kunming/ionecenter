@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl"
 import {
   FolderOpen, FolderPlus, Upload, Trash2, ArrowLeft, Image as ImageIcon,
   Video, Loader2, ChevronRight, File, Pencil, Link2, CheckSquare, Star,
-  Search, Camera, Zap,
+  Search, Camera, Zap, ImagePlus, CheckCircle2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -110,6 +110,13 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
   const [editCoverPreview, setEditCoverPreview] = useState<string | null>(null)
   const [editCoverLoading, setEditCoverLoading] = useState(false)
   const editCoverInputRef = useRef<HTMLInputElement>(null)
+
+  // Drag & drop upload state
+  const [isDragOverGallery, setIsDragOverGallery] = useState(false)
+  const [galleryUploading, setGalleryUploading] = useState(false)
+  const [galleryUploadProgress, setGalleryUploadProgress] = useState<{ current: number; total: number } | null>(null)
+  const [galleryUploadResult, setGalleryUploadResult] = useState<string | null>(null)
+  const galleryDropInputRef = useRef<HTMLInputElement>(null)
 
   // Breadcrumb segments
   const segments = currentPath ? currentPath.split("/") : []
@@ -550,6 +557,167 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
     return match ? match[1] : name
   }
 
+  // ─── Drag & drop upload helpers ─────────────────────────────────────────
+
+  const SUPPORTED_IMAGE_EXTENSIONS = /\.(jpe?g|png|gif|webp|svg|bmp|ico|avif)$/i
+
+  function isImageFile(file: File): boolean {
+    return file.type.startsWith("image/") || SUPPORTED_IMAGE_EXTENSIONS.test(file.name)
+  }
+
+  /** Read all files from a dropped directory entry recursively. */
+  async function readDirectoryFiles(dirEntry: FileSystemDirectoryEntry): Promise<File[]> {
+    try {
+      const reader = dirEntry.createReader()
+      const allFiles: File[] = []
+      let batch: FileSystemEntry[] = []
+      do {
+        batch = await new Promise<FileSystemEntry[]>((resolve, reject) =>
+          reader.readEntries(resolve, reject)
+        )
+        for (const entry of batch) {
+          if (entry.isFile) {
+            const file = await new Promise<File>((resolve, reject) =>
+              (entry as FileSystemFileEntry).file(resolve, reject)
+            )
+            allFiles.push(file)
+          } else if (entry.isDirectory) {
+            const nested = await readDirectoryFiles(entry as FileSystemDirectoryEntry)
+            allFiles.push(...nested)
+          }
+        }
+      } while (batch.length > 0)
+      return allFiles
+    } catch {
+      return []
+    }
+  }
+
+  /** Upload an array of image files to the current gallery folder. */
+  async function uploadDroppedImages(imageFiles: File[]) {
+    const images = imageFiles.filter(isImageFile)
+    if (images.length === 0) return
+
+    setGalleryUploading(true)
+    setGalleryUploadProgress({ current: 0, total: images.length })
+    setGalleryUploadResult(null)
+
+    const supabase = createClient()
+    let uploaded = 0
+    let failed = 0
+    const newItems: GalleryItem[] = []
+
+    for (const file of images) {
+      try {
+        const ext = file.name.split(".").pop() || "jpg"
+        const signedResult = await createGallerySignedUploadUrl(ext, currentPath, file.name)
+        if (signedResult.error || !signedResult.storagePath || !signedResult.token || !signedResult.path) {
+          // Fallback to FormData upload
+          const formData = new FormData()
+          formData.append("file", file)
+          formData.append("folderPath", currentPath)
+          const result = await uploadGalleryFile(formData)
+          if (result.error) {
+            failed++
+          } else {
+            uploaded++
+            if (result.item) newItems.push(result.item)
+          }
+        } else {
+          const { error: uploadError } = await supabase.storage
+            .from("product-images")
+            .uploadToSignedUrl(signedResult.path, signedResult.token, file, { contentType: file.type })
+          if (uploadError) {
+            failed++
+          } else {
+            const finalResult = await finalizeGalleryUpload(signedResult.storagePath, file.size, currentPath)
+            if (finalResult.error) {
+              failed++
+            } else {
+              uploaded++
+              if (finalResult.item) newItems.push(finalResult.item)
+            }
+          }
+        }
+      } catch {
+        failed++
+      }
+      setGalleryUploadProgress({ current: uploaded + failed, total: images.length })
+    }
+
+    // Show uploaded images immediately without page refresh
+    if (newItems.length > 0) {
+      setFiles((prev) => [...prev, ...newItems])
+    }
+
+    setGalleryUploading(false)
+    setGalleryUploadProgress(null)
+
+    if (failed > 0 && uploaded > 0) {
+      setGalleryUploadResult(t("dropUploadPartial", { uploaded, failed }))
+    } else if (failed > 0 && uploaded === 0) {
+      setGalleryUploadResult(t("dropUploadFailed"))
+    } else {
+      setGalleryUploadResult(t("dropUploadSuccess", { count: uploaded }))
+    }
+    setTimeout(() => setGalleryUploadResult(null), 5000)
+  }
+
+  function handleGalleryDragOver(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOverGallery(true)
+  }
+
+  function handleGalleryDragLeave(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOverGallery(false)
+  }
+
+  async function handleGalleryDrop(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOverGallery(false)
+
+    try {
+      const items = Array.from(e.dataTransfer.items)
+      const allFiles: File[] = []
+
+      let hasFolders = false
+      for (const item of items) {
+        const entry = (item as DataTransferItem & { webkitGetAsEntry?: () => FileSystemEntry | null }).webkitGetAsEntry?.() ?? null
+        if (entry && entry.isDirectory) {
+          hasFolders = true
+          const dirFiles = await readDirectoryFiles(entry as FileSystemDirectoryEntry)
+          allFiles.push(...dirFiles)
+        } else if (entry && entry.isFile) {
+          const file = await new Promise<File>((resolve, reject) =>
+            (entry as FileSystemFileEntry).file(resolve, reject)
+          )
+          allFiles.push(file)
+        }
+      }
+
+      // Fallback for browsers without webkitGetAsEntry
+      if (!hasFolders && allFiles.length === 0) {
+        allFiles.push(...Array.from(e.dataTransfer.files))
+      }
+
+      await uploadDroppedImages(allFiles)
+    } catch {
+      setGalleryUploadResult(t("dropUploadFailed"))
+      setTimeout(() => setGalleryUploadResult(null), 5000)
+    }
+  }
+
+  async function handleDropZoneFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const selected = Array.from(e.target.files ?? [])
+    if (selected.length === 0) return
+    await uploadDroppedImages(selected)
+    e.target.value = ""
+  }
+
   const isEmpty = folders.length === 0 && files.length === 0
 
   return (
@@ -733,6 +901,59 @@ export function GalleryClient({ initialFolders, initialFiles, currentPath: initP
           {t("back")}
         </Button>
       )}
+
+      {/* ─── Drag & drop upload zone ─── */}
+      <div
+        onDragOver={handleGalleryDragOver}
+        onDragLeave={handleGalleryDragLeave}
+        onDrop={handleGalleryDrop}
+        className={cn(
+          "relative rounded-lg border-2 border-dashed p-6 text-center transition-colors",
+          isDragOverGallery
+            ? "border-primary bg-primary/5"
+            : "border-muted-foreground/25 hover:border-muted-foreground/50"
+        )}
+      >
+        {galleryUploading ? (
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm font-medium text-primary">
+              {t("dropUploading", {
+                current: galleryUploadProgress?.current ?? 0,
+                total: galleryUploadProgress?.total ?? 0,
+              })}
+            </p>
+          </div>
+        ) : galleryUploadResult ? (
+          <div className="flex flex-col items-center gap-2">
+            <CheckCircle2 className="mx-auto h-8 w-8 text-green-500" />
+            <p className="text-sm font-medium text-green-600 dark:text-green-400">{galleryUploadResult}</p>
+          </div>
+        ) : (
+          <>
+            <ImagePlus className={cn("mx-auto h-8 w-8 mb-2", isDragOverGallery ? "text-primary" : "text-muted-foreground")} />
+            <p className={cn("text-sm font-medium", isDragOverGallery ? "text-primary" : "text-muted-foreground")}>
+              {t("dropZoneText")}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3 gap-1.5"
+              onClick={() => galleryDropInputRef.current?.click()}
+            >
+              <Upload className="h-3.5 w-3.5" /> {t("dropSelectFiles")}
+            </Button>
+            <input
+              ref={galleryDropInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleDropZoneFileSelect}
+            />
+          </>
+        )}
+      </div>
 
       {/* Loading overlay */}
       {loading && (

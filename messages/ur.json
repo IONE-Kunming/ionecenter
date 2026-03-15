@@ -1237,7 +1237,13 @@
     "products": "مصنوعات",
     "editCover": "کور تبدیل کریں",
     "chooseCoverImage": "کور تصویر منتخب کریں",
-    "updateCover": "کور اپ ڈیٹ کریں"
+    "updateCover": "کور اپ ڈیٹ کریں",
+    "dropZoneText": "فولڈرز یا تصاویر یہاں ڈراپ کریں اپلوڈ کے لیے",
+    "dropSelectFiles": "تصاویر منتخب کریں",
+    "dropUploading": "{current} میں سے {total} اپلوڈ ہو رہی ہیں...",
+    "dropUploadSuccess": "{count} تصاویر اپلوڈ ہو گئیں",
+    "dropUploadPartial": "{uploaded} تصاویر اپلوڈ ہو گئیں ({failed} ناکام)",
+    "dropUploadFailed": "اپلوڈ ناکام ہو گیا"
   },
   "invoiceCreate": {
     "backToInvoices": "انوائسز پر واپس جائیں",

@@ -1237,7 +1237,13 @@
     "products": "产品",
     "editCover": "编辑封面",
     "chooseCoverImage": "选择封面图片",
-    "updateCover": "更新封面"
+    "updateCover": "更新封面",
+    "dropZoneText": "拖放文件夹或图片到此处上传",
+    "dropSelectFiles": "选择图片",
+    "dropUploading": "正在上传 {current}/{total}...",
+    "dropUploadSuccess": "已上传 {count} 张图片",
+    "dropUploadPartial": "已上传 {uploaded} 张图片（{failed} 张失败）",
+    "dropUploadFailed": "上传失败"
   },
   "invoiceCreate": {
     "backToInvoices": "返回发票",

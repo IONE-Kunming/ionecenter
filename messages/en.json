@@ -1304,7 +1304,13 @@
     "products": "products",
     "editCover": "Edit Cover",
     "chooseCoverImage": "Choose Cover Image",
-    "updateCover": "Update Cover"
+    "updateCover": "Update Cover",
+    "dropZoneText": "Drag & drop folders or images here to upload",
+    "dropSelectFiles": "Select Images",
+    "dropUploading": "Uploading {current} of {total}...",
+    "dropUploadSuccess": "{count} images uploaded",
+    "dropUploadPartial": "{uploaded} images uploaded ({failed} failed)",
+    "dropUploadFailed": "Upload failed"
   },
   "invoiceCreate": {
     "backToInvoices": "Back to Invoices",
