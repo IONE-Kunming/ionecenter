@@ -1529,6 +1529,10 @@
     "renameImagePlaceholder": "أدخل اسم الملف الجديد",
     "imageRenamed": "تمت إعادة تسمية الصورة بنجاح",
     "deleteImage": "حذف الصورة",
-    "deleteImageConfirm": "هل أنت متأكد من حذف \"{name}\"؟"
+    "deleteImageConfirm": "هل أنت متأكد من حذف \"{name}\"؟",
+    "dropZoneText": "اسحب وأفلت الصور هنا، أو انقر رفع صور",
+    "dropZoneActive": "أفلت الصور هنا للرفع",
+    "uploadingProgress": "جاري رفع {current} من {total}...",
+    "onlyImagesAllowed": "يُسمح فقط بملفات الصور"
   }
 }

@@ -1679,6 +1679,10 @@
     "renameImagePlaceholder": "Enter new file name",
     "imageRenamed": "Image renamed successfully",
     "deleteImage": "Delete Image",
-    "deleteImageConfirm": "Are you sure you want to delete \"{name}\"?"
+    "deleteImageConfirm": "Are you sure you want to delete \"{name}\"?",
+    "dropZoneText": "Drag & drop images here, or click Upload Images",
+    "dropZoneActive": "Drop images here to upload",
+    "uploadingProgress": "Uploading {current} of {total}...",
+    "onlyImagesAllowed": "Only image files are allowed"
   }
 }
