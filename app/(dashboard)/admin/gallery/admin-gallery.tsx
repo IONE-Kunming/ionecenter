@@ -31,7 +31,7 @@ import {
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import type { SiteCategory } from "@/lib/actions/site-settings"
-import type { AdminGalleryFolder, AdminGalleryImage, AutoMatchResult } from "@/lib/actions/admin-gallery"
+import type { AdminGalleryFolder, AdminGalleryImage, AutoMatchResult, SingleMatchResult } from "@/lib/actions/admin-gallery"
 import {
   createAdminGalleryFolder,
   deleteAdminGalleryFolder,
@@ -42,6 +42,7 @@ import {
   linkImageToCategory,
   autoMatchFolderImages,
   renameAdminGalleryImage,
+  autoMatchSingleImage,
 } from "@/lib/actions/admin-gallery"
 
 /* ────────────────────────── Props ────────────────────────── */
@@ -106,6 +107,12 @@ export function AdminGallery({ initialFolders, categories }: Props) {
 
   // toast
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null)
+
+  // match name (single image)
+  const [matchNameImage, setMatchNameImage] = useState<AdminGalleryImage | null>(null)
+  const [matchNameResult, setMatchNameResult] = useState<SingleMatchResult | null>(null)
+  const [matchNameLoading, setMatchNameLoading] = useState(false)
+  const [matchNameConfirmOpen, setMatchNameConfirmOpen] = useState(false)
 
   // Pre-compute parent lookup for O(n) category classification
   const parentIdMap = new Map<string, string | null>()
@@ -312,6 +319,49 @@ export function AdminGallery({ initialFolders, categories }: Props) {
       )
     }
     setMatchingCardFolder(null)
+  }
+
+  /* ── match name (single image) ──────────────────────────── */
+
+  async function handleMatchName(img: AdminGalleryImage) {
+    setMatchNameImage(img)
+    setMatchNameLoading(true)
+    setMatchNameResult(null)
+    const result = await autoMatchSingleImage(img.name)
+    setMatchNameLoading(false)
+    if (result.error) {
+      showToast("error", result.error)
+      setMatchNameImage(null)
+      return
+    }
+    if (result.found) {
+      setMatchNameResult(result)
+      setMatchNameConfirmOpen(true)
+    } else {
+      // Show "No match found" that auto-dismisses after 2 seconds
+      setToast({ type: "error", msg: t("noMatchFound") })
+      setTimeout(() => setToast(null), 2000)
+      setMatchNameImage(null)
+    }
+  }
+
+  async function handleConfirmMatchName() {
+    if (!matchNameImage || !matchNameResult?.categoryId) return
+    const { error } = await linkImageToCategory(matchNameImage.publicUrl, matchNameResult.categoryId)
+    if (error) {
+      showToast("error", error)
+    } else {
+      showToast("success", t("imageLinked"))
+    }
+    setMatchNameConfirmOpen(false)
+    setMatchNameImage(null)
+    setMatchNameResult(null)
+  }
+
+  function handleCancelMatchName() {
+    setMatchNameConfirmOpen(false)
+    setMatchNameImage(null)
+    setMatchNameResult(null)
   }
 
   /* ── rename image ─────────────────────────────────────────── */
@@ -659,6 +709,18 @@ export function AdminGallery({ initialFolders, categories }: Props) {
                       <Link2 className="h-3.5 w-3.5 text-white" />
                     </button>
                     <button
+                      onClick={() => handleMatchName(img)}
+                      className="p-1.5 rounded bg-emerald-500/80 hover:bg-emerald-500 transition-colors"
+                      title={t("matchName")}
+                      disabled={matchNameLoading && matchNameImage?.fullPath === img.fullPath}
+                    >
+                      {matchNameLoading && matchNameImage?.fullPath === img.fullPath ? (
+                        <Loader2 className="h-3.5 w-3.5 text-white animate-spin" />
+                      ) : (
+                        <Wand2 className="h-3.5 w-3.5 text-white" />
+                      )}
+                    </button>
+                    <button
                       onClick={() => openRenameImage(img)}
                       className="p-1.5 rounded bg-amber-500/80 hover:bg-amber-500 transition-colors"
                       title={t("rename")}
@@ -892,6 +954,22 @@ export function AdminGallery({ initialFolders, categories }: Props) {
               {deletingImageLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
               {t("delete")}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Match Name Confirmation Dialog ─── */}
+      <Dialog open={matchNameConfirmOpen} onOpenChange={(open) => { if (!open) handleCancelMatchName() }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("matchName")}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm">
+            {t("matchNameConfirm", { name: matchNameResult?.categoryName ?? "" })}
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelMatchName}>{t("escape")}</Button>
+            <Button onClick={handleConfirmMatchName}>{t("yes")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

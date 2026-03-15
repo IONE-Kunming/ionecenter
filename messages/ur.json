@@ -1532,6 +1532,11 @@
     "dropZoneText": "تصاویر یہاں گھسیٹ کر چھوڑیں، یا اپلوڈ تصاویر پر کلک کریں",
     "dropZoneActive": "اپلوڈ کرنے کے لیے تصاویر یہاں چھوڑیں",
     "uploadingProgress": "{total} میں سے {current} اپلوڈ ہو رہی ہے...",
-    "onlyImagesAllowed": "صرف تصویری فائلیں اجازت یافتہ ہیں"
+    "onlyImagesAllowed": "صرف تصویری فائلیں اجازت یافتہ ہیں",
+    "matchName": "نام ملائیں",
+    "matchNameConfirm": "مطابقت: {name} — تصدیق کریں؟",
+    "noMatchFound": "کوئی مطابقت نہیں ملی",
+    "yes": "ہاں",
+    "escape": "منسوخ"
   }
 }

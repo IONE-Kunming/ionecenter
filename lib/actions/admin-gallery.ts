@@ -392,3 +392,40 @@ export async function autoMatchFolderImages(
 
   return { matched, unmatched, matchedCategories, matchedSubcategories, matchedSubSubcategories }
 }
+
+/* ── Single-image auto-match ─────────────────────────────────────── */
+
+export interface SingleMatchResult {
+  found: boolean
+  categoryId?: string
+  categoryName?: string
+  error?: string
+}
+
+/**
+ * Attempt to match a single image filename against all category names
+ * (main, sub, sub-sub). Does NOT update the DB — the caller should
+ * confirm and then call linkImageToCategory.
+ */
+export async function autoMatchSingleImage(
+  imageName: string
+): Promise<SingleMatchResult> {
+  await requireAdmin()
+  const supabase = createAdminClient()
+
+  const { data: categories } = await supabase
+    .from("site_categories")
+    .select("*")
+    .order("name")
+  if (!categories) return { found: false, error: "Could not load categories" }
+
+  const normName = normalize(imageName)
+
+  for (const cat of categories) {
+    if (normalize(cat.name) === normName) {
+      return { found: true, categoryId: cat.id, categoryName: cat.name }
+    }
+  }
+
+  return { found: false }
+}
