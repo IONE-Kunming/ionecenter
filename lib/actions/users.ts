@@ -195,10 +195,6 @@ export async function getSellerMainCategory(): Promise<string | null> {
   return data?.main_category ?? null
 }
 
-/**
- * Update the current seller's main category in the seller_categories table.
- * Pass null to clear the selection.
- */
 /** Create a signed upload URL for direct browser-to-storage seller logo upload. */
 export async function createSellerLogoSignedUploadUrl(
   ext: string
@@ -259,6 +255,10 @@ export async function finalizeSellerLogoUpload(
   }
 }
 
+/**
+ * Update the current seller's main category in the seller_categories table.
+ * Pass null to clear the selection.
+ */
 export async function updateSellerMainCategory(mainCategory: string | null) {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return { error: "Not authorized" }
