@@ -123,7 +123,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
 
   /* ── helpers ────────────────────────────────────────────── */
 
-  /** Normalise a string for fuzzy filename↔category matching (mirrors server-side logic). */
+  /** Normalize a string for fuzzy filename↔category matching (mirrors server-side logic). */
   const normalizeName = useCallback((s: string): string => {
     return s
       .toLowerCase()
@@ -297,18 +297,21 @@ export function AdminGallery({ initialFolders, categories }: Props) {
   async function assignToCategory(categoryId: string) {
     if (!linkImage) return
     setLinkLoading(true)
-    const { error } = await linkImageToCategory(linkImage.publicUrl, categoryId)
-    if (error) {
-      showToast("error", error)
-    } else {
-      showToast("success", t("imageLinked"))
+    try {
+      const { error } = await linkImageToCategory(linkImage.publicUrl, categoryId)
+      if (error) {
+        showToast("error", error)
+      } else {
+        showToast("success", t("imageLinked"))
+      }
+      setLinkCatOpen(false)
+      setLinkSubCatOpen(false)
+      setLinkSubSubCatOpen(false)
+      setLinkImage(null)
+      setSelectedCatId(null)
+    } finally {
+      setLinkLoading(false)
     }
-    setLinkCatOpen(false)
-    setLinkSubCatOpen(false)
-    setLinkSubSubCatOpen(false)
-    setLinkImage(null)
-    setSelectedCatId(null)
-    setLinkLoading(false)
   }
 
   /** Confirm the current selection from the link dialog. */
