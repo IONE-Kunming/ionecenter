@@ -439,7 +439,11 @@
     "noBuyersYet": "暂无买家",
     "myCategory": "我的类别",
     "selectMainCategory": "选择您的主类别",
-    "noCategorySelected": "— 无 —"
+    "noCategorySelected": "— 无 —",
+    "sellerLogo": "卖家标志",
+    "uploadLogo": "上传标志",
+    "logoUploaded": "标志上传成功",
+    "logoUploadFailed": "标志上传失败"
   },
   "sellerDirectory": {
     "searchSellers": "搜索卖家...",

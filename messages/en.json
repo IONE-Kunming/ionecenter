@@ -463,7 +463,11 @@
     "noBuyersYet": "No buyers yet",
     "myCategory": "My Category",
     "selectMainCategory": "Select your main category",
-    "noCategorySelected": "— None —"
+    "noCategorySelected": "— None —",
+    "sellerLogo": "Seller Logo",
+    "uploadLogo": "Upload Logo",
+    "logoUploaded": "Logo uploaded successfully",
+    "logoUploadFailed": "Failed to upload logo"
   },
   "sellerDirectory": {
     "searchSellers": "Search sellers...",

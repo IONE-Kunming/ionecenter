@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -8,11 +8,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
-import { Copy, Check, Users, Search, Mail, Hash, ShoppingCart } from "lucide-react"
+import { Copy, Check, Users, Search, Mail, Hash, ShoppingCart, Upload, ImageIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toCategoryKey } from "@/lib/categories"
-import { updateUserProfile, updateSellerMainCategory } from "@/lib/actions/users"
+import { updateUserProfile, updateSellerMainCategory, createSellerLogoSignedUploadUrl, finalizeSellerLogoUpload } from "@/lib/actions/users"
 import { getSellerBuyers, type SellerBuyer } from "@/lib/actions/orders"
+import { createClient } from "@/lib/supabase/client"
 import type { User } from "@/types/database"
 
 export default function SellerProfileForm({ user, sellerCode, mainCategories, currentMainCategory }: { user: User; sellerCode: string | null; mainCategories: string[]; currentMainCategory: string | null }) {
@@ -28,6 +29,9 @@ export default function SellerProfileForm({ user, sellerCode, mainCategories, cu
   const [buyerSearch, setBuyerSearch] = useState("")
   const [selectedMainCategory, setSelectedMainCategory] = useState<string>(currentMainCategory ?? "")
   const [categorySaving, setCategorySaving] = useState(false)
+  const [logoUrl, setLogoUrl] = useState<string | null>(user.logo_url ?? null)
+  const [logoUploading, setLogoUploading] = useState(false)
+  const logoInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (showBuyers && buyers.length === 0) {
@@ -85,6 +89,49 @@ export default function SellerProfileForm({ user, sellerCode, mainCategories, cu
     return typeof translated === "string" && translated !== key ? translated : name
   }
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setLogoUploading(true)
+    setMessage(null)
+    try {
+      const ext = file.name.split(".").pop() || "png"
+      const signedResult = await createSellerLogoSignedUploadUrl(ext)
+      if (signedResult.error) {
+        setMessage({ type: "error", text: signedResult.error })
+        setLogoUploading(false)
+        if (logoInputRef.current) logoInputRef.current.value = ""
+        return
+      }
+
+      const supabase = createClient()
+      const { error: uploadError } = await supabase.storage
+        .from("site-assets")
+        .uploadToSignedUrl(signedResult.path ?? "", signedResult.token ?? "", file, {
+          contentType: file.type || "image/png",
+        })
+
+      if (uploadError) {
+        setMessage({ type: "error", text: uploadError.message })
+        setLogoUploading(false)
+        if (logoInputRef.current) logoInputRef.current.value = ""
+        return
+      }
+
+      const finalResult = await finalizeSellerLogoUpload(signedResult.filePath ?? "")
+      if (finalResult.error) {
+        setMessage({ type: "error", text: finalResult.error })
+      } else if (finalResult.url) {
+        setLogoUrl(`${finalResult.url}?t=${Date.now()}`)
+        setMessage({ type: "success", text: t("logoUploaded") })
+      }
+    } catch {
+      setMessage({ type: "error", text: t("logoUploadFailed") })
+    }
+    setLogoUploading(false)
+    if (logoInputRef.current) logoInputRef.current.value = ""
+  }
+
   const handleCategoryChange = async (value: string) => {
     const newCategory = value || null
     setSelectedMainCategory(value)
@@ -129,23 +176,58 @@ export default function SellerProfileForm({ user, sellerCode, mainCategories, cu
   return (
     <div className="max-w-2xl space-y-6">
       {sellerCode && (
-        <Card>
-          <CardHeader><CardTitle>{t("yourSellerCode")}</CardTitle></CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-3">
-              <span className="inline-flex items-center rounded-md bg-primary/10 px-4 py-2 text-2xl font-bold font-mono tracking-widest text-primary" aria-label={`${t("yourSellerCode")}: ${sellerCode}`}>
-                {sellerCode}
-              </span>
-              <Button variant="outline" size="icon" onClick={handleCopyCode} title={t("copyCode")}>
-                {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-              </Button>
-              <Button variant="outline" onClick={() => setShowBuyers(true)}>
-                <Users className="h-4 w-4 mr-2" />
-                {t("myBuyers")}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid sm:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader><CardTitle>{t("yourSellerCode")}</CardTitle></CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center rounded-md bg-primary/10 px-4 py-2 text-2xl font-bold font-mono tracking-widest text-primary" aria-label={`${t("yourSellerCode")}: ${sellerCode}`}>
+                  {sellerCode}
+                </span>
+                <Button variant="outline" size="icon" onClick={handleCopyCode} title={t("copyCode")}>
+                  {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                </Button>
+                <Button variant="outline" onClick={() => setShowBuyers(true)}>
+                  <Users className="h-4 w-4 mr-2" />
+                  {t("myBuyers")}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>{t("sellerLogo")}</CardTitle></CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <div className="h-20 w-20 rounded-lg border bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                  {logoUrl ? (
+                    <img src={logoUrl} alt={t("sellerLogo")} className="h-full w-full object-contain" />
+                  ) : (
+                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                  )}
+                </div>
+                <div>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={logoUploading}
+                    onClick={() => logoInputRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {logoUploading ? tCommon("saving") : t("uploadLogo")}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       <Dialog open={showBuyers} onOpenChange={setShowBuyers}>

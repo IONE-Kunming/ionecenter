@@ -40,6 +40,7 @@ export interface User {
   payment_notes: string | null
   show_category_numbers: boolean
   user_code: string | null
+  logo_url: string | null
   created_at: string
   updated_at: string
 }

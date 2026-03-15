@@ -199,6 +199,66 @@ export async function getSellerMainCategory(): Promise<string | null> {
  * Update the current seller's main category in the seller_categories table.
  * Pass null to clear the selection.
  */
+/** Create a signed upload URL for direct browser-to-storage seller logo upload. */
+export async function createSellerLogoSignedUploadUrl(
+  ext: string
+): Promise<{ signedUrl?: string; token?: string; path?: string; filePath?: string; error?: string }> {
+  try {
+    const user = await getCurrentUser()
+    if (!user || user.role !== "seller") return { error: "Not authorized" }
+
+    const safeExt = (ext.match(/^[a-zA-Z0-9]+$/) ? ext : "png").toLowerCase()
+
+    const supabase = createAdminClient()
+    const filePath = `sellers/${user.id}.${safeExt}`
+
+    // Remove any existing logo files for this seller (different extensions)
+    const { data: existingFiles } = await supabase.storage.from("site-assets").list("sellers")
+    if (existingFiles) {
+      const toRemove = existingFiles
+        .filter((f) => f.name.startsWith(`${user.id}.`))
+        .map((f) => `sellers/${f.name}`)
+      if (toRemove.length > 0) {
+        await supabase.storage.from("site-assets").remove(toRemove)
+      }
+    }
+
+    const { data, error } = await supabase.storage
+      .from("site-assets")
+      .createSignedUploadUrl(filePath)
+
+    if (error) return { error: error.message }
+    return { signedUrl: data.signedUrl, token: data.token, path: data.path, filePath }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to create upload URL" }
+  }
+}
+
+/** Finalize a seller logo upload by saving the public URL to the database. */
+export async function finalizeSellerLogoUpload(
+  filePath: string
+): Promise<{ success?: boolean; url?: string; error?: string }> {
+  try {
+    const user = await getCurrentUser()
+    if (!user || user.role !== "seller") return { error: "Not authorized" }
+
+    const supabase = createAdminClient()
+    const { data: urlData } = supabase.storage
+      .from("site-assets")
+      .getPublicUrl(filePath)
+
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ logo_url: urlData.publicUrl, updated_at: new Date().toISOString() })
+      .eq("id", user.id)
+
+    if (updateError) return { error: updateError.message }
+    return { success: true, url: urlData.publicUrl }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to save logo URL" }
+  }
+}
+
 export async function updateSellerMainCategory(mainCategory: string | null) {
   const user = await getCurrentUser()
   if (!user || user.role !== "seller") return { error: "Not authorized" }

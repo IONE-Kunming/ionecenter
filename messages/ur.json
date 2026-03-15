@@ -439,7 +439,11 @@
     "noBuyersYet": "ابھی تک کوئی خریدار نہیں",
     "myCategory": "میری زمرہ",
     "selectMainCategory": "اپنی اہم زمرہ منتخب کریں",
-    "noCategorySelected": "— کوئی نہیں —"
+    "noCategorySelected": "— کوئی نہیں —",
+    "sellerLogo": "سیلر لوگو",
+    "uploadLogo": "لوگو اپ لوڈ کریں",
+    "logoUploaded": "لوگو کامیابی سے اپ لوڈ ہو گیا",
+    "logoUploadFailed": "لوگو اپ لوڈ ناکام ہو گیا"
   },
   "sellerDirectory": {
     "searchSellers": "فروخت کنندگان تلاش کریں...",

@@ -440,7 +440,11 @@
     "noBuyersYet": "لا يوجد مشترون بعد",
     "myCategory": "فئتي",
     "selectMainCategory": "اختر فئتك الرئيسية",
-    "noCategorySelected": "— لا شيء —"
+    "noCategorySelected": "— لا شيء —",
+    "sellerLogo": "شعار البائع",
+    "uploadLogo": "تحميل الشعار",
+    "logoUploaded": "تم تحميل الشعار بنجاح",
+    "logoUploadFailed": "فشل تحميل الشعار"
   },
   "sellerDirectory": {
     "searchSellers": "البحث عن البائعين...",
