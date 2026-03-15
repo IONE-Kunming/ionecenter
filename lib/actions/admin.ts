@@ -1,7 +1,8 @@
 "use server"
 
+import { clerkClient } from "@clerk/nextjs/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { getCurrentUser } from "./users"
+import { getCurrentUser, generateUniqueSellerCode } from "./users"
 import { generateSKU } from "@/lib/sku"
 import { getSiteCategories } from "./site-settings"
 import { buildCategoryData } from "@/lib/categories"
@@ -330,6 +331,145 @@ export async function adminDeleteUser(userId: string) {
     .eq("id", userId)
 
   if (error) return { error: error.message }
+  return { success: true }
+}
+
+// ─── Admin Create Seller ────────────────────────────────────────────────────
+
+export async function adminCreateSeller(input: {
+  fullName: string
+  email: string
+  password: string
+  company: string
+  mainCategory: string | null
+  subcategories: string[]
+}): Promise<{ error?: string; success?: boolean }> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+  if (!input.fullName.trim()) return { error: "Full name is required" }
+  if (!input.email.trim()) return { error: "Email is required" }
+  if (!input.password || input.password.length < 8) return { error: "Password must be at least 8 characters" }
+
+  // Split full name into first/last for Clerk
+  const nameParts = input.fullName.trim().split(/\s+/)
+  const firstName = nameParts[0]
+  const lastName = nameParts.slice(1).join(" ") || undefined
+
+  let clerkUserId: string
+  try {
+    const client = await clerkClient()
+    const clerkUser = await client.users.createUser({
+      emailAddress: [input.email.trim()],
+      password: input.password,
+      firstName,
+      lastName,
+      publicMetadata: { role: "seller" },
+    })
+    clerkUserId = clerkUser.id
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to create Clerk account"
+    return { error: message }
+  }
+
+  const supabase = createAdminClient()
+  const sellerCode = await generateUniqueSellerCode(supabase)
+
+  const { data: newUser, error: dbError } = await supabase
+    .from("users")
+    .insert({
+      clerk_id: clerkUserId,
+      email: input.email.trim(),
+      display_name: input.fullName.trim(),
+      role: "seller",
+      company: input.company.trim() || null,
+      user_code: sellerCode,
+    })
+    .select()
+    .single()
+
+  if (dbError) {
+    // Attempt to clean up the orphaned Clerk account
+    try {
+      const client = await clerkClient()
+      await client.users.deleteUser(clerkUserId)
+    } catch {
+      // Cleanup failed — admin may need to manually remove the Clerk account
+    }
+    return { error: "Failed to save seller to database: " + dbError.message }
+  }
+
+  // Save category if provided
+  if (input.mainCategory && newUser) {
+    const { error: catError } = await supabase
+      .from("seller_categories")
+      .insert({
+        seller_id: newUser.id,
+        main_category: input.mainCategory,
+        subcategories: input.subcategories,
+      })
+    if (catError) {
+      console.error("Failed to save seller category:", catError)
+    }
+  }
+
+  return { success: true }
+}
+
+// ─── Admin Update Seller in Clerk ───────────────────────────────────────────
+
+export async function adminUpdateSellerClerk(
+  userId: string,
+  updates: { display_name?: string; email?: string }
+): Promise<{ error?: string; success?: boolean }> {
+  const user = await getCurrentUser()
+  if (!user || user.role !== "admin") return { error: "Not authorized" }
+
+  const supabase = createAdminClient()
+  const { data: targetUser } = await supabase
+    .from("users")
+    .select("clerk_id")
+    .eq("id", userId)
+    .single()
+
+  if (!targetUser?.clerk_id) return { error: "User not found" }
+
+  try {
+    const client = await clerkClient()
+    const clerkUpdates: Record<string, unknown> = {}
+    if (updates.display_name) {
+      const nameParts = updates.display_name.trim().split(/\s+/)
+      clerkUpdates.firstName = nameParts[0]
+      clerkUpdates.lastName = nameParts.slice(1).join(" ") || undefined
+    }
+    if (updates.email) {
+      // Create a new email address and set it as primary
+      const clerkUser = await client.users.getUser(targetUser.clerk_id)
+      const currentPrimary = clerkUser.emailAddresses.find(
+        (e) => e.id === clerkUser.primaryEmailAddressId
+      )
+      if (currentPrimary && currentPrimary.emailAddress !== updates.email.trim()) {
+        const newEmail = await client.emailAddresses.createEmailAddress({
+          userId: targetUser.clerk_id,
+          emailAddress: updates.email.trim(),
+          verified: true,
+          primary: true,
+        })
+        // Delete the old email address
+        if (currentPrimary.id !== newEmail.id) {
+          await client.emailAddresses.deleteEmailAddress(currentPrimary.id)
+        }
+      }
+    }
+    if (clerkUpdates.firstName !== undefined) {
+      await client.users.updateUser(targetUser.clerk_id, clerkUpdates)
+    }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to update Clerk account"
+    console.error("Clerk update error:", err)
+    return { error: message }
+  }
+
   return { success: true }
 }
 

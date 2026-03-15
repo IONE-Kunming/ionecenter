@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Store, Search, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, AlertTriangle, ImageIcon, ArrowRightLeft, Download, FileSpreadsheet, FileText } from "lucide-react"
+import { Store, Search, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, AlertTriangle, ImageIcon, ArrowRightLeft, Download, FileSpreadsheet, FileText, Plus } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useFormatters } from "@/lib/use-formatters"
-import { adminUpdateUser, adminDeleteUser, adminUpdateUserCode, adminUpdateSellerCategories, adminClearSellerCategories, adminDeleteProductsByRemovedCategories, adminGetSellerProductCount, adminTransferProducts, adminGetSellerProducts } from "@/lib/actions/admin"
+import { adminUpdateUser, adminDeleteUser, adminUpdateUserCode, adminUpdateSellerCategories, adminClearSellerCategories, adminDeleteProductsByRemovedCategories, adminGetSellerProductCount, adminTransferProducts, adminGetSellerProducts, adminCreateSeller, adminUpdateSellerClerk } from "@/lib/actions/admin"
 import type { SellerWithDetails } from "@/lib/actions/admin"
 import type { SiteCategory } from "@/lib/actions/site-settings"
 import type { UserRole } from "@/types/database"
@@ -75,6 +75,17 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
   // Export Products state
   const [exportSeller, setExportSeller] = useState<SellerWithDetails | null>(null)
   const [exporting, setExporting] = useState(false)
+
+  // Create Seller modal state
+  const [showCreateSeller, setShowCreateSeller] = useState(false)
+  const [createFullName, setCreateFullName] = useState("")
+  const [createEmail, setCreateEmail] = useState("")
+  const [createPassword, setCreatePassword] = useState("")
+  const [createCompany, setCreateCompany] = useState("")
+  const [createMainCategory, setCreateMainCategory] = useState<string | null>(null)
+  const [createSubcategories, setCreateSubcategories] = useState<string[]>([])
+  const [createSaving, setCreateSaving] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
 
   const filtered = sellers.filter((s) => {
     const term = search.toLowerCase()
@@ -179,7 +190,11 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
       }
     }
 
-    // Save user info and categories in parallel
+    // Save user info and categories in parallel, and sync to Clerk
+    const clerkUpdates: { display_name?: string; email?: string } = {}
+    if (editName !== editUser.display_name) clerkUpdates.display_name = editName
+    if (editEmail !== editUser.email) clerkUpdates.email = editEmail
+
     const [userResult, catResult] = await Promise.all([
       adminUpdateUser(editUser.id, {
         display_name: editName,
@@ -191,8 +206,22 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
         ? adminUpdateSellerCategories(editUser.id, editMainCategory, editSubcategories)
         : adminClearSellerCategories(editUser.id),
     ])
+
+    // Sync name/email changes to Clerk (best-effort, don't block save)
+    let clerkSyncWarning = false
+    if (Object.keys(clerkUpdates).length > 0) {
+      const clerkResult = await adminUpdateSellerClerk(editUser.id, clerkUpdates)
+      if (clerkResult.error) {
+        console.error("Clerk sync error:", clerkResult.error)
+        clerkSyncWarning = true
+      }
+    }
+
     setEditSaving(false)
     if (!userResult.error && !catResult.error) {
+      if (clerkSyncWarning) {
+        alert("Database updated successfully, but failed to sync changes to Clerk authentication. The seller may need to re-verify their email.")
+      }
       setEditUser(null)
       window.location.reload()
     }
@@ -399,6 +428,57 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
     setExportSeller(null)
   }
 
+  // ─── Create Seller ──────────────────────────────────────────────────────────
+
+  const openCreateSeller = () => {
+    setCreateFullName("")
+    setCreateEmail("")
+    setCreatePassword("")
+    setCreateCompany("")
+    setCreateMainCategory(null)
+    setCreateSubcategories([])
+    setCreateError(null)
+    setShowCreateSeller(true)
+  }
+
+  const selectCreateMainCategory = (categoryName: string) => {
+    if (createMainCategory === categoryName) {
+      setCreateMainCategory(null)
+      setCreateSubcategories([])
+    } else {
+      setCreateMainCategory(categoryName)
+      setCreateSubcategories([])
+    }
+  }
+
+  const toggleCreateSubcategory = (subcategoryName: string) => {
+    setCreateSubcategories((prev) =>
+      prev.includes(subcategoryName)
+        ? prev.filter((s) => s !== subcategoryName)
+        : [...prev, subcategoryName]
+    )
+  }
+
+  const handleCreateSeller = async () => {
+    setCreateError(null)
+    setCreateSaving(true)
+    const result = await adminCreateSeller({
+      fullName: createFullName,
+      email: createEmail,
+      password: createPassword,
+      company: createCompany,
+      mainCategory: createMainCategory,
+      subcategories: createSubcategories,
+    })
+    setCreateSaving(false)
+    if (result.error) {
+      setCreateError(result.error)
+    } else {
+      setShowCreateSeller(false)
+      window.location.reload()
+    }
+  }
+
   // Total number of columns in the table (must match TableHead count below)
   const columnCount = 11
 
@@ -409,6 +489,10 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tCommon("searchSellers")} className="pl-9" />
         </div>
+        <Button onClick={openCreateSeller} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Create Seller
+        </Button>
       </div>
 
       {filtered.length > 0 ? (
@@ -777,6 +861,99 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
               Export as PDF
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Seller Dialog */}
+      <Dialog open={showCreateSeller} onOpenChange={(v) => { if (!v) setShowCreateSeller(false) }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Create Seller Account</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-4 overflow-y-auto max-h-[calc(100vh-12rem)]">
+            {createError && (
+              <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                <p className="text-sm text-destructive">{createError}</p>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label>Full Name</Label>
+              <Input value={createFullName} onChange={(e) => setCreateFullName(e.target.value)} placeholder="John Doe" />
+            </div>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input type="email" value={createEmail} onChange={(e) => setCreateEmail(e.target.value)} placeholder="seller@company.com" />
+            </div>
+            <div className="space-y-2">
+              <Label>Password</Label>
+              <Input type="password" value={createPassword} onChange={(e) => setCreatePassword(e.target.value)} placeholder="Min. 8 characters" />
+            </div>
+            <div className="space-y-2">
+              <Label>{tCommon("company")}</Label>
+              <Input value={createCompany} onChange={(e) => setCreateCompany(e.target.value)} placeholder="Company name" />
+            </div>
+
+            {/* Category selection */}
+            <div className="space-y-2">
+              <Label>Specialization / Category</Label>
+              <div className="flex flex-wrap gap-2">
+                {mainCats.map((main) => {
+                  const isSelected = createMainCategory === main.name
+                  return (
+                    <button
+                      key={main.id}
+                      type="button"
+                      onClick={() => selectCreateMainCategory(main.name)}
+                      className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${
+                        isSelected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-secondary text-secondary-foreground border-transparent hover:bg-secondary/80"
+                      }`}
+                    >
+                      {main.name}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Show subcategories for the selected main category */}
+              {createMainCategory && (() => {
+                const mainCat = mainCats.find((m) => m.name === createMainCategory)
+                if (!mainCat) return null
+                const subs = subCatMap[mainCat.id] ?? []
+                if (subs.length === 0) return null
+                return (
+                  <div className="mt-3 rounded-md border p-3 space-y-2 max-h-48 overflow-y-auto">
+                    <div className="font-medium text-sm mb-2">Subcategories</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {subs.map((sub) => {
+                        const subSelected = createSubcategories.includes(sub.name)
+                        return (
+                          <button
+                            key={sub.id}
+                            type="button"
+                            onClick={() => toggleCreateSubcategory(sub.name)}
+                            className={`px-2 py-0.5 rounded text-xs border transition-colors ${
+                              subSelected
+                                ? "bg-primary/80 text-primary-foreground border-primary/80"
+                                : "bg-muted text-muted-foreground border-transparent hover:bg-muted/80"
+                            }`}
+                          >
+                            {sub.name}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })()}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateSeller(false)}>{tCommon("cancel")}</Button>
+            <Button onClick={handleCreateSeller} disabled={createSaving}>
+              {createSaving ? tCommon("saving") : "Create Seller"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
