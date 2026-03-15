@@ -465,8 +465,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     const folderFiles = new Map<string, File[]>()
 
     for (const item of items) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const entry = (item as any).webkitGetAsEntry?.() as FileSystemEntry | null
+      const entry = (item as DataTransferItem & { webkitGetAsEntry?: () => FileSystemEntry | null }).webkitGetAsEntry?.() ?? null
       if (entry && entry.isDirectory) {
         const files = await readDirectoryFiles(entry as FileSystemDirectoryEntry)
         folderFiles.set(entry.name, files)
@@ -721,7 +720,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
         type="file"
         className="hidden"
         onChange={handleFolderInputChange}
-        {...({ webkitdirectory: "", directory: "", multiple: true } as React.InputHTMLAttributes<HTMLInputElement>)}
+        {...({ webkitdirectory: "", multiple: true } as React.InputHTMLAttributes<HTMLInputElement>)}
       />
 
       {/* ─── Header ─── */}
@@ -763,7 +762,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
             onClick={() => !folderUploading && folderInputRef.current?.click()}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); folderInputRef.current?.click() } }}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (!folderUploading) folderInputRef.current?.click() } }}
           >
             <FolderUp className={cn("mx-auto h-8 w-8 mb-2", isDragOverMain ? "text-primary" : "text-muted-foreground")} />
             <p className={cn("text-sm font-medium", isDragOverMain ? "text-primary" : "text-muted-foreground")}>
