@@ -1538,6 +1538,11 @@
     "noMatchFound": "کوئی مطابقت نہیں ملی",
     "yes": "ہاں",
     "escape": "منسوخ",
-    "ok": "ٹھیک ہے"
+    "ok": "ٹھیک ہے",
+    "uploadFolder": "فولڈر اپ لوڈ کریں",
+    "folderUploadSummary": "{images} تصاویر {folders} فولڈرز میں اپ لوڈ ہو گئیں",
+    "dropFolderZoneText": "فولڈرز کو ان کے مواد کے ساتھ اپ لوڈ کرنے کے لیے یہاں گھسیٹ کر چھوڑیں",
+    "dropFolderZoneActive": "اپلوڈ کرنے کے لیے فولڈرز یہاں چھوڑیں",
+    "noImagesInFolders": "منتخب فولڈرز میں کوئی تصاویر نہیں ملیں"
   }
 }

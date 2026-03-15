@@ -1539,6 +1539,11 @@
     "noMatchFound": "لم يتم العثور على مطابقة",
     "yes": "نعم",
     "escape": "إلغاء",
-    "ok": "موافق"
+    "ok": "موافق",
+    "uploadFolder": "رفع مجلد",
+    "folderUploadSummary": "تم رفع {images} صور إلى {folders} مجلدات",
+    "dropFolderZoneText": "اسحب وأفلت المجلدات هنا لرفعها مع محتوياتها",
+    "dropFolderZoneActive": "أفلت المجلدات هنا للرفع",
+    "noImagesInFolders": "لم يتم العثور على صور في المجلدات المحددة"
   }
 }

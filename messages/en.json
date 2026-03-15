@@ -1689,6 +1689,11 @@
     "noMatchFound": "No match found",
     "yes": "Yes",
     "escape": "Escape",
-    "ok": "OK"
+    "ok": "OK",
+    "uploadFolder": "Upload Folder",
+    "folderUploadSummary": "{images} images uploaded to {folders} folders",
+    "dropFolderZoneText": "Drag & drop folders here to upload them with their contents",
+    "dropFolderZoneActive": "Drop folders here to upload",
+    "noImagesInFolders": "No images found in the selected folder(s)"
   }
 }

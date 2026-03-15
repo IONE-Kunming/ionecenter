@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl"
 import {
   FolderOpen,
   FolderPlus,
+  FolderUp,
   Upload,
   Trash2,
   ArrowLeft,
@@ -83,6 +84,12 @@ export function AdminGallery({ initialFolders, categories }: Props) {
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const folderInputRef = useRef<HTMLInputElement>(null)
+
+  // folder upload (main page)
+  const [folderUploading, setFolderUploading] = useState(false)
+  const [folderUploadProgress, setFolderUploadProgress] = useState<{ current: number; total: number } | null>(null)
+  const [isDragOverMain, setIsDragOverMain] = useState(false)
 
   // link category dialog
   const [linkCatOpen, setLinkCatOpen] = useState(false)
@@ -325,6 +332,169 @@ export function AdminGallery({ initialFolders, categories }: Props) {
     await processFiles(files)
   }
 
+  /* ── folder upload (main page) ─────────────────────────── */
+
+  /** Sanitise folder name to match the server-side logic. */
+  function sanitizeFolderNameClient(name: string): string {
+    return name.replace(/[^a-zA-Z0-9_\- ]/g, "").trim()
+  }
+
+  /** Read all files from a FileSystemDirectoryEntry (non-recursive – top-level only). */
+  async function readDirectoryFiles(dirEntry: FileSystemDirectoryEntry): Promise<File[]> {
+    const reader = dirEntry.createReader()
+    const allFiles: File[] = []
+    // readEntries may return results in batches
+    let batch: FileSystemEntry[]
+    do {
+      batch = await new Promise<FileSystemEntry[]>((resolve, reject) => {
+        reader.readEntries(resolve, reject)
+      })
+      for (const entry of batch) {
+        if (entry.isFile) {
+          const file = await new Promise<File>((resolve, reject) => {
+            ;(entry as FileSystemFileEntry).file(resolve, reject)
+          })
+          allFiles.push(file)
+        }
+      }
+    } while (batch.length > 0)
+    return allFiles
+  }
+
+  /**
+   * Process a map of folderName → File[] for the folder upload feature.
+   * Creates folders that don't exist, uploads all images, and shows progress.
+   */
+  async function processFolderUpload(folderFiles: Map<string, File[]>) {
+    // Filter to image files only and count totals
+    const folderImageFiles = new Map<string, File[]>()
+    let totalImageCount = 0
+    for (const [name, files] of folderFiles) {
+      const images = files.filter((f) => f.type.startsWith("image/"))
+      if (images.length > 0) {
+        folderImageFiles.set(name, images)
+        totalImageCount += images.length
+      }
+    }
+
+    if (folderImageFiles.size === 0) {
+      showToast("error", t("noImagesInFolders"))
+      return
+    }
+
+    setFolderUploading(true)
+    setFolderUploadProgress({ current: 0, total: totalImageCount })
+    let uploadedCount = 0
+    let folderCount = 0
+
+    for (const [folderName, imageFiles] of folderImageFiles) {
+      const cleanName = sanitizeFolderNameClient(folderName)
+      if (!cleanName) continue
+
+      // Check if folder already exists (by cleaned name)
+      let folder = folders.find((f) => f.folder_name === cleanName)
+      if (!folder) {
+        const { folder: newFolder, error } = await createAdminGalleryFolder(cleanName)
+        if (error) {
+          showToast("error", error)
+          continue
+        }
+        folder = newFolder!
+        setFolders((prev) => [folder!, ...prev])
+      }
+      folderCount++
+
+      // Upload all images into the folder
+      for (const file of imageFiles) {
+        uploadedCount++
+        setFolderUploadProgress({ current: uploadedCount, total: totalImageCount })
+        const formData = new FormData()
+        formData.append("file", file)
+        const { error } = await uploadImageToFolder(folder.folder_path, formData)
+        if (error) {
+          showToast("error", error)
+        }
+      }
+    }
+
+    showToast("success", t("folderUploadSummary", { images: uploadedCount, folders: folderCount }))
+    setFolderUploading(false)
+    setFolderUploadProgress(null)
+  }
+
+  /** Handle folder input change (Upload Folder button). */
+  async function handleFolderInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files?.length) return
+    const files = Array.from(e.target.files)
+
+    // Group files by their top-level folder name from webkitRelativePath
+    const grouped = new Map<string, File[]>()
+    for (const file of files) {
+      const relPath = (file as File & { webkitRelativePath?: string }).webkitRelativePath ?? ""
+      const parts = relPath.split("/")
+      const topFolder = parts.length > 1 ? parts[0] : "Unnamed"
+      const arr = grouped.get(topFolder) ?? []
+      arr.push(file)
+      grouped.set(topFolder, arr)
+    }
+
+    await processFolderUpload(grouped)
+    if (folderInputRef.current) folderInputRef.current.value = ""
+  }
+
+  /** Handle drag-over on the main gallery page. */
+  function handleMainDragOver(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOverMain(true)
+  }
+
+  function handleMainDragLeave(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOverMain(false)
+  }
+
+  /** Handle drop on the main gallery page – detect folders via webkitGetAsEntry. */
+  async function handleMainDrop(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOverMain(false)
+
+    const items = Array.from(e.dataTransfer.items)
+    const folderFiles = new Map<string, File[]>()
+
+    for (const item of items) {
+      const entry = (item as DataTransferItem & { webkitGetAsEntry?: () => FileSystemEntry | null }).webkitGetAsEntry?.() ?? null
+      if (entry && entry.isDirectory) {
+        const files = await readDirectoryFiles(entry as FileSystemDirectoryEntry)
+        folderFiles.set(entry.name, files)
+      }
+    }
+
+    if (folderFiles.size > 0) {
+      await processFolderUpload(folderFiles)
+    } else {
+      // Fallback: user may have dropped files using a browser that doesn't support webkitGetAsEntry,
+      // or they dropped plain files. Group by folder name from webkitRelativePath if available.
+      const files = Array.from(e.dataTransfer.files)
+      const grouped = new Map<string, File[]>()
+      for (const file of files) {
+        const relPath = (file as File & { webkitRelativePath?: string }).webkitRelativePath ?? ""
+        const parts = relPath.split("/")
+        if (parts.length > 1) {
+          const topFolder = parts[0]
+          const arr = grouped.get(topFolder) ?? []
+          arr.push(file)
+          grouped.set(topFolder, arr)
+        }
+      }
+      if (grouped.size > 0) {
+        await processFolderUpload(grouped)
+      }
+    }
+  }
+
 
   /* ── link to category / subcategory ─────────────────────── */
 
@@ -545,6 +715,13 @@ export function AdminGallery({ initialFolders, categories }: Props) {
         className="hidden"
         onChange={handleFileUpload}
       />
+      <input
+        ref={folderInputRef}
+        type="file"
+        className="hidden"
+        onChange={handleFolderInputChange}
+        {...({ webkitdirectory: "", multiple: true } as React.InputHTMLAttributes<HTMLInputElement>)}
+      />
 
       {/* ─── Header ─── */}
       <div className="flex items-center justify-between">
@@ -553,17 +730,63 @@ export function AdminGallery({ initialFolders, categories }: Props) {
           <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
         </div>
         {!activeFolder && (
-          <Button onClick={() => setShowNewFolder(true)}>
-            <FolderPlus className="h-4 w-4 mr-2" />
-            {t("createFolder")}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => folderInputRef.current?.click()} disabled={folderUploading}>
+              {folderUploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FolderUp className="h-4 w-4 mr-2" />}
+              {t("uploadFolder")}
+            </Button>
+            <Button onClick={() => setShowNewFolder(true)}>
+              <FolderPlus className="h-4 w-4 mr-2" />
+              {t("createFolder")}
+            </Button>
+          </div>
         )}
       </div>
 
       {/* ─── Folder grid (when no folder is open) ─── */}
       {!activeFolder && (
-        <>
-          {folders.length === 0 ? (
+        <div
+          onDragOver={handleMainDragOver}
+          onDragLeave={handleMainDragLeave}
+          onDrop={handleMainDrop}
+          className="space-y-4"
+        >
+          {/* Drag & drop zone for folders */}
+          <div
+            className={cn(
+              "relative rounded-lg border-2 border-dashed p-6 text-center transition-colors",
+              isDragOverMain
+                ? "border-primary bg-primary/5"
+                : "border-muted-foreground/25 hover:border-muted-foreground/50"
+            )}
+            onClick={() => !folderUploading && folderInputRef.current?.click()}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (!folderUploading) folderInputRef.current?.click() } }}
+          >
+            <FolderUp className={cn("mx-auto h-8 w-8 mb-2", isDragOverMain ? "text-primary" : "text-muted-foreground")} />
+            <p className={cn("text-sm font-medium", isDragOverMain ? "text-primary" : "text-muted-foreground")}>
+              {isDragOverMain ? t("dropFolderZoneActive") : t("dropFolderZoneText")}
+            </p>
+          </div>
+
+          {/* Folder upload progress */}
+          {folderUploading && folderUploadProgress && (
+            <div className="space-y-2 rounded-md bg-muted p-3">
+              <div className="flex items-center gap-2 text-sm">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>{t("uploadingProgress", { current: folderUploadProgress.current, total: folderUploadProgress.total })}</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted-foreground/20">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-300"
+                  style={{ width: `${Math.round((folderUploadProgress.current / folderUploadProgress.total) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {folders.length === 0 && !folderUploading ? (
             <EmptyState
               icon={FolderOpen}
               title={t("emptyGallery")}
@@ -653,7 +876,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
               ))}
             </div>
           )}
-        </>
+        </div>
       )}
 
       {/* ─── Inside a folder ─── */}
