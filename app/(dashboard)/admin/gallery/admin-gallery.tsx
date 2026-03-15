@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef } from "react"
 import NextImage from "next/image"
 import { useTranslations } from "next-intl"
 import {
@@ -224,29 +224,25 @@ export function AdminGallery({ initialFolders, categories }: Props) {
 
   /* ── drag & drop handlers ───────────────────────────────── */
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  function handleDragOver(e: React.DragEvent) {
     e.preventDefault()
     e.stopPropagation()
     setIsDragOver(true)
-  }, [])
+  }
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  function handleDragLeave(e: React.DragEvent) {
     e.preventDefault()
     e.stopPropagation()
     setIsDragOver(false)
-  }, [])
+  }
 
-  const handleDrop = useCallback(
-    async (e: React.DragEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setIsDragOver(false)
-      const files = Array.from(e.dataTransfer.files) as File[]
-      await processFiles(files)
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeFolder]
-  )
+  async function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+    const files = Array.from(e.dataTransfer.files) as File[]
+    await processFiles(files)
+  }
 
 
   /* ── link to category / subcategory ─────────────────────── */
@@ -564,7 +560,7 @@ export function AdminGallery({ initialFolders, categories }: Props) {
             onClick={() => !uploading && fileInputRef.current?.click()}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInputRef.current?.click() } }}
           >
             <Upload className={cn("mx-auto h-8 w-8 mb-2", isDragOver ? "text-primary" : "text-muted-foreground")} />
             <p className={cn("text-sm font-medium", isDragOver ? "text-primary" : "text-muted-foreground")}>
