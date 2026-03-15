@@ -1688,6 +1688,7 @@
     "matchNameConfirm": "Matched: {name} — Confirm?",
     "noMatchFound": "No match found",
     "yes": "Yes",
-    "escape": "Escape"
+    "escape": "Escape",
+    "ok": "OK"
   }
 }

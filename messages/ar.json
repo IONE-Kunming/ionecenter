@@ -1538,6 +1538,7 @@
     "matchNameConfirm": "مطابقة: {name} — تأكيد؟",
     "noMatchFound": "لم يتم العثور على مطابقة",
     "yes": "نعم",
-    "escape": "إلغاء"
+    "escape": "إلغاء",
+    "ok": "موافق"
   }
 }
