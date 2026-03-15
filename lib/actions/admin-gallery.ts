@@ -281,6 +281,12 @@ export async function linkImageToCategory(
 
 /* ── Rename image ─────────────────────────────────────────────────── */
 
+const IMAGE_MIME: Record<string, string> = {
+  jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
+  gif: "image/gif", webp: "image/webp", svg: "image/svg+xml",
+  bmp: "image/bmp", avif: "image/avif",
+}
+
 export async function renameAdminGalleryImage(
   fullPath: string,
   newName: string
@@ -291,27 +297,43 @@ export async function renameAdminGalleryImage(
 
   const supabase = createAdminClient()
 
+  // Preserve the original file extension when the user omits it
+  const oldFileName = fullPath.split("/").pop() ?? ""
+  const oldExt = oldFileName.includes(".") ? oldFileName.slice(oldFileName.lastIndexOf(".")) : ""
+  const hasExt = safeName.includes(".")
+  const finalName = hasExt ? safeName : `${safeName}${oldExt}`
+
   // Download the old file
   const { data: fileData, error: downloadErr } = await supabase.storage
     .from(GALLERY_BUCKET)
     .download(fullPath)
   if (downloadErr || !fileData) return { error: downloadErr?.message ?? "Failed to download file" }
 
+  // Convert Blob to Uint8Array for reliable upload in Node.js server actions
+  const buffer = new Uint8Array(await fileData.arrayBuffer())
+
+  // Infer content type from the file extension
+  const ext = finalName.split(".").pop()?.toLowerCase() ?? ""
+  const contentType = IMAGE_MIME[ext] || fileData.type || "application/octet-stream"
+
   // Build new storage path: same folder, new timestamp-name
   const pathParts = fullPath.split("/")
   pathParts.pop() // remove old filename
   const folderPath = pathParts.join("/")
-  const newFileName = `${Date.now()}-${safeName}`
+  const newFileName = `${Date.now()}-${finalName}`
   const newStoragePath = `${folderPath}/${newFileName}`
 
   // Upload with new name
   const { error: uploadErr } = await supabase.storage
     .from(GALLERY_BUCKET)
-    .upload(newStoragePath, fileData, { contentType: fileData.type || "application/octet-stream" })
+    .upload(newStoragePath, buffer, { contentType })
   if (uploadErr) return { error: uploadErr.message }
 
-  // Delete old file
-  await supabase.storage.from(GALLERY_BUCKET).remove([fullPath])
+  // Delete old file only after successful upload
+  const { error: deleteErr } = await supabase.storage.from(GALLERY_BUCKET).remove([fullPath])
+  if (deleteErr) {
+    console.error("[renameAdminGalleryImage] Failed to delete old file:", fullPath, deleteErr.message)
+  }
 
   // Build return item
   const { data: urlData } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(newStoragePath)
@@ -321,7 +343,7 @@ export async function renameAdminGalleryImage(
       name: newFileName,
       fullPath: newStoragePath,
       publicUrl: urlData.publicUrl,
-      size: fileData.size,
+      size: buffer.byteLength,
       createdAt: new Date().toISOString(),
     },
   }
