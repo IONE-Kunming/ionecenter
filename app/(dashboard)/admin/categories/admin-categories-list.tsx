@@ -33,7 +33,7 @@ interface Props {
   categories: SiteCategory[]
   videoUrl: string
   productCounts: Record<string, number>
-  subcategoriesWithSellers: string[]
+  subcategoriesWithSellers: Record<string, string[]>
 }
 
 export function AdminCategoriesList({ categories: initialCategories, videoUrl: initialVideoUrl, productCounts, subcategoriesWithSellers }: Props) {
@@ -83,7 +83,7 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
     [categories]
   )
 
-  const sellerSubcategorySet = useMemo(() => new Set(subcategoriesWithSellers), [subcategoriesWithSellers])
+  const sellerSubcategoryMap = useMemo(() => subcategoriesWithSellers, [subcategoriesWithSellers])
 
   // Search filtering: determine which main categories to show and which to auto-expand
   const searchQuery = categoriesSearch.search.trim().toLowerCase()
@@ -492,23 +492,30 @@ export function AdminCategoriesList({ categories: initialCategories, videoUrl: i
           )}
 
           {/* Seller status indicator for subcategories */}
-          {level > 0 && (
-            <span
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium mr-2 select-none ${
-                sellerSubcategorySet.has(cat.name)
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                  : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
-              }`}
-              title={sellerSubcategorySet.has(cat.name) ? t("sellerActive") : t("sellerInactive")}
-            >
+          {level > 0 && (() => {
+            const sellers = sellerSubcategoryMap[cat.name]
+            const isActive = sellers && sellers.length > 0
+            return (
               <span
-                className={`inline-block h-2 w-2 rounded-full ${
-                  sellerSubcategorySet.has(cat.name) ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium mr-2 select-none ${
+                  isActive
+                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                    : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
                 }`}
-              />
-              {sellerSubcategorySet.has(cat.name) ? "ON" : "OFF"}
-            </span>
-          )}
+                title={isActive ? t("sellerActive") : t("sellerInactive")}
+              >
+                <span
+                  className={`inline-block h-2 w-2 rounded-full ${
+                    isActive ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
+                  }`}
+                />
+                {isActive ? "ON" : "OFF"}
+                {isActive && (
+                  <span className="ml-1">{sellers.join(", ")}</span>
+                )}
+              </span>
+            )
+          })()}
 
           {/* Actions */}
           <div className="flex items-center gap-1">

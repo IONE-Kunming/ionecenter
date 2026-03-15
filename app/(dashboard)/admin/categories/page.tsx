@@ -6,7 +6,7 @@ export default async function AdminCategoriesPage() {
   let categories: Awaited<ReturnType<typeof getSiteCategories>> = []
   let videoUrl = ""
   let productCounts: Record<string, number> = {}
-  let subcategoriesWithSellers: string[] = []
+  let subcategoriesWithSellers: Record<string, string[]> = {}
   try {
     categories = await getSiteCategories()
     videoUrl = await getSiteSetting("homepage_video_url")
