@@ -388,7 +388,16 @@ export async function adminCreateSeller(input: {
     .select()
     .single()
 
-  if (dbError) return { error: "Clerk account created but failed to save to database: " + dbError.message }
+  if (dbError) {
+    // Attempt to clean up the orphaned Clerk account
+    try {
+      const client = await clerkClient()
+      await client.users.deleteUser(clerkUserId)
+    } catch {
+      // Cleanup failed — admin may need to manually remove the Clerk account
+    }
+    return { error: "Failed to save seller to database: " + dbError.message }
+  }
 
   // Save category if provided
   if (input.mainCategory && newUser) {
@@ -431,7 +440,7 @@ export async function adminUpdateSellerClerk(
     if (updates.display_name) {
       const nameParts = updates.display_name.trim().split(/\s+/)
       clerkUpdates.firstName = nameParts[0]
-      clerkUpdates.lastName = nameParts.slice(1).join(" ") || ""
+      clerkUpdates.lastName = nameParts.slice(1).join(" ") || undefined
     }
     if (updates.email) {
       // Create a new email address and set it as primary

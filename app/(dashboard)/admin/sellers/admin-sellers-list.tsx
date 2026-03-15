@@ -208,15 +208,20 @@ export function AdminSellersList({ sellers, siteCategories }: { sellers: SellerW
     ])
 
     // Sync name/email changes to Clerk (best-effort, don't block save)
+    let clerkSyncWarning = false
     if (Object.keys(clerkUpdates).length > 0) {
       const clerkResult = await adminUpdateSellerClerk(editUser.id, clerkUpdates)
       if (clerkResult.error) {
         console.error("Clerk sync error:", clerkResult.error)
+        clerkSyncWarning = true
       }
     }
 
     setEditSaving(false)
     if (!userResult.error && !catResult.error) {
+      if (clerkSyncWarning) {
+        alert("Database updated successfully, but failed to sync changes to Clerk authentication. The seller may need to re-verify their email.")
+      }
       setEditUser(null)
       window.location.reload()
     }
